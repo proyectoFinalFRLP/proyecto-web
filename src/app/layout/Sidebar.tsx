@@ -1,3 +1,4 @@
+import HomeIcon from '@mui/icons-material/Home'
 import {
   Drawer,
   List,
@@ -8,7 +9,6 @@ import {
   Toolbar,
   Divider,
 } from '@mui/material'
-import HomeIcon from '@mui/icons-material/Home'
 import { NavLink } from 'react-router-dom'
 import { useUiStore } from 'shared/store'
 
