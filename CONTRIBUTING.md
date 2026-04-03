@@ -5,12 +5,12 @@
 Las ramas deben nombrarse con el código de la card de Jira seguido de una descripción corta:
 
 ```
-SCRUM-123-short-description
+TESIS-123-short-description
 ```
 
 Ejemplos:
-- `SCRUM-42-user-authentication`
-- `SCRUM-87-fix-sidebar-collapse`
+- `TESIS-42-user-authentication`
+- `TESIS-87-fix-sidebar-collapse`
 
 ---
 
@@ -60,13 +60,13 @@ chore: upgrade MUI to v7
 ### Título
 
 ```
-<tipo>: [SCRUM-123] short description in english
+<tipo>: [TESIS-123] short description in english
 ```
 
 Ejemplos:
-- `feat: [SCRUM-42] add user authentication`
-- `fix: [SCRUM-87] fix sidebar collapse on mobile`
-- `docs: [SCRUM-12] add architecture ADRs`
+- `feat: [TESIS-42] add user authentication`
+- `fix: [TESIS-87] fix sidebar collapse on mobile`
+- `docs: [TESIS-12] add architecture ADRs`
 
 ### Descripción
 
@@ -85,8 +85,8 @@ Usar el template disponible en `.github/pull_request_template.md` al abrir el PR
 
 ```
 master
-  └── SCRUM-123-feature-name   ← branch por card
+  └── TESIS-123-feature-name   ← branch por card
         └── commits atómicos y descriptivos
-              └── PR: feat: [SCRUM-123] feature name
+              └── PR: feat: [TESIS-123] feature name
                     └── code review → merge a master
 ```
