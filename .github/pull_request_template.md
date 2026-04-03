@@ -19,9 +19,7 @@
 
 -
 -
--
-
----
+- ***
 
 ## Evidencia visual
 
@@ -29,7 +27,7 @@
      Podés usar el formato "Antes / Después" si aplica. -->
 
 | Antes | Después |
-|-------|---------|
+| ----- | ------- |
 |       |         |
 
 <!-- Si no hay cambios visuales, reemplazá la tabla por: "N/A" -->

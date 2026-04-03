@@ -9,6 +9,7 @@ TESIS-123-short-description
 ```
 
 Ejemplos:
+
 - `TESIS-42-user-authentication`
 - `TESIS-87-fix-sidebar-collapse`
 
@@ -24,16 +25,16 @@ El formato de los mensajes de commit sigue la convención [Conventional Commits]
 
 ### Tipos permitidos
 
-| Tipo | Cuándo usarlo |
-|------|---------------|
-| `feat` | Agregar una nueva funcionalidad |
-| `fix` | Corregir un bug |
+| Tipo       | Cuándo usarlo                                         |
+| ---------- | ----------------------------------------------------- |
+| `feat`     | Agregar una nueva funcionalidad                       |
+| `fix`      | Corregir un bug                                       |
 | `refactor` | Cambio de código que no agrega feature ni corrige bug |
-| `style` | Cambios de formato, espaciado, etc. (sin lógica) |
-| `docs` | Cambios en documentación |
-| `chore` | Tareas de mantenimiento (deps, configs, etc.) |
-| `test` | Agregar o modificar tests |
-| `perf` | Mejoras de rendimiento |
+| `style`    | Cambios de formato, espaciado, etc. (sin lógica)      |
+| `docs`     | Cambios en documentación                              |
+| `chore`    | Tareas de mantenimiento (deps, configs, etc.)         |
+| `test`     | Agregar o modificar tests                             |
+| `perf`     | Mejoras de rendimiento                                |
 
 ### Ejemplos
 
@@ -64,6 +65,7 @@ chore: upgrade MUI to v7
 ```
 
 Ejemplos:
+
 - `feat: [TESIS-42] add user authentication`
 - `fix: [TESIS-87] fix sidebar collapse on mobile`
 - `docs: [TESIS-12] add architecture ADRs`

@@ -4,17 +4,17 @@ Frontend de la aplicación web desarrollada como trabajo final de la carrera de 
 
 ## Stack
 
-| Tecnología | Rol |
-|------------|-----|
-| [React 19](https://react.dev/) | Biblioteca de UI |
-| [TypeScript 5](https://www.typescriptlang.org/) | Tipado estático |
-| [Vite 8](https://vite.dev/) | Bundler y dev server |
-| [MUI 7](https://mui.com/) | Componentes de UI |
-| [React Router 7](https://reactrouter.com/) | Routing |
-| [Zustand 5](https://zustand-demo.pmnd.rs/) | Estado global |
-| [TanStack React Query 5](https://tanstack.com/query) | Estado del servidor / data fetching |
-| [Axios](https://axios-http.com/) | Cliente HTTP |
-| [React Hook Form](https://react-hook-form.com/) + [Zod](https://zod.dev/) | Formularios y validación |
+| Tecnología                                                                | Rol                                 |
+| ------------------------------------------------------------------------- | ----------------------------------- |
+| [React 19](https://react.dev/)                                            | Biblioteca de UI                    |
+| [TypeScript 5](https://www.typescriptlang.org/)                           | Tipado estático                     |
+| [Vite 8](https://vite.dev/)                                               | Bundler y dev server                |
+| [MUI 7](https://mui.com/)                                                 | Componentes de UI                   |
+| [React Router 7](https://reactrouter.com/)                                | Routing                             |
+| [Zustand 5](https://zustand-demo.pmnd.rs/)                                | Estado global                       |
+| [TanStack React Query 5](https://tanstack.com/query)                      | Estado del servidor / data fetching |
+| [Axios](https://axios-http.com/)                                          | Cliente HTTP                        |
+| [React Hook Form](https://react-hook-form.com/) + [Zod](https://zod.dev/) | Formularios y validación            |
 
 > Las decisiones de arquitectura están documentadas en [`docs/adr/`](./docs/adr/).
 
@@ -52,12 +52,12 @@ La app estará disponible en [http://localhost:5173](http://localhost:5173).
 
 ## Scripts
 
-| Comando | Descripción |
-|---------|-------------|
-| `npm run dev` | Inicia el servidor de desarrollo con HMR |
-| `npm run build` | Compila TypeScript y genera el bundle de producción en `dist/` |
-| `npm run lint` | Ejecuta ESLint sobre todo el proyecto |
-| `npm run preview` | Sirve el bundle de producción localmente |
+| Comando           | Descripción                                                    |
+| ----------------- | -------------------------------------------------------------- |
+| `npm run dev`     | Inicia el servidor de desarrollo con HMR                       |
+| `npm run build`   | Compila TypeScript y genera el bundle de producción en `dist/` |
+| `npm run lint`    | Ejecuta ESLint sobre todo el proyecto                          |
+| `npm run preview` | Sirve el bundle de producción localmente                       |
 
 ---
 
@@ -179,11 +179,7 @@ import { useProductos } from '../hooks/useProductos'
 export function NombreFeaturePage() {
   const { data, isLoading } = useProductos()
   if (isLoading) return <LoadingSpinner />
-  return (
-    <PageWrapper>
-      {/* contenido */}
-    </PageWrapper>
-  )
+  return <PageWrapper>{/* contenido */}</PageWrapper>
 }
 ```
 
@@ -283,9 +279,9 @@ await client.delete(`/usuarios/${id}`)
 Los tipos de respuesta esperados están en `src/shared/api/types.ts`:
 
 ```ts
-ApiResponse<T>        // { data: T, message?: string }
-PaginatedResponse<T>  // { data: T[], meta: { currentPage, totalPages, ... } }
-ApiError              // { message, status?, errors? }
+ApiResponse<T> // { data: T, message?: string }
+PaginatedResponse<T> // { data: T[], meta: { currentPage, totalPages, ... } }
+ApiError // { message, status?, errors? }
 ```
 
 Para consultas paginadas, usar el hook genérico `usePaginatedQuery`:
@@ -317,7 +313,11 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>
 
 export function MiFormulario() {
-  const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<FormData>({
     resolver: zodResolver(schema),
   })
 
@@ -343,12 +343,11 @@ export function MiFormulario() {
 
 ## Decisiones de arquitectura (ADRs)
 
-| # | Decisión | Estado |
-|---|----------|--------|
-| [ADR-001](./docs/adr/ADR-001-frontend-stack.md) | Stack frontend: React + TypeScript + Vite | Aceptado |
-| [ADR-002](./docs/adr/ADR-002-state-management.md) | State management: Zustand | Aceptado |
-| [ADR-003](./docs/adr/ADR-003-data-fetching.md) | Data fetching: React Query + Axios | Aceptado |
-| [ADR-004](./docs/adr/ADR-004-ui-library.md) | UI library: MUI + Emotion | Aceptado |
-| [ADR-005](./docs/adr/ADR-005-architecture.md) | Arquitectura feature-based | Aceptado |
-| [ADR-006](./docs/adr/ADR-006-forms.md) | Formularios: React Hook Form + Zod | Aceptado |
-
+| #                                                 | Decisión                                  | Estado   |
+| ------------------------------------------------- | ----------------------------------------- | -------- |
+| [ADR-001](./docs/adr/ADR-001-frontend-stack.md)   | Stack frontend: React + TypeScript + Vite | Aceptado |
+| [ADR-002](./docs/adr/ADR-002-state-management.md) | State management: Zustand                 | Aceptado |
+| [ADR-003](./docs/adr/ADR-003-data-fetching.md)    | Data fetching: React Query + Axios        | Aceptado |
+| [ADR-004](./docs/adr/ADR-004-ui-library.md)       | UI library: MUI + Emotion                 | Aceptado |
+| [ADR-005](./docs/adr/ADR-005-architecture.md)     | Arquitectura feature-based                | Aceptado |
+| [ADR-006](./docs/adr/ADR-006-forms.md)            | Formularios: React Hook Form + Zod        | Aceptado |
