@@ -7,11 +7,10 @@ on:
       - master
       - develop
   pull_request:
-      branches:
+    branches:
       - main
       - master
       - develop
-
 
 jobs:
   lint:
