@@ -26,6 +26,10 @@ export default defineConfig([
     languageOptions: {
       ecmaVersion: 2020,
       globals: globals.browser,
+      parserOptions: {
+        project: ['./tsconfig.app.json', './tsconfig.node.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
     },
     settings: {
       react: { version: 'detect' },
@@ -53,11 +57,36 @@ export default defineConfig([
           filter: { regex: '^use[A-Z]', match: true },
           format: ['camelCase'],
         },
+        {
+          selector: 'typeLike',
+          format: ['PascalCase'],
+        },
+        {
+          selector: 'variable',
+          format: ['camelCase', 'UPPER_CASE', 'PascalCase'],
+        },
       ],
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' },
+      ],
+      '@typescript-eslint/no-non-null-assertion': 'error',
+      '@typescript-eslint/prefer-optional-chain': 'error',
 
       // React
       'react/no-array-index-key': 'error',
       'react/no-multi-comp': ['error', { ignoreStateless: true }],
+      'react/jsx-no-useless-fragment': ['error', { allowExpressions: true }],
+      'react/self-closing-comp': ['error', { component: true, html: true }],
+      'react/hook-use-state': 'error',
+      'react/jsx-no-leaked-render': ['error', { validStrategies: ['ternary', 'coerce'] }],
+      'react/no-unstable-nested-components': ['error', { allowAsProps: false }],
+
+      // Código general
+      'no-else-return': ['error', { allowElseIf: false }],
+      'no-lonely-if': 'error',
+      'object-shorthand': ['error', 'always'],
+      'prefer-template': 'error',
 
       // Imports
       'import/order': [
