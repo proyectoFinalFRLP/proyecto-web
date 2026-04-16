@@ -13,5 +13,5 @@ if ! echo "$BRANCH" | grep -qE "$ALLOWED" && ! echo "$BRANCH" | grep -qE "$REQUI
   exit 1
 fi
 
-# Run lint-staged on changed files
-npx lint-staged
+# Run full lint before pushing
+npm run lint
