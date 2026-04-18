@@ -10,11 +10,11 @@
 
 **Naming conventions** (enforced por ESLint):
 
-| Selector | Formato |
-|---|---|
-| Tipos, interfaces, enums, clases | `PascalCase` |
-| Variables | `camelCase`, `UPPER_CASE` o `PascalCase` |
-| Hooks (`use*`) | `camelCase` |
+| Selector                         | Formato                                  |
+| -------------------------------- | ---------------------------------------- |
+| Tipos, interfaces, enums, clases | `PascalCase`                             |
+| Variables                        | `camelCase`, `UPPER_CASE` o `PascalCase` |
+| Hooks (`use*`)                   | `camelCase`                              |
 
 Variables y parámetros prefijados con `_` quedan excluidos de las reglas de no-unused.
 
@@ -48,13 +48,13 @@ Línea en blanco entre cada grupo. Cada grupo ordenado alfabéticamente (case in
 
 ```ts
 // ✅ Ejemplo correcto
-import { useQuery } from '@tanstack/react-query'        // external
-import { Box } from '@mui/material'                      // external
+import { useQuery } from '@tanstack/react-query' // external
+import { Box } from '@mui/material' // external
 
-import { client } from 'shared/api/client'               // internal
-import type { ApiResponse } from 'shared/api/types'      // internal
+import { client } from 'shared/api/client' // internal
+import type { ApiResponse } from 'shared/api/types' // internal
 
-import type { User } from '../types'                      // parent
+import type { User } from '../types' // parent
 ```
 
 Sin imports duplicados (`import/no-duplicates`).
@@ -63,15 +63,15 @@ Sin imports duplicados (`import/no-duplicates`).
 
 ## 4. Código general
 
-| Regla | Descripción |
-|---|---|
-| `prefer-const` | Siempre `const`; nunca `let` para variables que no cambian |
-| `no-var` | Prohibido |
-| `eqeqeq` | Siempre `===` |
-| `no-else-return` | Sin `else` ni `else if` después de un `return` |
-| `object-shorthand` | `{ x }` en lugar de `{ x: x }` |
-| `prefer-template` | Template literals en lugar de concatenación con `+` |
-| `no-console` | Solo `console.warn` y `console.error` permitidos |
+| Regla              | Descripción                                                |
+| ------------------ | ---------------------------------------------------------- |
+| `prefer-const`     | Siempre `const`; nunca `let` para variables que no cambian |
+| `no-var`           | Prohibido                                                  |
+| `eqeqeq`           | Siempre `===`                                              |
+| `no-else-return`   | Sin `else` ni `else if` después de un `return`             |
+| `object-shorthand` | `{ x }` en lugar de `{ x: x }`                             |
+| `prefer-template`  | Template literals en lugar de concatenación con `+`        |
+| `no-console`       | Solo `console.warn` y `console.error` permitidos           |
 
 Comentarios `TODO`, `FIXME`, `HACK` al inicio de línea generan warnings ESLint.
 
@@ -93,6 +93,7 @@ Comentarios `TODO`, `FIXME`, `HACK` al inicio de línea generan warnings ESLint.
 ```
 
 Puntos clave:
+
 - **Sin punto y coma** al final de líneas
 - **Comillas simples** en strings
 - **Trailing comma** en todos los contextos (arrays, objetos, parámetros de función, etc.)
@@ -116,7 +117,7 @@ const schema = z.object({
   email: z.string().email('Email inválido'),
 })
 
-type FormData = z.infer<typeof schema>  // siempre inferir el tipo del schema
+type FormData = z.infer<typeof schema> // siempre inferir el tipo del schema
 
 export function MiFormulario() {
   const {
@@ -126,7 +127,11 @@ export function MiFormulario() {
   } = useForm<FormData>({ resolver: zodResolver(schema) })
 
   return (
-    <form onSubmit={handleSubmit((data) => { /* ... */ })}>
+    <form
+      onSubmit={handleSubmit((data) => {
+        /* ... */
+      })}
+    >
       <TextField
         {...register('nombre')}
         label="Nombre"

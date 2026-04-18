@@ -20,12 +20,15 @@
 
 <!-- Pasos concretos y reproducibles para verificar que los cambios funcionan correctamente.
      Incluí precondiciones (usuario logueado, datos de prueba, etc.) si las hay. -->
+
 ### Caso 1
+
 1.
 2.
 3.
 
 ### Caso 2
+
 1.
 2.
 3.

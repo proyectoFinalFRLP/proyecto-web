@@ -13,5 +13,6 @@ if ! echo "$BRANCH" | grep -qE "$ALLOWED" && ! echo "$BRANCH" | grep -qE "$REQUI
   exit 1
 fi
 
-# Run full lint before pushing
+# Run full lint and format check before pushing
 npm run lint
+npm run format:check

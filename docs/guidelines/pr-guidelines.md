@@ -92,6 +92,7 @@ Cuando el PR es un refactor sin cambio de comportamiento, aclararlo explícitame
 Completar cuando el PR introduce comportamiento que no es evidente solo leyendo el diff, o cuando hay casos límite importantes.
 
 **Estructura:** un caso por flujo o escenario. Cada caso incluye:
+
 - **Precondición** (si aplica): estado de la app, datos necesarios, usuario requerido.
 - **Pasos numerados**: acciones concretas y reproducibles.
 - **Resultado esperado**: qué debe verse o suceder al final.
@@ -143,6 +144,7 @@ Omitir la sección si el PR es puramente de refactor sin cambio de comportamient
 ### Bug fix
 
 La descripción debe explicar:
+
 1. Cuál era el comportamiento incorrecto (síntoma)
 2. Cuál era la causa raíz
 3. Cómo se corrigió

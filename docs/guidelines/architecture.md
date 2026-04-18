@@ -11,21 +11,21 @@ Frontend de trabajo final de la carrera de Ingeniería en Sistemas de Informaci�
 
 ## 2. Stack tecnológico
 
-| Tecnología | Versión | Rol |
-|---|---|---|
-| React | 19 | Biblioteca de UI |
-| TypeScript | ~5.9 | Tipado estático |
-| Vite | 8 | Bundler y dev server |
-| MUI (Material UI) | 7 | Componentes de UI y theming |
-| Emotion | 11 | Motor CSS-in-JS (requerido por MUI) |
-| React Router | 7 | Routing client-side |
-| Zustand | 5 | Estado global (UI state) |
-| TanStack React Query | 5 | Estado del servidor / data fetching |
-| Axios | 1 | Cliente HTTP |
-| React Hook Form | 7 | Gestión de formularios |
-| Zod | 4 | Validación de schemas y tipos |
-| Node.js | ≥20 | Entorno de desarrollo |
-| npm | ≥10 | Gestor de paquetes |
+| Tecnología           | Versión | Rol                                 |
+| -------------------- | ------- | ----------------------------------- |
+| React                | 19      | Biblioteca de UI                    |
+| TypeScript           | ~5.9    | Tipado estático                     |
+| Vite                 | 8       | Bundler y dev server                |
+| MUI (Material UI)    | 7       | Componentes de UI y theming         |
+| Emotion              | 11      | Motor CSS-in-JS (requerido por MUI) |
+| React Router         | 7       | Routing client-side                 |
+| Zustand              | 5       | Estado global (UI state)            |
+| TanStack React Query | 5       | Estado del servidor / data fetching |
+| Axios                | 1       | Cliente HTTP                        |
+| React Hook Form      | 7       | Gestión de formularios              |
+| Zod                  | 4       | Validación de schemas y tipos       |
+| Node.js              | ≥20     | Entorno de desarrollo               |
+| npm                  | ≥10     | Gestor de paquetes                  |
 
 ### Variable de entorno
 
@@ -132,20 +132,24 @@ index.html → src/main.tsx → <Providers><App /></Providers>
 - `App.tsx`: renderiza únicamente `<AppRouter />`
 
 **Providers** — jerarquía (de afuera hacia adentro):
+
 1. `QueryClientProvider` — React Query (`staleTime`: 5 min, `retry`: 1, `refetchOnWindowFocus`: false)
 2. `BrowserRouter` — React Router
 3. `ThemeWrapper` — MUI `ThemeProvider` + `CssBaseline`
 
 **Router:**
+
 - `routes.tsx`: lazy imports de cada página con `lazy(() => import(...).then(...))`
 - `AppRouter.tsx`: todas las rutas anidadas bajo `<AppLayout>`, envueltas en `<Suspense fallback={<LoadingSpinner fullScreen />}>`. Las rutas 404 redirigen a `/`.
 
 **Layout:**
+
 - `AppLayout.tsx`: flex `Header + Sidebar + <Outlet>`. El margen izquierdo responde a `sidebarOpen` del `uiStore` (drawer width: 240px).
 - `Header.tsx`: AppBar fija (`zIndex: drawer + 1`). Toggle de sidebar (MenuIcon) y toggle de tema (Brightness icons). Ambos desde `useUiStore`.
 - `Sidebar.tsx`: Drawer persistente con `navItems` estático. Usa `NavLink` con clase `active` que resalta en `primary.main`.
 
 **Tema** (`createAppTheme(mode)`):
+
 - Fuente: Inter con fallbacks al sistema
 - `borderRadius`: 8px global
 - Overrides: `MuiButton` sin elevation · `MuiCard` sin elevation, borde `1px solid`
@@ -157,6 +161,7 @@ index.html → src/main.tsx → <Providers><App /></Providers>
 ### 4.2 Capa `shared/`
 
 **Cliente HTTP** (`shared/api/client.ts`):
+
 - `baseURL`: `import.meta.env.VITE_API_URL`
 - Request interceptor: inyecta `Authorization: Bearer <token>` desde `localStorage`
 - Response interceptor: normaliza errores → `Error(message)`. Si 401: limpia el token.
@@ -164,14 +169,21 @@ index.html → src/main.tsx → <Providers><App /></Providers>
 **Tipos de API** (`shared/api/types.ts`):
 
 ```ts
-interface ApiResponse<T> { data: T; message?: string }
+interface ApiResponse<T> {
+  data: T
+  message?: string
+}
 
 interface PaginatedResponse<T> {
   data: T[]
   meta: { currentPage: number; totalPages: number; totalCount: number; perPage: number }
 }
 
-interface ApiError { message: string; status?: number; errors?: Record<string, string[]> }
+interface ApiError {
+  message: string
+  status?: number
+  errors?: Record<string, string[]>
+}
 ```
 
 **Tipos compartidos** (`shared/types/index.ts`):
@@ -180,17 +192,23 @@ interface ApiError { message: string; status?: number; errors?: Record<string, s
 type ID = string | number
 type Nullable<T> = T | null
 type Optional<T> = T | undefined
-interface Option<T = string> { label: string; value: T }
-interface PaginationParams { page: number; perPage: number }
+interface Option<T = string> {
+  label: string
+  value: T
+}
+interface PaginationParams {
+  page: number
+  perPage: number
+}
 ```
 
 **Componentes compartidos:**
 
-| Componente | Props | Descripción |
-|---|---|---|
-| `LoadingSpinner` | `fullScreen?: boolean` | CircularProgress centrado. `fullScreen`: 100vh × 100% |
-| `ErrorFallback` | `error?: Error`, `onRetry?: () => void` | Pantalla de error con botón Reintentar |
-| `PageWrapper` | `children`, `...BoxProps` | `<main>` con `p: {xs:2, md:3}`, `maxWidth: 1200`, `mx: auto` |
+| Componente       | Props                                   | Descripción                                                  |
+| ---------------- | --------------------------------------- | ------------------------------------------------------------ |
+| `LoadingSpinner` | `fullScreen?: boolean`                  | CircularProgress centrado. `fullScreen`: 100vh × 100%        |
+| `ErrorFallback`  | `error?: Error`, `onRetry?: () => void` | Pantalla de error con botón Reintentar                       |
+| `PageWrapper`    | `children`, `...BoxProps`               | `<main>` con `p: {xs:2, md:3}`, `maxWidth: 1200`, `mx: auto` |
 
 **Store global** (`shared/store/uiStore.ts`):
 

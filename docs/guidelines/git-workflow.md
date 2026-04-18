@@ -24,18 +24,19 @@ El formato es validado localmente en el hook `pre-push` (Husky) y en el CI de Gi
 
 **Formato:** `<tipo>: <descripción en inglés>`
 
-| Tipo | Cuándo usarlo |
-|---|---|
-| `feat` | Nueva funcionalidad |
-| `fix` | Corrección de bug |
-| `refactor` | Cambio de código sin nueva feature ni bug fix |
-| `style` | Cambios de formato o espaciado (sin lógica) |
-| `docs` | Cambios en documentación |
-| `chore` | Mantenimiento (dependencias, configuraciones, etc.) |
-| `test` | Agregar o modificar tests |
-| `perf` | Mejoras de rendimiento |
+| Tipo       | Cuándo usarlo                                       |
+| ---------- | --------------------------------------------------- |
+| `feat`     | Nueva funcionalidad                                 |
+| `fix`      | Corrección de bug                                   |
+| `refactor` | Cambio de código sin nueva feature ni bug fix       |
+| `style`    | Cambios de formato o espaciado (sin lógica)         |
+| `docs`     | Cambios en documentación                            |
+| `chore`    | Mantenimiento (dependencias, configuraciones, etc.) |
+| `test`     | Agregar o modificar tests                           |
+| `perf`     | Mejoras de rendimiento                              |
 
 **Reglas:**
+
 - Descripción en **inglés**
 - Modo **imperativo** ("add", no "added" ni "adds")
 - Sin mayúscula inicial en la descripción
@@ -65,6 +66,7 @@ docs: [TESIS-12] add architecture guidelines
 ```
 
 **Reglas:**
+
 - 1 PR por card de Jira
 - El PR debe pasar build (`npm run build`) y lint (`npm run lint`) antes de solicitar review
 - Mínimo **1 aprobación** requerida para hacer merge
@@ -89,11 +91,11 @@ master
 
 ## 5. Hooks de Git (Husky)
 
-| Hook | Acción |
-|---|---|
-| `commit-msg` | Valida el mensaje de commit con commitlint |
-| `pre-push` | Valida el nombre de la rama + ejecuta `npm run lint` |
-| `pre-commit` | Sin configuración activa actualmente |
+| Hook         | Acción                                               |
+| ------------ | ---------------------------------------------------- |
+| `commit-msg` | Valida el mensaje de commit con commitlint           |
+| `pre-push`   | Valida el nombre de la rama + ejecuta `npm run lint` |
+| `pre-commit` | Sin configuración activa actualmente                 |
 
 > `lint-staged` está configurado en `package.json` pero no está asignado a ningún hook activo. El lint completo corre en `pre-push`.
 
@@ -103,10 +105,10 @@ master
 
 Pipeline en `.github/workflows/ci.yml`. Se dispara en push y pull_request sobre `main`, `master` y `develop`.
 
-| Job | Acción | Dependencia |
-|---|---|---|
-| `lint` | ESLint (`--max-warnings 0`) + Prettier check | — |
-| `branch-name` | Valida nombre de rama (solo en PRs) | — |
-| `build` | `npm run build` (tsc + vite) | `lint` |
+| Job           | Acción                                       | Dependencia |
+| ------------- | -------------------------------------------- | ----------- |
+| `lint`        | ESLint (`--max-warnings 0`) + Prettier check | —           |
+| `branch-name` | Valida nombre de rama (solo en PRs)          | —           |
+| `build`       | `npm run build` (tsc + vite)                 | `lint`      |
 
 El job `build` solo corre si `lint` pasa.
