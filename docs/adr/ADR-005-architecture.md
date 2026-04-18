@@ -8,7 +8,6 @@
 ## Contexto
 
 El proyecto necesita una estructura de carpetas que sea:
-
 - Escalable a medida que se agreguen features
 - Fácil de navegar para cualquier integrante del equipo
 - Clara en cuanto a dónde vive cada pieza de código
@@ -71,12 +70,10 @@ import { client } from 'shared/api/client'
 ## Alternativas consideradas
 
 ### Estructura por tipo de archivo (components/, hooks/, pages/, ...)
-
 - ❌ No escala: a medida que crecen los features, las carpetas se vuelven enormes y difíciles de navegar
 - ❌ Los archivos relacionados están dispersos en diferentes carpetas
 
 ### Monorepo con workspaces
-
 - ✅ Máximo aislamiento entre módulos
 - ❌ Overhead de configuración excesivo para el alcance del proyecto
 - ❌ Requiere herramientas adicionales (Turborepo, Nx)

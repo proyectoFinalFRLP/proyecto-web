@@ -1,7 +1,12 @@
-import { Card, CardContent, Typography, Avatar, Box } from '@mui/material'
-import { formatDate } from 'shared/utils'
-
+import {
+  Card,
+  CardContent,
+  Typography,
+  Avatar,
+  Box,
+} from '@mui/material'
 import type { User } from '../types'
+import { formatDate } from 'shared/utils'
 
 interface UserCardProps {
   user: User
@@ -12,7 +17,9 @@ export function UserCard({ user }: UserCardProps) {
     <Card>
       <CardContent>
         <Box display="flex" alignItems="center" gap={2}>
-          <Avatar sx={{ bgcolor: 'primary.main' }}>{user.name.charAt(0).toUpperCase()}</Avatar>
+          <Avatar sx={{ bgcolor: 'primary.main' }}>
+            {user.name.charAt(0).toUpperCase()}
+          </Avatar>
           <Box>
             <Typography variant="subtitle1" fontWeight={600}>
               {user.name}

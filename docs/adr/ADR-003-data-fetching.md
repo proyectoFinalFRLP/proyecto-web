@@ -8,7 +8,6 @@
 ## Contexto
 
 La aplicación consume una API REST de Ruby on Rails. Se necesita una estrategia para:
-
 - Realizar peticiones HTTP
 - Gestionar estados de carga/error/éxito
 - Cachear respuestas para evitar refetches innecesarios
@@ -26,19 +25,16 @@ Regla: **nunca usar `useEffect` + `useState` para fetch de datos**. Siempre usar
 ## Alternativas consideradas
 
 ### fetch nativo + useEffect
-
 - ✅ Sin dependencias externas
 - ❌ Requiere implementar manualmente caché, loading states, error handling, refetch, etc.
 - ❌ Propenso a race conditions y memory leaks
 
 ### SWR (Vercel)
-
 - ✅ API simple, similar a React Query
 - ❌ Menos features que React Query (sin mutations nativas, paginación más limitada)
 - ❌ Menor adopción y comunidad
 
 ### RTK Query (Redux Toolkit)
-
 - ✅ Integrado con Redux, DevTools potentes
 - ❌ Requiere adoptar Redux (descartado en ADR-002)
 - ❌ Más verboso y acoplado

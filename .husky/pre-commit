@@ -1,2 +1,0 @@
-# No pre-commit checks configured.
-# Linting runs on pre-push via lint-staged.

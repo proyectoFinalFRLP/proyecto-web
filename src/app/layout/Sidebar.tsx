@@ -1,4 +1,3 @@
-import HomeIcon from '@mui/icons-material/Home'
 import {
   Drawer,
   List,
@@ -9,12 +8,15 @@ import {
   Toolbar,
   Divider,
 } from '@mui/material'
+import HomeIcon from '@mui/icons-material/Home'
 import { NavLink } from 'react-router-dom'
 import { useUiStore } from 'shared/store'
 
 const DRAWER_WIDTH = 240
 
-const navItems = [{ label: 'Inicio', path: '/', icon: <HomeIcon /> }]
+const navItems = [
+  { label: 'Inicio', path: '/', icon: <HomeIcon /> },
+]
 
 export function Sidebar() {
   const { sidebarOpen } = useUiStore()

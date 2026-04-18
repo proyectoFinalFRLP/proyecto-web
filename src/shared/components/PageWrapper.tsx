@@ -1,5 +1,5 @@
-import { Box, type BoxProps } from '@mui/material'
 import type { ReactNode } from 'react'
+import { Box, type BoxProps } from '@mui/material'
 
 interface PageWrapperProps extends BoxProps {
   children: ReactNode

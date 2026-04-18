@@ -1,8 +1,9 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
 import { BrowserRouter } from 'react-router-dom'
-
-import { ThemeWrapper } from './ThemeWrapper'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { ThemeProvider, CssBaseline } from '@mui/material'
+import { createAppTheme } from 'app/theme/theme'
+import { useUiStore } from 'shared/store'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -13,6 +14,18 @@ const queryClient = new QueryClient({
     },
   },
 })
+
+function ThemeWrapper({ children }: { children: ReactNode }) {
+  const themeMode = useUiStore((state) => state.themeMode)
+  const theme = createAppTheme(themeMode)
+
+  return (
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      {children}
+    </ThemeProvider>
+  )
+}
 
 export function Providers({ children }: { children: ReactNode }) {
   return (
