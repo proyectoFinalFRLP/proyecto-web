@@ -18,23 +18,27 @@ La configuración del tema (paleta, tipografía, breakpoints, overrides de compo
 ## Alternativas consideradas
 
 ### Tailwind CSS + Headless UI
+
 - ✅ Máxima flexibilidad de diseño, sin opiniones visuales
 - ✅ Clases utilitarias producen bundles pequeños
 - ❌ Requiere diseñar cada componente desde cero
 - ❌ Curva de aprendizaje para mantener consistencia sin design tokens
 
 ### Ant Design
+
 - ✅ Set de componentes muy completo
 - ❌ Estilo difícil de personalizar sin conflictos
 - ❌ Bundle size mayor
 - ❌ Orientado a aplicaciones enterprise asiáticas (patrones no siempre adecuados)
 
 ### Chakra UI
+
 - ✅ API amigable, buena accesibilidad
 - ❌ Menor adopción y comunidad que MUI
 - ❌ Personalización más limitada para temas complejos
 
 ### shadcn/ui
+
 - ✅ Componentes copiables y totalmente controlables
 - ❌ Requiere Tailwind (ver contras arriba)
 - ❌ Más tiempo de setup inicial

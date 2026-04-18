@@ -13,25 +13,28 @@ Este proyecto es el frontend de una aplicación web para el trabajo final de la 
 
 Se adopta el siguiente stack base:
 
-| Tecnología | Versión | Rol |
-|------------|---------|-----|
-| **React** | 19 | Biblioteca de UI |
-| **TypeScript** | 5.9 | Tipado estático |
-| **Vite** | 8 | Bundler y dev server |
+| Tecnología     | Versión | Rol                  |
+| -------------- | ------- | -------------------- |
+| **React**      | 19      | Biblioteca de UI     |
+| **TypeScript** | 5.9     | Tipado estático      |
+| **Vite**       | 8       | Bundler y dev server |
 
 ## Alternativas consideradas
 
 ### Vue 3
+
 - ✅ Curva de aprendizaje más suave
 - ❌ Menor adopción en el mercado laboral local
 - ❌ Menor cantidad de recursos y ejemplos disponibles
 
 ### Next.js
+
 - ✅ SSR/SSG out of the box
 - ❌ Complejidad innecesaria para una SPA que consume API externa
 - ❌ Overhead de framework opinionado para un proyecto académico
 
 ### Angular
+
 - ✅ Framework completo y opinado (menos decisiones)
 - ❌ Curva de aprendizaje alta
 - ❌ Verbosidad excesiva para el alcance del proyecto

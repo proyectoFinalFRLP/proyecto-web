@@ -18,16 +18,16 @@ export function ErrorFallback({ error, onRetry }: ErrorFallbackProps) {
       <Typography variant="h6" color="error">
         Algo salió mal
       </Typography>
-      {error && (
+      {error ? (
         <Typography variant="body2" color="text.secondary">
           {error.message}
         </Typography>
-      )}
-      {onRetry && (
+      ) : null}
+      {onRetry ? (
         <Button variant="outlined" onClick={onRetry}>
           Reintentar
         </Button>
-      )}
+      ) : null}
     </Box>
   )
 }
