@@ -3,10 +3,8 @@ import { client } from 'shared/api/client'
 import type { PaginatedResponse } from 'shared/api/types'
 import type { PaginationParams } from 'shared/types'
 
-interface UsePaginatedQueryOptions<T> extends Omit<
-  UseQueryOptions<PaginatedResponse<T>>,
-  'queryKey' | 'queryFn'
-> {
+interface UsePaginatedQueryOptions<T>
+  extends Omit<UseQueryOptions<PaginatedResponse<T>>, 'queryKey' | 'queryFn'> {
   endpoint: string
   params?: PaginationParams & Record<string, unknown>
 }

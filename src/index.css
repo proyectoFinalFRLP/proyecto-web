@@ -1,6 +1,4 @@
 /* Global reset — los estilos de componentes los maneja MUI */
-*,
-*::before,
-*::after {
+*, *::before, *::after {
   box-sizing: border-box;
 }

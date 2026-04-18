@@ -20,7 +20,10 @@ client.interceptors.response.use(
   (error) => {
     if (axios.isAxiosError(error)) {
       const status = error.response?.status
-      const message = error.response?.data?.error ?? error.response?.data?.message ?? error.message
+      const message =
+        error.response?.data?.error ??
+        error.response?.data?.message ??
+        error.message
 
       if (status === 401) {
         localStorage.removeItem('token')

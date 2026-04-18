@@ -1,8 +1,7 @@
-import { AppLayout } from 'app/layout/AppLayout'
 import { Suspense } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
+import { AppLayout } from 'app/layout/AppLayout'
 import { LoadingSpinner } from 'shared/components'
-
 import { HomePageLazy } from './routes'
 
 function NotFoundPage() {

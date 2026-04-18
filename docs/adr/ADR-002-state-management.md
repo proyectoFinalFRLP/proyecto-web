@@ -18,7 +18,6 @@ Los stores se organizan en `src/shared/store/`, un archivo por dominio de estado
 ## Alternativas consideradas
 
 ### Redux Toolkit
-
 - ✅ Estándar de la industria, ampliamente conocido
 - ✅ DevTools potentes
 - ❌ Boilerplate significativo incluso con RTK
@@ -26,14 +25,12 @@ Los stores se organizan en `src/shared/store/`, un archivo por dominio de estado
 - ❌ Excesivo para el alcance del proyecto
 
 ### Context API (nativa de React)
-
 - ✅ Sin dependencias externas
 - ❌ Re-renders innecesarios sin optimizaciones manuales
 - ❌ No escala bien para múltiples dominios de estado
 - ❌ Requiere mucho código repetitivo
 
 ### Jotai / Recoil
-
 - ✅ Modelo atómico elegante
 - ❌ Menor adopción que Zustand
 - ❌ El modelo mental es menos intuitivo para el equipo

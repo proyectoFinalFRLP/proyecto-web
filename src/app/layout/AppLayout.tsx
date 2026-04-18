@@ -1,9 +1,8 @@
 import { Box, Toolbar } from '@mui/material'
 import { Outlet } from 'react-router-dom'
-import { useUiStore } from 'shared/store'
-
 import { Header } from './Header'
 import { Sidebar } from './Sidebar'
+import { useUiStore } from 'shared/store'
 
 const DRAWER_WIDTH = 240
 
