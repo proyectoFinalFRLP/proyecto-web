@@ -1,64 +1,50 @@
-## Ticket de Jira
+## 🔗 Link
 
 <!-- Reemplazá TESIS-XXX con el número de tu card. -->
 
-(https://proyectofinalfrlp.atlassian.net/browse/TESIS-XXX
+> https://proyectofinalfrlp.atlassian.net/browse/TESIS-XXX
 
----
-
-## Descripción
+## 📝 Descripción
 
 <!-- Explicá qué hace este PR y por qué es necesario.
      Incluí contexto relevante: decisiones de diseño, alternativas descartadas, limitaciones conocidas. -->
 
----
-
-## Cambios realizados
+## 🛠️ Cambios realizados
 
 <!-- Lista los cambios principales introducidos en este PR. -->
 
 -
 -
--
 
----
-
-## Evidencia visual
-
-<!-- Si este PR incluye cambios en la UI, adjuntá screenshots o videos arrastrándolos aquí.
-     Podés usar el formato "Antes / Después" si aplica. -->
-
-| Antes | Después |
-|-------|---------|
-|       |         |
-
-<!-- Si no hay cambios visuales, reemplazá la tabla por: "N/A" -->
-
----
-
-## Cómo probar
+## 🧪 Cómo probarlo (Opcional)
 
 <!-- Pasos concretos y reproducibles para verificar que los cambios funcionan correctamente.
      Incluí precondiciones (usuario logueado, datos de prueba, etc.) si las hay. -->
+
+### Caso 1
 
 1.
 2.
 3.
 
----
+### Caso 2
 
-## Impacto y consideraciones
+1.
+2.
+3.
 
-<!-- Completá solo las secciones que apliquen. Eliminá las que no. -->
+## 📸 Evidencia (Opcional)
 
-**¿Introduce breaking changes?**
-No / Sí — (describir cuáles y cómo migrar)
+<!-- Si este PR incluye cambios en la UI, adjuntá screenshots o videos arrastrándolos aquí.
+     Podés usar el formato "Antes / Después" si aplica. -->
 
-**¿Requiere nuevas variables de entorno?**
-No / Sí — (listar las variables y sus valores de ejemplo)
+| Antes | Después |
+| ----- | ------- |
+|       |         |
 
 **¿Afecta la arquitectura o genera un nuevo patrón?**
 No / Sí — (describir el cambio y si requiere actualizar `docs/adr/`)
 
 ---
 
+<!-- Si no hay cambios visuales, reemplazá la tabla por: "N/A" -->
