@@ -42,4 +42,9 @@
 | ----- | ------- |
 |       |         |
 
+**¿Afecta la arquitectura o genera un nuevo patrón?**
+No / Sí — (describir el cambio y si requiere actualizar `docs/adr/`)
+
+---
+
 <!-- Si no hay cambios visuales, reemplazá la tabla por: "N/A" -->
