@@ -61,3 +61,4 @@ No / Sí — (listar las variables y sus valores de ejemplo)
 No / Sí — (describir el cambio y si requiere actualizar `docs/adr/`)
 
 ---
+
