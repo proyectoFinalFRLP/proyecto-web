@@ -11,7 +11,7 @@ import { muiTypography } from './typography'
 export function buildComponents(mode: ThemeMode): ThemeOptions['components'] {
   return {
     MuiCssBaseline: muiCssBaseline(mode),
-    MuiCard: muiCard(mode),
+    MuiCard: muiCard(),
     MuiTypography: muiTypography(),
   }
 }

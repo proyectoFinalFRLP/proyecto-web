@@ -55,6 +55,37 @@ export const layout = {
 } as const
 
 // ──────────────────────────────────────────────────────────────────────────────
+// Elevación — "luminous layering" (estilo v1.2). 4 niveles:
+//   0 base · 1 cards/paneles · 2 menús/dropdowns · 3 modales/foco.
+// Dark: borde blanco creciente + sombra sutil. Light: sombra ambiental difusa.
+// ──────────────────────────────────────────────────────────────────────────────
+
+export const elevationShadow = {
+  dark: [
+    'none',
+    '0 1px 2px rgba(0, 0, 0, 0.3)',
+    '0 12px 32px rgba(0, 0, 0, 0.5)',
+    '0 24px 48px rgba(0, 0, 0, 0.6)',
+  ],
+  light: [
+    'none',
+    '0 1px 3px rgba(16, 24, 40, 0.06), 0 1px 2px rgba(16, 24, 40, 0.04)',
+    '0 12px 32px rgba(16, 24, 40, 0.12)',
+    '0 24px 48px rgba(16, 24, 40, 0.16)',
+  ],
+} as const
+
+// Opacidad del borde blanco por nivel (solo dark; 0 = sin borde).
+export const elevationBorderAlpha = [0, 0.06, 0.08, 0.1] as const
+
+// Halo cyan (acción #38bdf8) para estados activos y capas luminosas en dark.
+// Reutilizable: overlays (nivel 2/3), botón Primary activo, contenedores activos.
+export const glow = {
+  subtle: '0 0 16px rgba(56, 189, 248, 0.12)',
+  strong: '0 0 20px rgba(56, 189, 248, 0.4)',
+} as const
+
+// ──────────────────────────────────────────────────────────────────────────────
 // Breakpoints (custom del DS). Se mapean a las keys estándar de MUI en theme.ts
 // para no romper componentes internos que dependen de xs/sm/md/lg/xl.
 // ──────────────────────────────────────────────────────────────────────────────

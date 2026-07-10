@@ -42,6 +42,15 @@ declare module '@mui/material/styles' {
     containerHighest: string
   }
 
+  // Escala de elevación (luminous layering). Índice 0-3: base/card/dropdown/modal.
+  interface Theme {
+    elevation: { boxShadow: string; border: string }[]
+  }
+
+  interface ThemeOptions {
+    elevation?: { boxShadow: string; border: string }[]
+  }
+
   // `neutral` no existe en la paleta por defecto de MUI.
   interface Palette {
     neutral: PaletteColor
