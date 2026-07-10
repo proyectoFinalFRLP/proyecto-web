@@ -1,101 +1,128 @@
-import { createTheme, type ThemeOptions } from '@mui/material/styles'
+import { alpha, createTheme } from '@mui/material/styles'
+import type { PaletteOptions, SimplePaletteColorOptions, ThemeOptions } from '@mui/material/styles'
 
-const baseOptions: ThemeOptions = {
-  typography: {
-    fontFamily: [
-      'Inter',
-      '-apple-system',
-      'BlinkMacSystemFont',
-      '"Segoe UI"',
-      'Roboto',
-      '"Helvetica Neue"',
-      'Arial',
-      'sans-serif',
-    ].join(','),
-    h1: { fontWeight: 700 },
-    h2: { fontWeight: 600 },
-    h3: { fontWeight: 600 },
-  },
-  shape: {
-    borderRadius: 8,
-  },
-  components: {
-    MuiButton: {
-      defaultProps: {
-        disableElevation: true,
-      },
-    },
-    MuiCard: {
-      defaultProps: {
-        elevation: 0,
-      },
-      styleOverrides: {
-        root: {
-          border: '1px solid',
-        },
-      },
-    },
-  },
+import { buildComponents } from './components'
+import {
+  breakpoints,
+  fontFamily,
+  motion,
+  radius,
+  roleColors,
+  semanticColors,
+  typographyScale,
+} from './tokens'
+import type { SemanticColor, ThemeMode, TypographyToken } from './tokens'
+import { rem } from './utils'
+
+// ── Tipografía ────────────────────────────────────────────────────────────────
+
+function typeVariant(token: TypographyToken) {
+  const t = typographyScale[token]
+  return {
+    fontFamily: t.family === 'mono' ? fontFamily.mono : fontFamily.sans,
+    fontSize: rem(t.fontSize),
+    fontWeight: t.fontWeight,
+    lineHeight: t.lineHeight,
+  }
 }
 
-const lightOptions: ThemeOptions = {
-  ...baseOptions,
-  palette: {
-    mode: 'light',
-    primary: {
-      main: '#1976d2',
-    },
-    secondary: {
-      main: '#9c27b0',
-    },
-    background: {
-      default: '#f5f5f5',
-      paper: '#ffffff',
-    },
-    divider: '#e0e0e0',
-  },
-  components: {
-    ...baseOptions.components,
-    MuiCard: {
-      ...baseOptions.components?.MuiCard,
-      styleOverrides: {
-        root: {
-          borderColor: '#e0e0e0',
-        },
-      },
-    },
-  },
+const typography: ThemeOptions['typography'] = {
+  fontFamily: fontFamily.sans,
+  h1: typeVariant('h1'),
+  h2: typeVariant('h2'),
+  h3: typeVariant('h3'),
+  displayLg: typeVariant('displayLg'),
+  displaySm: typeVariant('displaySm'),
+  bodyLg: typeVariant('bodyLg'),
+  bodyMd: typeVariant('bodyMd'),
+  labelMd: typeVariant('labelMd'),
+  labelSm: typeVariant('labelSm'),
+  dataMono: typeVariant('dataMono'),
 }
 
-const darkOptions: ThemeOptions = {
-  ...baseOptions,
-  palette: {
-    mode: 'dark',
-    primary: {
-      main: '#90caf9',
-    },
-    secondary: {
-      main: '#ce93d8',
-    },
-    background: {
-      default: '#121212',
-      paper: '#1e1e1e',
-    },
-    divider: '#333333',
-  },
-  components: {
-    ...baseOptions.components,
-    MuiCard: {
-      ...baseOptions.components?.MuiCard,
-      styleOverrides: {
-        root: {
-          borderColor: '#333333',
-        },
-      },
-    },
-  },
+// ── Paleta ──────────────────────────────────────────────────────────────────
+
+// Cada semántico expone main/light/dark (para MUI) + los tonos del DS
+// (container/strong/onContainer). En dark el fondo del badge es `base` al 12%.
+function semanticPalette(mode: ThemeMode, key: SemanticColor): SimplePaletteColorOptions {
+  const s = semanticColors[key]
+  if (mode === 'dark') {
+    return {
+      main: s.baseD,
+      light: alpha(s.baseD, 0.22),
+      dark: s.baseD,
+      strong: s.baseD,
+      container: alpha(s.baseD, 0.12),
+      onContainer: s.textD,
+      contrastText: '#051424',
+    }
+  }
+  return {
+    main: s.baseL,
+    light: s.containerL,
+    dark: s.strongL,
+    strong: s.strongL,
+    container: s.containerL,
+    onContainer: s.textL,
+    contrastText: '#ffffff',
+  }
 }
 
-export function createAppTheme(mode: 'light' | 'dark') {
-  return createTheme(mode === 'dark' ? darkOptions : lightOptions)
+function buildPalette(mode: ThemeMode): PaletteOptions {
+  const role = roleColors[mode]
+  return {
+    mode,
+    // Regla del primario: en light el CTA es navy con texto blanco; en dark es
+    // sky brillante con texto oscuro.
+    primary: { main: role.primary, contrastText: mode === 'light' ? '#ffffff' : '#051424' },
+    secondary: { main: role.accent, contrastText: '#051424' },
+    success: semanticPalette(mode, 'success'),
+    warning: semanticPalette(mode, 'warning'),
+    error: semanticPalette(mode, 'error'),
+    info: semanticPalette(mode, 'info'),
+    neutral: semanticPalette(mode, 'neutral'),
+    background: { default: role.background, paper: role.surface, containerHighest: role.containerHighest },
+    divider: role.outlineVariant,
+    text: { primary: role.onSurface, secondary: role.onSurfaceVariant },
+  }
+}
+
+// ── Tema ──────────────────────────────────────────────────────────────────────
+
+export function createAppTheme(mode: ThemeMode) {
+  return createTheme({
+    cssVariables: true,
+    palette: buildPalette(mode),
+    typography,
+    shape: { borderRadius: radius.base },
+    // Breakpoints del DS mapeados a las keys estándar de MUI (xs/sm/md/lg/xl)
+    // para no romper componentes internos que dependen de esas keys.
+    breakpoints: {
+      values: {
+        xs: breakpoints.mobile,
+        sm: breakpoints.tablet,
+        md: breakpoints.desktopSm,
+        lg: breakpoints.desktop,
+        xl: breakpoints.wide,
+      },
+    },
+    transitions: {
+      duration: {
+        shortest: motion.duration.fast,
+        shorter: motion.duration.fast,
+        short: motion.duration.base,
+        standard: motion.duration.base,
+        complex: motion.duration.slow,
+        enteringScreen: motion.duration.slow,
+        leavingScreen: motion.duration.base,
+      },
+      easing: {
+        easeInOut: motion.easing.standard,
+        easeOut: motion.easing.decelerate,
+        easeIn: motion.easing.accelerate,
+        sharp: motion.easing.standard,
+      },
+    },
+    components: buildComponents(mode),
+  })
 }
