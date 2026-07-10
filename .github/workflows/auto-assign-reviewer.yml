@@ -15,11 +15,17 @@ jobs:
       - uses: actions/github-script@v7
         with:
           # Usa el GITHUB_TOKEN del propio workflow (no requiere un PAT ni secret).
-          # Elige un revisor entre los colaboradores del repo, excluyendo al autor.
+          # Elige un revisor de la lista del equipo, excluyendo al autor.
           script: |
             const { owner, repo } = context.repo;
             const pr = context.payload.pull_request;
             const author = pr.user.login;
+
+            // Pool de revisores del proyecto. Actualizar si cambia el equipo.
+            // Se usa una lista explícita en lugar de listCollaborators porque el
+            // GITHUB_TOKEN del workflow no devuelve de forma confiable a todos los
+            // colaboradores del repo (p. ej. omite miembros con membresía privada).
+            const REVIEWERS = ['LauAubert', 'TomasMartin2004'];
 
             // Si el PR ya tiene revisores pedidos, no hacemos nada.
             if (pr.requested_reviewers && pr.requested_reviewers.length > 0) {
@@ -27,17 +33,7 @@ jobs:
               return;
             }
 
-            const { data: collaborators } = await github.rest.repos.listCollaborators({
-              owner,
-              repo,
-              permission: 'push',
-              affiliation: 'all',
-            });
-
-            const candidates = collaborators
-              .filter(c => c.type === 'User')
-              .map(c => c.login)
-              .filter(login => login !== author);
+            const candidates = REVIEWERS.filter(login => login !== author);
 
             if (candidates.length === 0) {
               core.info('No hay revisores disponibles distintos del autor.');
