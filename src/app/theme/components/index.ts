@@ -14,7 +14,7 @@ export function buildComponents(mode: ThemeMode): ThemeOptions['components'] {
   return {
     MuiCssBaseline: muiCssBaseline(mode),
     MuiButton: muiButton(mode),
-    MuiOutlinedInput: muiOutlinedInput(),
+    MuiOutlinedInput: muiOutlinedInput(mode),
     MuiTextField: muiTextField(),
     MuiCard: muiCard(),
     MuiTypography: muiTypography(),
