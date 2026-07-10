@@ -14,7 +14,8 @@ interface UiState {
 export const useUiStore = create<UiState>()(
   persist(
     (set) => ({
-      themeMode: 'light',
+      // Dark es el tema canónico del design system (ADR-007, decisión D1).
+      themeMode: 'dark',
       sidebarOpen: true,
       toggleTheme: () =>
         set((state) => ({
