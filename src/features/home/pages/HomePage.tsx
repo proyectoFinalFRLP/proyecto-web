@@ -1,5 +1,6 @@
 import { Box, Button, Divider, Typography } from '@mui/material'
 import { useState } from 'react'
+import { Link as RouterLink } from 'react-router-dom'
 import { PageWrapper } from 'shared/components'
 
 import { UsersExample } from '../components/UsersExample'
@@ -16,6 +17,10 @@ export function HomePage() {
         Este es el boilerplate base del proyecto. Explorá el código en <code>src/</code> y los ADRs
         en <code>docs/adr/</code> para entender las decisiones de arquitectura.
       </Typography>
+
+      <Button variant="contained" component={RouterLink} to="/design-system" sx={{ mb: 4 }}>
+        Ver Design System
+      </Button>
 
       <Divider sx={{ mb: 4 }} />
 
