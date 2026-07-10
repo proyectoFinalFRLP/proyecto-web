@@ -8,7 +8,7 @@ import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline'
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined'
 import WarningAmberOutlinedIcon from '@mui/icons-material/WarningAmberOutlined'
-import { Box, Button, Divider, IconButton, Stack, Typography } from '@mui/material'
+import { Box, Button, Divider, IconButton, Stack, TextField, Typography } from '@mui/material'
 import { useState } from 'react'
 import type { ReactElement, ReactNode } from 'react'
 import { PageWrapper, StatusBadge, StatusSelect, type StatusVariant } from 'shared/components'
@@ -19,6 +19,8 @@ import {
   buttonHierarchies,
   buttonIntents,
   dsCopy,
+  elevationLevels,
+  inputSamples,
   statusOptions,
   typeSpecs,
 } from '../content'
@@ -82,6 +84,33 @@ export function DesignSystemPage() {
                   {t.note}
                 </Typography>
                 <Typography variant={t.variant}>{t.sample}</Typography>
+              </Box>
+            ))}
+          </Stack>
+        </Section>
+
+        <Divider />
+
+        <Section title={dsCopy.sections.elevation.title} subtitle={dsCopy.sections.elevation.subtitle}>
+          <Stack direction="row" spacing={3} flexWrap="wrap" useFlexGap>
+            {elevationLevels.map(({ level, label }) => (
+              <Box
+                key={level}
+                sx={(theme) => ({
+                  width: 150,
+                  height: 96,
+                  borderRadius: 3,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  bgcolor: 'background.paper',
+                  border: theme.elevation[level].border,
+                  boxShadow: theme.elevation[level].boxShadow,
+                })}
+              >
+                <Typography variant="labelMd" color="text.secondary">
+                  {label}
+                </Typography>
               </Box>
             ))}
           </Stack>
@@ -169,6 +198,33 @@ export function DesignSystemPage() {
             <Button variant="outlined" color="error" disabled>
               {dsCopy.labels.disabled}
             </Button>
+          </Stack>
+        </Section>
+
+        <Divider />
+
+        <Section title={dsCopy.sections.inputs.title} subtitle={dsCopy.sections.inputs.subtitle}>
+          <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap sx={{ maxWidth: 680 }}>
+            {inputSamples.map((input) => (
+              <Stack key={input.label} spacing={0.75} sx={{ minWidth: 200 }}>
+                <Typography
+                  variant="labelMd"
+                  component="label"
+                  color={input.error ? 'error' : input.disabled ? 'text.disabled' : 'text.secondary'}
+                  sx={{ textTransform: 'uppercase', letterSpacing: '0.05em' }}
+                >
+                  {input.label}
+                </Typography>
+                <TextField
+                  placeholder={input.placeholder}
+                  defaultValue={input.defaultValue}
+                  helperText={input.helperText}
+                  disabled={input.disabled}
+                  error={input.error}
+                  size="small"
+                />
+              </Stack>
+            ))}
           </Stack>
         </Section>
 

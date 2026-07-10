@@ -7,15 +7,17 @@ import type { StatusBadgeSize, StatusVariant } from 'shared/components'
 
 export const dsCopy = {
   pageTitle: 'Design System — Precision OMS',
-  pageSubtitle: 'Catálogo de tokens y componentes del design system: tipografía, botones y badges.',
+  pageSubtitle: 'Catálogo de tokens y componentes del design system.',
   sections: {
     typography: { title: 'Tipografía', subtitle: 'Plus Jakarta Sans + Space Grotesk' },
+    elevation: { title: 'Elevación', subtitle: '4 niveles (0-3) — glow cyan en overlays sobre dark' },
     buttons: {
       title: 'Botones — intención × jerarquía',
       subtitle: 'Cualquier intención se combina con cualquier jerarquía',
     },
     buttonIcons: { title: 'Botones con ícono', subtitle: 'Ícono + texto y solo ícono' },
     sizes: { title: 'Tamaños y estados', subtitle: 'sm 32 · md 40 · lg 48 — deshabilitado neutraliza la intención' },
+    inputs: { title: 'Inputs', subtitle: 'Focus ring celeste; estados default / disabled / error' },
     badges: { title: 'Status badges', subtitle: 'Siempre color + texto; el ícono es opcional' },
   },
   badgeGroups: {
@@ -71,6 +73,27 @@ export const badgeSamples: { status: StatusVariant; label: string }[] = [
 ]
 
 export const badgeSizes: StatusBadgeSize[] = ['sm', 'md', 'lg']
+
+// Niveles de la escala de elevación (theme.elevation[level]).
+export const elevationLevels: { level: number; label: string }[] = [
+  { level: 0, label: '0 · base' },
+  { level: 1, label: '1 · card' },
+  { level: 2, label: '2 · dropdown' },
+  { level: 3, label: '3 · modal' },
+]
+
+export const inputSamples: {
+  label: string
+  placeholder?: string
+  defaultValue?: string
+  helperText?: string
+  disabled?: boolean
+  error?: boolean
+}[] = [
+  { label: 'SKU', placeholder: 'LOG-2938-PX' },
+  { label: 'Deshabilitado', defaultValue: 'ORD-8829A', disabled: true },
+  { label: 'Email', defaultValue: 'foo@', helperText: 'Email inválido', error: true },
+]
 
 // Opciones del dropdown de cambio de estado (badge clickeable).
 export const statusOptions: { status: StatusVariant; label: string }[] = [
