@@ -14,10 +14,10 @@ Misma filosofía que la [Regla de Dos](./feature-structure.md#6-migración-a-sha
 la estructura existe, pero **solo separás en archivos cuando lo amerita**. No fragmentamos un
 componente de 20 líneas en 4 archivos.
 
-| Tamaño / complejidad                                             | Estructura                                              |
-| --------------------------------------------------------------- | ------------------------------------------------------ |
-| Trivial (< ~80 líneas, sin estilos ni tipos sustanciales)       | Un solo archivo `Componente.tsx` (plano)               |
-| Sustancial (> ~80 líneas, o estilos/tipos que pesan)            | **Carpeta por componente** con archivos separados      |
+| Tamaño / complejidad                                      | Estructura                                        |
+| --------------------------------------------------------- | ------------------------------------------------- |
+| Trivial (< ~80 líneas, sin estilos ni tipos sustanciales) | Un solo archivo `Componente.tsx` (plano)          |
+| Sustancial (> ~80 líneas, o estilos/tipos que pesan)      | **Carpeta por componente** con archivos separados |
 
 Ejemplos actuales:
 
@@ -38,12 +38,12 @@ StatusBadge/
 └── index.ts               # barrel (API pública del componente)
 ```
 
-| Archivo            | Responsabilidad                                                                        |
-| ------------------ | -------------------------------------------------------------------------------------- |
-| `Componente.tsx`   | Estructura JSX + lógica (hooks, handlers). Debe leerse de un vistazo.                   |
-| `Componente.types.ts` | `interface Props` + tipos exportados (`StatusVariant`, `StatusOption`, …).           |
+| Archivo                | Responsabilidad                                                                       |
+| ---------------------- | ------------------------------------------------------------------------------------- |
+| `Componente.tsx`       | Estructura JSX + lógica (hooks, handlers). Debe leerse de un vistazo.                 |
+| `Componente.types.ts`  | `interface Props` + tipos exportados (`StatusVariant`, `StatusOption`, …).            |
 | `Componente.styles.ts` | Componentes `styled()`, factories de `sx` y **constantes de estilo** (`BADGE_SIZES`). |
-| `index.ts`         | `export { Componente }` + `export type { … }`. Nada más.                                |
+| `index.ts`             | `export { Componente }` + `export type { … }`. Nada más.                              |
 
 El barrel de la capa (`shared/components/index.ts`) re-exporta desde la carpeta, así el consumo
 externo no cambia: `import { StatusBadge } from 'shared/components'`.

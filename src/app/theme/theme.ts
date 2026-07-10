@@ -84,7 +84,11 @@ function buildPalette(mode: ThemeMode): PaletteOptions {
     error: semanticPalette(mode, 'error'),
     info: semanticPalette(mode, 'info'),
     neutral: semanticPalette(mode, 'neutral'),
-    background: { default: role.background, paper: role.surface, containerHighest: role.containerHighest },
+    background: {
+      default: role.background,
+      paper: role.surface,
+      containerHighest: role.containerHighest,
+    },
     divider: role.outlineVariant,
     text: { primary: role.onSurface, secondary: role.onSurfaceVariant },
   }
