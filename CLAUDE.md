@@ -136,9 +136,13 @@ import { client } from '../../../shared/api/client'
 
 ```ts
 const schema = z.object({ email: z.string().email() })
-type FormData = z.infer<typeof schema>  // inferir siempre del schema
+type FormData = z.infer<typeof schema> // inferir siempre del schema
 
-const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
+const {
+  register,
+  handleSubmit,
+  formState: { errors },
+} = useForm<FormData>({
   resolver: zodResolver(schema),
 })
 ```
@@ -183,11 +187,11 @@ Pipeline en `.github/workflows/ci.yml`:
 
 ## Documentación completa
 
-| Documento                                                            | Contenido                                                    |
-| -------------------------------------------------------------------- | ------------------------------------------------------------ |
-| [docs/guidelines/architecture.md](docs/guidelines/architecture.md)  | Estructura, capas, reglas de dependencia, imports, patrones  |
-| [docs/guidelines/code-conventions.md](docs/guidelines/code-conventions.md) | TypeScript, React, imports, Prettier, formularios     |
-| [docs/guidelines/feature-structure.md](docs/guidelines/feature-structure.md) | Features, barrel exports, regla de dos, rutas       |
-| [docs/guidelines/git-workflow.md](docs/guidelines/git-workflow.md)  | Ramas, commits, PRs, Husky, CI/CD                           |
-| [docs/guidelines/pr-guidelines.md](docs/guidelines/pr-guidelines.md) | Cómo redactar PRs con ejemplos                             |
-| [docs/adr/](docs/adr/)                                               | 6 decisiones arquitectónicas (ADRs)                          |
+| Documento                                                                    | Contenido                                                   |
+| ---------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| [docs/guidelines/architecture.md](docs/guidelines/architecture.md)           | Estructura, capas, reglas de dependencia, imports, patrones |
+| [docs/guidelines/code-conventions.md](docs/guidelines/code-conventions.md)   | TypeScript, React, imports, Prettier, formularios           |
+| [docs/guidelines/feature-structure.md](docs/guidelines/feature-structure.md) | Features, barrel exports, regla de dos, rutas               |
+| [docs/guidelines/git-workflow.md](docs/guidelines/git-workflow.md)           | Ramas, commits, PRs, Husky, CI/CD                           |
+| [docs/guidelines/pr-guidelines.md](docs/guidelines/pr-guidelines.md)         | Cómo redactar PRs con ejemplos                              |
+| [docs/adr/](docs/adr/)                                                       | 6 decisiones arquitectónicas (ADRs)                         |
