@@ -4,7 +4,10 @@ import type { PaletteOptions, SimplePaletteColorOptions, ThemeOptions } from '@m
 import { buildComponents } from './components'
 import {
   breakpoints,
+  elevationBorderAlpha,
+  elevationShadow,
   fontFamily,
+  glow,
   motion,
   radius,
   roleColors,
@@ -87,11 +90,29 @@ function buildPalette(mode: ThemeMode): PaletteOptions {
   }
 }
 
+// ── Elevación ───────────────────────────────────────────────────────────────
+
+// 4 niveles (0-3). Dark: borde blanco creciente + sombra sutil (luminous
+// layering). Light: sombra ambiental difusa + borde de bajo contraste.
+function buildElevation(mode: ThemeMode) {
+  return elevationShadow[mode].map((boxShadow, level) => ({
+    // En dark, los niveles overlay (2/3) suman el halo cyan luminoso.
+    boxShadow: mode === 'dark' && level >= 2 ? `${boxShadow}, ${glow.subtle}` : boxShadow,
+    border:
+      level === 0
+        ? 'none'
+        : mode === 'dark'
+          ? `1px solid ${alpha('#ffffff', elevationBorderAlpha[level])}`
+          : `1px solid ${roleColors.light.outlineVariant}`,
+  }))
+}
+
 // ── Tema ──────────────────────────────────────────────────────────────────────
 
 export function createAppTheme(mode: ThemeMode) {
   return createTheme({
     cssVariables: true,
+    elevation: buildElevation(mode),
     palette: buildPalette(mode),
     typography,
     shape: { borderRadius: radius.base },
