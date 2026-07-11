@@ -9,7 +9,7 @@ import prettierConfig from 'eslint-config-prettier'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  globalIgnores(['dist', '.claude']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
@@ -98,6 +98,73 @@ export default defineConfig([
         },
       ],
       'import/no-duplicates': 'error',
+    },
+  },
+
+  // ── Boundaries de dependencia entre capas (ver docs/guidelines/architecture.md §3.2)
+  // Se enforcean por el path del import (no por resolución de módulos), así no
+  // dependen del resolver de aliases ni reordenan el resto de los imports.
+
+  // features → NO puede importar de app ni de otra feature
+  {
+    files: ['src/features/**/*.{ts,tsx}'],
+    rules: {
+      '@typescript-eslint/no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['app', 'app/*', 'app/**'],
+              message:
+                'features → app está prohibido: la configuración global vive en app/ (architecture.md §3.2).',
+            },
+            {
+              group: ['features', 'features/*', 'features/**'],
+              message:
+                'Import cross-feature prohibido: lo compartido va a shared/. Dentro de la misma feature usá rutas relativas (architecture.md §3.2).',
+            },
+          ],
+        },
+      ],
+    },
+  },
+
+  // shared → NO puede importar de features ni de app (es la capa más baja)
+  {
+    files: ['src/shared/**/*.{ts,tsx}'],
+    rules: {
+      '@typescript-eslint/no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['features', 'features/*', 'features/**', 'app', 'app/*', 'app/**'],
+              message:
+                'shared no puede depender de features ni de app: es la capa más baja (architecture.md §3.2).',
+            },
+          ],
+        },
+      ],
+    },
+  },
+
+  // app → solo puede importar features en app/router/ (registro de rutas)
+  {
+    files: ['src/app/**/*.{ts,tsx}'],
+    ignores: ['src/app/router/**'],
+    rules: {
+      '@typescript-eslint/no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['features', 'features/*', 'features/**'],
+              message:
+                'app → features solo se permite en app/router/ (registro de rutas). Ver architecture.md §3.2.',
+            },
+          ],
+        },
+      ],
     },
   },
 ])
