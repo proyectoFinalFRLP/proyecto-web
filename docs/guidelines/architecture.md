@@ -99,6 +99,8 @@ app       →  features     ✅ solo en app/router/
 app       →  shared       ✅ permitido
 ```
 
+> Estas reglas se **enforcean por ESLint** (`@typescript-eslint/no-restricted-imports` en `eslint.config.js`), no solo por convención: un import que las viole falla el lint (y el CI). Dentro de una misma feature se usan rutas relativas; entre features/capas, los aliases.
+
 ### 3.3 Imports absolutos
 
 `tsconfig.app.json` (`baseUrl: ./src`) y `vite.config.ts` (aliases) habilitan imports sin rutas relativas:
@@ -137,14 +139,15 @@ index.html → src/main.tsx → <Providers><App /></Providers>
 2. `BrowserRouter` — React Router
 3. `ThemeWrapper` — MUI `ThemeProvider` + `CssBaseline`
 
-**Router:**
+**Router — registro único de rutas:**
 
-- `routes.tsx`: lazy imports de cada página con `lazy(() => import(...).then(...))`
-- `AppRouter.tsx`: todas las rutas anidadas bajo `<AppLayout>`, envueltas en `<Suspense fallback={<LoadingSpinner fullScreen />}>`. Las rutas 404 redirigen a `/`.
+- `routes.tsx`: **fuente única de verdad** de las rutas. Exporta `appRoutes` (array de `{ path, element, nav? }`, con las páginas cargadas vía `lazy()`) y `navRoutes` (las que tienen `nav`, ya angostadas para el Sidebar). Sumar una ruta = agregar **una** entrada acá.
+- `AppRouter.tsx`: mapea `appRoutes` a `<Route>` anidados bajo `<AppLayout>`, envueltos en `<Suspense fallback={<LoadingSpinner fullScreen />}>`. Las rutas 404 redirigen a `/`.
+- El Sidebar y el Router se derivan del mismo `routes.tsx`, por lo que no pueden divergir.
 
 **Layout:**
 
-- `AppLayout.tsx`: flex `Header + Sidebar + <Outlet>`. El margen izquierdo responde a `sidebarOpen` del `uiStore` (drawer width: 240px).
+- `AppLayout.tsx`: flex `Header + Sidebar + <Outlet>`. El margen izquierdo responde a `sidebarOpen` del `uiStore` (drawer width: 240px). El `<Outlet>` va envuelto en `<ErrorBoundary key={pathname}>`: los errores de render (o de carga de un chunk lazy) muestran el `ErrorFallback` en el área de contenido sin tumbar Header ni Sidebar, y se limpian al navegar.
 - `Header.tsx`: AppBar fija (`zIndex: drawer + 1`). Toggle de sidebar (MenuIcon) y toggle de tema (Brightness icons). Ambos desde `useUiStore`.
 - `Sidebar.tsx`: Drawer persistente con `navItems` estático. Usa `NavLink` con clase `active` que resalta en `primary.main`.
 
@@ -204,11 +207,12 @@ interface PaginationParams {
 
 **Componentes compartidos:**
 
-| Componente       | Props                                   | Descripción                                                  |
-| ---------------- | --------------------------------------- | ------------------------------------------------------------ |
-| `LoadingSpinner` | `fullScreen?: boolean`                  | CircularProgress centrado. `fullScreen`: 100vh × 100%        |
-| `ErrorFallback`  | `error?: Error`, `onRetry?: () => void` | Pantalla de error con botón Reintentar                       |
-| `PageWrapper`    | `children`, `...BoxProps`               | `<main>` con `p: {xs:2, md:3}`, `maxWidth: 1200`, `mx: auto` |
+| Componente       | Props                                   | Descripción                                                                                                               |
+| ---------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `LoadingSpinner` | `fullScreen?: boolean`                  | CircularProgress centrado. `fullScreen`: 100vh × 100%                                                                     |
+| `ErrorBoundary`  | `children`                              | Class component que captura errores de render y muestra `ErrorFallback`. Cableado en `AppLayout` alrededor del `<Outlet>` |
+| `ErrorFallback`  | `error?: Error`, `onRetry?: () => void` | Pantalla de error con botón Reintentar (presentacional)                                                                   |
+| `PageWrapper`    | `children`, `...BoxProps`               | `<main>` con `p: {xs:2, md:3}`, `maxWidth: 1200`, `mx: auto`                                                              |
 
 **Store global** (`shared/store/uiStore.ts`):
 
@@ -246,12 +250,25 @@ features/[nombre]/
 └── index.ts        # Barrel: solo exporta lo que otros módulos necesitan
 ```
 
+**Query keys — factory por feature (`queryKeys.ts`):**
+
+Cada feature centraliza sus keys de React Query en `queryKeys.ts`, nunca literales sueltos en los hooks. Así las invalidaciones son consistentes a medida que aparecen mutaciones:
+
+```ts
+// features/[nombre]/queryKeys.ts
+export const entidadKeys = {
+  all: ['entidades'] as const,
+  lists: () => [...entidadKeys.all, 'list'] as const,
+  detail: (id: number) => [...entidadKeys.all, 'detail', id] as const,
+}
+```
+
 **Patrón de data hook:**
 
 ```ts
 export function useEntidades() {
   return useQuery<Entidad[]>({
-    queryKey: ['entidades'],
+    queryKey: entidadKeys.lists(),
     queryFn: async () => {
       const { data } = await client.get<ApiResponse<Entidad[]>>('/entidades')
       return data.data
@@ -261,6 +278,7 @@ export function useEntidades() {
 ```
 
 > **Regla:** nunca usar `useEffect` + `useState` para fetch de datos. Siempre `useQuery` / `useMutation`.
+> Para invalidar todo el dominio: `queryClient.invalidateQueries({ queryKey: entidadKeys.all })`.
 
 ---
 
@@ -270,11 +288,11 @@ export function useEntidades() {
 
 1. Crear `src/features/[nombre]/` con la estructura estándar
 2. Definir tipos en `types.ts`
-3. Crear hook en `hooks/use[Nombre].ts` con `useQuery`
-4. Crear página en `pages/[Nombre]Page.tsx` usando `PageWrapper`
-5. Exportar desde `index.ts`
-6. Registrar en `app/router/routes.tsx` (lazy import) y `app/router/AppRouter.tsx` (`<Route>`)
-7. Agregar link en `app/layout/Sidebar.tsx` → array `navItems`
+3. Definir las query keys en `queryKeys.ts`
+4. Crear hook en `hooks/use[Nombre].ts` con `useQuery`
+5. Crear página en `pages/[Nombre]Page.tsx` usando `PageWrapper`
+6. Exportar desde `index.ts`
+7. Agregar **una** entrada a `appRoutes` en `app/router/routes.tsx` (`{ path, element, nav? }`). Con `nav` aparece en el Sidebar; el Router se actualiza solo. No hace falta tocar `AppRouter.tsx` ni `Sidebar.tsx`.
 
 ### Nuevo store Zustand
 
