@@ -17,13 +17,14 @@ Se crea una feature nueva cuando se identifica un **módulo de negocio independi
 
 Cada carpeta en `src/features/[nombre]/` debe seguir estrictamente este orden:
 
-| Carpeta/Archivo | Propósito                                                               |
-| :-------------- | :---------------------------------------------------------------------- |
-| `components/`   | UI específica y exclusiva de esta feature.                              |
-| `hooks/`        | Lógica de negocio, fetching (React Query) y estado local.               |
-| `pages/`        | Componentes raíz que se mapean a las rutas de la app.                   |
-| `types.ts`      | Interfaces y tipos exclusivos de este dominio.                          |
-| `index.ts`      | **Public API (Barrel):** Solo exporta lo que otras capas necesitan ver. |
+| Carpeta/Archivo | Propósito                                                                                  |
+| :-------------- | :----------------------------------------------------------------------------------------- |
+| `components/`   | UI específica y exclusiva de esta feature.                                                 |
+| `hooks/`        | Lógica de negocio, fetching (React Query) y estado local.                                  |
+| `pages/`        | Componentes raíz que se mapean a las rutas de la app.                                      |
+| `types.ts`      | Interfaces y tipos exclusivos de este dominio.                                             |
+| `queryKeys.ts`  | Factory de query keys de React Query de la feature (evita literales sueltos en los hooks). |
+| `index.ts`      | **Public API (Barrel):** Solo exporta lo que otras capas necesitan ver.                    |
 
 ## 4. Reglas de Comunicación y Dependencias
 
