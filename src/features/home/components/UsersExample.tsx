@@ -1,5 +1,5 @@
 import { Alert, Button, Grid, Typography } from '@mui/material'
-import { LoadingSpinner } from 'shared/components/LoadingSpinner'
+import { LoadingSpinner } from 'shared/components'
 
 import { useUsers } from '../hooks/useUsers'
 
