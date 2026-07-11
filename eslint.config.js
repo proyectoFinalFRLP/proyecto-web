@@ -9,7 +9,7 @@ import prettierConfig from 'eslint-config-prettier'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  globalIgnores(['dist', '.claude']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
@@ -98,6 +98,15 @@ export default defineConfig([
         },
       ],
       'import/no-duplicates': 'error',
+    },
+  },
+
+  // El registro de rutas mezcla componentes lazy + datos (appRoutes / navRoutes):
+  // es una tabla de rutas, no un módulo de componentes para fast-refresh.
+  {
+    files: ['src/app/router/routes.tsx'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
     },
   },
 ])
