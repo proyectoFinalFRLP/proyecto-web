@@ -196,4 +196,4 @@ Pipeline en `.github/workflows/ci.yml`:
 | [docs/guidelines/component-structure.md](docs/guidelines/component-structure.md) | Estructura interna de componentes, split progresivo, estilos (`styled()` vs tema) |
 | [docs/guidelines/git-workflow.md](docs/guidelines/git-workflow.md)               | Ramas, commits, PRs, Husky, CI/CD                                                 |
 | [docs/guidelines/pr-guidelines.md](docs/guidelines/pr-guidelines.md)             | Cómo redactar PRs con ejemplos                                                    |
-| [docs/adr/](docs/adr/)                                                           | 6 decisiones arquitectónicas (ADRs)                                               |
+| [docs/adr/](docs/adr/)                                                           | 7 decisiones arquitectónicas (ADRs)                                               |
