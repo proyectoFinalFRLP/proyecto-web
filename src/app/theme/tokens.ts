@@ -153,11 +153,46 @@ export type ThemeMode = keyof typeof roleColors
 // ──────────────────────────────────────────────────────────────────────────────
 
 export const semanticColors = {
-  success: { containerL: '#d1fae5', baseL: '#10b981', strongL: '#059669', textL: '#065f46', baseD: '#34d399', textD: '#a7f3d0' },
-  warning: { containerL: '#fef3c7', baseL: '#f59e0b', strongL: '#d97706', textL: '#92400e', baseD: '#fbbf24', textD: '#fde68a' },
-  error: { containerL: '#ffe4e6', baseL: '#f43f5e', strongL: '#e11d48', textL: '#9f1239', baseD: '#fb7185', textD: '#fecdd3' },
-  info: { containerL: '#e0f2fe', baseL: '#0ea5e9', strongL: '#0284c7', textL: '#0c4a6e', baseD: '#38bdf8', textD: '#bae6fd' },
-  neutral: { containerL: '#f1f5f9', baseL: '#64748b', strongL: '#475569', textL: '#1e293b', baseD: '#94a3b8', textD: '#cbd5e1' },
+  success: {
+    containerL: '#d1fae5',
+    baseL: '#10b981',
+    strongL: '#059669',
+    textL: '#065f46',
+    baseD: '#34d399',
+    textD: '#a7f3d0',
+  },
+  warning: {
+    containerL: '#fef3c7',
+    baseL: '#f59e0b',
+    strongL: '#d97706',
+    textL: '#92400e',
+    baseD: '#fbbf24',
+    textD: '#fde68a',
+  },
+  error: {
+    containerL: '#ffe4e6',
+    baseL: '#f43f5e',
+    strongL: '#e11d48',
+    textL: '#9f1239',
+    baseD: '#fb7185',
+    textD: '#fecdd3',
+  },
+  info: {
+    containerL: '#e0f2fe',
+    baseL: '#0ea5e9',
+    strongL: '#0284c7',
+    textL: '#0c4a6e',
+    baseD: '#38bdf8',
+    textD: '#bae6fd',
+  },
+  neutral: {
+    containerL: '#f1f5f9',
+    baseL: '#64748b',
+    strongL: '#475569',
+    textL: '#1e293b',
+    baseD: '#94a3b8',
+    textD: '#cbd5e1',
+  },
 } as const
 
 export type SemanticColor = keyof typeof semanticColors

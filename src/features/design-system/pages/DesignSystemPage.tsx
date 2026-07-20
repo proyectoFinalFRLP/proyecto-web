@@ -76,10 +76,16 @@ export function DesignSystemPage() {
 
         <Divider />
 
-        <Section title={dsCopy.sections.typography.title} subtitle={dsCopy.sections.typography.subtitle}>
+        <Section
+          title={dsCopy.sections.typography.title}
+          subtitle={dsCopy.sections.typography.subtitle}
+        >
           <Stack spacing={1.5}>
             {typeSpecs.map((t) => (
-              <Box key={t.note} sx={{ display: 'flex', alignItems: 'baseline', gap: 2, flexWrap: 'wrap' }}>
+              <Box
+                key={t.note}
+                sx={{ display: 'flex', alignItems: 'baseline', gap: 2, flexWrap: 'wrap' }}
+              >
                 <Typography variant="labelSm" color="text.secondary" sx={{ minWidth: 140 }}>
                   {t.note}
                 </Typography>
@@ -91,7 +97,10 @@ export function DesignSystemPage() {
 
         <Divider />
 
-        <Section title={dsCopy.sections.elevation.title} subtitle={dsCopy.sections.elevation.subtitle}>
+        <Section
+          title={dsCopy.sections.elevation.title}
+          subtitle={dsCopy.sections.elevation.subtitle}
+        >
           <Stack direction="row" spacing={3} flexWrap="wrap" useFlexGap>
             {elevationLevels.map(({ level, label }) => (
               <Box
@@ -154,7 +163,10 @@ export function DesignSystemPage() {
 
         <Divider />
 
-        <Section title={dsCopy.sections.buttonIcons.title} subtitle={dsCopy.sections.buttonIcons.subtitle}>
+        <Section
+          title={dsCopy.sections.buttonIcons.title}
+          subtitle={dsCopy.sections.buttonIcons.subtitle}
+        >
           <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap" useFlexGap>
             <Button variant="contained" color="primary" startIcon={<AddIcon />}>
               {dsCopy.labels.newOrder}
@@ -210,7 +222,9 @@ export function DesignSystemPage() {
                 <Typography
                   variant="labelMd"
                   component="label"
-                  color={input.error ? 'error' : input.disabled ? 'text.disabled' : 'text.secondary'}
+                  color={
+                    input.error ? 'error' : input.disabled ? 'text.disabled' : 'text.secondary'
+                  }
                   sx={{ textTransform: 'uppercase', letterSpacing: '0.05em' }}
                 >
                   {input.label}
@@ -248,7 +262,12 @@ export function DesignSystemPage() {
               </Typography>
               <Stack direction="row" spacing={1.5} flexWrap="wrap" useFlexGap>
                 {badgeSamples.map((b) => (
-                  <StatusBadge key={b.status} status={b.status} label={b.label} icon={BADGE_ICONS[b.status]} />
+                  <StatusBadge
+                    key={b.status}
+                    status={b.status}
+                    label={b.label}
+                    icon={BADGE_ICONS[b.status]}
+                  />
                 ))}
               </Stack>
             </Box>

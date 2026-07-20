@@ -5,7 +5,13 @@ import type { ThemeMode } from '../tokens'
 import { rem } from '../utils'
 
 // Light: el botón sólido usa el tono `strong` de su intención (regla del DS).
-function solidStrongBackground({ ownerState, theme }: { ownerState: { color?: string }; theme: Theme }) {
+function solidStrongBackground({
+  ownerState,
+  theme,
+}: {
+  ownerState: { color?: string }
+  theme: Theme
+}) {
   const color = ownerState.color
   if (!color || color === 'inherit') return {}
   const paletteColor = (theme.palette as unknown as Record<string, { strong?: string }>)[color]

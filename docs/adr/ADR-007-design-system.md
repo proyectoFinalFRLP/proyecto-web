@@ -33,14 +33,14 @@ Los componentes reutilizables que encapsulan patrones del DS viven en `src/share
 
 ### Decisiones concretas
 
-| #   | Tema                | Decisión                                                                                                     |
-| --- | ------------------- | ------------------------------------------------------------------------------------------------------------ |
-| D1  | Tema por defecto    | **Dark** (canónico del DS), manteniendo el toggle light/dark.                                                 |
-| D2  | Estrategia de tokens | Objeto TS + `cssVariables: true` de MUI 7 (genera CSS vars del tema).                                        |
-| D3  | Fuentes             | Self-host con `@fontsource-variable` (Plus Jakarta Sans + Space Grotesk), sin CDN externo.                   |
-| D4  | Íconos              | Se mantiene `@mui/icons-material` (variantes `Outlined`), no el font Material Symbols del export.             |
-| D5  | Catálogo / docs     | Ruta interna `/design-system` como living docs, no Storybook.                                                |
-| D6  | Orden de trabajo    | Se implementa por cards de la épica TESIS-99: primero fundaciones (tokens/tema/dark), luego átomos y componentes de estado; el resto según prioridad. |
+| #   | Tema                 | Decisión                                                                                                                                              |
+| --- | -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| D1  | Tema por defecto     | **Dark** (canónico del DS), manteniendo el toggle light/dark.                                                                                         |
+| D2  | Estrategia de tokens | Objeto TS + `cssVariables: true` de MUI 7 (genera CSS vars del tema).                                                                                 |
+| D3  | Fuentes              | Self-host con `@fontsource-variable` (Plus Jakarta Sans + Space Grotesk), sin CDN externo.                                                            |
+| D4  | Íconos               | Se mantiene `@mui/icons-material` (variantes `Outlined`), no el font Material Symbols del export.                                                     |
+| D5  | Catálogo / docs      | Ruta interna `/design-system` como living docs, no Storybook.                                                                                         |
+| D6  | Orden de trabajo     | Se implementa por cards de la épica TESIS-99: primero fundaciones (tokens/tema/dark), luego átomos y componentes de estado; el resto según prioridad. |
 
 ## Alternativas consideradas
 

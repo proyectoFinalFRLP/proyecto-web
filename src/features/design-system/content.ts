@@ -10,13 +10,19 @@ export const dsCopy = {
   pageSubtitle: 'Catálogo de tokens y componentes del design system.',
   sections: {
     typography: { title: 'Tipografía', subtitle: 'Plus Jakarta Sans + Space Grotesk' },
-    elevation: { title: 'Elevación', subtitle: '4 niveles (0-3) — glow cyan en overlays sobre dark' },
+    elevation: {
+      title: 'Elevación',
+      subtitle: '4 niveles (0-3) — glow cyan en overlays sobre dark',
+    },
     buttons: {
       title: 'Botones — intención × jerarquía',
       subtitle: 'Cualquier intención se combina con cualquier jerarquía',
     },
     buttonIcons: { title: 'Botones con ícono', subtitle: 'Ícono + texto y solo ícono' },
-    sizes: { title: 'Tamaños y estados', subtitle: 'sm 32 · md 40 · lg 48 — deshabilitado neutraliza la intención' },
+    sizes: {
+      title: 'Tamaños y estados',
+      subtitle: 'sm 32 · md 40 · lg 48 — deshabilitado neutraliza la intención',
+    },
     inputs: { title: 'Inputs', subtitle: 'Focus ring celeste; estados default / disabled / error' },
     badges: { title: 'Status badges', subtitle: 'Siempre color + texto; el ícono es opcional' },
   },
@@ -43,8 +49,16 @@ export const typeSpecs: { variant: TypographyProps['variant']; sample: string; n
   { variant: 'h1', sample: 'Título de página', note: 'h1 · 24/600' },
   { variant: 'h2', sample: 'Título de card', note: 'h2 · 20/600' },
   { variant: 'h3', sample: 'Subsección', note: 'h3 · 18/600' },
-  { variant: 'bodyLg', sample: 'Texto largo para descripciones y contexto.', note: 'body-lg · 16/400' },
-  { variant: 'bodyMd', sample: 'Texto de UI por defecto — celdas y menús.', note: 'body-md · 14/400' },
+  {
+    variant: 'bodyLg',
+    sample: 'Texto largo para descripciones y contexto.',
+    note: 'body-lg · 16/400',
+  },
+  {
+    variant: 'bodyMd',
+    sample: 'Texto de UI por defecto — celdas y menús.',
+    note: 'body-md · 14/400',
+  },
   { variant: 'labelMd', sample: 'Labels, tabs y headers', note: 'label-md · 12/600' },
   { variant: 'labelSm', sample: 'Captions y metadatos', note: 'label-sm · 11/500' },
   { variant: 'dataMono', sample: '#ORD-8829A · SKU LOG-2938-PX', note: 'data-mono · 14/500' },
