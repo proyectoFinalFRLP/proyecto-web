@@ -85,6 +85,12 @@ export const glow = {
   strong: '0 0 20px rgba(56, 189, 248, 0.4)',
 } as const
 
+// Relleno de los inputs — recesado respecto de la superficie (fill propio del DS).
+export const inputColors = {
+  dark: { fill: '#0d1c2d', fillDisabled: '#0a1826', textDisabled: '#87929a' },
+  light: { fill: '#f4f5f6', fillDisabled: '#eceef0', textDisabled: '#9aa1a8' },
+} as const
+
 // ──────────────────────────────────────────────────────────────────────────────
 // Breakpoints (custom del DS). Se mapean a las keys estándar de MUI en theme.ts
 // para no romper componentes internos que dependen de xs/sm/md/lg/xl.
