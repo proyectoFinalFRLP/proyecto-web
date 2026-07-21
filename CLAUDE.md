@@ -7,8 +7,9 @@ Leer obligatoriamente estos archivos en este orden antes de escribir una sola l�
 1. [`docs/guidelines/architecture.md`](docs/guidelines/architecture.md) — estructura de carpetas, capas, reglas de dependencia, patrones de implementación
 2. [`docs/guidelines/code-conventions.md`](docs/guidelines/code-conventions.md) — TypeScript, React, ESLint, Prettier, formularios
 3. [`docs/guidelines/feature-structure.md`](docs/guidelines/feature-structure.md) — dominios de negocio, cómo agregar features, reglas de importación, barrel exports
-4. [`docs/guidelines/git-workflow.md`](docs/guidelines/git-workflow.md) — ramas, commits, PRs, hooks, CI/CD
-5. El ADR relevante según el dominio de la tarea (ver [`docs/adr/`](docs/adr/))
+4. [`docs/guidelines/component-structure.md`](docs/guidelines/component-structure.md) — estructura interna de componentes: carpeta por componente, split progresivo, dónde viven los estilos
+5. [`docs/guidelines/git-workflow.md`](docs/guidelines/git-workflow.md) — ramas, commits, PRs, hooks, CI/CD
+6. El ADR relevante según el dominio de la tarea (ver [`docs/adr/`](docs/adr/))
 
 Si la tarea viene de una card de Jira, leer la card completa en https://proyectofinalfrlp.atlassian.net/browse/TESIS-XXX antes de planificar la implementación.
 
@@ -187,11 +188,12 @@ Pipeline en `.github/workflows/ci.yml`:
 
 ## Documentación completa
 
-| Documento                                                                    | Contenido                                                   |
-| ---------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| [docs/guidelines/architecture.md](docs/guidelines/architecture.md)           | Estructura, capas, reglas de dependencia, imports, patrones |
-| [docs/guidelines/code-conventions.md](docs/guidelines/code-conventions.md)   | TypeScript, React, imports, Prettier, formularios           |
-| [docs/guidelines/feature-structure.md](docs/guidelines/feature-structure.md) | Features, barrel exports, regla de dos, rutas               |
-| [docs/guidelines/git-workflow.md](docs/guidelines/git-workflow.md)           | Ramas, commits, PRs, Husky, CI/CD                           |
-| [docs/guidelines/pr-guidelines.md](docs/guidelines/pr-guidelines.md)         | Cómo redactar PRs con ejemplos                              |
-| [docs/adr/](docs/adr/)                                                       | 6 decisiones arquitectónicas (ADRs)                         |
+| Documento                                                                        | Contenido                                                                         |
+| -------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| [docs/guidelines/architecture.md](docs/guidelines/architecture.md)               | Estructura, capas, reglas de dependencia, imports, patrones                       |
+| [docs/guidelines/code-conventions.md](docs/guidelines/code-conventions.md)       | TypeScript, React, imports, Prettier, formularios                                 |
+| [docs/guidelines/feature-structure.md](docs/guidelines/feature-structure.md)     | Features, barrel exports, regla de dos, rutas                                     |
+| [docs/guidelines/component-structure.md](docs/guidelines/component-structure.md) | Estructura interna de componentes, split progresivo, estilos (`styled()` vs tema) |
+| [docs/guidelines/git-workflow.md](docs/guidelines/git-workflow.md)               | Ramas, commits, PRs, Husky, CI/CD                                                 |
+| [docs/guidelines/pr-guidelines.md](docs/guidelines/pr-guidelines.md)             | Cómo redactar PRs con ejemplos                                                    |
+| [docs/adr/](docs/adr/)                                                           | 7 decisiones arquitectónicas (ADRs)                                               |

@@ -1,3 +1,4 @@
+import 'app/theme/fonts'
 import { Providers } from 'app/providers/Providers'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
