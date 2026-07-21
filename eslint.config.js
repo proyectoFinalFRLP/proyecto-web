@@ -167,4 +167,13 @@ export default defineConfig([
       ],
     },
   },
+
+  // El registro de rutas mezcla componentes lazy + datos (appRoutes / navRoutes):
+  // es una tabla de rutas, no un módulo de componentes para fast-refresh.
+  {
+    files: ['src/app/router/routes.tsx'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
+    },
+  },
 ])
