@@ -1,5 +1,5 @@
-import HomeIcon from '@mui/icons-material/Home'
 import {
+  Divider,
   Drawer,
   List,
   ListItem,
@@ -7,14 +7,12 @@ import {
   ListItemIcon,
   ListItemText,
   Toolbar,
-  Divider,
 } from '@mui/material'
+import { navRoutes } from 'app/router/routes'
 import { NavLink } from 'react-router-dom'
 import { useUiStore } from 'shared/store'
 
 const DRAWER_WIDTH = 240
-
-const navItems = [{ label: 'Inicio', path: '/', icon: <HomeIcon /> }]
 
 export function Sidebar() {
   const { sidebarOpen } = useUiStore()
@@ -35,11 +33,11 @@ export function Sidebar() {
       <Toolbar />
       <Divider />
       <List>
-        {navItems.map((item) => (
-          <ListItem key={item.path} disablePadding>
+        {navRoutes.map((route) => (
+          <ListItem key={route.path} disablePadding>
             <ListItemButton
               component={NavLink}
-              to={item.path}
+              to={route.path}
               end
               sx={{
                 '&.active': {
@@ -49,8 +47,8 @@ export function Sidebar() {
                 },
               }}
             >
-              <ListItemIcon>{item.icon}</ListItemIcon>
-              <ListItemText primary={item.label} />
+              <ListItemIcon>{route.nav.icon}</ListItemIcon>
+              <ListItemText primary={route.nav.label} />
             </ListItemButton>
           </ListItem>
         ))}

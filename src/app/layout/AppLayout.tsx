@@ -1,5 +1,6 @@
 import { Box, Toolbar } from '@mui/material'
-import { Outlet } from 'react-router-dom'
+import { Outlet, useLocation } from 'react-router-dom'
+import { ErrorBoundary } from 'shared/components'
 import { useUiStore } from 'shared/store'
 
 import { Header } from './Header'
@@ -9,6 +10,7 @@ const DRAWER_WIDTH = 240
 
 export function AppLayout() {
   const sidebarOpen = useUiStore((state) => state.sidebarOpen)
+  const location = useLocation()
 
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh' }}>
@@ -29,7 +31,9 @@ export function AppLayout() {
         }}
       >
         <Toolbar />
-        <Outlet />
+        <ErrorBoundary key={location.pathname}>
+          <Outlet />
+        </ErrorBoundary>
       </Box>
     </Box>
   )

@@ -1,11 +1,11 @@
 import { AppLayout } from 'app/layout/AppLayout'
 import { Suspense } from 'react'
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Navigate, Route, Routes } from 'react-router-dom'
 import { LoadingSpinner } from 'shared/components'
 
-import { HomePageLazy } from './routes'
+import { appRoutes } from './routes'
 
-function NotFoundPage() {
+function NotFoundRedirect() {
   return <Navigate to="/" replace />
 }
 
@@ -14,8 +14,10 @@ export function AppRouter() {
     <Suspense fallback={<LoadingSpinner fullScreen />}>
       <Routes>
         <Route element={<AppLayout />}>
-          <Route path="/" element={<HomePageLazy />} />
-          <Route path="*" element={<NotFoundPage />} />
+          {appRoutes.map((route) => (
+            <Route key={route.path} path={route.path} element={route.element} />
+          ))}
+          <Route path="*" element={<NotFoundRedirect />} />
         </Route>
       </Routes>
     </Suspense>
