@@ -1,15 +1,41 @@
-import { Box, Paper, Typography } from '@mui/material'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { Alert, Box, Button, Paper, Stack, TextField, Typography } from '@mui/material'
+import { useForm } from 'react-hook-form'
+import { Navigate, useLocation } from 'react-router-dom'
+import { useAuthStore } from 'shared/store'
+import { z } from 'zod'
 
-/**
- * Marcador de posición de la pantalla de ingreso.
- *
- * La UI real de login y registro es TESIS-51: esta card (TESIS-100) sólo aporta
- * la capa de sesión, y necesita que la ruta exista para poder redirigir acá
- * cuando no hay token. Al implementarse TESIS-51 se reemplaza este contenido por
- * el formulario, que debe llamar a `useAuthStore().login(token, email)` con el
- * token que devuelve `POST /auth/login`.
- */
+import { useLogin } from '../hooks/useLogin'
+
+const schema = z.object({
+  email: z.string().min(1, 'Ingresá tu email').email('Email inválido'),
+  password: z.string().min(1, 'Ingresá tu contraseña'),
+})
+
+type FormData = z.infer<typeof schema>
+
+interface LocationState {
+  from?: string
+}
+
 export function LoginPage() {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+  const location = useLocation()
+  const { mutate, isPending, isError, error } = useLogin()
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<FormData>({ resolver: zodResolver(schema) })
+
+  // Con sesión activa la pantalla de ingreso no tiene sentido: se vuelve a la
+  // ruta que se había pedido antes del redirect, o al inicio.
+  if (isAuthenticated) {
+    const from = (location.state as LocationState | null)?.from
+    return <Navigate to={from ?? '/'} replace />
+  }
+
   return (
     <Box
       sx={{
@@ -21,14 +47,46 @@ export function LoginPage() {
         p: 2,
       }}
     >
-      <Paper sx={{ p: 4, maxWidth: 420, textAlign: 'center' }}>
-        <Typography variant="h5" gutterBottom>
-          Iniciar sesión
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          El formulario de ingreso llega con TESIS-51. Esta pantalla existe para que las rutas
-          privadas tengan a dónde redirigir mientras tanto.
-        </Typography>
+      <Paper sx={{ p: 4, width: '100%', maxWidth: 420 }}>
+        <Stack spacing={1} sx={{ mb: 3 }}>
+          <Typography variant="h5" component="h1">
+            Iniciar sesión
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Ingresá con tu cuenta para acceder al panel.
+          </Typography>
+        </Stack>
+
+        <form onSubmit={handleSubmit((values) => mutate(values))} noValidate>
+          <Stack spacing={2}>
+            {isError ? <Alert severity="error">{error.message}</Alert> : null}
+
+            <TextField
+              label="Email"
+              type="email"
+              autoComplete="email"
+              autoFocus
+              fullWidth
+              error={Boolean(errors.email)}
+              helperText={errors.email?.message}
+              {...register('email')}
+            />
+
+            <TextField
+              label="Contraseña"
+              type="password"
+              autoComplete="current-password"
+              fullWidth
+              error={Boolean(errors.password)}
+              helperText={errors.password?.message}
+              {...register('password')}
+            />
+
+            <Button type="submit" variant="contained" size="large" loading={isPending} fullWidth>
+              Ingresar
+            </Button>
+          </Stack>
+        </form>
       </Paper>
     </Box>
   )
