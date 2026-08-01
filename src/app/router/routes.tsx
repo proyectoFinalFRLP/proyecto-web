@@ -7,6 +7,7 @@ const HomePage = lazy(() => import('features/home').then((m) => ({ default: m.Ho
 const DesignSystemPage = lazy(() =>
   import('features/design-system').then((m) => ({ default: m.DesignSystemPage })),
 )
+const LoginPage = lazy(() => import('features/auth').then((m) => ({ default: m.LoginPage })))
 
 export interface NavMeta {
   label: string
@@ -20,19 +21,28 @@ export interface AppRoute {
   nav?: NavMeta
 }
 
-// Fuente única de verdad de las rutas de la app. El Router (AppRouter) y la
-// navegación (Sidebar) se derivan de acá: sumar una feature es agregar una sola
-// entrada a este array.
+// Rutas accesibles sin sesión: se renderizan fuera del layout privado y sin
+// pasar por el guard (si pasaran, redirigir al login sería un bucle).
+export const publicRoutes: AppRoute[] = [
+  {
+    path: '/login',
+    element: <LoginPage />,
+  },
+  {
+    path: '/design-system',
+    // Showcase del design system: público a propósito, para poder trabajarlo
+    // sin levantar el backend ni tener una sesión.
+    element: <DesignSystemPage />,
+  },
+]
+
+// Rutas privadas: exigen sesión válida y viven dentro del AppLayout. Sumar una
+// feature al dashboard es agregar una sola entrada a este array.
 export const appRoutes: AppRoute[] = [
   {
     path: '/',
     element: <HomePage />,
     nav: { label: 'Inicio', icon: <HomeIcon /> },
-  },
-  {
-    path: '/design-system',
-    element: <DesignSystemPage />,
-    // Sin `nav`: accesible por URL/enlace, pero no listada en el Sidebar.
   },
 ]
 
