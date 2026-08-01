@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
 import { BrowserRouter } from 'react-router-dom'
+import { NotificationHost } from 'shared/components'
 
 import { ThemeWrapper } from './ThemeWrapper'
 
@@ -18,7 +19,11 @@ export function Providers({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <ThemeWrapper>{children}</ThemeWrapper>
+        <ThemeWrapper>
+          {children}
+          {/* Fuera del router: las notificaciones sobreviven a los cambios de ruta. */}
+          <NotificationHost />
+        </ThemeWrapper>
       </BrowserRouter>
     </QueryClientProvider>
   )

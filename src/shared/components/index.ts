@@ -1,4 +1,5 @@
 export { LoadingSpinner } from './LoadingSpinner'
+export { NotificationHost } from './NotificationHost'
 export { ErrorBoundary } from './ErrorBoundary'
 export { ErrorFallback } from './ErrorFallback'
 export { PageWrapper } from './PageWrapper'
