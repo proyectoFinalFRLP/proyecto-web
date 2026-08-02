@@ -8,6 +8,7 @@ import {
   elevationShadow,
   fontFamily,
   glow,
+  layout,
   motion,
   radius,
   roleColors,
@@ -146,6 +147,15 @@ export function createAppTheme(mode: ThemeMode) {
         easeOut: motion.easing.decelerate,
         easeIn: motion.easing.accelerate,
         sharp: motion.easing.standard,
+      },
+    },
+    // TopNavBar (ADR pendiente TESIS-72) fija la altura del shell en 64px en
+    // todos los breakpoints. AppLayout y Sidebar usan `<Toolbar />` como
+    // spacer: al venir del mixin, quedan sincronizados sin tocar esos archivos.
+    mixins: {
+      toolbar: {
+        minHeight: layout.topNavHeight,
+        [`@media (min-width:${breakpoints.tablet}px)`]: { minHeight: layout.topNavHeight },
       },
     },
     components: buildComponents(mode),

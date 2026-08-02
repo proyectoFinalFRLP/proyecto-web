@@ -18,6 +18,12 @@ export interface AppRoute {
   element: ReactNode
   /** Si se define, la ruta se lista en el Sidebar con este label + ícono. */
   nav?: NavMeta
+  /**
+   * `'app'` (default): la ruta renderiza dentro de `AppLayout` (TopNavBar +
+   * Sidebar + Outlet). `'bare'`: sin shell — para vistas full-bleed no
+   * autenticadas (ej. login). Ver docs/guidelines/architecture.md §4.1.
+   */
+  layout?: 'app' | 'bare'
 }
 
 // Fuente única de verdad de las rutas de la app. El Router (AppRouter) y la
@@ -40,3 +46,8 @@ export const appRoutes: AppRoute[] = [
 export const navRoutes = appRoutes.filter((route): route is AppRoute & { nav: NavMeta } =>
   Boolean(route.nav),
 )
+
+// Partición por layout — AppRouter monta `shellRoutes` bajo `AppLayout` y
+// `bareRoutes` sueltas, sin Header ni Sidebar.
+export const shellRoutes = appRoutes.filter((route) => route.layout !== 'bare')
+export const bareRoutes = appRoutes.filter((route) => route.layout === 'bare')

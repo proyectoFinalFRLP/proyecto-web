@@ -1,5 +1,5 @@
 import type { ButtonProps, TypographyProps } from '@mui/material'
-import type { StatusBadgeSize, StatusVariant } from 'shared/components'
+import type { StatusBadgeSize, StatusVariant, TopNavUser } from 'shared/components'
 
 // Copy centralizado del catálogo — evitamos literales sueltos en el JSX.
 // Si más adelante sumamos i18n, este módulo es el punto único a migrar a claves
@@ -25,6 +25,10 @@ export const dsCopy = {
     },
     inputs: { title: 'Inputs', subtitle: 'Focus ring celeste; estados default / disabled / error' },
     badges: { title: 'Status badges', subtitle: 'Siempre color + texto; el ícono es opcional' },
+    topNav: {
+      title: 'Navegación superior',
+      subtitle: 'TopNavBar — shell global: brand, búsqueda, acciones y usuario',
+    },
   },
   badgeGroups: {
     withoutIcon: 'Sin ícono',
@@ -108,6 +112,10 @@ export const inputSamples: {
   { label: 'Deshabilitado', defaultValue: 'ORD-8829A', disabled: true },
   { label: 'Email', defaultValue: 'foo@', helperText: 'Email inválido', error: true },
 ]
+
+// Sample data del demo de TopNavBar.
+export const topNavDemoUser: TopNavUser = { name: 'Ana Torres' }
+export const topNavDemoNotifications = 3
 
 // Opciones del dropdown de cambio de estado (badge clickeable).
 export const statusOptions: { status: StatusVariant; label: string }[] = [

@@ -11,7 +11,14 @@ import WarningAmberOutlinedIcon from '@mui/icons-material/WarningAmberOutlined'
 import { Box, Button, Divider, IconButton, Stack, TextField, Typography } from '@mui/material'
 import { useState } from 'react'
 import type { ReactElement, ReactNode } from 'react'
-import { PageWrapper, StatusBadge, StatusSelect, type StatusVariant } from 'shared/components'
+import {
+  PageWrapper,
+  StatusBadge,
+  StatusSelect,
+  TopNavBar,
+  type StatusVariant,
+} from 'shared/components'
+import { useUiStore } from 'shared/store'
 
 import {
   badgeSamples,
@@ -22,6 +29,8 @@ import {
   elevationLevels,
   inputSamples,
   statusOptions,
+  topNavDemoNotifications,
+  topNavDemoUser,
   typeSpecs,
 } from '../content'
 
@@ -64,6 +73,8 @@ function StatusSelectDemo() {
 }
 
 export function DesignSystemPage() {
+  const { themeMode, toggleTheme, toggleSidebar } = useUiStore()
+
   return (
     <PageWrapper>
       <Stack spacing={5}>
@@ -73,6 +84,35 @@ export function DesignSystemPage() {
             {dsCopy.pageSubtitle}
           </Typography>
         </Box>
+
+        <Divider />
+
+        <Section title={dsCopy.sections.topNav.title} subtitle={dsCopy.sections.topNav.subtitle}>
+          <Box
+            sx={(theme) => ({
+              position: 'relative',
+              // Altura explícita: el AppBar interno es `position: fixed`
+              // (intrínseco al componente vía el tema) y queda fuera del
+              // flujo, así que no empuja la altura de este contenedor.
+              height: theme.mixins.toolbar.minHeight,
+              // Crea un containing block propio para que ese `fixed` quede
+              // acotado a este preview en vez de cubrir la página.
+              transform: 'translateZ(0)',
+              overflow: 'hidden',
+              borderRadius: 2,
+              border: `1px solid ${theme.palette.divider}`,
+            })}
+          >
+            <TopNavBar
+              brandTo="/"
+              onToggleSidebar={toggleSidebar}
+              themeMode={themeMode}
+              onToggleTheme={toggleTheme}
+              notificationsCount={topNavDemoNotifications}
+              user={topNavDemoUser}
+            />
+          </Box>
+        </Section>
 
         <Divider />
 
