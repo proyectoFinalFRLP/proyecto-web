@@ -54,8 +54,12 @@ export function ProgressIndicator({
     </Track>
   )
 
+  // En `stacked` el porcentaje toma el color del tono (refuerza el estado de esa
+  // métrica); en `inline` va en texto primario, porque varias filas comparables
+  // con cada número de un color distinto se leen como un semáforo y no como una
+  // tabla. Así lo distingue el spec.
   const valueText = showValue ? (
-    <Typography variant="labelMd" color={`${tone}.main`}>
+    <Typography variant="labelMd" color={layout === 'inline' ? 'text.primary' : `${tone}.main`}>
       {`${Math.round(percent)}%`}
     </Typography>
   ) : null

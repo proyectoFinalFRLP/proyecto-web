@@ -47,7 +47,13 @@ export const Track = styled(Box, { shouldForwardProp: notForwarded })<{
   barSize: ProgressSize
 }>(({ theme, tone, barSize }) => ({
   position: 'relative',
-  flex: 1,
+  // `flexBasis: auto` es deliberado: con `flex: 1` la base sería 0% y en el
+  // layout stacked (contenedor en columna) eso colapsa la ALTURA del canal a
+  // cero. Con base auto la altura la manda `height` y el crecimiento sólo
+  // actúa a lo ancho en el layout inline.
+  flexGrow: 1,
+  flexShrink: 1,
+  flexBasis: 'auto',
   minWidth: 0,
   height: BAR_HEIGHTS[barSize],
   borderRadius: 9999,

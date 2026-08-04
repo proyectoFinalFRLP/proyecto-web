@@ -60,7 +60,13 @@ export function OperationalStatusCard() {
         <ProgressIndicator size="thin" value={operationalStatus.load} />
       </Stack>
 
-      <Button variant="outlined" color="neutral" fullWidth>
+      {/* El spec lo pinta como acción tenue de marca, no como botón neutro. */}
+      <Button
+        variant="outlined"
+        color="primary"
+        fullWidth
+        sx={{ textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: 12 }}
+      >
         {operationalStatus.action}
       </Button>
     </Card>
