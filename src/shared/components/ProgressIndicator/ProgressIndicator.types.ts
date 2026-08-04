@@ -1,4 +1,5 @@
-export type ProgressTone = 'primary' | 'success' | 'warning' | 'error' | 'neutral'
+/** Mismos estados que `StatusVariant`, más `primary` para la intención de marca. */
+export type ProgressTone = 'primary' | 'info' | 'success' | 'warning' | 'error' | 'neutral'
 
 /** `thin` 4px · `medium` 8px · `large` 16px (filas con label al costado). */
 export type ProgressSize = 'thin' | 'medium' | 'large'

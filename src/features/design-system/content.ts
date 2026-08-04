@@ -183,7 +183,7 @@ export const compactStatSamples: {
 ]
 
 export const progressSamples: { label: string; value: number; tone: ProgressTone }[] = [
-  { label: 'Salud del sistema', value: 85, tone: 'primary' },
+  { label: 'Salud del sistema', value: 85, tone: 'info' },
   { label: 'Capacidad de almacenamiento', value: 72, tone: 'warning' },
   { label: 'Exactitud de inventario', value: 99, tone: 'success' },
   { label: 'Tasa de demoras críticas', value: 45, tone: 'error' },
@@ -209,8 +209,8 @@ export const fulfillmentPanel = {
 } as const
 
 export const fulfillmentRegions: { label: string; value: number; tone: ProgressTone }[] = [
-  { label: 'Región NA', value: 92, tone: 'primary' },
-  { label: 'Región EU', value: 88, tone: 'primary' },
+  { label: 'Región NA', value: 92, tone: 'info' },
+  { label: 'Región EU', value: 88, tone: 'info' },
   { label: 'Región APAC', value: 76, tone: 'neutral' },
 ]
 

@@ -17,7 +17,7 @@ import type { StatCardProps, StatTone, StatTrend } from './StatCard.types'
 
 // Salvo override, subir es mejora y bajar es alerta.
 function trendTone(trend: StatTrend): StatTone {
-  return trend.tone ?? (trend.value < 0 ? 'error' : 'primary')
+  return trend.tone ?? (trend.value < 0 ? 'error' : 'info')
 }
 
 // Los negativos ya traen su signo; a los positivos hay que agregarlo.

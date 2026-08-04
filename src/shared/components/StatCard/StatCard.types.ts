@@ -1,7 +1,10 @@
 import type { ReactNode } from 'react'
 
-/** Tono semántico de la métrica: pinta el ícono, el chip y el acento del borde. */
-export type StatTone = 'primary' | 'success' | 'warning' | 'error' | 'neutral'
+/**
+ * Tono semántico de la métrica: pinta el ícono, el chip y el acento del borde.
+ * Mismos estados que `StatusVariant`, más `primary` para la intención de marca.
+ */
+export type StatTone = 'primary' | 'info' | 'success' | 'warning' | 'error' | 'neutral'
 
 export interface StatTrend {
   /**

@@ -57,7 +57,7 @@ export function OperationalStatusCard() {
             </Typography>
           </Box>
         ))}
-        <ProgressIndicator size="thin" value={operationalStatus.load} />
+        <ProgressIndicator size="thin" tone="info" value={operationalStatus.load} />
       </Stack>
 
       {/* El spec lo pinta como acción tenue de marca, no como botón neutro. */}

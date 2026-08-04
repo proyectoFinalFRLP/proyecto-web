@@ -51,10 +51,19 @@ import type { CompactSampleKey, StatSampleKey } from '../content'
 
 // Grillas del catálogo: colapsan a una columna en mobile para que las tarjetas
 // no se compriman.
-const STAT_COLUMNS = { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(4, 1fr)' }
-const COMPACT_COLUMNS = { xs: '1fr', sm: 'repeat(3, 1fr)' }
-const PAIR_COLUMNS = { xs: '1fr', md: 'repeat(2, 1fr)' }
-const PANEL_COLUMNS = { xs: '1fr', md: '2fr 1fr' }
+//
+// `minmax(0, 1fr)` y no `1fr`: `1fr` equivale a `minmax(auto, 1fr)`, y ese
+// `auto` impide que la columna baje del min-content de su contenido. Con un
+// valor largo adentro la grilla se ensancha más que el contenedor y la página
+// desborda a lo ancho, cortando el final de cada fila.
+const STAT_COLUMNS = {
+  xs: 'minmax(0, 1fr)',
+  sm: 'repeat(2, minmax(0, 1fr))',
+  lg: 'repeat(4, minmax(0, 1fr))',
+}
+const COMPACT_COLUMNS = { xs: 'minmax(0, 1fr)', sm: 'repeat(3, minmax(0, 1fr))' }
+const PAIR_COLUMNS = { xs: 'minmax(0, 1fr)', md: 'repeat(2, minmax(0, 1fr))' }
+const PANEL_COLUMNS = { xs: 'minmax(0, 1fr)', md: 'minmax(0, 2fr) minmax(0, 1fr)' }
 
 // Epígrafe de cada variante del catálogo (uppercase atenuado, como el spec).
 const VARIANT_CAPTION = {
@@ -416,19 +425,29 @@ export function DesignSystemPage() {
                   <Typography variant="labelSm" color="text.secondary" sx={VARIANT_CAPTION}>
                     {progressVariants.thin}
                   </Typography>
-                  <ProgressIndicator value={60} size="thin" ariaLabel={progressVariants.thin} />
+                  <ProgressIndicator
+                    value={60}
+                    size="thin"
+                    tone="info"
+                    ariaLabel={progressVariants.thin}
+                  />
                 </Box>
                 <Box>
                   <Typography variant="labelSm" color="text.secondary" sx={VARIANT_CAPTION}>
                     {progressVariants.indeterminate}
                   </Typography>
-                  <ProgressIndicator indeterminate ariaLabel={progressVariants.indeterminate} />
+                  <ProgressIndicator
+                    indeterminate
+                    tone="info"
+                    ariaLabel={progressVariants.indeterminate}
+                  />
                 </Box>
                 <Box>
                   <Typography variant="labelSm" color="text.secondary" sx={VARIANT_CAPTION}>
                     {progressVariants.steps}
                   </Typography>
                   <StepsProgress
+                    tone="info"
                     ariaLabel={progressVariants.steps}
                     total={stepsSample.total}
                     completed={stepsSample.completed}
