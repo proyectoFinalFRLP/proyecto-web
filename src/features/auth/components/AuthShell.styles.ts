@@ -20,6 +20,8 @@ export const TopBar = styled(Box)(({ theme }) => ({
   zIndex: 1,
   display: 'flex',
   alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: theme.spacing(2),
   minHeight: TOP_BAR_HEIGHT,
   paddingInline: theme.spacing(3),
   backgroundColor: theme.palette.background.paper,

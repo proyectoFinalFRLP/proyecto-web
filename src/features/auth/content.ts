@@ -11,6 +11,11 @@ export const authContent = {
   passwordLabel: 'Contraseña',
   submit: 'Ingresar',
   submitting: 'Ingresando…',
+  theme: {
+    toDark: 'Modo oscuro',
+    toLight: 'Modo claro',
+    ariaLabel: 'Alternar tema',
+  },
   legal: `© ${new Date().getFullYear()} Precision Logistics. Todos los derechos reservados.`,
   errors: {
     emailRequired: 'Ingresá tu email',
