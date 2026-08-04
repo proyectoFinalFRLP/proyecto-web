@@ -6,6 +6,7 @@ import { muiButton } from './button'
 import { muiCard } from './card'
 import { muiCssBaseline } from './cssBaseline'
 import { muiOutlinedInput, muiTextField } from './input'
+import { muiSkeleton } from './skeleton'
 import { muiTypography } from './typography'
 
 // Compone los overrides de MUI. Un archivo por componente: al sumar nuevos,
@@ -13,6 +14,7 @@ import { muiTypography } from './typography'
 export function buildComponents(mode: ThemeMode): ThemeOptions['components'] {
   return {
     MuiCssBaseline: muiCssBaseline(mode),
+    MuiSkeleton: muiSkeleton(mode),
     MuiButton: muiButton(mode),
     MuiOutlinedInput: muiOutlinedInput(mode),
     MuiTextField: muiTextField(),

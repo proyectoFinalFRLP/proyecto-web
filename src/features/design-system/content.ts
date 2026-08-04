@@ -1,5 +1,12 @@
 import type { ButtonProps, TypographyProps } from '@mui/material'
-import type { StatusBadgeSize, StatusVariant } from 'shared/components'
+import type {
+  ProgressTone,
+  StatComparison,
+  StatTone,
+  StatTrend,
+  StatusBadgeSize,
+  StatusVariant,
+} from 'shared/components'
 
 // Copy centralizado del catálogo — evitamos literales sueltos en el JSX.
 // Si más adelante sumamos i18n, este módulo es el punto único a migrar a claves
@@ -25,6 +32,22 @@ export const dsCopy = {
     },
     inputs: { title: 'Inputs', subtitle: 'Focus ring celeste; estados default / disabled / error' },
     badges: { title: 'Status badges', subtitle: 'Siempre color + texto; el ícono es opcional' },
+    stats: {
+      title: 'Tarjetas de estadísticas',
+      subtitle: 'KPI con tendencia, comparativa y formato condensado',
+    },
+    progress: {
+      title: 'Indicadores de progreso',
+      subtitle: 'Tono semántico + variantes thin, pasos, indeterminado y skeleton',
+    },
+    dataPanels: {
+      title: 'Paneles de integración de datos',
+      subtitle: 'Los primitivos compuestos, con datos de muestra',
+    },
+  },
+  progressGroups: {
+    semantic: 'Estados semánticos',
+    variants: 'Variantes y estados de carga',
   },
   badgeGroups: {
     withoutIcon: 'Sin ícono',
@@ -108,6 +131,100 @@ export const inputSamples: {
   { label: 'Deshabilitado', defaultValue: 'ORD-8829A', disabled: true },
   { label: 'Email', defaultValue: 'foo@', helperText: 'Email inválido', error: true },
 ]
+
+// Métricas de muestra del catálogo. `icon` se resuelve en la página: content.ts
+// es un módulo de datos y no lleva JSX.
+export type StatSampleKey = 'shipments' | 'speed' | 'damaged' | 'fleet'
+
+export const statCardSamples: {
+  key: StatSampleKey
+  label: string
+  value: string
+  tone?: StatTone
+  tag?: string
+  trend?: StatTrend
+  comparison?: StatComparison
+}[] = [
+  { key: 'shipments', label: 'Envíos activos', value: '12.840', tag: 'EN VIVO' },
+  { key: 'speed', label: 'Demora promedio', value: '2,4 días', trend: { value: 14.2 } },
+  {
+    key: 'damaged',
+    label: 'Mercadería dañada',
+    value: '0,42%',
+    tone: 'error',
+    // Que baje es una mejora: el tono del chip se fuerza para no pintar de rojo
+    // una buena noticia.
+    trend: { value: -2.8, tone: 'success' },
+  },
+  {
+    key: 'fleet',
+    label: 'Eficiencia de flota',
+    value: '94,8%',
+    comparison: {
+      currentLabel: 'Actual',
+      currentValue: '94,8%',
+      previousLabel: 'Anterior',
+      previousValue: '91,2%',
+    },
+  },
+]
+
+export type CompactSampleKey = 'onTime' | 'distance' | 'carbon'
+
+export const compactStatSamples: {
+  key: CompactSampleKey
+  label: string
+  value: string
+  tone?: StatTone
+}[] = [
+  { key: 'onTime', label: 'En fecha', value: '98,2%', tone: 'success' },
+  { key: 'distance', label: 'Km recorridos', value: '42,5k' },
+  { key: 'carbon', label: 'CO₂ evitado', value: '1,2 t', tone: 'success' },
+]
+
+export const progressSamples: { label: string; value: number; tone: ProgressTone }[] = [
+  { label: 'Salud del sistema', value: 85, tone: 'primary' },
+  { label: 'Capacidad de almacenamiento', value: 72, tone: 'warning' },
+  { label: 'Exactitud de inventario', value: 99, tone: 'success' },
+  { label: 'Tasa de demoras críticas', value: 45, tone: 'error' },
+]
+
+export const progressVariants = {
+  thin: 'Densidad condensada',
+  indeterminate: 'Estado indeterminado',
+  steps: 'Progreso por pasos',
+  skeleton: 'Placeholder de carga',
+} as const
+
+export const stepsSample = {
+  total: 5,
+  completed: 3,
+  caption: 'Etapa 3 de 5: validación final',
+} as const
+
+// Panel "Real-time Fulfillment Performance" del spec.
+export const fulfillmentPanel = {
+  title: 'Rendimiento de preparación en vivo',
+  subtitle: 'Seguimiento del procesamiento en los depósitos.',
+} as const
+
+export const fulfillmentRegions: { label: string; value: number; tone: ProgressTone }[] = [
+  { label: 'Región NA', value: 92, tone: 'primary' },
+  { label: 'Región EU', value: 88, tone: 'primary' },
+  { label: 'Región APAC', value: 76, tone: 'neutral' },
+]
+
+// Tarjeta "Operational Status" del spec.
+export const operationalStatus = {
+  eyebrow: 'Estado operativo',
+  headline: 'Totalmente optimizado',
+  latencyLabel: 'Latencia de nodo',
+  latencyValue: '12 ms',
+  throughputLabel: 'Rendimiento',
+  throughputValue: '8,4 GB/s',
+  load: 65,
+  action: 'Ver logs completos',
+} as const
 
 // Opciones del dropdown de cambio de estado (badge clickeable).
 export const statusOptions: { status: StatusVariant; label: string }[] = [

@@ -207,12 +207,16 @@ interface PaginationParams {
 
 **Componentes compartidos:**
 
-| Componente       | Props                                   | Descripción                                                                                                               |
-| ---------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `LoadingSpinner` | `fullScreen?: boolean`                  | CircularProgress centrado. `fullScreen`: 100vh × 100%                                                                     |
-| `ErrorBoundary`  | `children`                              | Class component que captura errores de render y muestra `ErrorFallback`. Cableado en `AppLayout` alrededor del `<Outlet>` |
-| `ErrorFallback`  | `error?: Error`, `onRetry?: () => void` | Pantalla de error con botón Reintentar (presentacional)                                                                   |
-| `PageWrapper`    | `children`, `...BoxProps`               | `<main>` con `p: {xs:2, md:3}`, `maxWidth: 1200`, `mx: auto`                                                              |
+| Componente                     | Props                                               | Descripción                                                                                                                                                                                                                      |
+| ------------------------------ | --------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `LoadingSpinner`               | `fullScreen?: boolean`                              | CircularProgress centrado. `fullScreen`: 100vh × 100%                                                                                                                                                                            |
+| `ErrorBoundary`                | `children`                                          | Class component que captura errores de render y muestra `ErrorFallback`. Cableado en `AppLayout` alrededor del `<Outlet>`                                                                                                        |
+| `ErrorFallback`                | `error?: Error`, `onRetry?: () => void`             | Pantalla de error con botón Reintentar (presentacional)                                                                                                                                                                          |
+| `PageWrapper`                  | `children`, `...BoxProps`                           | `<main>` con `p: {xs:2, md:3}`, `maxWidth: 1200`, `mx: auto`                                                                                                                                                                     |
+| `StatCard` / `CompactStatCard` | Ver `StatCard.types.ts`                             | Tarjeta de KPI: ícono + chip de tendencia o etiqueta, valor destacado y footer comparativo. `tone: 'error'` suma borde y halo de acento. La variante condensada es una sola fila. Presentacionales: el valor llega ya formateado |
+| `ProgressIndicator`            | Ver `ProgressIndicator.types.ts`                    | Barra lineal con tono semántico. `size` thin/medium/large, `layout` stacked/inline, `indeterminate` para progreso desconocido. El ancho sale del porcentaje                                                                      |
+| `StepsProgress`                | `total`, `completed`, `tone?`, `label?`, `caption?` | Progreso por etapas discretas, para procesos con pasos nombrados                                                                                                                                                                 |
+| `ProgressSkeleton`             | `label?`, `avatar?`, `lines?`                       | Placeholder de carga con la silueta del contenido que reemplaza                                                                                                                                                                  |
 
 **Store global** (`shared/store/uiStore.ts`):
 

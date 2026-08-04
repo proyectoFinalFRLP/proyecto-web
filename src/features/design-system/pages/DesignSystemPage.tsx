@@ -1,3 +1,4 @@
+import AccessTimeOutlinedIcon from '@mui/icons-material/AccessTimeOutlined'
 import AddIcon from '@mui/icons-material/Add'
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined'
 import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined'
@@ -5,25 +6,69 @@ import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
 import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined'
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
+import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined'
+import ParkOutlinedIcon from '@mui/icons-material/ParkOutlined'
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline'
+import ReportProblemOutlinedIcon from '@mui/icons-material/ReportProblemOutlined'
+import RouteOutlinedIcon from '@mui/icons-material/RouteOutlined'
+import SpeedOutlinedIcon from '@mui/icons-material/SpeedOutlined'
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined'
 import WarningAmberOutlinedIcon from '@mui/icons-material/WarningAmberOutlined'
 import { Box, Button, Divider, IconButton, Stack, TextField, Typography } from '@mui/material'
 import { useState } from 'react'
 import type { ReactElement, ReactNode } from 'react'
-import { PageWrapper, StatusBadge, StatusSelect, type StatusVariant } from 'shared/components'
+import {
+  CompactStatCard,
+  PageWrapper,
+  ProgressIndicator,
+  ProgressSkeleton,
+  StatCard,
+  StatusBadge,
+  StatusSelect,
+  StepsProgress,
+  type StatusVariant,
+} from 'shared/components'
 
+import { FulfillmentPanel } from '../components/FulfillmentPanel'
+import { OperationalStatusCard } from '../components/OperationalStatusCard'
 import {
   badgeSamples,
   badgeSizes,
   buttonHierarchies,
   buttonIntents,
+  compactStatSamples,
   dsCopy,
   elevationLevels,
   inputSamples,
+  progressSamples,
+  progressVariants,
+  statCardSamples,
   statusOptions,
+  stepsSample,
   typeSpecs,
 } from '../content'
+import type { CompactSampleKey, StatSampleKey } from '../content'
+
+// Grillas del catálogo: colapsan a una columna en mobile para que las tarjetas
+// no se compriman.
+const STAT_COLUMNS = { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(4, 1fr)' }
+const COMPACT_COLUMNS = { xs: '1fr', sm: 'repeat(3, 1fr)' }
+const PAIR_COLUMNS = { xs: '1fr', md: 'repeat(2, 1fr)' }
+const PANEL_COLUMNS = { xs: '1fr', md: '2fr 1fr' }
+
+const STAT_ICONS: Record<StatSampleKey, ReactElement | undefined> = {
+  shipments: <LocalShippingOutlinedIcon />,
+  speed: <SpeedOutlinedIcon />,
+  damaged: <ReportProblemOutlinedIcon />,
+  // La tarjeta comparativa no lleva ícono: el foco es el contraste de cifras.
+  fleet: undefined,
+}
+
+const COMPACT_ICONS: Record<CompactSampleKey, ReactElement> = {
+  onTime: <AccessTimeOutlinedIcon />,
+  distance: <RouteOutlinedIcon />,
+  carbon: <ParkOutlinedIcon />,
+}
 
 const BADGE_ICONS: Record<StatusVariant, ReactElement> = {
   success: <CheckCircleOutlinedIcon />,
@@ -294,6 +339,92 @@ export function DesignSystemPage() {
               <StatusSelectDemo />
             </Box>
           </Stack>
+        </Section>
+
+        <Divider />
+
+        <Section title={dsCopy.sections.stats.title} subtitle={dsCopy.sections.stats.subtitle}>
+          <Stack spacing={2.5}>
+            <Box sx={{ display: 'grid', gap: 2.5, gridTemplateColumns: STAT_COLUMNS }}>
+              {statCardSamples.map((stat) => (
+                <StatCard
+                  key={stat.key}
+                  label={stat.label}
+                  value={stat.value}
+                  tone={stat.tone}
+                  tag={stat.tag}
+                  trend={stat.trend}
+                  comparison={stat.comparison}
+                  icon={STAT_ICONS[stat.key]}
+                />
+              ))}
+            </Box>
+            <Box sx={{ display: 'grid', gap: 2.5, gridTemplateColumns: COMPACT_COLUMNS }}>
+              {compactStatSamples.map((stat) => (
+                <CompactStatCard
+                  key={stat.key}
+                  label={stat.label}
+                  value={stat.value}
+                  tone={stat.tone}
+                  icon={COMPACT_ICONS[stat.key]}
+                />
+              ))}
+            </Box>
+          </Stack>
+        </Section>
+
+        <Divider />
+
+        <Section
+          title={dsCopy.sections.progress.title}
+          subtitle={dsCopy.sections.progress.subtitle}
+        >
+          <Stack spacing={4}>
+            <Box>
+              <Typography variant="labelMd" color="text.secondary" gutterBottom>
+                {dsCopy.progressGroups.semantic}
+              </Typography>
+              <Box sx={{ display: 'grid', gap: 3, gridTemplateColumns: PAIR_COLUMNS }}>
+                {progressSamples.map((bar) => (
+                  <ProgressIndicator
+                    key={bar.label}
+                    label={bar.label}
+                    value={bar.value}
+                    tone={bar.tone}
+                    showValue
+                  />
+                ))}
+              </Box>
+            </Box>
+            <Box>
+              <Typography variant="labelMd" color="text.secondary" gutterBottom>
+                {dsCopy.progressGroups.variants}
+              </Typography>
+              <Box sx={{ display: 'grid', gap: 3, gridTemplateColumns: PAIR_COLUMNS }}>
+                <ProgressIndicator label={progressVariants.thin} value={60} size="thin" />
+                <ProgressIndicator label={progressVariants.indeterminate} indeterminate />
+                <StepsProgress
+                  label={progressVariants.steps}
+                  total={stepsSample.total}
+                  completed={stepsSample.completed}
+                  caption={stepsSample.caption}
+                />
+                <ProgressSkeleton label={progressVariants.skeleton} />
+              </Box>
+            </Box>
+          </Stack>
+        </Section>
+
+        <Divider />
+
+        <Section
+          title={dsCopy.sections.dataPanels.title}
+          subtitle={dsCopy.sections.dataPanels.subtitle}
+        >
+          <Box sx={{ display: 'grid', gap: 2.5, gridTemplateColumns: PANEL_COLUMNS }}>
+            <FulfillmentPanel />
+            <OperationalStatusCard />
+          </Box>
         </Section>
       </Stack>
     </PageWrapper>
