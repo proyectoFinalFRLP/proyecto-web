@@ -26,6 +26,7 @@ export function ProgressIndicator({
   tone = 'primary',
   size = 'medium',
   label,
+  ariaLabel,
   showValue = false,
   indeterminate = false,
   layout = 'stacked',
@@ -41,7 +42,7 @@ export function ProgressIndicator({
       tone={tone}
       barSize={size}
       role="progressbar"
-      aria-label={label}
+      aria-label={ariaLabel ?? label}
       aria-valuemin={0}
       aria-valuemax={100}
       aria-valuenow={ariaValue}

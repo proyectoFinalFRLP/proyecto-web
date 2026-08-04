@@ -12,6 +12,7 @@ export function StepsProgress({
   completed,
   tone = 'primary',
   label,
+  ariaLabel,
   caption,
 }: StepsProgressProps) {
   const steps = Math.max(0, Math.trunc(total))
@@ -22,7 +23,7 @@ export function StepsProgress({
       {label ? <Typography variant="labelMd">{label}</Typography> : null}
       <StepsRow
         role="progressbar"
-        aria-label={label}
+        aria-label={ariaLabel ?? label}
         aria-valuemin={0}
         aria-valuemax={steps}
         aria-valuenow={done}

@@ -17,11 +17,9 @@ export function ProgressSkeleton({ label, avatar = true, lines = 2 }: ProgressSk
 
   return (
     <Root aria-busy="true" aria-live="polite">
-      {label ? (
-        <Typography variant="labelSm" color="text.secondary" sx={{ textTransform: 'uppercase' }}>
-          {label}
-        </Typography>
-      ) : null}
+      {/* Mismo tratamiento que el `label` de ProgressIndicator y StepsProgress:
+          la prop tiene que verse igual en los tres. */}
+      {label ? <Typography variant="labelMd">{label}</Typography> : null}
       <SkeletonRow>
         {avatar ? <Skeleton variant="circular" width={AVATAR_SIZE} height={AVATAR_SIZE} /> : null}
         <SkeletonLines>

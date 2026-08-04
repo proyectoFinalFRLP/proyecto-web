@@ -11,6 +11,11 @@ export interface ProgressIndicatorProps {
   tone?: ProgressTone
   size?: ProgressSize
   label?: string
+  /**
+   * Nombre accesible cuando el rótulo visible no lo aporta `label` (ej. el
+   * epígrafe vive fuera del componente). Por defecto usa `label`.
+   */
+  ariaLabel?: string
   /** Muestra el porcentaje junto al label. */
   showValue?: boolean
   /** Progreso desconocido: anima e ignora `value`. */
@@ -28,6 +33,8 @@ export interface StepsProgressProps {
   completed: number
   tone?: ProgressTone
   label?: string
+  /** Nombre accesible cuando el rótulo visible no lo aporta `label`. */
+  ariaLabel?: string
   /** Texto de apoyo debajo de los pasos (ej. el nombre de la etapa actual). */
   caption?: string
 }

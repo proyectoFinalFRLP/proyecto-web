@@ -56,6 +56,14 @@ const COMPACT_COLUMNS = { xs: '1fr', sm: 'repeat(3, 1fr)' }
 const PAIR_COLUMNS = { xs: '1fr', md: 'repeat(2, 1fr)' }
 const PANEL_COLUMNS = { xs: '1fr', md: '2fr 1fr' }
 
+// Epígrafe de cada variante del catálogo (uppercase atenuado, como el spec).
+const VARIANT_CAPTION = {
+  display: 'block',
+  mb: 1,
+  textTransform: 'uppercase',
+  letterSpacing: '0.05em',
+} as const
+
 const STAT_ICONS: Record<StatSampleKey, ReactElement | undefined> = {
   shipments: <LocalShippingOutlinedIcon />,
   speed: <SpeedOutlinedIcon />,
@@ -381,7 +389,7 @@ export function DesignSystemPage() {
         >
           <Stack spacing={4}>
             <Box>
-              <Typography variant="labelMd" color="text.secondary" gutterBottom>
+              <Typography variant="labelMd" color="text.secondary" sx={{ mb: 2, display: 'block' }}>
                 {dsCopy.progressGroups.semantic}
               </Typography>
               <Box sx={{ display: 'grid', gap: 3, gridTemplateColumns: PAIR_COLUMNS }}>
@@ -397,19 +405,42 @@ export function DesignSystemPage() {
               </Box>
             </Box>
             <Box>
-              <Typography variant="labelMd" color="text.secondary" gutterBottom>
+              <Typography variant="labelMd" color="text.secondary" sx={{ mb: 2, display: 'block' }}>
                 {dsCopy.progressGroups.variants}
               </Typography>
               <Box sx={{ display: 'grid', gap: 3, gridTemplateColumns: PAIR_COLUMNS }}>
-                <ProgressIndicator label={progressVariants.thin} value={60} size="thin" />
-                <ProgressIndicator label={progressVariants.indeterminate} indeterminate />
-                <StepsProgress
-                  label={progressVariants.steps}
-                  total={stepsSample.total}
-                  completed={stepsSample.completed}
-                  caption={stepsSample.caption}
-                />
-                <ProgressSkeleton label={progressVariants.skeleton} />
+                {/* Los rótulos de las variantes son epígrafes del catálogo, no
+                    labels de la métrica: van atenuados como en el spec, para no
+                    competir con el nombre del grupo. */}
+                <Box>
+                  <Typography variant="labelSm" color="text.secondary" sx={VARIANT_CAPTION}>
+                    {progressVariants.thin}
+                  </Typography>
+                  <ProgressIndicator value={60} size="thin" ariaLabel={progressVariants.thin} />
+                </Box>
+                <Box>
+                  <Typography variant="labelSm" color="text.secondary" sx={VARIANT_CAPTION}>
+                    {progressVariants.indeterminate}
+                  </Typography>
+                  <ProgressIndicator indeterminate ariaLabel={progressVariants.indeterminate} />
+                </Box>
+                <Box>
+                  <Typography variant="labelSm" color="text.secondary" sx={VARIANT_CAPTION}>
+                    {progressVariants.steps}
+                  </Typography>
+                  <StepsProgress
+                    ariaLabel={progressVariants.steps}
+                    total={stepsSample.total}
+                    completed={stepsSample.completed}
+                    caption={stepsSample.caption}
+                  />
+                </Box>
+                <Box>
+                  <Typography variant="labelSm" color="text.secondary" sx={VARIANT_CAPTION}>
+                    {progressVariants.skeleton}
+                  </Typography>
+                  <ProgressSkeleton />
+                </Box>
               </Box>
             </Box>
           </Stack>
