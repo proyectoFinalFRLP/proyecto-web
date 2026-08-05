@@ -17,8 +17,8 @@ import {
   StatusSelect,
   TopNavBar,
   type StatusVariant,
+  type TopNavThemeMode,
 } from 'shared/components'
-import { useUiStore } from 'shared/store'
 
 import {
   badgeSamples,
@@ -73,7 +73,11 @@ function StatusSelectDemo() {
 }
 
 export function DesignSystemPage() {
-  const { themeMode, toggleTheme, toggleSidebar } = useUiStore()
+  // Demo autocontenido: estado local, no toca el uiStore real. Un catálogo
+  // debe ser inerte — antes clickear la hamburguesa del ejemplo colapsaba el
+  // Sidebar real que estaba detrás (review PR #19). Por eso tampoco se pasa
+  // `onToggleSidebar`: sin sidebar en el preview, el botón no se renderiza.
+  const [demoThemeMode, setDemoThemeMode] = useState<TopNavThemeMode>('dark')
 
   return (
     <PageWrapper>
@@ -105,9 +109,10 @@ export function DesignSystemPage() {
           >
             <TopNavBar
               brandTo="/"
-              onToggleSidebar={toggleSidebar}
-              themeMode={themeMode}
-              onToggleTheme={toggleTheme}
+              themeMode={demoThemeMode}
+              onToggleTheme={() =>
+                setDemoThemeMode((mode) => (mode === 'light' ? 'dark' : 'light'))
+              }
               notificationsCount={topNavDemoNotifications}
               user={topNavDemoUser}
             />

@@ -161,7 +161,7 @@ index.html → src/main.tsx → <Providers><App /></Providers>
 **Layout:**
 
 - `AppLayout.tsx`: flex `Header + Sidebar + <Outlet>`. El margen izquierdo responde a `sidebarOpen` del `uiStore` (drawer width: 240px). El `<Outlet>` va envuelto en `<ErrorBoundary key={pathname}>`: los errores de render (o de carga de un chunk lazy) muestran el `ErrorFallback` en el área de contenido sin tumbar Header ni Sidebar, y se limpian al navegar.
-- `Header.tsx`: único punto de cableado del `TopNavBar` (`shared/components`) — lee `themeMode`/`toggleTheme`/`toggleSidebar` de `useUiStore` y se los pasa por props. El componente en sí es 100% presentacional (ver tabla de `shared/` más abajo); cuando exista `GET /me` o el contador de alertas, se cablean acá sin tocar la UI.
+- `Header.tsx`: único punto de cableado del `TopNavBar` (`shared/components`) — lee `themeMode`/`toggleTheme`/`toggleSidebar` de `useUiStore` (con selectores individuales) y se los pasa por props. El componente en sí es presentacional — sin datos ni `uiStore`; su único acople es el `Link` de react-router (brand y engranaje), correcto para esta app (ver tabla de `shared/` más abajo); cuando exista `GET /me` o el contador de alertas, se cablean acá sin tocar la UI.
 - `Sidebar.tsx`: Drawer persistente con `navItems` estático. Usa `NavLink` con clase `active` que resalta en `primary.main`.
 
 **Tema** (`createAppTheme(mode)`):
@@ -220,13 +220,13 @@ interface PaginationParams {
 
 **Componentes compartidos:**
 
-| Componente       | Props                                   | Descripción                                                                                                                                                                                                         |
-| ---------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `LoadingSpinner` | `fullScreen?: boolean`                  | CircularProgress centrado. `fullScreen`: 100vh × 100%                                                                                                                                                               |
-| `ErrorBoundary`  | `children`                              | Class component que captura errores de render y muestra `ErrorFallback`. Cableado en `AppLayout` alrededor del `<Outlet>`                                                                                           |
-| `ErrorFallback`  | `error?: Error`, `onRetry?: () => void` | Pantalla de error con botón Reintentar (presentacional)                                                                                                                                                             |
-| `PageWrapper`    | `children`, `...BoxProps`               | `<main>` con `p: {xs:2, md:3}`, `maxWidth: 1200`, `mx: auto`                                                                                                                                                        |
-| `TopNavBar`      | Ver `TopNavBar.types.ts`                | Shell de navegación global (brand + búsqueda + acciones + usuario). 100% presentacional — sin datos, sin `uiStore`. Fixed/z-index intrínsecos vía `MuiAppBar` en el tema. Cableado real en `app/layout/Header.tsx`. |
+| Componente       | Props                                   | Descripción                                                                                                                                                                                                                                                         |
+| ---------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `LoadingSpinner` | `fullScreen?: boolean`                  | CircularProgress centrado. `fullScreen`: 100vh × 100%                                                                                                                                                                                                               |
+| `ErrorBoundary`  | `children`                              | Class component que captura errores de render y muestra `ErrorFallback`. Cableado en `AppLayout` alrededor del `<Outlet>`                                                                                                                                           |
+| `ErrorFallback`  | `error?: Error`, `onRetry?: () => void` | Pantalla de error con botón Reintentar (presentacional)                                                                                                                                                                                                             |
+| `PageWrapper`    | `children`, `...BoxProps`               | `<main>` con `p: {xs:2, md:3}`, `maxWidth: 1200`, `mx: auto`                                                                                                                                                                                                        |
+| `TopNavBar`      | Ver `TopNavBar.types.ts`                | Shell de navegación global (brand + búsqueda + acciones + usuario). Presentacional — sin datos, sin `uiStore`; único acople: el `Link` de Router (brand/engranaje). Fixed/z-index intrínsecos vía `MuiAppBar` en el tema. Cableado real en `app/layout/Header.tsx`. |
 
 **Store global** (`shared/store/uiStore.ts`):
 

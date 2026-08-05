@@ -43,6 +43,9 @@ export function UserMenu({ user, onProfileClick, onLogout }: UserMenuProps) {
     close()
     action?.()
   }
+  // Iniciales con fallback: nombre vacío o solo espacios → ícono genérico,
+  // no un avatar en blanco.
+  const initials = user ? getInitials(user.name) : ''
 
   return (
     <>
@@ -54,7 +57,7 @@ export function UserMenu({ user, onProfileClick, onLogout }: UserMenuProps) {
         aria-label={topNavContent.userMenuAriaLabel}
       >
         <Avatar src={user?.avatarUrl} alt={displayName} sx={{ width: 32, height: 32 }}>
-          {user ? getInitials(user.name) : <PersonIcon fontSize="small" />}
+          {initials || <PersonIcon fontSize="small" />}
         </Avatar>
       </IconButton>
       <Menu

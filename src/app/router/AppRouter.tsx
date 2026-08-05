@@ -1,7 +1,7 @@
 import { AppLayout } from 'app/layout/AppLayout'
 import { Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
-import { LoadingSpinner } from 'shared/components'
+import { ErrorBoundary, LoadingSpinner } from 'shared/components'
 
 import { bareRoutes, shellRoutes } from './routes'
 
@@ -20,7 +20,11 @@ export function AppRouter() {
           <Route path="*" element={<NotFoundRedirect />} />
         </Route>
         {bareRoutes.map((route) => (
-          <Route key={route.path} path={route.path} element={route.element} />
+          <Route
+            key={route.path}
+            path={route.path}
+            element={<ErrorBoundary key={route.path}>{route.element}</ErrorBoundary>}
+          />
         ))}
       </Routes>
     </Suspense>

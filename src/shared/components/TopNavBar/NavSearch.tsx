@@ -33,7 +33,7 @@ export function NavSearch() {
       <SearchInput
         autoFocus={isMobile}
         placeholder={topNavContent.searchPlaceholder}
-        inputProps={{ 'aria-label': topNavContent.searchAriaLabel }}
+        slotProps={{ input: { 'aria-label': topNavContent.searchAriaLabel } }}
         value={value}
         onChange={(e) => setValue(e.target.value)}
       />
