@@ -6,6 +6,17 @@ import { notify } from '../store/notificationStore'
 import type { ApiRequestError } from './types'
 
 const FORBIDDEN_MESSAGE = 'No tenés permisos para realizar esta acción.'
+const SESSION_EXPIRED_MESSAGE = 'Tu sesión expiró. Ingresá de nuevo.'
+const NETWORK_MESSAGE = 'No pudimos conectarnos con el servidor.'
+
+// La API puede devolver un error estructurado (ej. un 422 de Rails con
+// `errors: { campo: [...] }`). Sin verificar el tipo, ese objeto termina
+// renderizado como "[object Object]" en la pantalla del usuario.
+function firstMessage(...candidates: unknown[]): string | undefined {
+  return candidates.find(
+    (candidate): candidate is string => typeof candidate === 'string' && candidate.trim() !== '',
+  )
+}
 
 function toRequestError(message: string, status?: number): ApiRequestError {
   const error: ApiRequestError = new Error(message)
@@ -37,13 +48,21 @@ client.interceptors.response.use(
     if (!axios.isAxiosError(error)) return Promise.reject(error)
 
     const status = error.response?.status
-    const message = error.response?.data?.error ?? error.response?.data?.message ?? error.message
+    const data: unknown = error.response?.data
+    const payload =
+      typeof data === 'object' && data !== null ? (data as Record<string, unknown>) : {}
+    const message = firstMessage(payload.error, payload.message, error.message) ?? NETWORK_MESSAGE
 
     // 401: la credencial ya no sirve (vencida, inválida o de otro tenant). Se
-    // limpia la sesión completa y el guard de rutas se encarga del redirect,
-    // así el interceptor no necesita conocer el router.
-    if (status === 401) {
+    // limpia la sesión y el guard de rutas se encarga del redirect, así el
+    // interceptor no necesita conocer el router.
+    //
+    // Sólo se actúa si **había** sesión: un 401 del propio login son
+    // credenciales mal tipeadas, y el formulario ya muestra su error. Avisarle
+    // "tu sesión expiró" a quien nunca la tuvo sería mentirle.
+    if (status === 401 && getAuthToken()) {
       clearSession()
+      notify(SESSION_EXPIRED_MESSAGE, 'warning')
     }
 
     // 403: la sesión es válida pero la acción no está permitida. No se

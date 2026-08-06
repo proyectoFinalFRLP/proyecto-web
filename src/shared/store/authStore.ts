@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
+import { queryClient } from '../api/queryClient'
 import { decodeJwt, isExpired } from '../utils/jwt'
 
 export interface SessionUser {
@@ -17,9 +18,14 @@ interface AuthState {
   token: string | null
   user: SessionUser | null
   isAuthenticated: boolean
-  login: (token: string, email: string) => void
+  /** Devuelve `false` si el token no sirve, para que quien llame pueda avisar. */
+  login: (token: string, email: string) => boolean
   logout: () => void
 }
+
+type Session = Pick<AuthState, 'token' | 'user' | 'isAuthenticated'>
+
+const EMPTY_SESSION: Session = { token: null, user: null, isAuthenticated: false }
 
 // Persistimos sólo el token y el email: el resto de la sesión (id, empresa) se
 // deriva del token al rehidratar, así no puede quedar desincronizado.
@@ -28,14 +34,22 @@ interface PersistedAuth {
   email: string | null
 }
 
-function sessionFromToken(
-  token: string,
-  email: string,
-): Pick<AuthState, 'token' | 'user' | 'isAuthenticated'> {
+// Lo que hay en localStorage puede venir de una versión anterior de la app o de
+// una edición a mano, así que se valida la forma en lugar de castearla. El tipo
+// de retorno estrecha `token` a `string`: sin token no hay nada que rehidratar,
+// y así el llamador no tiene que volver a comprobarlo.
+function readPersisted(value: unknown): { token: string; email: string | null } | null {
+  if (typeof value !== 'object' || value === null) return null
+
+  const { token, email } = value as Record<string, unknown>
+  if (typeof token !== 'string') return null
+
+  return { token, email: typeof email === 'string' ? email : null }
+}
+
+function sessionFromToken(token: string, email: string): Session {
   const payload = decodeJwt(token)
-  if (!payload || isExpired(payload)) {
-    return { token: null, user: null, isAuthenticated: false }
-  }
+  if (!payload || isExpired(payload)) return EMPTY_SESSION
 
   return {
     token,
@@ -47,24 +61,33 @@ function sessionFromToken(
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
-      token: null,
-      user: null,
-      isAuthenticated: false,
-      login: (token, email) => set(sessionFromToken(token, email)),
-      logout: () => set({ token: null, user: null, isAuthenticated: false }),
+      ...EMPTY_SESSION,
+      login: (token, email) => {
+        const session = sessionFromToken(token, email)
+        set(session)
+        return session.isAuthenticated
+      },
+      logout: () => {
+        set(EMPTY_SESSION)
+        // La cache de React Query es por tenant: el JWT lleva `company_id`, así
+        // que dejarla viva le mostraría al próximo usuario los datos de la
+        // empresa anterior hasta el primer refetch.
+        queryClient.clear()
+      },
     }),
     {
       name: 'auth-store',
+      version: 1,
       partialize: (state): PersistedAuth => ({
         token: state.token,
         email: state.user?.email ?? null,
       }),
-      // Al volver de localStorage el token puede estar vencido o corrupto. Se
-      // rearma la sesión desde el token para no arrancar autenticado con una
-      // credencial que el backend va a rechazar en la primera request.
+      // Al volver de localStorage el token puede estar vencido, corrupto o no
+      // ser un string. Se rearma la sesión desde el token para no arrancar
+      // autenticado con una credencial que el backend va a rechazar.
       merge: (persisted, current) => {
-        const saved = persisted as PersistedAuth | undefined
-        if (!saved?.token) return current
+        const saved = readPersisted(persisted)
+        if (!saved) return current
 
         return { ...current, ...sessionFromToken(saved.token, saved.email ?? '') }
       },

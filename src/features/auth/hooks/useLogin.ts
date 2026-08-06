@@ -2,6 +2,7 @@ import { useMutation } from '@tanstack/react-query'
 import { client } from 'shared/api'
 import type { ApiRequestError } from 'shared/api'
 import { useAuthStore } from 'shared/store'
+import { decodeJwt } from 'shared/utils/jwt'
 
 import { authContent } from '../content'
 import type { LoginCredentials, LoginResponse } from '../types'
@@ -26,6 +27,14 @@ export function useLogin() {
   return useMutation<LoginResponse, ApiRequestError, LoginCredentials>({
     mutationFn: async ({ email, password }) => {
       const { data } = await client.post<LoginResponse>('/auth/login', { email, password })
+
+      // El backend respondió 200, pero si el token no se puede leer la sesión no
+      // se establece. Sin este chequeo la mutación resolvía OK y el usuario
+      // quedaba en el login sin ningún error: un fallo mudo.
+      if (!decodeJwt(data.token)) {
+        throw new Error(authContent.errors.unexpected)
+      }
+
       return data
     },
     // El email tipeado se guarda con la sesión: no viaja en el JWT ni lo
