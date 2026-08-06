@@ -1,4 +1,5 @@
 import { Box, Typography } from '@mui/material'
+import { useId } from 'react'
 
 import {
   Fill,
@@ -32,20 +33,26 @@ export function ProgressIndicator({
   layout = 'stacked',
   labelWidth = DEFAULT_LABEL_WIDTH,
 }: ProgressIndicatorProps) {
+  const labelId = useId()
   const percent = clampPercent(value)
   // Un progreso desconocido no puede anunciar un valor: se omite `aria-valuenow`
   // para que el lector de pantalla lo lea como indeterminado.
   const ariaValue = indeterminate ? undefined : Math.round(percent)
+
+  // Con label visible se apunta a él con `aria-labelledby` en vez de repetir el
+  // texto en `aria-label`: si no, el lector anuncia el mismo nombre dos veces,
+  // una como texto de la fila y otra como nombre de la barra.
+  const naming = label ? { 'aria-labelledby': labelId } : { 'aria-label': ariaLabel ?? undefined }
 
   const bar = (
     <Track
       tone={tone}
       barSize={size}
       role="progressbar"
-      aria-label={ariaLabel ?? label}
       aria-valuemin={0}
       aria-valuemax={100}
       aria-valuenow={ariaValue}
+      {...naming}
     >
       {indeterminate ? (
         <IndeterminateFill tone={tone} />
@@ -70,7 +77,9 @@ export function ProgressIndicator({
       <InlineRoot>
         {label ? (
           <Box sx={{ width: labelWidth, flexShrink: 0 }}>
-            <Typography variant="labelMd">{label}</Typography>
+            <Typography id={labelId} variant="labelMd">
+              {label}
+            </Typography>
           </Box>
         ) : null}
         {bar}
@@ -85,7 +94,9 @@ export function ProgressIndicator({
     <Root>
       {hasHeader ? (
         <HeaderRow>
-          <Typography variant="labelMd">{label}</Typography>
+          <Typography id={labelId} variant="labelMd">
+            {label}
+          </Typography>
           {valueText}
         </HeaderRow>
       ) : null}

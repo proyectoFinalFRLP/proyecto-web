@@ -15,14 +15,22 @@ import {
 } from './StatCard.styles'
 import type { StatCardProps, StatTone, StatTrend } from './StatCard.types'
 
-// Salvo override, subir es mejora y bajar es alerta.
+// Salvo override, subir es mejora y bajar es alerta. Sin variación no hay
+// dirección que señalar, así que el chip queda neutro.
 function trendTone(trend: StatTrend): StatTone {
-  return trend.tone ?? (trend.value < 0 ? 'error' : 'info')
+  if (trend.tone) return trend.tone
+  if (trend.value === 0) return 'neutral'
+  return trend.value < 0 ? 'error' : 'info'
 }
 
 // Los negativos ya traen su signo; a los positivos hay que agregarlo.
 function formatTrend(value: number) {
   return `${value > 0 ? '+' : ''}${value}%`
+}
+
+function trendArrow(value: number) {
+  if (value === 0) return null
+  return value < 0 ? <TrendingDownIcon /> : <TrendingUpIcon />
 }
 
 export function StatCard({
@@ -40,7 +48,9 @@ export function StatCard({
 
   const trendChip = trend ? (
     <MetaChip tone={trendTone(trend)}>
-      {trend.value < 0 ? <TrendingDownIcon /> : <TrendingUpIcon />}
+      {/* En 0 no se dibuja flecha: apuntar hacia arriba sería inventar una
+          tendencia que el dato no tiene. */}
+      {trendArrow(trend.value)}
       {formatTrend(trend.value)}
     </MetaChip>
   ) : null
