@@ -1,5 +1,5 @@
 import type { ButtonProps, TypographyProps } from '@mui/material'
-import type { StatusBadgeSize, StatusVariant, TopNavUser } from 'shared/components'
+import type { StatusBadgeSize, StatusFeedEntry, StatusVariant, TopNavUser } from 'shared/components'
 
 // Copy centralizado del catálogo — evitamos literales sueltos en el JSX.
 // Si más adelante sumamos i18n, este módulo es el punto único a migrar a claves
@@ -25,6 +25,10 @@ export const dsCopy = {
     },
     inputs: { title: 'Inputs', subtitle: 'Focus ring celeste; estados default / disabled / error' },
     badges: { title: 'Status badges', subtitle: 'Siempre color + texto; el ícono es opcional' },
+    compact: {
+      title: 'Alta densidad y marca',
+      subtitle: 'Status Feed, acciones glass y arquitectura del logo',
+    },
     topNav: {
       title: 'Navegación superior',
       subtitle: 'TopNavBar — shell global: brand, búsqueda, acciones y usuario',
@@ -116,6 +120,49 @@ export const inputSamples: {
 // Sample data del demo de TopNavBar.
 export const topNavDemoUser: TopNavUser = { name: 'Ana Torres' }
 export const topNavDemoNotifications = 3
+
+// Muestras del Status Feed. `current` marca la entrada vigente: no se deduce de
+// la posición, la decide quien consume el feed.
+export const statusFeedSample: StatusFeedEntry[] = [
+  {
+    id: 1,
+    title: 'Sincronización de inventario completada.',
+    meta: 'hace 2 min • Región: EMEA-NORTH',
+    current: true,
+  },
+  {
+    id: 2,
+    title: 'Actualización por lote encolada para el manifiesto #8821.',
+    meta: 'hace 15 min • Usuario: SYS_BOT_04',
+  },
+  {
+    id: 3,
+    title: 'Reintento de webhook agotado para la integración #4.',
+    meta: 'hace 41 min • Origen: courier-andreani',
+  },
+]
+
+export const compactGroups = {
+  feed: 'System Status Feed',
+  actions: 'Action buttons — variante glass',
+  logo: 'Arquitectura del logo',
+} as const
+
+export const glassActions = {
+  primary: 'Crear envío',
+  secondary: 'Exportar CSV',
+  tertiary: 'Filtros',
+} as const
+
+export const logoSpec = {
+  brand: 'Precision',
+  tagline: 'Logistics',
+  rules: [
+    { label: 'Área de respeto', value: "Clearance: 1× la altura de la 'P'" },
+    { label: 'Color de marca', value: 'Primary (luminescente)' },
+    { label: 'Tamaño mínimo', value: 'Web: 140px | Print: 25mm' },
+  ],
+} as const
 
 // Opciones del dropdown de cambio de estado (badge clickeable).
 export const statusOptions: { status: StatusVariant; label: string }[] = [
