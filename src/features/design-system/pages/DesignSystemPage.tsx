@@ -11,7 +11,14 @@ import WarningAmberOutlinedIcon from '@mui/icons-material/WarningAmberOutlined'
 import { Box, Button, Divider, IconButton, Stack, TextField, Typography } from '@mui/material'
 import { useState } from 'react'
 import type { ReactElement, ReactNode } from 'react'
-import { PageWrapper, StatusBadge, StatusSelect, type StatusVariant } from 'shared/components'
+import {
+  PageWrapper,
+  StatusBadge,
+  StatusSelect,
+  TopNavBar,
+  type StatusVariant,
+  type TopNavThemeMode,
+} from 'shared/components'
 
 import {
   badgeSamples,
@@ -22,6 +29,8 @@ import {
   elevationLevels,
   inputSamples,
   statusOptions,
+  topNavDemoNotifications,
+  topNavDemoUser,
   typeSpecs,
 } from '../content'
 
@@ -64,6 +73,12 @@ function StatusSelectDemo() {
 }
 
 export function DesignSystemPage() {
+  // Demo autocontenido: estado local, no toca el uiStore real. Un catálogo
+  // debe ser inerte — antes clickear la hamburguesa del ejemplo colapsaba el
+  // Sidebar real que estaba detrás (review PR #19). Por eso tampoco se pasa
+  // `onToggleSidebar`: sin sidebar en el preview, el botón no se renderiza.
+  const [demoThemeMode, setDemoThemeMode] = useState<TopNavThemeMode>('dark')
+
   return (
     <PageWrapper>
       <Stack spacing={5}>
@@ -73,6 +88,36 @@ export function DesignSystemPage() {
             {dsCopy.pageSubtitle}
           </Typography>
         </Box>
+
+        <Divider />
+
+        <Section title={dsCopy.sections.topNav.title} subtitle={dsCopy.sections.topNav.subtitle}>
+          <Box
+            sx={(theme) => ({
+              position: 'relative',
+              // Altura explícita: el AppBar interno es `position: fixed`
+              // (intrínseco al componente vía el tema) y queda fuera del
+              // flujo, así que no empuja la altura de este contenedor.
+              height: theme.mixins.toolbar.minHeight,
+              // Crea un containing block propio para que ese `fixed` quede
+              // acotado a este preview en vez de cubrir la página.
+              transform: 'translateZ(0)',
+              overflow: 'hidden',
+              borderRadius: 2,
+              border: `1px solid ${theme.palette.divider}`,
+            })}
+          >
+            <TopNavBar
+              brandTo="/"
+              themeMode={demoThemeMode}
+              onToggleTheme={() =>
+                setDemoThemeMode((mode) => (mode === 'light' ? 'dark' : 'light'))
+              }
+              notificationsCount={topNavDemoNotifications}
+              user={topNavDemoUser}
+            />
+          </Box>
+        </Section>
 
         <Divider />
 

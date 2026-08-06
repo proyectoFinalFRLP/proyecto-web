@@ -2,6 +2,7 @@ import type { ThemeOptions } from '@mui/material/styles'
 
 import type { ThemeMode } from '../tokens'
 
+import { muiAppBar } from './appBar'
 import { muiButton } from './button'
 import { muiCard } from './card'
 import { muiCssBaseline } from './cssBaseline'
@@ -13,6 +14,7 @@ import { muiTypography } from './typography'
 export function buildComponents(mode: ThemeMode): ThemeOptions['components'] {
   return {
     MuiCssBaseline: muiCssBaseline(mode),
+    MuiAppBar: muiAppBar(),
     MuiButton: muiButton(mode),
     MuiOutlinedInput: muiOutlinedInput(mode),
     MuiTextField: muiTextField(),
