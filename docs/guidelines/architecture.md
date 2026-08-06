@@ -142,26 +142,15 @@ index.html → src/main.tsx → <Providers><App /></Providers>
 **Router — registro único de rutas:**
 
 - `routes.tsx`: **fuente única de verdad** de las rutas. Exporta `appRoutes` (array de `{ path, element, nav?, layout? }`, con las páginas cargadas vía `lazy()`), `navRoutes` (las que tienen `nav`, ya angostadas para el Sidebar) y la partición `shellRoutes` / `bareRoutes` según `layout`. Sumar una ruta = agregar **una** entrada acá.
-- `AppRouter.tsx`: mapea `shellRoutes` a `<Route>` anidados bajo `<AppLayout>` (TopNavBar + Sidebar + Outlet) y `bareRoutes` como rutas sueltas, sin shell — todo envuelto en `<Suspense fallback={<LoadingSpinner fullScreen />}>`. Las rutas 404 (dentro del shell) redirigen a `/`.
+- `AppRouter.tsx`: monta `bareRoutes` sueltas y públicas — cada una con su propio `ErrorBoundary` — y `shellRoutes` detrás de `<ProtectedRoute>` y dentro de `<AppLayout>`. Todo envuelto en `<Suspense fallback={<LoadingSpinner fullScreen />}>`. El catch-all vive dentro del guard, así una URL desconocida sin sesión también termina en el login.
 - El Sidebar y el Router se derivan del mismo `routes.tsx`, por lo que no pueden divergir.
-- **Rutas sin shell (`layout: 'bare'`):** para vistas full-bleed no autenticadas — el caso típico es un login. `AppRoute.layout` acepta `'app'` (default, dentro de `AppLayout`) o `'bare'` (sin Header ni Sidebar, montada directo en el `<Routes>` de `AppRouter`). Ejemplo, una vez que exista `features/login/`:
-
-  ```tsx
-  // app/router/routes.tsx
-  const LoginPage = lazy(() => import('features/login').then((m) => ({ default: m.LoginPage })))
-
-  export const appRoutes: AppRoute[] = [
-    // ...rutas existentes (layout: 'app' por default)
-    { path: '/login', element: <LoginPage />, layout: 'bare' },
-  ]
-  ```
-
-  No hace falta tocar `AppRouter.tsx`, `AppLayout.tsx` ni `Header.tsx`: `shellRoutes`/`bareRoutes` separan solas la ruta según `layout`, y `navRoutes` la ignora automáticamente al no tener `nav` (una ruta de login no pertenece al Sidebar).
+- **Rutas sin shell (`layout: 'bare'`):** públicas y full-bleed — hoy `/login`. No pasan por el guard ni renderizan Header/Sidebar. Como el `ErrorBoundary` de `AppLayout` sólo envuelve al `Outlet` privado, cada ruta bare lleva el suyo.
+- `ProtectedRoute.tsx`: si no hay sesión válida redirige a `/login` guardando el destino pedido en `location.state.from`, para volver ahí después de ingresar.
 
 **Layout:**
 
 - `AppLayout.tsx`: flex `Header + Sidebar + <Outlet>`. El margen izquierdo responde a `sidebarOpen` del `uiStore` (drawer width: 240px). El `<Outlet>` va envuelto en `<ErrorBoundary key={pathname}>`: los errores de render (o de carga de un chunk lazy) muestran el `ErrorFallback` en el área de contenido sin tumbar Header ni Sidebar, y se limpian al navegar.
-- `Header.tsx`: único punto de cableado del `TopNavBar` (`shared/components`) — lee `themeMode`/`toggleTheme`/`toggleSidebar` de `useUiStore` (con selectores individuales) y se los pasa por props. El componente en sí es presentacional — sin datos ni `uiStore`; su único acople es el `Link` de react-router (brand y engranaje), correcto para esta app (ver tabla de `shared/` más abajo); cuando exista `GET /me` o el contador de alertas, se cablean acá sin tocar la UI.
+- `Header.tsx`: único punto de cableado del `TopNavBar` (`shared/components`) — lee `themeMode`/`toggleTheme`/`toggleSidebar` de `useUiStore` y el email + `logout` de `useAuthStore`, todo con selectores individuales, y se los pasa por props. El componente en sí es presentacional — sin datos ni `uiStore`; su único acople es el `Link` de react-router (brand y engranaje), correcto para esta app (ver tabla de `shared/` más abajo). El logout no navega: limpia la sesión y el guard hace el redirect.
 - `Sidebar.tsx`: Drawer persistente con `navItems` estático. Usa `NavLink` con clase `active` que resalta en `primary.main`.
 
 **Tema** (`createAppTheme(mode)`):
@@ -179,8 +168,10 @@ index.html → src/main.tsx → <Providers><App /></Providers>
 **Cliente HTTP** (`shared/api/client.ts`):
 
 - `baseURL`: `import.meta.env.VITE_API_URL`
-- Request interceptor: inyecta `Authorization: Bearer <token>` desde `localStorage`
-- Response interceptor: normaliza errores → `Error(message)`. Si 401: limpia el token.
+- Request interceptor: inyecta `Authorization: Bearer <token>` leyendo el token del `authStore` (no de `localStorage`, para no tener dos fuentes de verdad sobre la sesión)
+- Response interceptor: normaliza errores a `ApiRequestError`, que **conserva el `status`** para que cada feature elija su mensaje en vez de mostrar el texto crudo de la API
+- **401**: limpia la sesión completa; el redirect lo hace el guard, así el interceptor no conoce el router
+- **403**: no desloguea — notifica "sin permisos" vía `notify()`
 
 **Tipos de API** (`shared/api/types.ts`):
 
@@ -220,22 +211,25 @@ interface PaginationParams {
 
 **Componentes compartidos:**
 
-| Componente       | Props                                   | Descripción                                                                                                                                                                                                                                                         |
-| ---------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `LoadingSpinner` | `fullScreen?: boolean`                  | CircularProgress centrado. `fullScreen`: 100vh × 100%                                                                                                                                                                                                               |
-| `ErrorBoundary`  | `children`                              | Class component que captura errores de render y muestra `ErrorFallback`. Cableado en `AppLayout` alrededor del `<Outlet>`                                                                                                                                           |
-| `ErrorFallback`  | `error?: Error`, `onRetry?: () => void` | Pantalla de error con botón Reintentar (presentacional)                                                                                                                                                                                                             |
-| `PageWrapper`    | `children`, `...BoxProps`               | `<main>` con `p: {xs:2, md:3}`, `maxWidth: 1200`, `mx: auto`                                                                                                                                                                                                        |
-| `TopNavBar`      | Ver `TopNavBar.types.ts`                | Shell de navegación global (brand + búsqueda + acciones + usuario). Presentacional — sin datos, sin `uiStore`; único acople: el `Link` de Router (brand/engranaje). Fixed/z-index intrínsecos vía `MuiAppBar` en el tema. Cableado real en `app/layout/Header.tsx`. |
+| Componente         | Props                                   | Descripción                                                                                                                                                                                                                                                         |
+| ------------------ | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `LoadingSpinner`   | `fullScreen?: boolean`                  | CircularProgress centrado. `fullScreen`: 100vh × 100%                                                                                                                                                                                                               |
+| `ErrorBoundary`    | `children`                              | Class component que captura errores de render y muestra `ErrorFallback`. Cableado en `AppLayout` alrededor del `<Outlet>` y en cada ruta `bare`                                                                                                                     |
+| `ErrorFallback`    | `error?: Error`, `onRetry?: () => void` | Pantalla de error con botón Reintentar (presentacional)                                                                                                                                                                                                             |
+| `PageWrapper`      | `children`, `...BoxProps`               | `<main>` con `p: {xs:2, md:3}`, `maxWidth: 1200`, `mx: auto`                                                                                                                                                                                                        |
+| `NotificationHost` | —                                       | Render único de las notificaciones del `notificationStore`. Montado en los providers; una a la vez. Usa `Snackbar` + `Alert` de MUI hasta que TESIS-68 defina el Toast del DS                                                                                       |
+| `TopNavBar`        | Ver `TopNavBar.types.ts`                | Shell de navegación global (brand + búsqueda + acciones + usuario). Presentacional — sin datos, sin `uiStore`; único acople: el `Link` de Router (brand/engranaje). Fixed/z-index intrínsecos vía `MuiAppBar` en el tema. Cableado real en `app/layout/Header.tsx`. |
 
-**Store global** (`shared/store/uiStore.ts`):
+**Stores globales** (`shared/store/`):
 
 ```ts
 const { themeMode, toggleTheme, sidebarOpen, toggleSidebar, setSidebarOpen } = useUiStore()
+const { token, user, isAuthenticated, login, logout } = useAuthStore()
 ```
 
-- `themeMode`: persiste en `localStorage` (clave `'ui-store'`)
-- `sidebarOpen`: no persiste — se resetea al recargar
+- `uiStore` — `themeMode` persiste en `localStorage` (clave `'ui-store'`); `sidebarOpen` no persiste.
+- `authStore` — persiste **sólo** token y email (clave `'auth-store'`). `user` (id + `companyId`) se **deriva del JWT** al rehidratar, así no puede quedar desincronizado, y un token vencido o corrupto se descarta antes de arrancar. Expone `getAuthToken()` y `clearSession()` para consumidores fuera de React, como el interceptor HTTP.
+- `notificationStore` — cola de notificaciones con `notify(mensaje, severidad)`, también invocable fuera de React. La renderiza `NotificationHost`, montado una vez en los providers.
 
 **Hook paginado** (`shared/hooks/usePaginatedQuery.ts`):
 
