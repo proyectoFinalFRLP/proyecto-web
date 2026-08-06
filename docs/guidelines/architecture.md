@@ -46,7 +46,7 @@ src/
 ├── app/                        # Configuración global de la aplicación
 │   ├── layout/                 # Estructura visual principal
 │   │   ├── AppLayout.tsx       # Layout raíz: Header + Sidebar + Outlet
-│   │   ├── Header.tsx          # AppBar fija con toggle de tema y sidebar
+│   │   ├── Header.tsx          # Cablea TopNavBar (shared/) con uiStore
 │   │   └── Sidebar.tsx         # Drawer persistente de navegación
 │   ├── providers/              # Providers globales
 │   │   ├── Providers.tsx       # QueryClientProvider + BrowserRouter + ThemeWrapper
@@ -142,15 +142,15 @@ index.html → src/main.tsx → <Providers><App /></Providers>
 **Router — registro único de rutas:**
 
 - `routes.tsx`: **fuente única de verdad** de las rutas. Exporta `appRoutes` (array de `{ path, element, nav?, layout? }`, con las páginas cargadas vía `lazy()`), `navRoutes` (las que tienen `nav`, ya angostadas para el Sidebar) y la partición `shellRoutes` / `bareRoutes` según `layout`. Sumar una ruta = agregar **una** entrada acá.
-- `AppRouter.tsx`: monta `bareRoutes` sueltas y públicas, y `shellRoutes` detrás de `<ProtectedRoute>` y dentro de `<AppLayout>`. Todo envuelto en `<Suspense fallback={<LoadingSpinner fullScreen />}>`. El catch-all vive dentro del guard, así una URL desconocida sin sesión también termina en el login.
+- `AppRouter.tsx`: monta `bareRoutes` sueltas y públicas — cada una con su propio `ErrorBoundary` — y `shellRoutes` detrás de `<ProtectedRoute>` y dentro de `<AppLayout>`. Todo envuelto en `<Suspense fallback={<LoadingSpinner fullScreen />}>`. El catch-all vive dentro del guard, así una URL desconocida sin sesión también termina en el login.
 - El Sidebar y el Router se derivan del mismo `routes.tsx`, por lo que no pueden divergir.
-- **Rutas sin shell (`layout: 'bare'`):** públicas y full-bleed — hoy `/login`. No pasan por el guard ni renderizan Header/Sidebar, y llevan su propio `ErrorBoundary` (el de `AppLayout` sólo envuelve al `Outlet` privado).
+- **Rutas sin shell (`layout: 'bare'`):** públicas y full-bleed — hoy `/login`. No pasan por el guard ni renderizan Header/Sidebar. Como el `ErrorBoundary` de `AppLayout` sólo envuelve al `Outlet` privado, cada ruta bare lleva el suyo.
 - `ProtectedRoute.tsx`: si no hay sesión válida redirige a `/login` guardando el destino pedido en `location.state.from`, para volver ahí después de ingresar.
 
 **Layout:**
 
 - `AppLayout.tsx`: flex `Header + Sidebar + <Outlet>`. El margen izquierdo responde a `sidebarOpen` del `uiStore` (drawer width: 240px). El `<Outlet>` va envuelto en `<ErrorBoundary key={pathname}>`: los errores de render (o de carga de un chunk lazy) muestran el `ErrorFallback` en el área de contenido sin tumbar Header ni Sidebar, y se limpian al navegar.
-- `Header.tsx`: AppBar fija (`zIndex: drawer + 1`). Toggle de sidebar y de tema desde `useUiStore`; email de la sesión y botón de cerrar sesión desde `useAuthStore`. El logout no navega: limpia la sesión y el guard hace el redirect.
+- `Header.tsx`: único punto de cableado del `TopNavBar` (`shared/components`) — lee `themeMode`/`toggleTheme`/`toggleSidebar` de `useUiStore` y el email + `logout` de `useAuthStore`, todo con selectores individuales, y se los pasa por props. El componente en sí es presentacional — sin datos ni `uiStore`; su único acople es el `Link` de react-router (brand y engranaje), correcto para esta app (ver tabla de `shared/` más abajo). El logout no navega: limpia la sesión y el guard hace el redirect.
 - `Sidebar.tsx`: Drawer persistente con `navItems` estático. Usa `NavLink` con clase `active` que resalta en `primary.main`.
 
 **Tema** (`createAppTheme(mode)`):
@@ -211,13 +211,14 @@ interface PaginationParams {
 
 **Componentes compartidos:**
 
-| Componente         | Props                                   | Descripción                                                                                                                                                                   |
-| ------------------ | --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `LoadingSpinner`   | `fullScreen?: boolean`                  | CircularProgress centrado. `fullScreen`: 100vh × 100%                                                                                                                         |
-| `ErrorBoundary`    | `children`                              | Class component que captura errores de render y muestra `ErrorFallback`. Cableado en `AppLayout` alrededor del `<Outlet>`                                                     |
-| `ErrorFallback`    | `error?: Error`, `onRetry?: () => void` | Pantalla de error con botón Reintentar (presentacional)                                                                                                                       |
-| `PageWrapper`      | `children`, `...BoxProps`               | `<main>` con `p: {xs:2, md:3}`, `maxWidth: 1200`, `mx: auto`                                                                                                                  |
-| `NotificationHost` | —                                       | Render único de las notificaciones del `notificationStore`. Montado en los providers; una a la vez. Usa `Snackbar` + `Alert` de MUI hasta que TESIS-68 defina el Toast del DS |
+| Componente         | Props                                   | Descripción                                                                                                                                                                                                                                                         |
+| ------------------ | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `LoadingSpinner`   | `fullScreen?: boolean`                  | CircularProgress centrado. `fullScreen`: 100vh × 100%                                                                                                                                                                                                               |
+| `ErrorBoundary`    | `children`                              | Class component que captura errores de render y muestra `ErrorFallback`. Cableado en `AppLayout` alrededor del `<Outlet>` y en cada ruta `bare`                                                                                                                     |
+| `ErrorFallback`    | `error?: Error`, `onRetry?: () => void` | Pantalla de error con botón Reintentar (presentacional)                                                                                                                                                                                                             |
+| `PageWrapper`      | `children`, `...BoxProps`               | `<main>` con `p: {xs:2, md:3}`, `maxWidth: 1200`, `mx: auto`                                                                                                                                                                                                        |
+| `NotificationHost` | —                                       | Render único de las notificaciones del `notificationStore`. Montado en los providers; una a la vez. Usa `Snackbar` + `Alert` de MUI hasta que TESIS-68 defina el Toast del DS                                                                                       |
+| `TopNavBar`        | Ver `TopNavBar.types.ts`                | Shell de navegación global (brand + búsqueda + acciones + usuario). Presentacional — sin datos, sin `uiStore`; único acople: el `Link` de Router (brand/engranaje). Fixed/z-index intrínsecos vía `MuiAppBar` en el tema. Cableado real en `app/layout/Header.tsx`. |
 
 **Stores globales** (`shared/store/`):
 

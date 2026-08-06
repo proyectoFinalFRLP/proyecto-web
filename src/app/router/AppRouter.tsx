@@ -16,12 +16,14 @@ export function AppRouter() {
       <Routes>
         {/* Rutas públicas sin shell. Llevan su propio ErrorBoundary porque el de
             AppLayout envuelve al Outlet privado: sin esto, un error de render en
-            el login dejaría la pantalla en blanco en lugar del ErrorFallback. */}
+            el login dejaría la pantalla en blanco en lugar del ErrorFallback. El
+            `key` hace que el boundary se remonte (y resete) al navegar entre
+            rutas bare. */}
         {bareRoutes.map((route) => (
           <Route
             key={route.path}
             path={route.path}
-            element={<ErrorBoundary>{route.element}</ErrorBoundary>}
+            element={<ErrorBoundary key={route.path}>{route.element}</ErrorBoundary>}
           />
         ))}
 

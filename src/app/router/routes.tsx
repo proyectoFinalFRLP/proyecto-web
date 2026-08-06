@@ -20,9 +20,10 @@ export interface AppRoute {
   /** Si se define, la ruta se lista en el Sidebar con este label + ícono. */
   nav?: NavMeta
   /**
-   * `'app'` (default): ruta privada, dentro de `AppLayout` y detrás del guard de
-   * sesión. `'bare'`: full-bleed y pública — el login, que no puede exigir
-   * sesión ni renderizar el shell del dashboard.
+   * `'app'` (default): ruta privada, dentro de `AppLayout` (TopNavBar + Sidebar
+   * + Outlet) y detrás del guard de sesión. `'bare'`: full-bleed y pública — el
+   * login, que no puede exigir sesión ni renderizar el shell del dashboard.
+   * Ver docs/guidelines/architecture.md §4.1.
    */
   layout?: 'app' | 'bare'
 }
@@ -55,6 +56,6 @@ export const navRoutes = appRoutes.filter((route): route is AppRoute & { nav: Na
 )
 
 // Partición por layout — AppRouter monta `shellRoutes` detrás del guard y dentro
-// de `AppLayout`, y `bareRoutes` sueltas y públicas.
+// de `AppLayout`, y `bareRoutes` sueltas, públicas y sin shell.
 export const shellRoutes = appRoutes.filter((route) => route.layout !== 'bare')
 export const bareRoutes = appRoutes.filter((route) => route.layout === 'bare')

@@ -52,6 +52,7 @@ export const layout = {
   maxContent: 1440,
   sidebarWidth: 240,
   sidebarRail: 72,
+  topNavHeight: 64,
 } as const
 
 // ──────────────────────────────────────────────────────────────────────────────

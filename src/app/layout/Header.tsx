@@ -1,55 +1,30 @@
-import Brightness4Icon from '@mui/icons-material/Brightness4'
-import Brightness7Icon from '@mui/icons-material/Brightness7'
-import LogoutIcon from '@mui/icons-material/Logout'
-import MenuIcon from '@mui/icons-material/Menu'
-import { AppBar, IconButton, Toolbar, Tooltip, Typography } from '@mui/material'
+import { TopNavBar } from 'shared/components'
+import type { TopNavUser } from 'shared/components'
 import { useAuthStore, useUiStore } from 'shared/store'
 
-const LOGOUT_LABEL = 'Cerrar sesión'
-
 export function Header() {
-  const { themeMode, toggleTheme, toggleSidebar } = useUiStore()
-  const user = useAuthStore((state) => state.user)
+  // Selectores individuales (no el store completo): Header está en todas las
+  // pantallas vía TopNavBar, así que solo re-renderiza cuando cambia una de
+  // estas slices, no ante cualquier cambio del store.
+  const themeMode = useUiStore((state) => state.themeMode)
+  const toggleTheme = useUiStore((state) => state.toggleTheme)
+  const toggleSidebar = useUiStore((state) => state.toggleSidebar)
+  const sessionUser = useAuthStore((state) => state.user)
   const logout = useAuthStore((state) => state.logout)
 
+  // El email es lo único que la app sabe del usuario: no viaja en el JWT ni lo
+  // devuelve el login, se guarda del formulario. Hasta que exista `GET /me` es
+  // también el nombre que muestra el menú de cuenta.
+  const user: TopNavUser | undefined = sessionUser ? { name: sessionUser.email } : undefined
+
   return (
-    <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
-      <Toolbar>
-        <IconButton
-          color="inherit"
-          edge="start"
-          onClick={toggleSidebar}
-          sx={{ mr: 2 }}
-          aria-label="toggle sidebar"
-        >
-          <MenuIcon />
-        </IconButton>
-
-        <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-          proyecto-web
-        </Typography>
-
-        {/* El email es lo único que la app sabe del usuario: no viaja en el JWT
-            ni lo devuelve el login, se guarda del formulario. */}
-        {user ? (
-          <Typography variant="bodyMd" sx={{ mr: 1, display: { xs: 'none', sm: 'block' } }}>
-            {user.email}
-          </Typography>
-        ) : null}
-
-        <Tooltip title={themeMode === 'light' ? 'Modo oscuro' : 'Modo claro'}>
-          <IconButton color="inherit" onClick={toggleTheme} aria-label="toggle theme">
-            {themeMode === 'light' ? <Brightness4Icon /> : <Brightness7Icon />}
-          </IconButton>
-        </Tooltip>
-
-        {/* No navega: al limpiar la sesión el guard de rutas redirige al login. */}
-        <Tooltip title={LOGOUT_LABEL}>
-          <IconButton color="inherit" onClick={logout} aria-label={LOGOUT_LABEL}>
-            <LogoutIcon />
-          </IconButton>
-        </Tooltip>
-      </Toolbar>
-    </AppBar>
+    <TopNavBar
+      brandTo="/"
+      onToggleSidebar={toggleSidebar}
+      themeMode={themeMode}
+      onToggleTheme={toggleTheme}
+      user={user}
+      onLogout={logout}
+    />
   )
 }
