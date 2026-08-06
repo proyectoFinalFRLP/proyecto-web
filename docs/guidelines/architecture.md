@@ -46,7 +46,7 @@ src/
 ├── app/                        # Configuración global de la aplicación
 │   ├── layout/                 # Estructura visual principal
 │   │   ├── AppLayout.tsx       # Layout raíz: Header + Sidebar + Outlet
-│   │   ├── Header.tsx          # AppBar fija con toggle de tema y sidebar
+│   │   ├── Header.tsx          # Cablea TopNavBar (shared/) con uiStore
 │   │   └── Sidebar.tsx         # Drawer persistente de navegación
 │   ├── providers/              # Providers globales
 │   │   ├── Providers.tsx       # QueryClientProvider + BrowserRouter + ThemeWrapper
@@ -141,14 +141,27 @@ index.html → src/main.tsx → <Providers><App /></Providers>
 
 **Router — registro único de rutas:**
 
-- `routes.tsx`: **fuente única de verdad** de las rutas. Exporta `appRoutes` (array de `{ path, element, nav? }`, con las páginas cargadas vía `lazy()`) y `navRoutes` (las que tienen `nav`, ya angostadas para el Sidebar). Sumar una ruta = agregar **una** entrada acá.
-- `AppRouter.tsx`: mapea `appRoutes` a `<Route>` anidados bajo `<AppLayout>`, envueltos en `<Suspense fallback={<LoadingSpinner fullScreen />}>`. Las rutas 404 redirigen a `/`.
+- `routes.tsx`: **fuente única de verdad** de las rutas. Exporta `appRoutes` (array de `{ path, element, nav?, layout? }`, con las páginas cargadas vía `lazy()`), `navRoutes` (las que tienen `nav`, ya angostadas para el Sidebar) y la partición `shellRoutes` / `bareRoutes` según `layout`. Sumar una ruta = agregar **una** entrada acá.
+- `AppRouter.tsx`: mapea `shellRoutes` a `<Route>` anidados bajo `<AppLayout>` (TopNavBar + Sidebar + Outlet) y `bareRoutes` como rutas sueltas, sin shell — todo envuelto en `<Suspense fallback={<LoadingSpinner fullScreen />}>`. Las rutas 404 (dentro del shell) redirigen a `/`.
 - El Sidebar y el Router se derivan del mismo `routes.tsx`, por lo que no pueden divergir.
+- **Rutas sin shell (`layout: 'bare'`):** para vistas full-bleed no autenticadas — el caso típico es un login. `AppRoute.layout` acepta `'app'` (default, dentro de `AppLayout`) o `'bare'` (sin Header ni Sidebar, montada directo en el `<Routes>` de `AppRouter`). Ejemplo, una vez que exista `features/login/`:
+
+  ```tsx
+  // app/router/routes.tsx
+  const LoginPage = lazy(() => import('features/login').then((m) => ({ default: m.LoginPage })))
+
+  export const appRoutes: AppRoute[] = [
+    // ...rutas existentes (layout: 'app' por default)
+    { path: '/login', element: <LoginPage />, layout: 'bare' },
+  ]
+  ```
+
+  No hace falta tocar `AppRouter.tsx`, `AppLayout.tsx` ni `Header.tsx`: `shellRoutes`/`bareRoutes` separan solas la ruta según `layout`, y `navRoutes` la ignora automáticamente al no tener `nav` (una ruta de login no pertenece al Sidebar).
 
 **Layout:**
 
 - `AppLayout.tsx`: flex `Header + Sidebar + <Outlet>`. El margen izquierdo responde a `sidebarOpen` del `uiStore` (drawer width: 240px). El `<Outlet>` va envuelto en `<ErrorBoundary key={pathname}>`: los errores de render (o de carga de un chunk lazy) muestran el `ErrorFallback` en el área de contenido sin tumbar Header ni Sidebar, y se limpian al navegar.
-- `Header.tsx`: AppBar fija (`zIndex: drawer + 1`). Toggle de sidebar (MenuIcon) y toggle de tema (Brightness icons). Ambos desde `useUiStore`.
+- `Header.tsx`: único punto de cableado del `TopNavBar` (`shared/components`) — lee `themeMode`/`toggleTheme`/`toggleSidebar` de `useUiStore` (con selectores individuales) y se los pasa por props. El componente en sí es presentacional — sin datos ni `uiStore`; su único acople es el `Link` de react-router (brand y engranaje), correcto para esta app (ver tabla de `shared/` más abajo); cuando exista `GET /me` o el contador de alertas, se cablean acá sin tocar la UI.
 - `Sidebar.tsx`: Drawer persistente con `navItems` estático. Usa `NavLink` con clase `active` que resalta en `primary.main`.
 
 **Tema** (`createAppTheme(mode)`):
@@ -207,16 +220,17 @@ interface PaginationParams {
 
 **Componentes compartidos:**
 
-| Componente                     | Props                                               | Descripción                                                                                                                                                                                                                      |
-| ------------------------------ | --------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `LoadingSpinner`               | `fullScreen?: boolean`                              | CircularProgress centrado. `fullScreen`: 100vh × 100%                                                                                                                                                                            |
-| `ErrorBoundary`                | `children`                                          | Class component que captura errores de render y muestra `ErrorFallback`. Cableado en `AppLayout` alrededor del `<Outlet>`                                                                                                        |
-| `ErrorFallback`                | `error?: Error`, `onRetry?: () => void`             | Pantalla de error con botón Reintentar (presentacional)                                                                                                                                                                          |
-| `PageWrapper`                  | `children`, `...BoxProps`                           | `<main>` con `p: {xs:2, md:3}`, `maxWidth: 1200`, `mx: auto`                                                                                                                                                                     |
-| `StatCard` / `CompactStatCard` | Ver `StatCard.types.ts`                             | Tarjeta de KPI: ícono + chip de tendencia o etiqueta, valor destacado y footer comparativo. `tone: 'error'` suma borde y halo de acento. La variante condensada es una sola fila. Presentacionales: el valor llega ya formateado |
-| `ProgressIndicator`            | Ver `ProgressIndicator.types.ts`                    | Barra lineal con tono semántico. `size` thin/medium/large, `layout` stacked/inline, `indeterminate` para progreso desconocido. El ancho sale del porcentaje                                                                      |
-| `StepsProgress`                | `total`, `completed`, `tone?`, `label?`, `caption?` | Progreso por etapas discretas, para procesos con pasos nombrados                                                                                                                                                                 |
-| `ProgressSkeleton`             | `label?`, `avatar?`, `lines?`                       | Placeholder de carga con la silueta del contenido que reemplaza                                                                                                                                                                  |
+| Componente                     | Props                                               | Descripción                                                                                                                                                                                                                                                         |
+| ------------------------------ | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `LoadingSpinner`               | `fullScreen?: boolean`                              | CircularProgress centrado. `fullScreen`: 100vh × 100%                                                                                                                                                                                                               |
+| `ErrorBoundary`                | `children`                                          | Class component que captura errores de render y muestra `ErrorFallback`. Cableado en `AppLayout` alrededor del `<Outlet>`                                                                                                                                           |
+| `ErrorFallback`                | `error?: Error`, `onRetry?: () => void`             | Pantalla de error con botón Reintentar (presentacional)                                                                                                                                                                                                             |
+| `PageWrapper`                  | `children`, `...BoxProps`                           | `<main>` con `p: {xs:2, md:3}`, `maxWidth: 1200`, `mx: auto`                                                                                                                                                                                                        |
+| `StatCard` / `CompactStatCard` | Ver `StatCard.types.ts`                             | Tarjeta de KPI: ícono + chip de tendencia o etiqueta, valor destacado y footer comparativo. `tone: 'error'` suma borde y halo de acento. La variante condensada es una sola fila. Presentacionales: el valor llega ya formateado                                    |
+| `ProgressIndicator`            | Ver `ProgressIndicator.types.ts`                    | Barra lineal con tono semántico. `size` thin/medium/large, `layout` stacked/inline, `indeterminate` para progreso desconocido. El ancho sale del porcentaje                                                                                                         |
+| `StepsProgress`                | `total`, `completed`, `tone?`, `label?`, `caption?` | Progreso por etapas discretas, para procesos con pasos nombrados                                                                                                                                                                                                    |
+| `ProgressSkeleton`             | `label?`, `avatar?`, `lines?`                       | Placeholder de carga con la silueta del contenido que reemplaza                                                                                                                                                                                                     |
+| `TopNavBar`                    | Ver `TopNavBar.types.ts`                            | Shell de navegación global (brand + búsqueda + acciones + usuario). Presentacional — sin datos, sin `uiStore`; único acople: el `Link` de Router (brand/engranaje). Fixed/z-index intrínsecos vía `MuiAppBar` en el tema. Cableado real en `app/layout/Header.tsx`. |
 
 **Store global** (`shared/store/uiStore.ts`):
 

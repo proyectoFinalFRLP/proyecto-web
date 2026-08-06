@@ -6,6 +6,8 @@ export { StatusBadge } from './StatusBadge'
 export type { StatusVariant, StatusBadgeSize } from './StatusBadge'
 export { StatusSelect } from './StatusSelect'
 export type { StatusOption } from './StatusSelect'
+export { TopNavBar } from './TopNavBar'
+export type { TopNavBarProps, TopNavUser, TopNavThemeMode } from './TopNavBar'
 export { CompactStatCard, StatCard } from './StatCard'
 export type {
   CompactStatCardProps,

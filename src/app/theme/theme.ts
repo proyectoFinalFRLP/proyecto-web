@@ -8,6 +8,7 @@ import {
   elevationShadow,
   fontFamily,
   glow,
+  layout,
   motion,
   radius,
   roleColors,
@@ -146,6 +147,11 @@ export function createAppTheme(mode: ThemeMode) {
         easeOut: motion.easing.decelerate,
         easeIn: motion.easing.accelerate,
         sharp: motion.easing.standard,
+      },
+    },
+    mixins: {
+      toolbar: {
+        minHeight: layout.topNavHeight,
       },
     },
     components: buildComponents(mode),

@@ -6,6 +6,7 @@ import type {
   StatTrend,
   StatusBadgeSize,
   StatusVariant,
+  TopNavUser,
 } from 'shared/components'
 
 // Copy centralizado del catálogo — evitamos literales sueltos en el JSX.
@@ -32,6 +33,10 @@ export const dsCopy = {
     },
     inputs: { title: 'Inputs', subtitle: 'Focus ring celeste; estados default / disabled / error' },
     badges: { title: 'Status badges', subtitle: 'Siempre color + texto; el ícono es opcional' },
+    topNav: {
+      title: 'Navegación superior',
+      subtitle: 'TopNavBar — shell global: brand, búsqueda, acciones y usuario',
+    },
     stats: {
       title: 'Tarjetas de estadísticas',
       subtitle: 'KPI con tendencia, comparativa y formato condensado',
@@ -223,8 +228,14 @@ export const operationalStatus = {
   throughputLabel: 'Rendimiento',
   throughputValue: '8,4 GB/s',
   load: 65,
+  // Nombre accesible de la barra: no tiene label visible en el diseño.
+  loadLabel: 'Carga del nodo',
   action: 'Ver logs completos',
 } as const
+
+// Sample data del demo de TopNavBar.
+export const topNavDemoUser: TopNavUser = { name: 'Ana Torres' }
+export const topNavDemoNotifications = 3
 
 // Opciones del dropdown de cambio de estado (badge clickeable).
 export const statusOptions: { status: StatusVariant; label: string }[] = [
