@@ -26,9 +26,9 @@ import {
 import {
   badgeSamples,
   badgeSizes,
-  compactGroups,
   buttonHierarchies,
   buttonIntents,
+  compactGroups,
   dsCopy,
   elevationLevels,
   glassActions,
@@ -168,21 +168,36 @@ export function DesignSystemPage() {
               <Typography variant="labelMd" color="text.secondary" sx={GROUP_LABEL}>
                 {compactGroups.logo}
               </Typography>
-              {/* Sobre `background.default`: el manual muestra el lockup sobre la
-                  superficie más profunda, no sobre la card. */}
-              <Card sx={{ display: 'inline-flex', bgcolor: 'background.default' }}>
-                <Logo brand={logoSpec.brand} tagline={logoSpec.tagline} />
+              {/* El manual apoya el lockup sobre la superficie más profunda,
+                  dentro de un contenedor elevado. Hace falta la card exterior:
+                  sin ella el recuadro queda del mismo color que la página y la
+                  relación de profundidad no se lee. */}
+              <Card sx={{ p: 3 }}>
+                <Box
+                  sx={{
+                    display: 'inline-flex',
+                    borderRadius: 3,
+                    bgcolor: 'background.default',
+                    border: (theme) => `1px solid ${theme.palette.divider}`,
+                  }}
+                >
+                  <Logo brand={logoSpec.brand} tagline={logoSpec.tagline} />
+                </Box>
+                <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: RULE_COLUMNS, mt: 3 }}>
+                  {logoSpec.rules.map((rule) => (
+                    <Box key={rule.label}>
+                      <Typography
+                        variant="labelSm"
+                        color="text.secondary"
+                        sx={{ display: 'block' }}
+                      >
+                        {rule.label}
+                      </Typography>
+                      <Typography variant="bodyMd">{rule.value}</Typography>
+                    </Box>
+                  ))}
+                </Box>
               </Card>
-              <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: RULE_COLUMNS, mt: 2 }}>
-                {logoSpec.rules.map((rule) => (
-                  <Box key={rule.label}>
-                    <Typography variant="labelSm" color="text.secondary" sx={{ display: 'block' }}>
-                      {rule.label}
-                    </Typography>
-                    <Typography variant="bodyMd">{rule.value}</Typography>
-                  </Box>
-                ))}
-              </Box>
             </Box>
           </Stack>
         </Section>
