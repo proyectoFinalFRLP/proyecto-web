@@ -9,7 +9,10 @@ import prettierConfig from 'eslint-config-prettier'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist', '.claude']),
+  // `.freebuff/` es el directorio interno de la app de escritorio (worktrees
+  // propios, DB, etc.): no es código del repo y no pertenece a ningún proyecto
+  // de TS, así que no se puede lintar (ESLint no respeta .gitignore).
+  globalIgnores(['dist', '.claude', '.freebuff', '**/*.md']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
