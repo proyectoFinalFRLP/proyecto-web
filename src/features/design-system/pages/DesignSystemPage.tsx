@@ -5,6 +5,7 @@ import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
 import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined'
+import FilterListIcon from '@mui/icons-material/FilterList'
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined'
 import ParkOutlinedIcon from '@mui/icons-material/ParkOutlined'
@@ -14,16 +15,18 @@ import RouteOutlinedIcon from '@mui/icons-material/RouteOutlined'
 import SpeedOutlinedIcon from '@mui/icons-material/SpeedOutlined'
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined'
 import WarningAmberOutlinedIcon from '@mui/icons-material/WarningAmberOutlined'
-import { Box, Button, Divider, IconButton, Stack, TextField, Typography } from '@mui/material'
+import { Box, Button, Card, Divider, IconButton, Stack, TextField, Typography } from '@mui/material'
 import { useState } from 'react'
 import type { ReactElement, ReactNode } from 'react'
 import {
   CompactStatCard,
+  Logo,
   PageWrapper,
   ProgressIndicator,
   ProgressSkeleton,
   StatCard,
   StatusBadge,
+  StatusFeed,
   StatusSelect,
   StepsProgress,
   TopNavBar,
@@ -38,13 +41,17 @@ import {
   badgeSizes,
   buttonHierarchies,
   buttonIntents,
+  compactGroups,
   compactStatSamples,
   dsCopy,
   elevationLevels,
+  glassActions,
   inputSamples,
+  logoSpec,
   progressSamples,
   progressVariants,
   statCardSamples,
+  statusFeedSample,
   statusOptions,
   stepsSample,
   topNavDemoNotifications,
@@ -90,6 +97,11 @@ const COMPACT_ICONS: Record<CompactSampleKey, ReactElement> = {
   distance: <RouteOutlinedIcon />,
   carbon: <ParkOutlinedIcon />,
 }
+
+// Ancho del panel de especificación, igual que en el diseño.
+const SPEC_PANEL_WIDTH = 592
+const RULE_COLUMNS = { xs: 'minmax(0, 1fr)', sm: 'repeat(3, minmax(0, 1fr))' }
+const GROUP_LABEL = { display: 'block', mb: 2 } as const
 
 const BADGE_ICONS: Record<StatusVariant, ReactElement> = {
   success: <CheckCircleOutlinedIcon />,
@@ -174,6 +186,77 @@ export function DesignSystemPage() {
               user={topNavDemoUser}
             />
           </Box>
+        </Section>
+
+        <Divider />
+
+        <Section title={dsCopy.sections.compact.title} subtitle={dsCopy.sections.compact.subtitle}>
+          <Stack spacing={4}>
+            <Box>
+              <Typography variant="labelMd" color="text.secondary" sx={GROUP_LABEL}>
+                {compactGroups.feed}
+              </Typography>
+              <Card sx={{ p: 3, maxWidth: SPEC_PANEL_WIDTH }}>
+                <StatusFeed label={compactGroups.feed} entries={statusFeedSample} />
+              </Card>
+            </Box>
+
+            <Box>
+              <Typography variant="labelMd" color="text.secondary" sx={GROUP_LABEL}>
+                {compactGroups.actions}
+              </Typography>
+              <Card sx={{ p: 3, maxWidth: SPEC_PANEL_WIDTH }}>
+                <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap>
+                  {/* La acción principal queda sólida; las secundarias, glass. */}
+                  <Button variant="contained" color="primary" startIcon={<AddIcon />}>
+                    {glassActions.primary}
+                  </Button>
+                  <Button variant="glass" color="primary" startIcon={<FileDownloadOutlinedIcon />}>
+                    {glassActions.secondary}
+                  </Button>
+                  <Button variant="glass" color="neutral" startIcon={<FilterListIcon />}>
+                    {glassActions.tertiary}
+                  </Button>
+                </Stack>
+              </Card>
+            </Box>
+
+            <Box>
+              <Typography variant="labelMd" color="text.secondary" sx={GROUP_LABEL}>
+                {compactGroups.logo}
+              </Typography>
+              {/* El manual apoya el lockup sobre la superficie más profunda,
+                  dentro de un contenedor elevado. Hace falta la card exterior:
+                  sin ella el recuadro queda del mismo color que la página y la
+                  relación de profundidad no se lee. */}
+              <Card sx={{ p: 3 }}>
+                <Box
+                  sx={{
+                    display: 'inline-flex',
+                    borderRadius: 3,
+                    bgcolor: 'background.default',
+                    border: (theme) => `1px solid ${theme.palette.divider}`,
+                  }}
+                >
+                  <Logo brand={logoSpec.brand} tagline={logoSpec.tagline} />
+                </Box>
+                <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: RULE_COLUMNS, mt: 3 }}>
+                  {logoSpec.rules.map((rule) => (
+                    <Box key={rule.label}>
+                      <Typography
+                        variant="labelSm"
+                        color="text.secondary"
+                        sx={{ display: 'block' }}
+                      >
+                        {rule.label}
+                      </Typography>
+                      <Typography variant="bodyMd">{rule.value}</Typography>
+                    </Box>
+                  ))}
+                </Box>
+              </Card>
+            </Box>
+          </Stack>
         </Section>
 
         <Divider />

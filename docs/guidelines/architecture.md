@@ -169,6 +169,7 @@ index.html → src/main.tsx → <Providers><App /></Providers>
 - Fuente: Inter con fallbacks al sistema
 - `borderRadius`: 8px global
 - Overrides: `MuiButton` sin elevation · `MuiCard` sin elevation, borde `1px solid`
+- `MuiButton` suma la variante **`glass`**: relleno translúcido del propio tono + borde de un pelo, para la acción secundaria sobre superficies profundas. Se genera una entrada por intención, así `color` funciona igual que en las demás variantes (`variant="glass" color="neutral"`).
 - Light: primary `#1976d2`, bg `#f5f5f5`
 - Dark: primary `#90caf9`, bg `#121212`, paper `#1e1e1e`
 
@@ -231,6 +232,9 @@ interface PaginationParams {
 | `StepsProgress`                | `total`, `completed`, `tone?`, `label?`, `caption?` | Progreso por etapas discretas, para procesos con pasos nombrados                                                                                                                                                                                                    |
 | `ProgressSkeleton`             | `label?`, `avatar?`, `lines?`                       | Placeholder de carga con la silueta del contenido que reemplaza                                                                                                                                                                                                     |
 | `TopNavBar`                    | Ver `TopNavBar.types.ts`                            | Shell de navegación global (brand + búsqueda + acciones + usuario). Presentacional — sin datos, sin `uiStore`; único acople: el `Link` de Router (brand/engranaje). Fixed/z-index intrínsecos vía `MuiAppBar` en el tema. Cableado real en `app/layout/Header.tsx`. |
+| `StatusFeed`                   | Ver `StatusFeed.types.ts`                           | Bitácora de eventos de alta densidad: barra fina como eje temporal, título y metadato en monoespaciada. `current` marca la entrada vigente; el resto se atenúa. Renderiza `<ol>` porque el orden es información                                                     |
+| `Logo`                         | `brand`, `tagline`                                  | Lockup de marca (isotipo + wordmark). Las reglas del manual viajan con el componente: área de respeto como padding propio y mínimo de 140px como `minWidth`                                                                                                         |
+| `LogoMark`                     | `size?: number`                                     | Isotipo suelto, inline y con `currentColor` para que herede el color del contenedor                                                                                                                                                                                 |
 
 **Store global** (`shared/store/uiStore.ts`):
 
