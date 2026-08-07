@@ -17,12 +17,24 @@ export const ModalRoot = styled(Dialog)(({ theme }) => ({
   '& .MuiDialog-paper': {
     width: '100%',
     maxWidth: MODAL_MAX_WIDTH,
-    // El alto lo manda el contenido, pero nunca desborda la ventana: el que
-    // scrollea es el cuerpo, así header y footer quedan siempre visibles.
     maxHeight: `calc(100% - ${theme.spacing(8)})`,
     margin: theme.spacing(2),
+    // El paper no scrollea (MUI le pone `overflow-y: auto` por defecto): el
+    // único que scrollea es el cuerpo, así el título y las acciones quedan
+    // siempre a la vista, como en el diseño.
+    overflow: 'hidden',
   },
 }))
+
+// El `<form>` envuelve cuerpo y pie, así que tiene que ser la columna flex que
+// reparte el alto. Si queda como bloque suelto, el `overflow` del cuerpo no
+// tiene contra qué medirse y termina scrolleando el modal entero.
+export const ModalForm = styled('form')({
+  display: 'flex',
+  flexDirection: 'column',
+  flex: '1 1 auto',
+  minHeight: 0,
+})
 
 export const ModalHeader = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -31,6 +43,7 @@ export const ModalHeader = styled(Box)(({ theme }) => ({
   gap: theme.spacing(2),
   padding: theme.spacing(3),
   borderBottom: `1px solid ${theme.palette.divider}`,
+  flexShrink: 0,
 }))
 
 export const ModalBody = styled(Box)(({ theme }) => ({
@@ -38,6 +51,10 @@ export const ModalBody = styled(Box)(({ theme }) => ({
   flexDirection: 'column',
   gap: theme.spacing(4),
   padding: theme.spacing(3),
+  // `minHeight: 0` es load-bearing: sin eso un ítem flex no baja de su tamaño
+  // de contenido y el scroll nunca se activa.
+  flex: '1 1 auto',
+  minHeight: 0,
   overflowY: 'auto',
 }))
 
@@ -49,6 +66,7 @@ export const ModalFooter = styled(Box)(({ theme }) => ({
   padding: theme.spacing(3),
   borderTop: `1px solid ${theme.palette.divider}`,
   backgroundColor: theme.palette.background.default,
+  flexShrink: 0,
   // En pantallas chicas el pie apila la leyenda sobre los botones.
   [theme.breakpoints.down('sm')]: {
     flexDirection: 'column',

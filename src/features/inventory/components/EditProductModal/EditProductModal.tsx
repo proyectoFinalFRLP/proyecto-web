@@ -19,6 +19,7 @@ import {
   FooterActions,
   ModalBody,
   ModalFooter,
+  ModalForm,
   ModalHeader,
   ModalRoot,
   SectionRoot,
@@ -113,7 +114,7 @@ export function EditProductModal({
         </IconButton>
       </ModalHeader>
 
-      <form onSubmit={submit} noValidate>
+      <ModalForm onSubmit={submit} noValidate>
         <ModalBody>
           <SectionRoot>
             <SectionHeading title={modal.sections.basic} />
@@ -234,7 +235,7 @@ export function EditProductModal({
             </Button>
           </FooterActions>
         </ModalFooter>
-      </form>
+      </ModalForm>
 
       <Menu anchorEl={menuAnchor} open={menuAnchor !== null} onClose={() => setMenuAnchor(null)}>
         {availableWarehouses.map((warehouse) => (
