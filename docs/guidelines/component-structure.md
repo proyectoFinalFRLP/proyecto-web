@@ -70,6 +70,7 @@ app/theme/
     ├── card.ts            # muiCard(mode)
     ├── input.ts           # muiOutlinedInput() / muiTextField()
     ├── cssBaseline.ts     # focus ring + prefers-reduced-motion
+    ├── skeleton.ts        # muiSkeleton(mode)
     ├── typography.ts      # variantMapping
     └── index.ts           # buildComponents(mode) compone todo
 ```
