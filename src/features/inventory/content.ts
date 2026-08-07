@@ -6,6 +6,10 @@ export const inventoryCopy = {
   page: {
     title: 'Gestión de inventario',
     subtitle: 'Catálogo de productos y stock consolidado por depósito.',
+    listHeading: 'Productos',
+    empty: 'Todavía no hay productos cargados en esta empresa.',
+    stockSummary: (total: number) => `${total} u. en total`,
+    saved: (productName: string) => `${productName} actualizado.`,
   },
   modal: {
     /** El título lleva el nombre del producto; el subtítulo, el SKU. */
@@ -28,7 +32,7 @@ export const inventoryCopy = {
       available: 'Disponible',
     },
     skuHelper: 'El SKU identifica al producto y no se edita.',
-    categoryHelper: 'Pendiente de backend: `products` todavía no tiene categoría.',
+    categoryHelper: 'Pendiente de backend: el producto todavía no tiene categoría.',
     addWarehouse: 'Agregar depósito',
     removeWarehouse: (warehouseName: string) => `Quitar ${warehouseName}`,
     noWarehouses: 'Este producto no tiene stock asignado en ningún depósito.',

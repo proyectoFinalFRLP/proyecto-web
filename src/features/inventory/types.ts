@@ -5,6 +5,17 @@
 // no transforma las claves, así que la traducción vive en la capa que hace el
 // fetch — no acá. Este modal es presentacional: recibe ya el dominio armado.
 
+/**
+ * Fila del listado (`GET /api/v1/products`). El index usa `ProductListSerializer`
+ * y **no trae `stocks`**: el desglose por depósito sólo viene en el detalle.
+ */
+export interface ProductSummary {
+  id: number
+  sku: string
+  name: string
+  totalStock: number
+}
+
 /** Depósito físico de la empresa. Espejo de `GET /api/v1/warehouses`. */
 export interface Warehouse {
   id: number
