@@ -72,14 +72,34 @@ function semanticPalette(mode: ThemeMode, key: SemanticColor): SimplePaletteColo
   }
 }
 
+// `primary` y `secondary` no salen de la escala semántica, así que hay que
+// derivarles los tonos `container`/`onContainer` a mano: sin esto cualquier
+// componente que los lea (chips, cajones de ícono) recibe `undefined` y no pinta
+// fondo. El bug apareció con el primer consumidor de `primary` como tono, porque
+// StatusBadge sólo usa estados semánticos.
+//
+// `strong` queda deliberadamente sin definir: `muiButton` lo usa como opt-in
+// para el fondo del botón sólido en light y, al setearlo, el hover perdería su
+// oscurecido. Los semánticos sí lo traen y ahí el comportamiento es el buscado.
+function brandTones(main: string) {
+  return {
+    container: alpha(main, 0.12),
+    onContainer: main,
+  }
+}
+
 function buildPalette(mode: ThemeMode): PaletteOptions {
   const role = roleColors[mode]
   return {
     mode,
     // Regla del primario: en light el CTA es navy con texto blanco; en dark es
     // sky brillante con texto oscuro.
-    primary: { main: role.primary, contrastText: mode === 'light' ? '#ffffff' : '#051424' },
-    secondary: { main: role.accent, contrastText: '#051424' },
+    primary: {
+      main: role.primary,
+      contrastText: mode === 'light' ? '#ffffff' : '#051424',
+      ...brandTones(role.primary),
+    },
+    secondary: { main: role.accent, contrastText: '#051424', ...brandTones(role.accent) },
     success: semanticPalette(mode, 'success'),
     warning: semanticPalette(mode, 'warning'),
     error: semanticPalette(mode, 'error'),
