@@ -3,12 +3,14 @@ import PersonIcon from '@mui/icons-material/Person'
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline'
 import {
   Avatar,
+  Box,
   Divider,
   IconButton,
   ListItemIcon,
   ListItemText,
   Menu,
   MenuItem,
+  Typography,
 } from '@mui/material'
 import { useId, useState } from 'react'
 import type { MouseEvent } from 'react'
@@ -69,6 +71,14 @@ export function UserMenu({ user, onProfileClick, onLogout }: UserMenuProps) {
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
         slotProps={{ paper: { sx: userMenuPaperSx } }}
       >
+        {/* Identidad de la sesión: hasta que exista `GET /me`, el nombre es el
+            email tipeado en el login (se muestra como alt del avatar y acá). */}
+        <Box sx={{ px: 2, py: 1 }}>
+          <Typography variant="bodyMd" color="text.primary" noWrap sx={{ maxWidth: 240 }}>
+            {displayName}
+          </Typography>
+        </Box>
+        <Divider sx={{ my: 0.5 }} />
         <MenuItem onClick={runAndClose(onProfileClick)}>
           <ListItemIcon>
             <PersonOutlineIcon fontSize="small" />
