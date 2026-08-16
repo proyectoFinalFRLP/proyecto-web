@@ -1,7 +1,37 @@
+import type { CreateProductFormData } from '../components/CreateProductModal/CreateProductModal.schema'
 import type { EditProductFormData } from '../components/EditProductModal/EditProductModal.schema'
-import type { Product, UpdateProductPayload } from '../types'
+import type { CreateProductPayload, Product, UpdateProductPayload } from '../types'
 
 import { formatDimensions, isParseableDimensions } from './dimensions'
+
+/**
+ * Traduce el formulario de alta al cuerpo de `POST /api/v1/products`.
+ *
+ * `description` viaja en `null`: el frame del modal no tiene ese campo, aunque
+ * la API lo acepta y el alcance de la card lo menciona. Se manda explícito para
+ * dejar dicho que es una ausencia deliberada y no un olvido.
+ *
+ * La clave anidada es `stocks` y no `stocks_attributes` — ver `types.ts`.
+ */
+export function buildCreatePayload(data: CreateProductFormData): CreateProductPayload {
+  return {
+    product: {
+      sku: data.sku,
+      name: data.name,
+      description: null,
+      weight: data.weight,
+      dimensions: formatDimensions({
+        length: data.length,
+        width: data.width,
+        height: data.height,
+      }),
+      stocks: data.stocks.map((stock) => ({
+        warehouse_id: stock.warehouseId,
+        quantity: stock.quantity,
+      })),
+    },
+  }
+}
 
 /**
  * Traduce el formulario al cuerpo de `PUT /api/v1/products/:id`.

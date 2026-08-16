@@ -1,7 +1,7 @@
 import { Typography } from '@mui/material'
 
-import { FieldLabel, FieldRoot, FullRow } from './EditProductModal.styles'
-import type { LabeledFieldProps } from './EditProductModal.types'
+import type { LabeledFieldProps } from './LabeledField.types'
+import { FieldLabel, FieldRoot, FullRow } from './ProductModalShell.styles'
 
 /**
  * Campo con el label arriba del input, como pide el DS (MUI por defecto lo
@@ -22,7 +22,9 @@ export function LabeledField({
 
   return (
     <Wrapper as="label">
-      <FieldLabel variant="labelMd">{label}</FieldLabel>
+      <FieldLabel variant="labelSm" sx={{ fontWeight: 700, textTransform: 'uppercase' }}>
+        {label}
+      </FieldLabel>
       {children}
       {message === undefined ? null : (
         <Typography

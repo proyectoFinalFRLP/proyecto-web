@@ -10,24 +10,26 @@ import type { Product } from '../../types'
 import { parseDimensions } from '../../utils/dimensions'
 import { buildUpdatePayload } from '../../utils/payload'
 import { formatRelativeTime } from '../../utils/relativeTime'
+import {
+  FooterActions,
+  LabeledField,
+  ModalBody,
+  ModalFooter,
+  ModalForm,
+  ModalHeader,
+  ModalRoot,
+} from '../ProductModalShell'
 
 import { editProductSchema } from './EditProductModal.schema'
 import type { EditProductFormData } from './EditProductModal.schema'
 import {
   AddWarehouseButton,
   BasicGrid,
-  FooterActions,
-  ModalBody,
-  ModalFooter,
-  ModalForm,
-  ModalHeader,
-  ModalRoot,
   SectionRoot,
   SpecGrid,
   WarehouseList,
 } from './EditProductModal.styles'
 import type { EditProductModalProps } from './EditProductModal.types'
-import { LabeledField } from './LabeledField'
 import { SectionHeading } from './SectionHeading'
 import { WarehouseStockField } from './WarehouseStockField'
 

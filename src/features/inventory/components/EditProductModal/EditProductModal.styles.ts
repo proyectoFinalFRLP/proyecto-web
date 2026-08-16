@@ -1,9 +1,9 @@
-import { Box, Button, Dialog, Typography } from '@mui/material'
+import { Box, Button } from '@mui/material'
 import { styled } from '@mui/material/styles'
 
-// Ancho del modal en el frame de Figma. Por debajo de esa medida el diálogo
-// pasa a ocupar el ancho disponible.
-export const MODAL_MAX_WIDTH = 672
+// El shell del modal (root, header, form, body, footer y campos) vive en
+// `ProductModalShell`, compartido con el alta. Acá quedan sólo las piezas
+// propias de la edición.
 
 // Radios (px). No se leen del tema ni de `tokens.ts`: `shape.borderRadius` es
 // el radio base (8) de los controles, y las reglas de capa prohíben que una
@@ -19,74 +19,6 @@ export const WAREHOUSE_ICON_GLYPH = 20
 // Ancho de la columna de cantidad. Fijo para que los inputs de todas las filas
 // queden alineados aunque los nombres de depósito midan distinto.
 const QUANTITY_COLUMN = 128
-
-export const ModalRoot = styled(Dialog)(({ theme }) => ({
-  '& .MuiDialog-paper': {
-    width: '100%',
-    maxWidth: MODAL_MAX_WIDTH,
-    maxHeight: `calc(100% - ${theme.spacing(8)})`,
-    margin: theme.spacing(2),
-    // El paper no scrollea (MUI le pone `overflow-y: auto` por defecto): el
-    // único que scrollea es el cuerpo, así el título y las acciones quedan
-    // siempre a la vista, como en el diseño.
-    overflow: 'hidden',
-  },
-}))
-
-// El `<form>` envuelve cuerpo y pie, así que tiene que ser la columna flex que
-// reparte el alto. Si queda como bloque suelto, el `overflow` del cuerpo no
-// tiene contra qué medirse y termina scrolleando el modal entero.
-export const ModalForm = styled('form')({
-  display: 'flex',
-  flexDirection: 'column',
-  flex: '1 1 auto',
-  minHeight: 0,
-})
-
-export const ModalHeader = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'flex-start',
-  justifyContent: 'space-between',
-  gap: theme.spacing(2),
-  padding: theme.spacing(3),
-  borderBottom: `1px solid ${theme.palette.divider}`,
-  flexShrink: 0,
-}))
-
-export const ModalBody = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  flexDirection: 'column',
-  gap: theme.spacing(4),
-  padding: theme.spacing(3),
-  // `minHeight: 0` es load-bearing: sin eso un ítem flex no baja de su tamaño
-  // de contenido y el scroll nunca se activa.
-  flex: '1 1 auto',
-  minHeight: 0,
-  overflowY: 'auto',
-}))
-
-export const ModalFooter = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  gap: theme.spacing(2),
-  padding: theme.spacing(3),
-  borderTop: `1px solid ${theme.palette.divider}`,
-  backgroundColor: theme.palette.background.default,
-  flexShrink: 0,
-  // En pantallas chicas el pie apila la leyenda sobre los botones.
-  [theme.breakpoints.down('sm')]: {
-    flexDirection: 'column',
-    alignItems: 'stretch',
-  },
-}))
-
-export const FooterActions = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  gap: theme.spacing(1.5),
-  flexShrink: 0,
-  [theme.breakpoints.down('sm')]: { justifyContent: 'flex-end' },
-}))
 
 // ── Secciones ────────────────────────────────────────────────────────────────
 
@@ -123,32 +55,13 @@ export const SectionBar = styled(Box)(({ theme }) => ({
   backgroundColor: theme.palette.primary.main,
 }))
 
-// ── Campos ───────────────────────────────────────────────────────────────────
-
-// El DS pone el label arriba del input, no flotando en el notch de MUI.
-export const FieldLabel = styled(Typography)(({ theme }) => ({
-  color: theme.palette.text.secondary,
-  marginBottom: theme.spacing(0.5),
-}))
-
-export const FieldRoot = styled(Box)({
-  display: 'flex',
-  flexDirection: 'column',
-  minWidth: 0,
-})
+// ── Grillas ──────────────────────────────────────────────────────────────────
 
 export const BasicGrid = styled(Box)(({ theme }) => ({
   display: 'grid',
   gap: theme.spacing(2),
   gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
   [theme.breakpoints.down('sm')]: { gridTemplateColumns: '1fr' },
-}))
-
-// El nombre del producto ocupa la fila entera; SKU y categoría se reparten la
-// siguiente. Hereda de FieldRoot para que ambos se comporten igual como campo.
-export const FullRow = styled(FieldRoot)(({ theme }) => ({
-  gridColumn: '1 / -1',
-  [theme.breakpoints.down('sm')]: { gridColumn: 'auto' },
 }))
 
 export const SpecGrid = styled(Box)(({ theme }) => ({
