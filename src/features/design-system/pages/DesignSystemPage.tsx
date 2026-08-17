@@ -4,7 +4,9 @@ import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined'
 import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
+import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord'
 import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined'
+import FilterListIcon from '@mui/icons-material/FilterList'
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined'
 import ParkOutlinedIcon from '@mui/icons-material/ParkOutlined'
@@ -12,6 +14,7 @@ import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline'
 import ReportProblemOutlinedIcon from '@mui/icons-material/ReportProblemOutlined'
 import RouteOutlinedIcon from '@mui/icons-material/RouteOutlined'
 import SpeedOutlinedIcon from '@mui/icons-material/SpeedOutlined'
+import ViewColumnOutlinedIcon from '@mui/icons-material/ViewColumnOutlined'
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined'
 import WarningAmberOutlinedIcon from '@mui/icons-material/WarningAmberOutlined'
 import { Box, Button, Divider, IconButton, Stack, TextField, Typography } from '@mui/material'
@@ -19,6 +22,7 @@ import { useState } from 'react'
 import type { ReactElement, ReactNode } from 'react'
 import {
   CompactStatCard,
+  DataTable,
   PageWrapper,
   ProgressIndicator,
   ProgressSkeleton,
@@ -27,6 +31,7 @@ import {
   StatusSelect,
   StepsProgress,
   TopNavBar,
+  type DataTableColumn,
   type StatusVariant,
   type TopNavThemeMode,
 } from 'shared/components'
@@ -39,6 +44,9 @@ import {
   buttonHierarchies,
   buttonIntents,
   compactStatSamples,
+  dataTableCopy,
+  dataTableOrders,
+  dataTableTabs,
   dsCopy,
   elevationLevels,
   inputSamples,
@@ -51,7 +59,7 @@ import {
   topNavDemoUser,
   typeSpecs,
 } from '../content'
-import type { CompactSampleKey, StatSampleKey } from '../content'
+import type { CompactSampleKey, DemoOrder, StatSampleKey } from '../content'
 
 // Grillas del catálogo: colapsan a una columna en mobile para que las tarjetas
 // no se compriman.
@@ -127,6 +135,119 @@ function Section({
 function StatusSelectDemo() {
   const [value, setValue] = useState<StatusVariant>('info')
   return <StatusSelect options={statusOptions} value={value} onChange={setValue} />
+}
+
+// Demo de la tabla estándar. Tiene estado propio (pestaña, selección y página)
+// para que el catálogo muestre el componente vivo y no una foto: el criterio de
+// la card es que el menú de acciones abra y cierre de verdad.
+function DataTableDemo() {
+  const [tab, setTab] = useState('all')
+  const [selected, setSelected] = useState<(string | number)[]>([])
+  const [page, setPage] = useState(1)
+
+  const columns: DataTableColumn<DemoOrder>[] = [
+    {
+      id: 'id',
+      header: dataTableCopy.columns.id,
+      render: (order) => (
+        <Typography
+          variant="dataMono"
+          sx={{ color: order.tone === 'critical' ? 'error.main' : 'primary.main' }}
+        >
+          {order.id}
+        </Typography>
+      ),
+    },
+    {
+      id: 'placedAt',
+      header: dataTableCopy.columns.placedAt,
+      render: (order) => (
+        <Typography variant="bodyMd" color="text.secondary">
+          {order.placedAt}
+        </Typography>
+      ),
+    },
+    { id: 'destination', header: dataTableCopy.columns.destination, render: (o) => o.destination },
+    {
+      id: 'status',
+      header: dataTableCopy.columns.status,
+      render: (order) => (
+        <StatusBadge
+          status={order.status}
+          label={order.statusLabel}
+          icon={<FiberManualRecordIcon sx={{ fontSize: 8 }} />}
+        />
+      ),
+    },
+    {
+      id: 'total',
+      header: dataTableCopy.columns.total,
+      align: 'right',
+      render: (order) => <Typography variant="dataMono">{order.total}</Typography>,
+    },
+  ]
+
+  return (
+    <DataTable<DemoOrder>
+      label={dataTableCopy.label}
+      columns={columns}
+      rows={dataTableOrders}
+      getRowId={(order) => order.id}
+      tabs={dataTableTabs}
+      activeTabId={tab}
+      onTabChange={setTab}
+      selectable
+      selectedIds={selected}
+      onSelectionChange={setSelected}
+      selectAllLabel={dataTableCopy.selectAll}
+      selectRowLabel={dataTableCopy.selectRow}
+      rowTone={(order) => order.tone}
+      actionsHeader={dataTableCopy.actionsHeader}
+      getActionsLabel={(order) => dataTableCopy.rowActions(order.id)}
+      actions={[
+        {
+          id: 'edit',
+          label: dataTableCopy.actions.edit,
+          icon: <EditOutlinedIcon fontSize="small" />,
+          onSelect: () => {},
+        },
+        {
+          id: 'view',
+          label: dataTableCopy.actions.view,
+          icon: <VisibilityOutlinedIcon fontSize="small" />,
+          onSelect: () => {},
+        },
+        {
+          id: 'remove',
+          label: dataTableCopy.actions.remove,
+          icon: <DeleteOutlineIcon fontSize="small" />,
+          tone: 'danger',
+          onSelect: () => {},
+        },
+      ]}
+      toolbarActions={
+        <>
+          <IconButton aria-label={dataTableCopy.toolbar.filter} size="small">
+            <FilterListIcon fontSize="small" />
+          </IconButton>
+          <IconButton aria-label={dataTableCopy.toolbar.columns} size="small">
+            <ViewColumnOutlinedIcon fontSize="small" />
+          </IconButton>
+        </>
+      }
+      pagination={{
+        page,
+        pageCount: 966,
+        summary: dataTableCopy.summary(1, dataTableOrders.length, dataTableCopy.totalOrders),
+        onPageChange: setPage,
+      }}
+      paginationLabels={{
+        previousLabel: dataTableCopy.previous,
+        nextLabel: dataTableCopy.next,
+        pageLabel: dataTableCopy.page,
+      }}
+    />
+  )
 }
 
 export function DesignSystemPage() {
@@ -515,6 +636,15 @@ export function DesignSystemPage() {
             <FulfillmentPanel />
             <OperationalStatusCard />
           </Box>
+        </Section>
+
+        <Divider />
+
+        <Section
+          title={dsCopy.sections.dataTable.title}
+          subtitle={dsCopy.sections.dataTable.subtitle}
+        >
+          <DataTableDemo />
         </Section>
       </Stack>
     </PageWrapper>
