@@ -21,6 +21,17 @@ export const fontFamily = {
 // especificados en el DS) buscando legibilidad en UI densa.
 // ──────────────────────────────────────────────────────────────────────────────
 
+export interface TypeSpec {
+  fontSize: number
+  fontWeight: number
+  lineHeight: number
+  family: 'sans' | 'mono'
+  /** Tracking, en em. Sólo lo declaran las variantes donde el DS lo especifica. */
+  letterSpacing?: string
+  /** Caja del texto, cuando es parte de la definición y no del uso. */
+  textTransform?: 'uppercase'
+}
+
 export const typographyScale = {
   displayLg: { fontSize: 48, fontWeight: 700, lineHeight: 1.1, family: 'sans' },
   displaySm: { fontSize: 32, fontWeight: 700, lineHeight: 1.15, family: 'sans' },
@@ -31,8 +42,21 @@ export const typographyScale = {
   bodyMd: { fontSize: 14, fontWeight: 400, lineHeight: 1.5, family: 'sans' },
   labelMd: { fontSize: 12, fontWeight: 600, lineHeight: 1.4, family: 'sans' },
   labelSm: { fontSize: 11, fontWeight: 500, lineHeight: 1.4, family: 'sans' },
+  // Etiquetas de estado secundarias (`STATUS: OPERATIONAL`). Comparte tamaño con
+  // `labelMd` pero no es su reemplazo: el peso bold y las mayúsculas son parte de
+  // la definición del token, no una decisión de quien lo usa. `labelMd` sigue
+  // siendo el label neutro de tabs, headers y rótulos de campo.
+  // `0.05em` = los 0.6px del spec a 12px, pero proporcional si el tamaño cambia.
+  labelCaps: {
+    fontSize: 12,
+    fontWeight: 700,
+    lineHeight: 1.4,
+    family: 'sans',
+    letterSpacing: '0.05em',
+    textTransform: 'uppercase',
+  },
   dataMono: { fontSize: 14, fontWeight: 500, lineHeight: 1.4, family: 'mono' },
-} as const
+} as const satisfies Record<string, TypeSpec>
 
 export type TypographyToken = keyof typeof typographyScale
 
@@ -146,6 +170,35 @@ export const roleColors = {
 } as const
 
 export type ThemeMode = keyof typeof roleColors
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Luminous layering — escala de profundidad nombrada (DS v4.2).
+//
+// Es un eje distinto del de `elevation`: elevación es el TRATAMIENTO (borde +
+// sombra + halo) y esto es el RELLENO de cada plano. Un modal usa `elevation[3]`
+// y se pinta con `layer.modal`.
+//
+// El DS sólo especifica los valores dark; los de light se derivan de los roles
+// existentes, igual que el resto de la paleta.
+//
+// `deck` (#0f172a) NO reemplaza a `roleColors.dark.surface` (#122131): el propio
+// archivo de Figma pinta sus paneles en #122131 mientras declara este trío como
+// la escala nombrada. Se suma como eje explícito en vez de repintar `surface`,
+// que arrastraría todos los componentes ya mergeados.
+// ──────────────────────────────────────────────────────────────────────────────
+
+export const layerColors = {
+  dark: {
+    floor: roleColors.dark.background, // #051424 — el plano más profundo
+    deck: '#0f172a', // módulos elevados sobre el piso
+    modal: '#1c2b3c', // overlays y cabeceras de tabla
+  },
+  light: {
+    floor: roleColors.light.background,
+    deck: roleColors.light.surface,
+    modal: roleColors.light.containerHighest,
+  },
+} as const
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Color — semánticos. Cada estado expone tonos light (container/base/strong/text)
