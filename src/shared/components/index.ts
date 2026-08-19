@@ -26,3 +26,7 @@ export type {
   ProgressTone,
   StepsProgressProps,
 } from './ProgressIndicator'
+export { StatusFeed } from './StatusFeed'
+export type { StatusFeedEntry, StatusFeedProps } from './StatusFeed'
+export { Logo, LogoMark } from './Logo'
+export type { LogoProps } from './Logo'
