@@ -79,4 +79,10 @@ declare module '@mui/material/Button' {
   interface ButtonPropsColorOverrides {
     neutral: true
   }
+
+  // Acción secundaria sobre superficies profundas: relleno translúcido del tono
+  // + borde de un pelo (ver `muiButton`).
+  interface ButtonPropsVariantOverrides {
+    glass: true
+  }
 }

@@ -158,6 +158,7 @@ index.html → src/main.tsx → <Providers><App /></Providers>
 - Fuente: Inter con fallbacks al sistema
 - `borderRadius`: 8px global
 - Overrides: `MuiButton` sin elevation · `MuiCard` sin elevation, borde `1px solid`
+- `MuiButton` suma la variante **`glass`**: relleno translúcido del propio tono + borde de un pelo, para la acción secundaria sobre superficies profundas. Se genera una entrada por intención, así `color` funciona igual que en las demás variantes (`variant="glass" color="neutral"`).
 - Light: primary `#1976d2`, bg `#f5f5f5`
 - Dark: primary `#90caf9`, bg `#121212`, paper `#1e1e1e`
 
@@ -223,6 +224,9 @@ interface PaginationParams {
 | `StepsProgress`                | `total`, `completed`, `tone?`, `label?`, `caption?` | Progreso por etapas discretas, para procesos con pasos nombrados                                                                                                                                                                                                    |
 | `ProgressSkeleton`             | `label?`, `avatar?`, `lines?`                       | Placeholder de carga con la silueta del contenido que reemplaza                                                                                                                                                                                                     |
 | `TopNavBar`                    | Ver `TopNavBar.types.ts`                            | Shell de navegación global (brand + búsqueda + acciones + usuario). Presentacional — sin datos, sin `uiStore`; único acople: el `Link` de Router (brand/engranaje). Fixed/z-index intrínsecos vía `MuiAppBar` en el tema. Cableado real en `app/layout/Header.tsx`. |
+| `StatusFeed`                   | Ver `StatusFeed.types.ts`                           | Bitácora de eventos de alta densidad: barra fina como eje temporal, título y metadato en monoespaciada. `current` marca la entrada vigente; el resto se atenúa. Renderiza `<ol>` porque el orden es información                                                     |
+| `Logo`                         | `brand`, `tagline`                                  | Lockup de marca (isotipo + wordmark). Las reglas del manual viajan con el componente: área de respeto como padding propio y mínimo de 140px como `minWidth`                                                                                                         |
+| `LogoMark`                     | `size?: number`                                     | Isotipo suelto, inline y con `currentColor` para que herede el color del contenedor                                                                                                                                                                                 |
 
 **Stores globales** (`shared/store/`):
 
@@ -261,6 +265,31 @@ features/[nombre]/
 ├── types.ts        # Interfaces y tipos locales
 └── index.ts        # Barrel: solo exporta lo que otros módulos necesitan
 ```
+
+**Features existentes:**
+
+| Feature         | Contenido                                                                                                                                                                                                                           |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `design-system` | Catálogo de tokens y componentes del DS (`/design-system`). No tiene datos ni hooks                                                                                                                                                 |
+| `home`          | Landing de la app (`/`)                                                                                                                                                                                                             |
+| `inventory`     | Catálogo de productos y stock por depósito (`/inventory`). Hoy sólo el `EditProductModal`; la vista real del catálogo la construye TESIS-62, que también reemplaza el cuerpo de `InventoryPage` y conecta el submit con la mutación |
+
+**`inventory` — piezas y por qué:**
+
+| Archivo                        | Rol                                                                                                                                                                                                                                                |
+| ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `components/EditProductModal/` | Modal de edición: datos básicos, medidas y asignación de stock. **Presentacional** — recibe `product` y `warehouses` ya resueltos y devuelve en `onSubmit` el cuerpo de `PUT /api/v1/products/:id`. Quien lo monta decide de dónde salen los datos |
+| `utils/dimensions.ts`          | `products.dimensions` es un único `string` en la API y el diseño lo edita en tres ejes. Define el formato canónico (`"45x30x30"`, cm) y es el único lugar que lo conoce                                                                            |
+| `utils/payload.ts`             | Traduce el formulario al cuerpo de la API. Función pura, aparte del componente, porque concentra las tres reglas no obvias (ver abajo) y así se puede verificar sola                                                                               |
+| `sampleData.ts`                | Props de muestra para poder abrir el modal mientras no existe el catálogo. No es un mock de la API: son los mismos props que en producción vienen del fetch                                                                                        |
+
+> El diálogo en sí se tematizó en `app/theme/components/dialog.ts` (`MuiDialog` en el nivel 3 de la escala de elevación + `MuiBackdrop` con scrim y blur), no dentro del modal: es un componente base de MUI y sus estilos van al tema — ver `component-structure.md` §3.1.
+
+> **Tres reglas del submit que no se ven en el diseño**, todas en `utils/payload.ts`:
+>
+> 1. **Quitar un depósito viaja como `quantity: 0`, no como una omisión.** `Products::UpdateProduct` en el backend hace upsert por `warehouse_id` y **nunca destruye**: si el depósito no viene en el array, la fila queda viva con su cantidad anterior. Omitirlo haría que el usuario vea que borró y el stock siga ahí.
+> 2. **`description` se reenvía tal cual.** El modal no la edita; mandarla explícita evita depender de que el backend la deje intacta.
+> 3. **Una `dimensions` fuera de formato se conserva.** Un valor viejo (`"grande"`) se muestra como 0/0/0 porque no se puede representar en tres campos; guardar `null` ahí borraría un dato que el usuario nunca vio.
 
 **Query keys — factory por feature (`queryKeys.ts`):**
 
