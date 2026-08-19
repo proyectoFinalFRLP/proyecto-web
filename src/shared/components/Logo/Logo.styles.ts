@@ -1,4 +1,4 @@
-import { Box } from '@mui/material'
+import { Box, Typography } from '@mui/material'
 import { styled } from '@mui/material/styles'
 
 // Reglas de marca del diseño, en px.
@@ -53,6 +53,23 @@ export const CropMark = styled(Box, {
   ...(corner === 'bl' && { bottom: -CROP_MARK / 2, left: -CROP_MARK / 2 }),
   ...(corner === 'br' && { bottom: -CROP_MARK / 2, right: -CROP_MARK / 2 }),
 }))
+
+// El wordmark aprieta el tracking y sube el peso por encima de `displaySm`:
+// son ajustes de marca del manual, no de la escala tipográfica, y por eso
+// viven acá y no en el tema.
+export const BrandName = styled(Typography)({
+  fontWeight: 800,
+  letterSpacing: '-0.05em',
+  textTransform: 'uppercase',
+})
+
+// La bajada hace lo contrario: abre el tracking para que "LOGISTICS" ocupe el
+// ancho del wordmark.
+export const TaglineText = styled(Typography)({
+  fontWeight: 700,
+  letterSpacing: '0.4em',
+  textTransform: 'uppercase',
+})
 
 export const Wordmark = styled(Box)({
   display: 'flex',

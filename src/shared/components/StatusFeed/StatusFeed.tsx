@@ -1,9 +1,15 @@
 import { Typography } from '@mui/material'
 
-import { Entry, EntryBar, EntryBody, EntryList, FeedRoot } from './StatusFeed.styles'
+import {
+  Entry,
+  EntryBar,
+  EntryBody,
+  EntryList,
+  EntryMeta,
+  FeedLabel,
+  FeedRoot,
+} from './StatusFeed.styles'
 import type { StatusFeedProps } from './StatusFeed.types'
-
-const META_FONT_SIZE = 10
 
 /**
  * Bitácora de eventos del sistema, de más reciente a más antiguo.
@@ -25,17 +31,13 @@ export function StatusFeed({ label, entries, emptyMessage }: StatusFeedProps) {
   return (
     <FeedRoot>
       {label ? (
-        <Typography
-          variant="labelSm"
-          color="text.secondary"
-          sx={{ textTransform: 'uppercase', letterSpacing: '0.08em' }}
-        >
+        <FeedLabel variant="labelSm" color="text.secondary">
           {label}
-        </Typography>
+        </FeedLabel>
       ) : null}
 
       {hasEntries ? (
-        <EntryList as="ol" sx={{ listStyle: 'none', m: 0, p: 0 }}>
+        <EntryList as="ol">
           {entries.map((entry) => (
             <Entry key={entry.id} as="li" current={Boolean(entry.current)}>
               {/* Decorativa: el estado ya lo comunican el orden y el metadato. */}
@@ -43,13 +45,9 @@ export function StatusFeed({ label, entries, emptyMessage }: StatusFeedProps) {
               <EntryBody>
                 <Typography variant="bodyMd">{entry.title}</Typography>
                 {entry.meta ? (
-                  <Typography
-                    variant="dataMono"
-                    color="text.secondary"
-                    sx={{ fontSize: META_FONT_SIZE }}
-                  >
+                  <EntryMeta variant="dataMono" color="text.secondary">
                     {entry.meta}
-                  </Typography>
+                  </EntryMeta>
                 ) : null}
               </EntryBody>
             </Entry>

@@ -1,6 +1,13 @@
-import { Typography } from '@mui/material'
-
-import { CropMark, LogoRoot, MarkBox, TaglineRow, TaglineRule, Wordmark } from './Logo.styles'
+import {
+  BrandName,
+  CropMark,
+  LogoRoot,
+  MarkBox,
+  TaglineRow,
+  TaglineRule,
+  TaglineText,
+  Wordmark,
+} from './Logo.styles'
 import type { LogoProps } from './Logo.types'
 import { LogoMark } from './LogoMark'
 
@@ -24,22 +31,14 @@ export function Logo({ brand, tagline }: LogoProps) {
       </MarkBox>
 
       <Wordmark>
-        <Typography
-          variant="displaySm"
-          color="primary.main"
-          sx={{ fontWeight: 800, letterSpacing: '-0.05em', textTransform: 'uppercase' }}
-        >
+        <BrandName variant="displaySm" color="primary.main">
           {brand}
-        </Typography>
+        </BrandName>
         <TaglineRow>
           <TaglineRule aria-hidden />
-          <Typography
-            variant="bodyMd"
-            color="text.secondary"
-            sx={{ fontWeight: 700, letterSpacing: '0.4em', textTransform: 'uppercase' }}
-          >
+          <TaglineText variant="bodyMd" color="text.secondary">
             {tagline}
-          </Typography>
+          </TaglineText>
         </TaglineRow>
       </Wordmark>
     </LogoRoot>
