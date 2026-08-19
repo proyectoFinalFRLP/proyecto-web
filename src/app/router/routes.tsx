@@ -1,4 +1,5 @@
 import HomeIcon from '@mui/icons-material/Home'
+import Inventory2Icon from '@mui/icons-material/Inventory2'
 import { lazy } from 'react'
 import type { ReactNode } from 'react'
 
@@ -6,6 +7,9 @@ import type { ReactNode } from 'react'
 const HomePage = lazy(() => import('features/home').then((m) => ({ default: m.HomePage })))
 const DesignSystemPage = lazy(() =>
   import('features/design-system').then((m) => ({ default: m.DesignSystemPage })),
+)
+const InventoryPage = lazy(() =>
+  import('features/inventory').then((m) => ({ default: m.InventoryPage })),
 )
 const LoginPage = lazy(() => import('features/auth').then((m) => ({ default: m.LoginPage })))
 
@@ -42,6 +46,11 @@ export const appRoutes: AppRoute[] = [
     path: '/',
     element: <HomePage />,
     nav: { label: 'Inicio', icon: <HomeIcon /> },
+  },
+  {
+    path: '/inventory',
+    element: <InventoryPage />,
+    nav: { label: 'Inventario', icon: <Inventory2Icon /> },
   },
   {
     path: '/design-system',
