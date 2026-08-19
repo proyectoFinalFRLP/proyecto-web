@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import AddIcon from '@mui/icons-material/Add'
 import CloseIcon from '@mui/icons-material/Close'
 import { Button, IconButton, Menu, MenuItem, TextField, Typography } from '@mui/material'
-import { useEffect, useId, useState } from 'react'
+import { useEffect, useId, useMemo, useState } from 'react'
 import { useFieldArray, useForm } from 'react-hook-form'
 
 import { inventoryCopy } from '../../content'
@@ -94,7 +94,11 @@ export function EditProductModal({
 
   const assignedIds = new Set(fields.map((field) => field.warehouseId))
   const availableWarehouses = warehouses.filter((warehouse) => !assignedIds.has(warehouse.id))
-  const lastUpdated = formatRelativeTime(product.updatedAt)
+  // Con `useMemo` el "hace 2 horas" se calcula una vez por producto y no en
+  // cada render: `formatRelativeTime` usa `new Date()` por defecto, así que sin
+  // esto el texto podía saltar de "2 horas" a "3 horas" por un re-render del
+  // padre, sin que el usuario tocara nada.
+  const lastUpdated = useMemo(() => formatRelativeTime(product.updatedAt), [product.updatedAt])
 
   const submit = handleSubmit((data) => onSubmit(buildUpdatePayload(product, data)))
 

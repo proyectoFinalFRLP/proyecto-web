@@ -1,11 +1,15 @@
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 import WarehouseIcon from '@mui/icons-material/Warehouse'
-import { IconButton, Typography } from '@mui/material'
+import { IconButton } from '@mui/material'
 
 import {
+  QuantityError,
   QuantityField,
+  QuantityLabel,
+  WarehouseAddress,
   WarehouseIconBox,
   WarehouseInfo,
+  WarehouseName,
   WarehouseRow,
 } from './EditProductModal.styles'
 import type { WarehouseStockFieldProps } from './EditProductModal.types'
@@ -33,26 +37,17 @@ export function WarehouseStockField({
       </WarehouseIconBox>
 
       <WarehouseInfo>
-        <Typography variant="bodyMd" sx={{ fontWeight: 600 }}>
-          {name}
-        </Typography>
-        <Typography variant="labelMd" sx={{ color: 'text.secondary', fontWeight: 400 }}>
-          {address}
-        </Typography>
+        <WarehouseName variant="bodyMd">{name}</WarehouseName>
+        <WarehouseAddress variant="labelMd">{address}</WarehouseAddress>
       </WarehouseInfo>
 
       <QuantityField as="label">
-        <Typography
-          variant="labelSm"
-          sx={{ display: 'block', mb: 0.5, fontWeight: 700, textTransform: 'uppercase' }}
-        >
-          {quantityLabel}
-        </Typography>
+        <QuantityLabel variant="labelSm">{quantityLabel}</QuantityLabel>
         {children}
         {error === undefined ? null : (
-          <Typography variant="labelSm" role="alert" sx={{ mt: 0.5, color: 'error.main' }}>
+          <QuantityError variant="labelSm" role="alert">
             {error}
-          </Typography>
+          </QuantityError>
         )}
       </QuantityField>
 

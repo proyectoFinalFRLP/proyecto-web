@@ -5,6 +5,13 @@ import { styled } from '@mui/material/styles'
 // pasa a ocupar el ancho disponible.
 export const MODAL_MAX_WIDTH = 672
 
+// Radios (px). No se leen del tema ni de `tokens.ts`: `shape.borderRadius` es
+// el radio base (8) de los controles, y las reglas de capa prohíben que una
+// feature importe de `app/` (architecture.md §3.2). Mismo criterio que
+// `StatCard.styles.ts`. Los valores son `radius.md` y `radius.base` del DS.
+const ROW_RADIUS = 12
+const ICON_RADIUS = 8
+
 // Lado del recuadro del ícono de depósito y de su glifo interno.
 export const WAREHOUSE_ICON_BOX = 40
 export const WAREHOUSE_ICON_GLYPH = 20
@@ -102,6 +109,11 @@ export const SectionTitleGroup = styled(Box)(({ theme }) => ({
   gap: theme.spacing(1),
 }))
 
+export const SectionTitle = styled(Typography)({
+  textTransform: 'uppercase',
+  letterSpacing: '0.05em',
+})
+
 // Barra vertical de acento a la izquierda del título de sección.
 export const SectionBar = styled(Box)(({ theme }) => ({
   width: 4,
@@ -160,7 +172,7 @@ export const WarehouseRow = styled(Box)(({ theme }) => ({
   alignItems: 'center',
   gap: theme.spacing(2),
   padding: theme.spacing(2),
-  borderRadius: 12,
+  borderRadius: ROW_RADIUS,
   border: `1px solid ${theme.palette.divider}`,
   [theme.breakpoints.down('sm')]: {
     flexWrap: 'wrap',
@@ -177,7 +189,7 @@ export const WarehouseIconBox = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  borderRadius: 8,
+  borderRadius: ICON_RADIUS,
   backgroundColor: theme.palette.primary.container,
   color: theme.palette.primary.main,
   '& svg': { display: 'block', fontSize: WAREHOUSE_ICON_GLYPH },
@@ -187,6 +199,29 @@ export const WarehouseInfo = styled(Box)({
   flex: '1 1 0',
   minWidth: 0,
 })
+
+export const WarehouseName = styled(Typography)({
+  fontWeight: 600,
+})
+
+// La dirección baja el peso de `labelMd` (600) para que el nombre del depósito
+// mande en la fila.
+export const WarehouseAddress = styled(Typography)(({ theme }) => ({
+  color: theme.palette.text.secondary,
+  fontWeight: 400,
+}))
+
+export const QuantityLabel = styled(Typography)(({ theme }) => ({
+  display: 'block',
+  marginBottom: theme.spacing(0.5),
+  fontWeight: 700,
+  textTransform: 'uppercase',
+}))
+
+export const QuantityError = styled(Typography)(({ theme }) => ({
+  marginTop: theme.spacing(0.5),
+  color: theme.palette.error.main,
+}))
 
 export const QuantityField = styled(Box)(({ theme }) => ({
   width: QUANTITY_COLUMN,

@@ -1,6 +1,9 @@
-import { Typography } from '@mui/material'
-
-import { SectionBar, SectionHeadingRow, SectionTitleGroup } from './EditProductModal.styles'
+import {
+  SectionBar,
+  SectionHeadingRow,
+  SectionTitle,
+  SectionTitleGroup,
+} from './EditProductModal.styles'
 import type { SectionHeadingProps } from './EditProductModal.types'
 
 /**
@@ -14,13 +17,9 @@ export function SectionHeading({ title, action }: SectionHeadingProps) {
     <SectionHeadingRow>
       <SectionTitleGroup>
         <SectionBar aria-hidden />
-        <Typography
-          variant="labelMd"
-          component="h3"
-          sx={{ textTransform: 'uppercase', letterSpacing: '0.05em' }}
-        >
+        <SectionTitle variant="labelMd" as="h3">
           {title}
-        </Typography>
+        </SectionTitle>
       </SectionTitleGroup>
       {action}
     </SectionHeadingRow>
