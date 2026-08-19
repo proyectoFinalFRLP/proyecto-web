@@ -1,4 +1,4 @@
-import { Box, Button } from '@mui/material'
+import { Box, Button, Typography } from '@mui/material'
 import { styled } from '@mui/material/styles'
 
 // El shell del modal (root, header, form, body, footer y campos) vive en

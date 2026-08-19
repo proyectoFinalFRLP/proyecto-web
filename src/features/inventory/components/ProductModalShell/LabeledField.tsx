@@ -22,9 +22,7 @@ export function LabeledField({
 
   return (
     <Wrapper as="label">
-      <FieldLabel variant="labelSm" sx={{ fontWeight: 700, textTransform: 'uppercase' }}>
-        {label}
-      </FieldLabel>
+      <FieldLabel variant="labelSm">{label}</FieldLabel>
       {children}
       {message === undefined ? null : (
         <Typography

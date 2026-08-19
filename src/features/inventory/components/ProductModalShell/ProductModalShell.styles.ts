@@ -91,6 +91,8 @@ export const FieldRoot = styled(Box)({
 export const FieldLabel = styled(Typography)(({ theme }) => ({
   color: theme.palette.text.secondary,
   marginBottom: theme.spacing(0.5),
+  fontWeight: 700,
+  textTransform: 'uppercase',
 }))
 
 // Ocupa la fila completa de una grilla; hereda de FieldRoot para comportarse
