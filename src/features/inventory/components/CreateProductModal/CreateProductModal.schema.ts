@@ -23,6 +23,11 @@ const stockRowSchema = z.object({
  *
  * La categoría queda fuera a propósito — `products` no tiene esa columna, así
  * que el campo se pinta pero no se edita ni se envía.
+ *
+ * `description` tampoco está: el frame del alta no tiene ese campo, así que no
+ * hay nada que validar. Viaja igual en el payload, en `null` explícito y no por
+ * omisión, para no depender de qué hace el backend con una clave ausente (ver
+ * `utils/payload.ts`). Si el diseño la agrega, entra acá primero.
  */
 export const createProductSchema = z.object({
   name: z.string().trim().min(1, validation.nameRequired),

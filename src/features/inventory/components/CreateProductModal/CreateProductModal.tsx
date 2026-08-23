@@ -106,6 +106,11 @@ export function CreateProductModal({
     }
   }, [submitError, setError])
 
+  // Un error de SKU se muestra sólo en el campo, no también arriba: repetir el
+  // mismo problema en dos lugares hace pensar que son dos. La contracara es que
+  // si el mensaje del server trajera algo más que el SKU, esa parte se pierde —
+  // aceptado, porque el campo resaltado ya dice qué corregir y hoy los dos
+  // mensajes posibles (422 y 409) no traen nada más.
   const generalError =
     submitError !== undefined && !isSkuConflict(submitError) ? submitError : undefined
 
