@@ -21,16 +21,6 @@ export interface SectionHeadingProps {
   action?: ReactNode
 }
 
-export interface LabeledFieldProps {
-  label: string
-  children: ReactNode
-  /** Mensaje de error de validación; si falta, se muestra `helperText`. */
-  error?: string
-  helperText?: string
-  /** Ocupa la fila completa de la grilla. */
-  fullWidth?: boolean
-}
-
 export interface WarehouseStockFieldProps {
   name: string
   address: string
