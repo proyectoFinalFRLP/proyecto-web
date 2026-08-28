@@ -1,7 +1,16 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import AddIcon from '@mui/icons-material/Add'
 import CloseIcon from '@mui/icons-material/Close'
-import { Button, IconButton, Menu, MenuItem, TextField, Typography } from '@mui/material'
+import {
+  Alert,
+  AlertTitle,
+  Button,
+  IconButton,
+  Menu,
+  MenuItem,
+  TextField,
+  Typography,
+} from '@mui/material'
 import { useEffect, useId, useMemo, useState } from 'react'
 import { useFieldArray, useForm } from 'react-hook-form'
 
@@ -70,6 +79,8 @@ export function EditProductModal({
   onSubmit,
   onClose,
   submitting = false,
+  conflict,
+  onOverwrite,
 }: EditProductModalProps) {
   const titleId = useId()
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null)
@@ -122,6 +133,34 @@ export function EditProductModal({
 
       <ModalForm onSubmit={submit} noValidate>
         <ModalBody>
+          {/* El conflicto va arriba del formulario y no reemplaza nada: lo que
+              el usuario cargó sigue intacto abajo. */}
+          {conflict === undefined ? null : (
+            <Alert
+              severity="warning"
+              variant="outlined"
+              action={
+                onOverwrite === undefined ? undefined : (
+                  <Button color="warning" size="small" onClick={onOverwrite} disabled={submitting}>
+                    {modal.conflict.overwrite}
+                  </Button>
+                )
+              }
+            >
+              <AlertTitle>{modal.conflict.title}</AlertTitle>
+              {modal.conflict.body}
+              {conflict.length === 0 ? (
+                <div>{modal.conflict.unknown}</div>
+              ) : (
+                <ul>
+                  {conflict.map((change) => (
+                    <li key={change}>{change}</li>
+                  ))}
+                </ul>
+              )}
+            </Alert>
+          )}
+
           <SectionRoot>
             <SectionHeading title={modal.sections.basic} />
             <BasicGrid>

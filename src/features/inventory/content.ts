@@ -16,6 +16,18 @@ export const inventoryCopy = {
     title: (productName: string) => `Editar producto: ${productName}`,
     subtitle: (sku: string) => `Actualizá especificaciones y stock del SKU: ${sku}`,
     close: 'Cerrar',
+    conflict: {
+      title: 'Alguien editó este producto mientras lo tenías abierto',
+      body: 'Tus cambios siguen acá. Revisá qué se modificó antes de decidir.',
+      unknown: 'No pudimos determinar qué cambió.',
+      overwrite: 'Guardar de todos modos',
+      labels: {
+        name: 'Nombre',
+        weight: 'Peso',
+        dimensions: 'Medidas',
+        stockIn: (warehouse: string) => `Stock en ${warehouse}`,
+      },
+    },
     sections: {
       basic: 'Información básica',
       technical: 'Especificaciones técnicas',
@@ -46,6 +58,18 @@ export const inventoryCopy = {
     title: 'Crear producto',
     subtitle: 'Da de alta una entrada nueva en el catálogo maestro.',
     close: 'Cerrar',
+    conflict: {
+      title: 'Alguien editó este producto mientras lo tenías abierto',
+      body: 'Tus cambios siguen acá. Revisá qué se modificó antes de decidir.',
+      unknown: 'No pudimos determinar qué cambió.',
+      overwrite: 'Guardar de todos modos',
+      labels: {
+        name: 'Nombre',
+        weight: 'Peso',
+        dimensions: 'Medidas',
+        stockIn: (warehouse: string) => `Stock en ${warehouse}`,
+      },
+    },
     sections: {
       basic: 'Información básica',
       technical: 'Especificaciones técnicas',

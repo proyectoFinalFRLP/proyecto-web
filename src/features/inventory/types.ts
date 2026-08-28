@@ -45,6 +45,15 @@ export interface Product {
   dimensions: string | null
   stocks: ProductStock[]
   updatedAt: string
+  /**
+   * Versión del agregado que devolvió la API en el header `ETag` (TESIS-101).
+   * Vuelve en `If-Match` al guardar; si alguien tocó el producto en el medio, la
+   * API rechaza la escritura con 412 en vez de dejar que pise en silencio.
+   *
+   * `null` cuando la API no la mandó — por ejemplo si CORS no expone el header.
+   * En ese caso el guardado sigue funcionando, pero sin la protección.
+   */
+  version: string | null
 }
 
 /**

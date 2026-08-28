@@ -13,6 +13,14 @@ export interface EditProductModalProps {
   onClose: () => void
   /** Deja el modal en espera mientras la mutación está en vuelo. */
   submitting?: boolean
+  /**
+   * Conflicto de versión (412): el producto cambió desde que se abrió el modal.
+   * Lista qué se modificó. El modal NO se cierra ni pierde lo cargado — el
+   * usuario decide si pisa igual.
+   */
+  conflict?: string[]
+  /** Reintenta el guardado contra la versión vigente, pisando lo que cambió. */
+  onOverwrite?: () => void
 }
 
 export interface SectionHeadingProps {

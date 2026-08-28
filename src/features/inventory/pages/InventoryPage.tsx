@@ -16,12 +16,15 @@ import { CreateProductModal } from '../components/CreateProductModal'
 import { EditProductModal } from '../components/EditProductModal'
 import { inventoryCopy } from '../content'
 import {
+  CONFLICT_STATUS,
   useCreateProduct,
   useProduct,
   useProductList,
   useUpdateProduct,
   useWarehouses,
 } from '../hooks/useInventory'
+import type { Product, UpdateProductPayload } from '../types'
+import { describeConflict } from '../utils/conflict'
 
 const { page, createModal } = inventoryCopy
 
@@ -37,12 +40,43 @@ export function InventoryPage() {
   const [editingId, setEditingId] = useState<number | undefined>(undefined)
   const [creating, setCreating] = useState(false)
   const [savedName, setSavedName] = useState<string | null>(null)
+  // Estado del producto cuando el modal lo abrió. Se guarda para poder decir
+  // QUÉ cambió si la API rechaza el guardado por versión vieja (TESIS-101).
+  const [baseline, setBaseline] = useState<Product | undefined>(undefined)
+  // Último cuerpo enviado, para poder reintentarlo tal cual al pisar.
+  const [lastPayload, setLastPayload] = useState<UpdateProductPayload | undefined>(undefined)
 
   const products = useProductList()
   const warehouses = useWarehouses()
   const product = useProduct(editingId)
-  const updateMutation = useUpdateProduct(editingId)
+  const updateMutation = useUpdateProduct(editingId, product.data?.version ?? null)
   const createMutation = useCreateProduct()
+
+  // El 412 llega con la versión ya invalidada: React Query refetchea el detalle
+  // y de esa lectura sale la comparación contra lo que el modal había abierto.
+  const isConflict = updateMutation.error?.status === CONFLICT_STATUS
+  const conflict =
+    isConflict && baseline !== undefined && product.data !== undefined
+      ? describeConflict(baseline, product.data, inventoryCopy.modal.conflict.labels)
+      : undefined
+
+  // La foto del estado de partida se saca al GUARDAR y no al abrir: en este
+  // momento `product.data` es todavía lo que el usuario estaba editando, y el
+  // refetch que dispara el error llega después. Evita un efecto que sincronice
+  // estado —que además ESLint rechaza— para obtener exactamente el mismo dato.
+  function save(payload: UpdateProductPayload) {
+    setLastPayload(payload)
+    if (product.data !== undefined) setBaseline(product.data)
+    const name = product.data?.name ?? ''
+    updateMutation.mutate(payload, {
+      onSuccess: () => {
+        setSavedName(name)
+        setEditingId(undefined)
+        setBaseline(undefined)
+      },
+      onError: () => void product.refetch(),
+    })
+  }
 
   if (products.isPending || warehouses.isPending) return <LoadingSpinner fullScreen />
 
@@ -124,20 +158,19 @@ export function InventoryPage() {
             product={product.data}
             warehouses={warehouses.data}
             submitting={updateMutation.isPending}
-            onClose={() => setEditingId(undefined)}
-            onSubmit={(payload) => {
-              const name = product.data.name
-              updateMutation.mutate(payload, {
-                onSuccess: () => {
-                  setSavedName(name)
-                  setEditingId(undefined)
-                },
-              })
+            conflict={conflict}
+            onOverwrite={lastPayload === undefined ? undefined : () => save(lastPayload)}
+            onClose={() => {
+              setEditingId(undefined)
+              setBaseline(undefined)
             }}
+            onSubmit={save}
           />
         )}
 
-        {updateMutation.isError ? (
+        {/* El 412 no es un error a mostrar acá: lo explica el propio modal, que
+            queda abierto con lo que el usuario cargó. */}
+        {updateMutation.isError && conflict === undefined ? (
           <Typography variant="bodyMd" role="alert" sx={{ color: 'error.main' }}>
             {updateMutation.error.message}
           </Typography>
