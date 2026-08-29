@@ -1,8 +1,20 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
-import { fetchProduct, fetchProductList, fetchWarehouses, updateProduct } from '../api'
+import {
+  createProduct,
+  fetchProduct,
+  fetchProductList,
+  fetchWarehouses,
+  updateProduct,
+} from '../api'
 import { inventoryKeys } from '../queryKeys'
-import type { Product, ProductSummary, UpdateProductPayload, Warehouse } from '../types'
+import type {
+  CreateProductPayload,
+  Product,
+  ProductSummary,
+  UpdateProductPayload,
+  Warehouse,
+} from '../types'
 
 /** Listado paginado del catálogo. Sin `stocks` — ver `ProductSummary`. */
 export function useProductList(page = 1, perPage = 20) {
@@ -27,6 +39,21 @@ export function useWarehouses() {
   return useQuery<Warehouse[]>({
     queryKey: inventoryKeys.warehouses(),
     queryFn: fetchWarehouses,
+  })
+}
+
+/**
+ * Alta desde el modal de creación.
+ *
+ * Invalida todo el dominio para que el producto nuevo aparezca en el listado
+ * con su stock ya sumado, sin recargar la página.
+ */
+export function useCreateProduct() {
+  const queryClient = useQueryClient()
+
+  return useMutation<Product, Error, CreateProductPayload>({
+    mutationFn: createProduct,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: inventoryKeys.all }),
   })
 }
 

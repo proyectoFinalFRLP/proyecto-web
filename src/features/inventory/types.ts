@@ -48,6 +48,26 @@ export interface Product {
 }
 
 /**
+ * Cuerpo de `POST /api/v1/products`, en el snake_case que espera Rails.
+ *
+ * ⚠️ La card TESIS-63 especifica la clave anidada como `stocks_attributes`.
+ * **La API no la lee**: `Api::V1::ProductsController#stock_params` hace
+ * `params[:product][:stocks]`, y `product_params` sólo permite los cinco
+ * escalares. Mandando `stocks_attributes` el producto se crearía con 201 y sin
+ * una sola unidad de stock, en silencio. La clave correcta es `stocks`.
+ */
+export interface CreateProductPayload {
+  product: {
+    sku: string
+    name: string
+    description: string | null
+    weight: number
+    dimensions: string | null
+    stocks: { warehouse_id: number; quantity: number }[]
+  }
+}
+
+/**
  * Cuerpo de `PUT /api/v1/products/:id`, en el snake_case que espera Rails.
  *
  * `stocks` es un upsert por `warehouse_id`: la API no borra las asignaciones que

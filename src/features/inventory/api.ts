@@ -1,6 +1,12 @@
 import { client } from 'shared/api/client'
 
-import type { Product, ProductSummary, UpdateProductPayload, Warehouse } from './types'
+import type {
+  CreateProductPayload,
+  Product,
+  ProductSummary,
+  UpdateProductPayload,
+  Warehouse,
+} from './types'
 
 // Frontera con la API Rails. Todo lo que entra en snake_case se traduce acá y
 // sale como el dominio en camelCase; ningún componente ve la forma cruda.
@@ -92,6 +98,19 @@ export async function fetchWarehouses(): Promise<Warehouse[]> {
   const { data } = await client.get<ApiList<ApiWarehouse>>('/warehouses')
 
   return data.data.map(toWarehouse)
+}
+
+/**
+ * Alta de producto. Crea el producto y sus stocks iniciales en una sola
+ * transacción del lado del server (`Products::CreateProduct`).
+ *
+ * Un SKU repetido vuelve como 409 con `{ error: 'SKU already exists' }`; el
+ * interceptor de Axios lo convierte en `Error` con ese mensaje.
+ */
+export async function createProduct(payload: CreateProductPayload): Promise<Product> {
+  const { data } = await client.post<ApiProduct>('/products', payload)
+
+  return toProduct(data)
 }
 
 export async function updateProduct(id: number, payload: UpdateProductPayload): Promise<Product> {
