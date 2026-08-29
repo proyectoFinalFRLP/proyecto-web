@@ -17,7 +17,17 @@ import SpeedOutlinedIcon from '@mui/icons-material/SpeedOutlined'
 import ViewColumnOutlinedIcon from '@mui/icons-material/ViewColumnOutlined'
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined'
 import WarningAmberOutlinedIcon from '@mui/icons-material/WarningAmberOutlined'
-import { Box, Button, Card, Divider, IconButton, Stack, TextField, Typography } from '@mui/material'
+import {
+  Box,
+  Button,
+  Card,
+  Divider,
+  IconButton,
+  Stack,
+  TextField,
+  Typography,
+  useTheme,
+} from '@mui/material'
 import { useState } from 'react'
 import type { ReactElement, ReactNode } from 'react'
 import {
@@ -54,6 +64,8 @@ import {
   elevationLevels,
   glassActions,
   inputSamples,
+  layerLevels,
+  loadSamples,
   logoSpec,
   progressSamples,
   progressVariants,
@@ -107,6 +119,11 @@ const COMPACT_ICONS: Record<CompactSampleKey, ReactElement> = {
 
 // Ancho del panel de especificación, igual que en el diseño.
 const SPEC_PANEL_WIDTH = 592
+
+// Ancho de la barra de la columna Load (px), como en el spec: es una celda de
+// telemetría de ancho fijo, no una barra que acompañe el ancho del contenedor.
+const LOAD_BAR_WIDTH = 80
+const LOAD_ID_WIDTH = 104
 const RULE_COLUMNS = { xs: 'minmax(0, 1fr)', sm: 'repeat(3, minmax(0, 1fr))' }
 const GROUP_LABEL = { display: 'block', mb: 2 } as const
 
@@ -268,6 +285,10 @@ export function DesignSystemPage() {
   // `onToggleSidebar`: sin sidebar en el preview, el botón no se renderiza.
   const [demoThemeMode, setDemoThemeMode] = useState<TopNavThemeMode>('dark')
 
+  // Los hex de las capas se leen del tema, que es su único origen: el catálogo
+  // no puede importar de `app/` y duplicarlos acá los dejaría desincronizados.
+  const { layer } = useTheme().palette.background
+
   return (
     <PageWrapper>
       <Stack spacing={5}>
@@ -424,6 +445,36 @@ export function DesignSystemPage() {
               >
                 <Typography variant="labelMd" color="text.secondary">
                   {label}
+                </Typography>
+              </Box>
+            ))}
+          </Stack>
+        </Section>
+
+        <Divider />
+
+        <Section title={dsCopy.sections.layers.title} subtitle={dsCopy.sections.layers.subtitle}>
+          <Stack spacing={2} sx={{ maxWidth: SPEC_PANEL_WIDTH }}>
+            {layerLevels.map(({ key, elevation, label }) => (
+              <Box
+                key={key}
+                sx={(theme) => ({
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 2,
+                  p: 2,
+                  borderRadius: 2,
+                  bgcolor: theme.palette.background.layer[key],
+                  border: theme.elevation[elevation].border,
+                  boxShadow: theme.elevation[elevation].boxShadow,
+                })}
+              >
+                <Typography variant="bodyLg" color="text.secondary">
+                  {label}
+                </Typography>
+                <Typography variant="dataMono" color="primary.main">
+                  {layer[key].toUpperCase()}
                 </Typography>
               </Box>
             ))}
@@ -640,6 +691,33 @@ export function DesignSystemPage() {
           subtitle={dsCopy.sections.progress.subtitle}
         >
           <Stack spacing={4}>
+            <Box>
+              <Typography variant="labelMd" color="text.secondary" sx={{ mb: 2, display: 'block' }}>
+                {dsCopy.progressGroups.load}
+              </Typography>
+              <Stack spacing={1.5}>
+                {loadSamples.map((row) => (
+                  <Box key={row.label} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Typography
+                      variant="dataMono"
+                      color="primary.main"
+                      sx={{ minWidth: LOAD_ID_WIDTH }}
+                    >
+                      {row.label}
+                    </Typography>
+                    <Box sx={{ width: LOAD_BAR_WIDTH }}>
+                      <ProgressIndicator
+                        size="thin"
+                        track="neutral"
+                        tone={row.tone}
+                        value={row.value}
+                        ariaLabel={`${dsCopy.progressGroups.load} — ${row.label}`}
+                      />
+                    </Box>
+                  </Box>
+                ))}
+              </Stack>
+            </Box>
             <Box>
               <Typography variant="labelMd" color="text.secondary" sx={{ mb: 2, display: 'block' }}>
                 {dsCopy.progressGroups.semantic}

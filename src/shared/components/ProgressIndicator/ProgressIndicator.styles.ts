@@ -1,8 +1,8 @@
 import { Box } from '@mui/material'
-import { styled } from '@mui/material/styles'
+import { alpha, styled } from '@mui/material/styles'
 import type { Theme } from '@mui/material/styles'
 
-import type { ProgressSize, ProgressTone } from './ProgressIndicator.types'
+import type { ProgressSize, ProgressTone, ProgressTrack } from './ProgressIndicator.types'
 
 // Alturas por densidad (px). `large` es la fila con label al costado.
 const BAR_HEIGHTS: Record<ProgressSize, number> = { thin: 4, medium: 8, large: 16 }
@@ -11,13 +11,28 @@ const STEP_HEIGHT = 6
 const STEP_GAP = 6
 const INDETERMINATE_WIDTH = '40%'
 
-const TRANSIENT_PROPS = new Set<string>(['tone', 'barSize', 'filled'])
+const TRANSIENT_PROPS = new Set<string>(['tone', 'barSize', 'filled', 'trackFill'])
+
+// Opacidad del canal neutro. Los 10% del spec (`rgba(255,255,255,0.1)` en dark).
+const NEUTRAL_TRACK_ALPHA = 0.1
 
 const notForwarded = (prop: string | number | symbol) => !TRANSIENT_PROPS.has(prop as string)
 
-// Canal de la barra: tinte del mismo tono, para que el recorrido pendiente se
+// Canal de la barra.
+//
+// `tonal` (por defecto): tinte del mismo tono, para que el recorrido pendiente se
 // lea como "lo que falta de esto" y no como un gris ajeno a la métrica.
-function trackColor(theme: Theme, tone: ProgressTone) {
+//
+// `neutral`: canal acromático. Es lo que pide la columna Load del spec — ahí el
+// tono del relleno codifica el ESTADO de la fila (celeste normal, rojo crítico),
+// así que un canal teñido haría que la referencia de "100%" cambiara de color
+// fila a fila y las barras dejarían de compararse entre sí.
+function trackColor(theme: Theme, tone: ProgressTone, fill: ProgressTrack) {
+  if (fill === 'neutral') {
+    const base =
+      theme.palette.mode === 'dark' ? theme.palette.common.white : theme.palette.common.black
+    return alpha(base, NEUTRAL_TRACK_ALPHA)
+  }
   return `color-mix(in srgb, ${theme.palette[tone].main} 16%, transparent)`
 }
 
@@ -45,7 +60,8 @@ export const HeaderRow = styled(Box)({
 export const Track = styled(Box, { shouldForwardProp: notForwarded })<{
   tone: ProgressTone
   barSize: ProgressSize
-}>(({ theme, tone, barSize }) => ({
+  trackFill: ProgressTrack
+}>(({ theme, tone, barSize, trackFill }) => ({
   position: 'relative',
   // `flexBasis: auto` es deliberado: con `flex: 1` la base sería 0% y en el
   // layout stacked (contenedor en columna) eso colapsa la ALTURA del canal a
@@ -58,7 +74,7 @@ export const Track = styled(Box, { shouldForwardProp: notForwarded })<{
   height: BAR_HEIGHTS[barSize],
   borderRadius: 9999,
   overflow: 'hidden',
-  backgroundColor: trackColor(theme, tone),
+  backgroundColor: trackColor(theme, tone, trackFill),
   border: barSize === 'large' ? `1px solid ${theme.palette.divider}` : undefined,
 }))
 
@@ -110,7 +126,7 @@ export const Step = styled(Box, { shouldForwardProp: notForwarded })<{
   minWidth: 0,
   height: STEP_HEIGHT,
   borderRadius: 9999,
-  backgroundColor: filled ? theme.palette[tone].main : trackColor(theme, tone),
+  backgroundColor: filled ? theme.palette[tone].main : trackColor(theme, tone, 'tonal'),
   transition: theme.transitions.create('background-color'),
 }))
 

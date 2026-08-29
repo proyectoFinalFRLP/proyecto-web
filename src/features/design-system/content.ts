@@ -23,6 +23,10 @@ export const dsCopy = {
       title: 'Elevación',
       subtitle: '4 niveles (0-3) — glow cyan en overlays sobre dark',
     },
+    layers: {
+      title: 'Luminous layering',
+      subtitle: 'Relleno de cada plano de profundidad — Floor, Deck y Modal',
+    },
     buttons: {
       title: 'Botones — intención × jerarquía',
       subtitle: 'Cualquier intención se combina con cualquier jerarquía',
@@ -60,6 +64,7 @@ export const dsCopy = {
     },
   },
   progressGroups: {
+    load: 'Columna Load — canal neutro',
     semantic: 'Estados semánticos',
     variants: 'Variantes y estados de carga',
   },
@@ -98,6 +103,7 @@ export const typeSpecs: { variant: TypographyProps['variant']; sample: string; n
   },
   { variant: 'labelMd', sample: 'Labels, tabs y headers', note: 'label-md · 12/600' },
   { variant: 'labelSm', sample: 'Captions y metadatos', note: 'label-sm · 11/500' },
+  { variant: 'labelCaps', sample: 'Status: operational', note: 'label-caps · 12/700 · caps' },
   { variant: 'dataMono', sample: '#ORD-8829A · SKU LOG-2938-PX', note: 'data-mono · 14/500' },
 ]
 
@@ -131,6 +137,22 @@ export const elevationLevels: { level: number; label: string }[] = [
   { level: 1, label: '1 · card' },
   { level: 2, label: '2 · dropdown' },
   { level: 3, label: '3 · modal' },
+]
+
+// Planos del luminous layering. `elevation` es el índice del TRATAMIENTO (borde,
+// sombra, halo) con el que se muestra cada muestra: el plano 0 va con el nivel 1
+// y no con el 0 porque el nivel 0 no dibuja borde y, sobre el fondo de página
+// —que es exactamente ese color—, la muestra quedaría invisible.
+//
+// Los hex no se listan acá: los lee la página desde `palette.background.layer`,
+// que es el único origen. Duplicarlos en el catálogo los dejaría desactualizados
+// en cuanto el token cambie (y `features` no puede importar de `app/`).
+export type LayerKey = 'floor' | 'deck' | 'modal'
+
+export const layerLevels: { key: LayerKey; elevation: number; label: string }[] = [
+  { key: 'floor', elevation: 1, label: 'Layer 0 · Floor' },
+  { key: 'deck', elevation: 2, label: 'Layer 1 · Deck' },
+  { key: 'modal', elevation: 3, label: 'Layer 2 · Modal' },
 ]
 
 export const inputSamples: {
@@ -201,6 +223,15 @@ export const progressSamples: { label: string; value: number; tone: ProgressTone
   { label: 'Capacidad de almacenamiento', value: 72, tone: 'warning' },
   { label: 'Exactitud de inventario', value: 99, tone: 'success' },
   { label: 'Tasa de demoras críticas', value: 45, tone: 'error' },
+]
+
+// Filas de la columna Load del spec: el valor es la ocupación y el tono, el
+// estado del envío. Con canal neutro las tres barras comparten la referencia
+// de 100%, que es lo que permite compararlas de un vistazo.
+export const loadSamples: { label: string; value: number; tone: ProgressTone }[] = [
+  { label: '#LX-00234', value: 100, tone: 'primary' },
+  { label: '#LX-00235', value: 65, tone: 'primary' },
+  { label: '#LX-00236', value: 12, tone: 'error' },
 ]
 
 export const progressVariants = {

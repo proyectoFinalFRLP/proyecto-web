@@ -8,6 +8,7 @@ import {
   elevationShadow,
   fontFamily,
   glow,
+  layerColors,
   layout,
   motion,
   radius,
@@ -15,18 +16,22 @@ import {
   semanticColors,
   typographyScale,
 } from './tokens'
-import type { SemanticColor, ThemeMode, TypographyToken } from './tokens'
+import type { SemanticColor, ThemeMode, TypeSpec, TypographyToken } from './tokens'
 import { rem } from './utils'
 
 // ── Tipografía ────────────────────────────────────────────────────────────────
 
 function typeVariant(token: TypographyToken) {
-  const t = typographyScale[token]
+  const t: TypeSpec = typographyScale[token]
   return {
     fontFamily: t.family === 'mono' ? fontFamily.mono : fontFamily.sans,
     fontSize: rem(t.fontSize),
     fontWeight: t.fontWeight,
     lineHeight: t.lineHeight,
+    // Ausentes en casi toda la escala: se omiten en vez de mandar `undefined`,
+    // que en un objeto de estilos de MUI pisa el valor heredado.
+    ...(t.letterSpacing ? { letterSpacing: t.letterSpacing } : {}),
+    ...(t.textTransform ? { textTransform: t.textTransform } : {}),
   }
 }
 
@@ -41,6 +46,7 @@ const typography: ThemeOptions['typography'] = {
   bodyMd: typeVariant('bodyMd'),
   labelMd: typeVariant('labelMd'),
   labelSm: typeVariant('labelSm'),
+  labelCaps: typeVariant('labelCaps'),
   dataMono: typeVariant('dataMono'),
 }
 
@@ -109,6 +115,9 @@ function buildPalette(mode: ThemeMode): PaletteOptions {
       default: role.background,
       paper: role.surface,
       containerHighest: role.containerHighest,
+      // Escala de profundidad nombrada del DS v4.2 (ver `layerColors`). Convive
+      // con `paper`/`containerHighest`, no los reemplaza.
+      layer: layerColors[mode],
     },
     divider: role.outlineVariant,
     text: { primary: role.onSurface, secondary: role.onSurfaceVariant },

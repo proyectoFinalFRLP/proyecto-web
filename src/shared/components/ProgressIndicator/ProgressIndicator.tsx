@@ -26,6 +26,7 @@ export function ProgressIndicator({
   value = 0,
   tone = 'primary',
   size = 'medium',
+  track = 'tonal',
   label,
   ariaLabel,
   showValue = false,
@@ -48,6 +49,7 @@ export function ProgressIndicator({
     <Track
       tone={tone}
       barSize={size}
+      trackFill={track}
       role="progressbar"
       aria-valuemin={0}
       aria-valuemax={100}
