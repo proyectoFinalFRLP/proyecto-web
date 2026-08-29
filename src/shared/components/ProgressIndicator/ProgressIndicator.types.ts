@@ -4,6 +4,9 @@ export type ProgressTone = 'primary' | 'info' | 'success' | 'warning' | 'error' 
 /** `thin` 4px · `medium` 8px · `large` 16px (filas con label al costado). */
 export type ProgressSize = 'thin' | 'medium' | 'large'
 
+/** Canal de la barra: teñido con el tono de la métrica, o acromático. */
+export type ProgressTrack = 'tonal' | 'neutral'
+
 export type ProgressLayout = 'stacked' | 'inline'
 
 export interface ProgressIndicatorProps {
@@ -11,6 +14,12 @@ export interface ProgressIndicatorProps {
   value?: number
   tone?: ProgressTone
   size?: ProgressSize
+  /**
+   * Color del canal. `neutral` cuando el tono del relleno codifica el estado de
+   * la fila y no la métrica — así el 100% de referencia es el mismo en todas las
+   * filas y las barras se comparan entre sí (columna Load del spec).
+   */
+  track?: ProgressTrack
   label?: string
   /**
    * Nombre accesible cuando el rótulo visible no lo aporta `label` (ej. el

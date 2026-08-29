@@ -24,6 +24,7 @@ export type {
   ProgressSize,
   ProgressSkeletonProps,
   ProgressTone,
+  ProgressTrack,
   StepsProgressProps,
 } from './ProgressIndicator'
 export { StatusFeed } from './StatusFeed'
