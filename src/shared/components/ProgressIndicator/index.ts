@@ -7,5 +7,6 @@ export type {
   ProgressSize,
   ProgressSkeletonProps,
   ProgressTone,
+  ProgressTrack,
   StepsProgressProps,
 } from './ProgressIndicator.types'
