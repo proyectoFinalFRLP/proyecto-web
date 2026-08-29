@@ -181,6 +181,20 @@ export type ThemeMode = keyof typeof roleColors
 // El DS sólo especifica los valores dark; los de light se derivan de los roles
 // existentes, igual que el resto de la paleta.
 //
+// INVARIANTE: la escala nunca se invierte. Subir de plano acerca el relleno al
+// extremo claro en los dos temas — en dark de #051424 hacia #1c2b3c, en light
+// del gris de página hacia el blanco.
+//
+// En light eso satura: una vez que `deck` llegó a blanco no hay a dónde seguir,
+// así que `modal` comparte su relleno y la separación la aporta el tratamiento
+// de elevación (sombra más profunda + scrim detrás). Que los dos valores
+// coincidan es deliberado, no un descuido.
+//
+// La derivación anterior usaba `containerHighest` (#e1e3e4) para `modal`, que en
+// light es MÁS OSCURO que `surface`: el plano más elevado quedaba menos
+// prominente que el de abajo y la escala se daba vuelta. Detectado en el review
+// del PR #27.
+//
 // `deck` (#0f172a) NO reemplaza a `roleColors.dark.surface` (#122131): el propio
 // archivo de Figma pinta sus paneles en #122131 mientras declara este trío como
 // la escala nombrada. Se suma como eje explícito en vez de repintar `surface`,
@@ -194,9 +208,9 @@ export const layerColors = {
     modal: '#1c2b3c', // overlays y cabeceras de tabla
   },
   light: {
-    floor: roleColors.light.background,
-    deck: roleColors.light.surface,
-    modal: roleColors.light.containerHighest,
+    floor: roleColors.light.background, // #f8f9fa — el fondo de página
+    deck: roleColors.light.surface, // #ffffff — cards y paneles
+    modal: roleColors.light.surface, // idem: en light la elevación la da la sombra
   },
 } as const
 
