@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="./theme.css" />
+</helmet>
+<div class="{{ themeClass }}" style="width:1280px;height:1024px;display:grid;grid-template-columns:240px minmax(0,1fr);grid-template-rows:64px 1fr;background:var(--bg);box-sizing:border-box;overflow:hidden">
+  <div style="grid-row:1 / span 2">
+    <dc-import name="SideNav" active="ordenes" hint-size="240px,100%" style="width:240px;height:100%"></dc-import>
+  </div>
+  <dc-import name="TopBar" tenant="{{ tenant }}" initials="{{ initials }}" hint-size="100%,64px" style="width:100%;height:64px"></dc-import>
+  <div style="padding:32px;display:flex;flex-direction:column;gap:12px;min-height:0;min-width:0;box-sizing:border-box">
+    <div style="display:flex;align-items:center;gap:8px">
+      <span style="font-size:12px;font-weight:700;line-height:1.4;letter-spacing:0.05em;text-transform:uppercase;color:var(--text2);font-family:'Plus Jakarta Sans',sans-serif">Órdenes</span>
+      <span class="ic" style="font-size:16px;color:var(--text2)">chevron_right</span>
+      <span style="font-size:12px;font-weight:700;line-height:1.4;letter-spacing:0.05em;text-transform:uppercase;color:var(--primary);font-family:'Space Grotesk',sans-serif">#ORD-8829-X</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px">
+      <span style="font-size:24px;font-weight:600;line-height:1.25;color:var(--text);font-family:'Space Grotesk',sans-serif">Orden #ORD-8829-X</span>
+      <dc-import name="StatusBadge" label="En tránsito" intent="info" hint-size="140px,24px"></dc-import>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:12px">
+        <dc-import name="Btn" label="Imprimir remito" variant="outline" size="md" icon="print" hint-size="170px,40px"></dc-import>
+        <dc-import name="Btn" label="Modificar orden" variant="solid" size="md" icon="edit" hint-size="170px,40px"></dc-import>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
+      <dc-import name="MetricCard" icon="payments" label="Total de la orden" value="$1.478.300" hint-size="100%,124px"></dc-import>
+      <dc-import name="MetricCard" icon="inventory_2" label="Unidades" value="67" hint-size="100%,124px"></dc-import>
+      <dc-import name="MetricCard" icon="local_shipping" label="Operador logístico" value="Andreani" hint-size="100%,124px"></dc-import>
+      <dc-import name="MetricCard" icon="schedule" label="Entrega estimada" value="26 ago" hint-size="100%,124px"></dc-import>
+    </div>
+    <div style="display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:24px;min-height:0">
+      <div style="display:flex;flex-direction:column;gap:12px;min-width:0">
+        <dc-import name="DataTable" title="Líneas de la orden" cols="{{ cols }}" rows="{{ rows }}" footer="3 líneas · 67 unidades · inventario verificado" hint-size="100%,300px" style="width:100%"></dc-import>
+        <div style="background:var(--surface);border:1px solid var(--b1);border-radius:12px;box-shadow:var(--sh1);padding:24px;display:flex;flex-direction:column;gap:16px;box-sizing:border-box">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="ic" style="font-size:20px;color:var(--primary)">route</span>
+            <span style="font-size:18px;font-weight:600;line-height:1.35;color:var(--text);font-family:'Plus Jakarta Sans',sans-serif">Ciclo de vida del envío</span>
+          </div>
+          <dc-import name="ProgressBar" value="66" tone="tonal" hint-size="100%,4px" style="width:100%"></dc-import>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
+            <sc-for list="{{ stages }}" as="s" hint-placeholder-count="4">
+              <div style="display:flex;flex-direction:column;align-items:flex-start;gap:8px">
+                <div style="width:32px;height:32px;border-radius:9999px;background:{{ s.bg }};border:1px solid {{ s.bc }};display:flex;align-items:center;justify-content:center">
+                  <span class="ic" style="font-size:18px;color:{{ s.fg }}">{{ s.icon }}</span>
+                </div>
+                <span style="font-size:14px;font-weight:600;line-height:1.5;color:{{ s.labelColor }};font-family:'Plus Jakarta Sans',sans-serif">{{ s.label }}</span>
+                <span style="font-size:11px;font-weight:500;line-height:1.4;color:var(--text2);font-family:'Space Grotesk',sans-serif">{{ s.when }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px;min-width:0">
+        <div style="background:var(--surface);border:1px solid var(--b1);border-radius:12px;box-shadow:var(--sh1);padding:12px;display:flex;flex-direction:column;gap:8px;box-sizing:border-box">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:12px;font-weight:700;line-height:1.4;letter-spacing:0.05em;text-transform:uppercase;color:var(--text2);font-family:'Plus Jakarta Sans',sans-serif">Datos del cliente</span>
+            <span class="ic" style="font-size:18px;margin-left:auto;color:var(--text2)">person</span>
+          </div>
+          <sc-for list="{{ client }}" as="c" hint-placeholder-count="3">
+            <div style="display:flex;flex-direction:column;gap:2px">
+              <span style="font-size:11px;font-weight:500;line-height:1.4;color:var(--text2);font-family:'Plus Jakarta Sans',sans-serif">{{ c.label }}</span>
+              <span style="font-size:14px;line-height:1.5;color:var(--text);font-family:{{ c.font }}">{{ c.value }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--b1);border-radius:12px;box-shadow:var(--sh1);padding:12px;display:flex;flex-direction:column;gap:8px;box-sizing:border-box">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:12px;font-weight:700;line-height:1.4;letter-spacing:0.05em;text-transform:uppercase;color:var(--text2);font-family:'Plus Jakarta Sans',sans-serif">Datos del envío</span>
+            <span class="ic" style="font-size:18px;margin-left:auto;color:var(--text2)">local_shipping</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:2px">
+            <span style="font-size:11px;font-weight:500;line-height:1.4;color:var(--text2);font-family:'Plus Jakarta Sans',sans-serif">Número de seguimiento</span>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="font-size:14px;font-weight:500;line-height:1.4;color:var(--primary);font-family:'Space Grotesk',sans-serif">AND-9920-X8829-Z</span>
+              <span class="ic" style="font-size:16px;margin-left:auto;color:var(--text2)">content_copy</span>
+            </div>
+          </div>
+          <sc-for list="{{ shipping }}" as="s" hint-placeholder-count="2">
+            <div style="display:flex;flex-direction:column;gap:2px">
+              <span style="font-size:11px;font-weight:500;line-height:1.4;color:var(--text2);font-family:'Plus Jakarta Sans',sans-serif">{{ s.label }}</span>
+              <span style="font-size:14px;line-height:1.5;color:var(--text);font-family:{{ s.font }}">{{ s.value }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--b1);border-radius:12px;box-shadow:var(--sh1);padding:12px;display:flex;flex-direction:column;gap:8px;box-sizing:border-box">
+          <span style="font-size:12px;font-weight:700;line-height:1.4;letter-spacing:0.05em;text-transform:uppercase;color:var(--text2);font-family:'Plus Jakarta Sans',sans-serif">Resumen de pago</span>
+          <sc-for list="{{ payment }}" as="p" hint-placeholder-count="3">
+            <div style="display:flex;align-items:baseline;gap:16px">
+              <span style="font-size:14px;line-height:1.5;color:var(--text2);font-family:'Plus Jakarta Sans',sans-serif">{{ p.label }}</span>
+              <span style="margin-left:auto;font-size:14px;font-weight:500;line-height:1.4;color:var(--text);font-family:'Space Grotesk',sans-serif">{{ p.value }}</span>
+            </div>
+          </sc-for>
+          <div style="height:1px;background:var(--border)"></div>
+          <div style="display:flex;align-items:baseline;gap:16px">
+            <span style="font-size:16px;font-weight:600;line-height:1.6;color:var(--text);font-family:'Plus Jakarta Sans',sans-serif">Total</span>
+            <span style="margin-left:auto;font-size:20px;font-weight:700;line-height:1.3;color:var(--primary);font-family:'Space Grotesk',sans-serif">$1.478.300</span>
+          </div>
+          <dc-import name="Btn" label="Descargar factura" variant="outline" size="md" full="{{ true }}" icon="download" hint-size="100%,40px" style="width:100%"></dc-import>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:1024},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Oscuro&quot;,&quot;Claro&quot;],&quot;default&quot;:&quot;Oscuro&quot;,&quot;tsType&quot;:&quot;'Oscuro'|'Claro'&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const _t = this.props.tenant ?? 'Precision Logistics';
+    const _i = this.props.initials ?? 'MR';
+    const S = (label, icon, when, state) => ({
+      label, icon, when,
+      bg: state === 'pending' ? 'var(--input)' : 'var(--primary-soft)',
+      bc: state === 'pending' ? 'var(--border)' : 'var(--primary)',
+      fg: state === 'pending' ? 'var(--text2)' : 'var(--primary)',
+      labelColor: state === 'pending' ? 'var(--text2)' : 'var(--text)'
+    });
+    const jak = "'Plus Jakarta Sans',sans-serif";
+    const mono = "'Space Grotesk',sans-serif";
+    return {
+      themeClass: this.props.theme === 'Claro' ? 'light' : 'dark',
+      tenant: _t,
+      initials: _i,
+      cols: [
+        { label: 'SKU', w: '116px', mono: true },
+        { label: 'Producto', w: 'minmax(0,1fr)' },
+        { label: 'P. unitario', w: '104px', align: 'right', mono: true },
+        { label: 'Cant.', w: '56px', align: 'right', mono: true },
+        { label: 'Subtotal', w: '110px', align: 'right', mono: true }
+      ],
+      rows: [
+        { cells: [{ t: 'PRO-8812-A', link: true }, { t: 'Nodo sensor industrial v3' }, { t: '$120.000' }, { t: '8' }, { t: '$960.000', strong: true }] },
+        { cells: [{ t: 'PRO-2294-K', link: true }, { t: 'Controlador Gateway Hub' }, { t: '$150.000' }, { t: '2' }, { t: '$300.000', strong: true }] },
+        { cells: [{ t: 'ACC-1002-C', link: true }, { t: 'Kit de fibra óptica' }, { t: '$3.313' }, { t: '57' }, { t: '$188.841', strong: true }] }
+      ],
+      stages: [
+        S('Pendiente', 'check', '12 ago · 09:42', 'done'),
+        S('Listo para despachar', 'check', '13 ago · 14:00', 'done'),
+        S('En tránsito', 'local_shipping', '15 ago · 08:30', 'current'),
+        S('Entregado', 'flag', 'Pendiente', 'pending')
+      ],
+      client: [
+        { label: 'Razón social', value: 'Global Tech Solutions S.A.', font: jak },
+        { label: 'Contacto', value: 'm.rodriguez@globaltech.com.ar', font: jak },
+        { label: 'Teléfono', value: '+54 11 4812-9934', font: mono },
+        { label: 'Domicilio de entrega', value: 'Av. Corrientes 3247, piso 5 · CABA, C1193', font: jak }
+      ],
+      shipping: [
+        { label: 'Tipo de servicio', value: 'Andreani Prioridad Express', font: jak },
+        { label: 'Depósito de origen', value: 'CD Ezeiza (BUE-4)', font: mono }
+      ],
+      payment: [
+        { label: 'Subtotal', value: '$1.420.000' },
+        { label: 'Envío y gestión', value: '$58.300' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

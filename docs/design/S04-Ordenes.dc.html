@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="./theme.css" />
+</helmet>
+<div class="{{ themeClass }}" style="width:1280px;height:1024px;display:grid;grid-template-columns:240px minmax(0,1fr);grid-template-rows:64px 1fr;background:var(--bg);box-sizing:border-box;overflow:hidden">
+  <div style="grid-row:1 / span 2">
+    <dc-import name="SideNav" active="ordenes" hint-size="240px,100%" style="width:240px;height:100%"></dc-import>
+  </div>
+  <dc-import name="TopBar" tenant="{{ tenant }}" initials="{{ initials }}" hint-size="100%,64px" style="width:100%;height:64px"></dc-import>
+  <div style="padding:32px;display:flex;flex-direction:column;gap:24px;min-height:0;min-width:0;box-sizing:border-box">
+    <div style="display:flex;align-items:flex-start;gap:16px">
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <span style="font-size:24px;font-weight:600;line-height:1.25;color:var(--text);font-family:'Plus Jakarta Sans',sans-serif">Órdenes</span>
+        <span style="font-size:14px;line-height:1.5;color:var(--text2);font-family:'Plus Jakarta Sans',sans-serif">Seguimiento y procesamiento de la operación diaria.</span>
+      </div>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:12px">
+        <div style="display:flex;align-items:center;gap:8px;height:40px;width:260px;padding:0 12px;border-radius:8px;background:var(--input);border:1px solid var(--border);box-sizing:border-box">
+          <span class="ic" style="font-size:18px;color:var(--text2)">search</span>
+          <span style="font-size:14px;line-height:1.5;color:var(--text2);opacity:.7;font-family:'Plus Jakarta Sans',sans-serif">Buscar por ID o destino</span>
+        </div>
+        <dc-import name="Btn" label="Exportar CSV" variant="outline" size="md" icon="download" hint-size="150px,40px"></dc-import>
+        <dc-import name="Btn" label="Crear orden" variant="solid" size="md" icon="add" hint-size="150px,40px"></dc-import>
+      </div>
+    </div>
+    <dc-import name="DataTable" cols="{{ cols }}" rows="{{ rows }}" tabs="{{ tabs }}" pages="{{ pages }}" footer="Mostrando 1 a 11 de 4.829 órdenes" select="{{ true }}" actions="{{ true }}" tools="{{ true }}" hint-size="100%,100%" style="width:100%;height:100%;min-height:0"></dc-import>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:1024},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Oscuro&quot;,&quot;Claro&quot;],&quot;default&quot;:&quot;Oscuro&quot;,&quot;tsType&quot;:&quot;'Oscuro'|'Claro'&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const _t = this.props.tenant ?? 'Precision Logistics';
+    const _i = this.props.initials ?? 'MR';
+    const R = (id, fecha, hora, ciudad, prov, estado, intent, op, total) => ({
+      cells: [
+        { t: id, link: true },
+        { t: fecha, sub: hora, muted: true },
+        { t: ciudad, sub: prov },
+        { t: estado, intent: intent },
+        { t: op },
+        { t: total, strong: true }
+      ],
+      hl: intent === 'err'
+    });
+    return {
+      themeClass: this.props.theme === 'Claro' ? 'light' : 'dark',
+      tenant: _t,
+      initials: _i,
+      tabs: [
+        { label: 'Todas', count: '4.829', active: true },
+        { label: 'Pendientes', count: '342' },
+        { label: 'Pagadas', count: '4.301' },
+        { label: 'Canceladas', count: '186' }
+      ],
+      cols: [
+        { label: 'ID de orden', w: '116px', mono: true },
+        { label: 'Fecha y hora', w: '116px' },
+        { label: 'Destino', w: 'minmax(0,1fr)' },
+        { label: 'Estado', w: '118px' },
+        { label: 'Operador logístico', w: '150px' },
+        { label: 'Total', w: '112px', align: 'right', mono: true }
+      ],
+      rows: [
+        R('#ORD-8829-X', '24 ago 2026', '09:14', 'CABA', 'Buenos Aires', 'Pagada', 'ok', 'Andreani', '$1.478.300'),
+        R('#ORD-8828-A', '24 ago 2026', '08:45', 'Córdoba', 'Córdoba', 'Pendiente', 'neutral', 'Moova', '$812.050'),
+        R('#ORD-8821-E', '23 ago 2026', '23:20', 'Ushuaia', 'Tierra del Fuego', 'Cancelada', 'err', 'Correo Argentino', '$4.500.000'),
+        R('#ORD-8815-C', '23 ago 2026', '14:15', 'Rosario', 'Santa Fe', 'Pagada', 'ok', 'OCASA', '$240.000'),
+        R('#ORD-8812-Y', '23 ago 2026', '13:10', 'Mendoza', 'Mendoza', 'Pagada', 'ok', 'Andreani', '$8.830.000'),
+        R('#ORD-8805-S', '22 ago 2026', '11:45', 'Neuquén', 'Neuquén', 'Pendiente', 'neutral', 'Moova', '$520.000'),
+        R('#ORD-8799-N', '22 ago 2026', '09:20', 'La Plata', 'Buenos Aires', 'Pagada', 'ok', 'Correo Argentino', '$2.215.000'),
+        R('#ORD-8790-B', '21 ago 2026', '16:30', 'Salta', 'Salta', 'Pagada', 'ok', 'OCASA', '$185.000'),
+        R('#ORD-8785-S', '21 ago 2026', '10:15', 'Bahía Blanca', 'Buenos Aires', 'Cancelada', 'err', 'Andreani', '$6.740.000'),
+        R('#ORD-8777-T', '20 ago 2026', '14:50', 'Mar del Plata', 'Buenos Aires', 'Pendiente', 'neutral', 'Moova', '$1.290.500'),
+        R('#ORD-8771-K', '20 ago 2026', '08:05', 'Tucumán', 'Tucumán', 'Pagada', 'ok', 'Correo Argentino', '$430.900')
+      ],
+      pages: ['1*', '2', '3', '…']
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div style="background:var(--surface);border:1px solid {{ cardBorder }};border-radius:12px;box-shadow:var(--sh1);padding:16px;display:flex;flex-direction:column;gap:12px;box-sizing:border-box;font-family:'Plus Jakarta Sans',sans-serif">
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+    <div style="width:36px;height:36px;flex:none;border-radius:8px;background:{{ iconBg }};display:flex;align-items:center;justify-content:center">
+      <span class="ic" style="font-size:20px;color:{{ iconFg }}">{{ icon }}</span>
+    </div>
+    <sc-if value="{{ chip }}">
+      <div style="display:inline-flex;align-items:center;gap:4px;height:24px;padding:0 8px;border-radius:9999px;background:{{ chipBg }}">
+        <span class="ic" style="font-size:14px;flex:none;color:{{ chipFg }}">{{ chipIcon }}</span>
+        <span style="font-size:11px;font-weight:500;line-height:1.4;color:{{ chipFg }};font-family:'Space Grotesk',sans-serif">{{ chip }}</span>
+      </div>
+    </sc-if>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:4px">
+    <span style="font-size:14px;line-height:1.5;color:var(--text2)">{{ label }}</span>
+    <span style="font-size:32px;font-weight:700;line-height:1.15;color:var(--text);font-family:'Space Grotesk',sans-serif">{{ value }}</span>
+  </div>
+  <sc-if value="{{ note }}">
+    <span style="font-size:12px;font-weight:500;line-height:1.4;color:var(--text2)">{{ note }}</span>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:260,&quot;height&quot;:160},&quot;label&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Métrica&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;value&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;0&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;icon&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;activity&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;chip&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;dir&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;up&quot;,&quot;down&quot;],&quot;default&quot;:&quot;up&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;note&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;critical&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const p = this.props;
+    const critical = !!p.critical;
+    const dirDown = p.dir === 'down';
+    return {
+      icon: p.icon || 'monitor_heart',
+      label: p.label ?? 'Métrica',
+      value: p.value ?? '0',
+      note: p.note || '',
+      cardBorder: critical ? 'var(--err)' : 'var(--b1)',
+      iconBg: critical ? 'var(--err-bg)' : 'var(--primary-soft)',
+      iconFg: critical ? 'var(--err)' : 'var(--primary)',
+      chip: p.chip || '',
+      chipIcon: p.chipIcon || (critical ? 'warning' : (dirDown ? 'trending_down' : 'trending_up')),
+      chipBg: critical ? 'var(--err-bg)' : (dirDown ? 'var(--warn-bg)' : 'var(--ok-bg)'),
+      chipFg: critical ? 'var(--err-fg)' : (dirDown ? 'var(--warn-fg)' : 'var(--ok-fg)')
+    };
+  }
+}
+</script>
+</body>
+</html>
