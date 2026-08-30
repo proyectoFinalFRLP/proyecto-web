@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div style="display:inline-flex;align-items:center;justify-content:center;gap:8px;height:{{ h }};width:{{ w }};padding:{{ pad }};border-radius:8px;background:{{ bg }};border:1px solid {{ bc }};box-sizing:border-box;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;white-space:nowrap" style-hover="filter:brightness(1.08)" style-focus="outline:2px solid var(--accent);outline-offset:2px">
+  <sc-if value="{{ icon }}">
+    <span class="ic" style="font-size:{{ isz }};flex:none;color:{{ fg }}">{{ icon }}</span>
+  </sc-if>
+  <span style="font-size:{{ fs }};font-weight:600;line-height:1.4;color:{{ fg }};letter-spacing:{{ tracking }};text-transform:{{ tcase }}">{{ label }}</span>
+  <sc-if value="{{ iconRight }}">
+    <span class="ic" style="font-size:{{ isz }};flex:none;color:{{ fg }}">{{ iconRight }}</span>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:220,&quot;height&quot;:80},&quot;label&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Acción&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;variant&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;solid&quot;,&quot;outline&quot;,&quot;ghost&quot;],&quot;default&quot;:&quot;solid&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;size&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;sm&quot;,&quot;md&quot;,&quot;lg&quot;],&quot;default&quot;:&quot;md&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;tone&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;primary&quot;,&quot;danger&quot;],&quot;default&quot;:&quot;primary&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;icon&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;iconRight&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;caps&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const p = this.props;
+    const size = p.size || 'md';
+    const variant = p.variant || 'solid';
+    const tone = p.tone || 'primary';
+    const base = tone === 'danger' ? 'var(--err)' : 'var(--primary)';
+    const dims = {
+      sm: { h: '32px', pad: '0 12px', fs: '12px', isz: '16px' },
+      md: { h: '40px', pad: '0 16px', fs: '14px', isz: '18px' },
+      lg: { h: '48px', pad: '0 24px', fs: '16px', isz: '20px' }
+    }[size];
+    let bg = 'transparent', bc = 'transparent', fg = base;
+    if (variant === 'solid') { bg = base; bc = base; fg = tone === 'danger' ? '#ffffff' : 'var(--on-primary)'; }
+    if (variant === 'outline') { bc = 'var(--border)'; fg = 'var(--text)'; bg = 'var(--surface)'; }
+    return {
+      label: p.label ?? 'Acción', icon: p.icon || '', iconRight: p.iconRight || '',
+      h: dims.h, pad: dims.pad, fs: dims.fs, isz: dims.isz, w: p.full ? '100%' : 'auto',
+      bg, bc, fg,
+      tracking: p.caps ? '0.05em' : 'normal',
+      tcase: p.caps ? 'uppercase' : 'none'
+    };
+  }
+}
+</script>
+</body>
+</html>

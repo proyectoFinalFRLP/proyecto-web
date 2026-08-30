@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="./theme.css" />
+</helmet>
+<div class="{{ themeClass }}" style="width:1280px;height:1024px;display:grid;grid-template-columns:240px minmax(0,1fr);grid-template-rows:64px 1fr;background:var(--bg);box-sizing:border-box;overflow:hidden">
+  <div style="grid-row:1 / span 2">
+    <dc-import name="SideNav" active="inventario" hint-size="240px,100%" style="width:240px;height:100%"></dc-import>
+  </div>
+  <dc-import name="TopBar" tenant="{{ tenant }}" initials="{{ initials }}" hint-size="100%,64px" style="width:100%;height:64px"></dc-import>
+  <div style="padding:32px;display:flex;flex-direction:column;gap:24px;min-height:0;min-width:0;box-sizing:border-box">
+    <div style="display:flex;align-items:flex-start;gap:16px">
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <span style="font-size:24px;font-weight:600;line-height:1.25;color:var(--text);font-family:'Plus Jakarta Sans',sans-serif">Inventario</span>
+        <span style="font-size:14px;line-height:1.5;color:var(--text2);font-family:'Plus Jakarta Sans',sans-serif">Catálogo maestro de productos y disponibilidad por depósito.</span>
+      </div>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:12px">
+        <div style="display:flex;align-items:center;gap:8px;height:40px;width:260px;padding:0 12px;border-radius:8px;background:var(--input);border:1px solid var(--border);box-sizing:border-box">
+          <span class="ic" style="font-size:18px;color:var(--text2)">search</span>
+          <span style="font-size:14px;line-height:1.5;color:var(--text2);opacity:.7;font-family:'Plus Jakarta Sans',sans-serif">Buscar por SKU o nombre</span>
+        </div>
+        <dc-import name="Btn" label="Exportar CSV" variant="outline" size="md" icon="download" hint-size="150px,40px"></dc-import>
+        <dc-import name="Btn" label="Nuevo producto" variant="solid" size="md" icon="add" hint-size="180px,40px"></dc-import>
+      </div>
+    </div>
+    <dc-import name="DataTable" cols="{{ cols }}" rows="{{ rows }}" tabs="{{ tabs }}" pages="{{ pages }}" footer="Mostrando 1 a 11 de 1.284 productos" select="{{ true }}" actions="{{ true }}" tools="{{ true }}" hint-size="100%,100%" style="width:100%;height:100%;min-height:0"></dc-import>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:1024},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Oscuro&quot;,&quot;Claro&quot;],&quot;default&quot;:&quot;Oscuro&quot;,&quot;tsType&quot;:&quot;'Oscuro'|'Claro'&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const _t = this.props.tenant ?? 'Precision Logistics';
+    const _i = this.props.initials ?? 'MR';
+    const R = (sku, name, cat, disp, estado, intent, dep) => ({
+      cells: [
+        { t: sku, link: true },
+        { t: name },
+        { t: cat, muted: true },
+        { t: disp, strong: true },
+        { t: estado, intent: intent },
+        { t: dep }
+      ],
+      hl: intent === 'err'
+    });
+    return {
+      themeClass: this.props.theme === 'Claro' ? 'light' : 'dark',
+      tenant: _t,
+      initials: _i,
+      tabs: [
+        { label: 'Todos', count: '1.284', active: true },
+        { label: 'Disponibles', count: '1.096' },
+        { label: 'Stock bajo', count: '142' },
+        { label: 'Sin stock', count: '46' }
+      ],
+      cols: [
+        { label: 'SKU', w: '124px', mono: true },
+        { label: 'Nombre', w: 'minmax(0,1fr)' },
+        { label: 'Categoría', w: '96px' },
+        { label: 'Disponible', w: '84px', align: 'right', mono: true },
+        { label: 'Estado', w: '116px' },
+        { label: 'Depósito', w: '112px' }
+      ],
+      rows: [
+        R('SKU-8842-PL', 'Arreglo de sensores serie G', 'Electronics', '2.710', 'Disponible', 'ok', 'CD Ezeiza'),
+        R('SKU-8830-MC', 'Servomotor industrial Z5', 'Machinery', '480', 'Disponible', 'ok', 'CD Córdoba'),
+        R('SKU-8815-CB', 'Cable de red apantallado 50 m', 'Cabling', '96', 'Stock bajo', 'warn', 'CD Rosario'),
+        R('SKU-8809-PW', 'Fuente redundante 2000 W', 'Power', '0', 'Sin stock', 'err', 'CD Ezeiza'),
+        R('SKU-8801-EL', 'Router industrial de alta densidad', 'Electronics', '1.240', 'Disponible', 'ok', 'CD Ezeiza'),
+        R('SKU-8794-MC', 'Reductor planetario R40', 'Machinery', '212', 'Disponible', 'ok', 'CD Mendoza'),
+        R('SKU-8788-CB', 'Kit de fibra óptica monomodo', 'Cabling', '54', 'Stock bajo', 'warn', 'CD Córdoba'),
+        R('SKU-8776-PW', 'UPS montaje en rack 5 kVA', 'Power', '318', 'Disponible', 'ok', 'CD Rosario'),
+        R('SKU-8770-EL', 'Sensor de presión X4', 'Electronics', '1.902', 'Disponible', 'ok', 'CD Ezeiza'),
+        R('SKU-8762-PW', 'Banco de baterías LiFePO4', 'Power', '0', 'Sin stock', 'err', 'CD Mendoza'),
+        R('SKU-8755-MC', 'Precinto de carga reforzado', 'Machinery', '640', 'Disponible', 'ok', 'CD Córdoba')
+      ],
+      pages: ['1*', '2', '3', '…']
+    };
+  }
+}
+</script>
+</body>
+</html>

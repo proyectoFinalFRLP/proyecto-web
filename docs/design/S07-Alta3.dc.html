@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="./theme.css" />
+</helmet>
+<div class="{{ themeClass }}" style="width:1280px;height:1024px;display:grid;grid-template-columns:240px minmax(0,1fr);grid-template-rows:64px 1fr;background:var(--bg);box-sizing:border-box;overflow:hidden">
+  <div style="grid-row:1 / span 2">
+    <dc-import name="SideNav" active="ordenes" hint-size="240px,100%" style="width:240px;height:100%"></dc-import>
+  </div>
+  <dc-import name="TopBar" tenant="{{ tenant }}" initials="{{ initials }}" hint-size="100%,64px" style="width:100%;height:64px"></dc-import>
+  <div style="padding:32px;display:flex;flex-direction:column;gap:24px;min-height:0;min-width:0;box-sizing:border-box">
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;align-items:baseline;gap:16px">
+        <span style="font-size:24px;font-weight:600;line-height:1.25;color:var(--text);font-family:'Plus Jakarta Sans',sans-serif">Nueva orden</span>
+        <span style="font-size:14px;line-height:1.5;color:var(--text2);font-family:'Plus Jakarta Sans',sans-serif">Cotizaciones de operadores logísticos</span>
+        <span style="margin-left:auto;font-size:12px;font-weight:700;line-height:1.4;letter-spacing:0.05em;text-transform:uppercase;color:var(--primary);font-family:'Plus Jakarta Sans',sans-serif">Paso 3 de 3</span>
+      </div>
+      <dc-import name="ProgressBar" value="100" tone="tonal" hint-size="100%,4px" style="width:100%"></dc-import>
+    </div>
+    <div style="display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:24px;min-height:0">
+      <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
+        <sc-for list="{{ quotes }}" as="q" hint-placeholder-count="4">
+          <div style="background:var(--surface);border:1px solid {{ q.bc }};border-radius:12px;box-shadow:var(--sh1);padding:16px;display:flex;flex-direction:column;gap:12px;box-sizing:border-box">
+            <div style="display:flex;align-items:center;gap:16px">
+              <div style="width:88px;height:48px;flex:none;border-radius:8px;background:var(--container);display:flex;align-items:center;justify-content:center;padding:0 8px;box-sizing:border-box">
+                <span style="font-size:11px;font-weight:700;line-height:1.4;letter-spacing:0.05em;text-transform:uppercase;color:var(--text);text-align:center;font-family:'Plus Jakarta Sans',sans-serif">{{ q.name }}</span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:4px;min-width:0">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <span style="font-size:18px;font-weight:600;line-height:1.35;color:var(--text);font-family:'Plus Jakarta Sans',sans-serif">{{ q.name }}</span>
+                  <sc-if value="{{ q.recommended }}">
+                    <dc-import name="StatusBadge" label="Recomendado" intent="info" icon="check_circle" hint-size="140px,24px"></dc-import>
+                  </sc-if>
+                </div>
+                <div style="display:flex;align-items:center;gap:6px">
+                  <span class="ic" style="font-size:16px;color:var(--text2)">schedule</span>
+                  <span style="font-size:14px;line-height:1.5;color:var(--text2);font-family:'Plus Jakarta Sans',sans-serif">{{ q.eta }}</span>
+                </div>
+              </div>
+              <div style="margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:2px">
+                <span style="font-size:24px;font-weight:700;line-height:1.25;color:{{ q.priceColor }};font-family:'Space Grotesk',sans-serif">{{ q.price }}</span>
+                <span style="font-size:11px;font-weight:500;line-height:1.4;color:var(--text2);font-family:'Plus Jakarta Sans',sans-serif">Tarifa base</span>
+              </div>
+            </div>
+            <sc-if value="{{ q.recommended }}">
+              <div style="display:flex;align-items:center;gap:8px">
+                <dc-import name="StatusBadge" label="Alta confiabilidad" intent="ok" hint-size="170px,24px"></dc-import>
+                <dc-import name="StatusBadge" label="Seguimiento incluido" intent="info" icon="location_on" hint-size="190px,24px"></dc-import>
+              </div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:24px;min-width:0">
+        <div style="background:var(--surface);border:1px solid var(--b1);border-radius:12px;box-shadow:var(--sh1);padding:24px;display:flex;flex-direction:column;gap:16px;box-sizing:border-box">
+          <span style="font-size:18px;font-weight:600;line-height:1.35;color:var(--text);font-family:'Plus Jakarta Sans',sans-serif">Resumen de la orden</span>
+          <sc-for list="{{ lines }}" as="l" hint-placeholder-count="3">
+            <div style="display:flex;align-items:baseline;gap:16px">
+              <span style="font-size:14px;line-height:1.5;color:var(--text2);font-family:'Plus Jakarta Sans',sans-serif">{{ l.label }}</span>
+              <span style="margin-left:auto;font-size:14px;font-weight:500;line-height:1.4;color:var(--text);font-family:'Space Grotesk',sans-serif">{{ l.value }}</span>
+            </div>
+          </sc-for>
+          <div style="height:1px;background:var(--border)"></div>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <span style="font-size:12px;font-weight:700;line-height:1.4;letter-spacing:0.05em;text-transform:uppercase;color:var(--text2);font-family:'Plus Jakarta Sans',sans-serif">Total final</span>
+            <div style="display:flex;align-items:baseline;gap:8px">
+              <span style="font-size:32px;font-weight:700;line-height:1.15;color:var(--primary);font-family:'Space Grotesk',sans-serif">$1.478.300</span>
+              <span style="font-size:11px;font-weight:500;line-height:1.4;color:var(--text2);font-family:'Space Grotesk',sans-serif">ARS</span>
+            </div>
+          </div>
+          <dc-import name="Btn" label="Confirmar orden" variant="solid" size="lg" full="{{ true }}" icon="check_circle" hint-size="100%,48px" style="width:100%"></dc-import>
+          <dc-import name="Btn" label="Paso anterior" variant="outline" size="md" full="{{ true }}" icon="arrow_back" hint-size="100%,40px" style="width:100%"></dc-import>
+          <dc-import name="Alert" intent="info" title="Al confirmar se emite el despacho" text="El seguimiento queda activo dentro de los 15 minutos." hint-size="100%,90px" style="width:100%"></dc-import>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--b1);border-radius:12px;box-shadow:var(--sh1);padding:16px;display:flex;flex-direction:column;gap:12px;box-sizing:border-box">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:12px;font-weight:700;line-height:1.4;letter-spacing:0.05em;text-transform:uppercase;color:var(--text2);font-family:'Plus Jakarta Sans',sans-serif">Vista del destino</span>
+            <span style="margin-left:auto;font-size:11px;font-weight:500;line-height:1.4;color:var(--text2);font-family:'Space Grotesk',sans-serif">BUE-4</span>
+          </div>
+          <div style="height:150px;border-radius:8px;border:1px solid var(--border);background-color:var(--input);background-image:repeating-linear-gradient(45deg, var(--grid-line) 0 1px, transparent 1px 12px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;box-sizing:border-box">
+            <span class="ic" style="font-size:24px;color:var(--primary)">location_on</span>
+            <span style="font-size:11px;font-weight:500;line-height:1.4;color:var(--text2);font-family:'Space Grotesk',sans-serif">[ mapa · Ezeiza, Buenos Aires ]</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:2px">
+            <span style="font-size:14px;font-weight:600;line-height:1.5;color:var(--text);font-family:'Plus Jakarta Sans',sans-serif">CD Ezeiza (BUE-4)</span>
+            <span style="font-size:12px;font-weight:500;line-height:1.4;color:var(--text2);font-family:'Plus Jakarta Sans',sans-serif">Autopista Riccheri km 22,5 · B1802, Ezeiza</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:1024},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Oscuro&quot;,&quot;Claro&quot;],&quot;default&quot;:&quot;Oscuro&quot;,&quot;tsType&quot;:&quot;'Oscuro'|'Claro'&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const _t = this.props.tenant ?? 'Precision Logistics';
+    const _i = this.props.initials ?? 'MR';
+    const Q = (name, eta, price, rec) => ({
+      name, eta, price,
+      recommended: !!rec,
+      bc: rec ? 'var(--primary)' : 'var(--b1)',
+      priceColor: rec ? 'var(--primary)' : 'var(--text)'
+    });
+    return {
+      themeClass: this.props.theme === 'Claro' ? 'light' : 'dark',
+      tenant: _t,
+      initials: _i,
+      quotes: [
+        Q('Andreani', 'Entrega estimada 24 a 48 horas', '$45.800', true),
+        Q('Moova', 'Entrega estimada 12 a 24 horas', '$58.200', false),
+        Q('Correo Argentino', 'Entrega estimada 3 a 5 días', '$32.150', false),
+        Q('OCASA', 'Entrega estimada 48 a 72 horas', '$41.500', false)
+      ],
+      lines: [
+        { label: 'Subtotal de productos', value: '$1.420.000' },
+        { label: 'Envío (Andreani)', value: '$45.800' },
+        { label: 'Gastos de gestión', value: '$12.500' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>
