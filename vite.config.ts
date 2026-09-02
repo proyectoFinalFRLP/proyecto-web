@@ -23,6 +23,12 @@ export default defineConfig({
     // mismo que pide el resto del repo, y evita tener que sumar los tipos de
     // Vitest al tsconfig de la app.
     globals: false,
+    // `restoreMocks` y no `clearMocks`: además de borrar las llamadas devuelve
+    // su implementación original a todo lo espiado con `vi.spyOn`. Es el
+    // equivalente de lo que hace rspec-mocks del lado de la API, que descarta
+    // los stubs al terminar cada ejemplo. Con `clearMocks` un
+    // `vi.spyOn(x, 'y').mockReturnValue(1)` seguiría vivo en los tests
+    // siguientes del mismo archivo.
     restoreMocks: true,
   },
 })
