@@ -1,16 +1,21 @@
 name: CI
 
 on:
+  # `release-1` es la rama de integracion de la demo: todo el desarrollo apunta
+  # ahi hasta que se mergea a master. Sin listarla, un PR contra release-1 no
+  # dispara ningun job y entra sin verificar.
   push:
     branches:
       - main
       - master
       - develop
+      - release-1
   pull_request:
     branches:
       - main
       - master
       - develop
+      - release-1
 
 jobs:
   lint:
@@ -43,7 +48,7 @@ jobs:
       - name: Validate branch name
         run: |
           BRANCH="${{ github.head_ref }}"
-          ALLOWED="^(main|develop|staging|(hotfix|release)/.+)$"
+          ALLOWED="^(main|develop|staging|release-1|(hotfix|release)/.+)$"
           REQUIRED="^TESIS-[0-9]+-[a-z0-9-]+$"
 
           if echo "$BRANCH" | grep -qE "$ALLOWED"; then

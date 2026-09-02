@@ -103,7 +103,7 @@ master
 
 ## 6. CI/CD (GitHub Actions)
 
-Pipeline en `.github/workflows/ci.yml`. Se dispara en push y pull_request sobre `main`, `master` y `develop`.
+Pipeline en `.github/workflows/ci.yml`. Se dispara en push y pull_request sobre `main`, `master`, `develop` y `release-1`.
 
 | Job           | Acción                                       | Dependencia |
 | ------------- | -------------------------------------------- | ----------- |

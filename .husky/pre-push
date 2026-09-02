@@ -1,6 +1,6 @@
 # Verify branch name format before pushing
 BRANCH=$(git symbolic-ref --short HEAD)
-ALLOWED="^(main|develop|staging|(hotfix|release)/.+)$"
+ALLOWED="^(main|develop|staging|release-1|(hotfix|release)/.+)$"
 REQUIRED="^TESIS-[0-9]+-[a-z0-9-]+$"
 
 if ! echo "$BRANCH" | grep -qE "$ALLOWED" && ! echo "$BRANCH" | grep -qE "$REQUIRED"; then
