@@ -10,8 +10,11 @@ Leer obligatoriamente estos archivos en este orden antes de escribir una sola l�
 4. [`docs/guidelines/component-structure.md`](docs/guidelines/component-structure.md) — estructura interna de componentes: carpeta por componente, split progresivo, dónde viven los estilos
 5. [`docs/guidelines/git-workflow.md`](docs/guidelines/git-workflow.md) — ramas, commits, PRs, hooks, CI/CD
 6. El ADR relevante según el dominio de la tarea (ver [`docs/adr/`](docs/adr/))
+7. Si la tarea toca la interfaz: [`docs/design/`](docs/design/) — la pantalla que vas a implementar y los componentes que instancia
 
 Si la tarea viene de una card de Jira, leer la card completa en https://proyectofinalfrlp.atlassian.net/browse/TESIS-XXX antes de planificar la implementación.
+
+> **Diseño:** las cards anteriores a agosto de 2026 llevan una línea `Figma: <url>` en su descripción. **Ese enlace está obsoleto.** La referencia visual vigente es [`docs/design/`](docs/design/), y los valores de color, tipografía y espaciado salen de `src/app/theme/tokens.ts`. El motivo del cambio está en [`ADR-007`](docs/adr/ADR-007-design-system.md).
 
 ---
 
@@ -153,12 +156,13 @@ const {
 ## Trabajar con una card de Jira
 
 1. Leer la card: `https://proyectofinalfrlp.atlassian.net/browse/TESIS-XXX`
-2. Crear rama: `TESIS-XXX-descripcion-en-kebab-case`
-3. Crear feature en `src/features/[nombre]/` con la estructura estándar
-4. Implementar siguiendo los patrones documentados
-5. `npm run lint` sin errores
-6. `npm run build` sin errores
-7. PR con título: `tipo: [TESIS-XXX] descripción en inglés`
+2. Si toca UI, abrir la pantalla en `docs/design/` y ver qué componentes instancia: si alguno ya existe en `src/shared/components/`, se reutiliza
+3. Crear rama: `TESIS-XXX-descripcion-en-kebab-case`
+4. Crear feature en `src/features/[nombre]/` con la estructura estándar
+5. Implementar siguiendo los patrones documentados
+6. `npm run lint` sin errores
+7. `npm run build` sin errores
+8. PR con título: `tipo: [TESIS-XXX] descripción en inglés`
 
 ---
 
@@ -197,3 +201,4 @@ Pipeline en `.github/workflows/ci.yml`:
 | [docs/guidelines/git-workflow.md](docs/guidelines/git-workflow.md)               | Ramas, commits, PRs, Husky, CI/CD                                                 |
 | [docs/guidelines/pr-guidelines.md](docs/guidelines/pr-guidelines.md)             | Cómo redactar PRs con ejemplos                                                    |
 | [docs/adr/](docs/adr/)                                                           | 7 decisiones arquitectónicas (ADRs)                                               |
+| [docs/design/](docs/design/)                                                     | Fuentes del diseño: pantallas, componentes compartidos y vocabulario del producto |

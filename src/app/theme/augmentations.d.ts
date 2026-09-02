@@ -11,6 +11,7 @@ declare module '@mui/material/styles' {
     bodyMd: CSSProperties
     labelMd: CSSProperties
     labelSm: CSSProperties
+    labelCaps: CSSProperties
     dataMono: CSSProperties
   }
 
@@ -21,6 +22,7 @@ declare module '@mui/material/styles' {
     bodyMd?: CSSProperties
     labelMd?: CSSProperties
     labelSm?: CSSProperties
+    labelCaps?: CSSProperties
     dataMono?: CSSProperties
   }
 
@@ -37,12 +39,15 @@ declare module '@mui/material/styles' {
     onContainer?: string
   }
 
-  // Superficie más elevada del DS (hover de ítems, capas superiores).
+  // Superficie más elevada del DS (hover de ítems, capas superiores) y la escala
+  // de profundidad nombrada del luminous layering (floor/deck/modal).
   interface TypeBackground {
     containerHighest: string
+    layer: { floor: string; deck: string; modal: string }
   }
 
-  // Escala de elevación (luminous layering). Índice 0-3: base/card/dropdown/modal.
+  // Tratamiento de elevación (borde + sombra + halo). Índice 0-3:
+  // base/card/dropdown/modal. El relleno de cada plano vive en `background.layer`.
   interface Theme {
     elevation: { boxShadow: string; border: string }[]
   }
@@ -70,6 +75,7 @@ declare module '@mui/material/Typography' {
     bodyMd: true
     labelMd: true
     labelSm: true
+    labelCaps: true
     dataMono: true
   }
 }
@@ -78,5 +84,11 @@ declare module '@mui/material/Typography' {
 declare module '@mui/material/Button' {
   interface ButtonPropsColorOverrides {
     neutral: true
+  }
+
+  // Acción secundaria sobre superficies profundas: relleno translúcido del tono
+  // + borde de un pelo (ver `muiButton`).
+  interface ButtonPropsVariantOverrides {
+    glass: true
   }
 }

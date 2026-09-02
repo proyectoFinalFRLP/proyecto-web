@@ -1,0 +1,94 @@
+// Copy centralizado de la feature — sin literales sueltos en el JSX.
+// Mismo criterio que `features/design-system/content.ts`: si más adelante entra
+// i18n, este módulo es el único punto a migrar a claves de traducción (ADR-007).
+
+export const inventoryCopy = {
+  page: {
+    title: 'Gestión de inventario',
+    subtitle: 'Catálogo de productos y stock consolidado por depósito.',
+    listHeading: 'Productos',
+    empty: 'Todavía no hay productos cargados en esta empresa.',
+    stockSummary: (total: number) => `${total} u. en total`,
+    saved: (productName: string) => `${productName} actualizado.`,
+  },
+  modal: {
+    /** El título lleva el nombre del producto; el subtítulo, el SKU. */
+    title: (productName: string) => `Editar producto: ${productName}`,
+    subtitle: (sku: string) => `Actualizá especificaciones y stock del SKU: ${sku}`,
+    close: 'Cerrar',
+    sections: {
+      basic: 'Información básica',
+      technical: 'Especificaciones técnicas',
+      stock: 'Asignación de stock',
+    },
+    fields: {
+      name: 'Nombre del producto',
+      sku: 'Código SKU',
+      category: 'Categoría',
+      weight: 'Peso (kg)',
+      length: 'Largo (cm)',
+      width: 'Ancho (cm)',
+      height: 'Alto (cm)',
+      available: 'Disponible',
+    },
+    skuHelper: 'El SKU identifica al producto y no se edita.',
+    categoryHelper: 'Pendiente de backend: el producto todavía no tiene categoría.',
+    addWarehouse: 'Agregar depósito',
+    removeWarehouse: (warehouseName: string) => `Quitar ${warehouseName}`,
+    noWarehouses: 'Este producto no tiene stock asignado en ningún depósito.',
+    noWarehousesLeft: 'Ya asignaste todos los depósitos disponibles.',
+    lastUpdated: (when: string) => `Última actualización ${when}`,
+    cancel: 'Cancelar',
+    submit: 'Guardar cambios',
+  },
+  createModal: {
+    open: 'Nuevo producto',
+    title: 'Crear producto',
+    subtitle: 'Da de alta una entrada nueva en el catálogo maestro.',
+    close: 'Cerrar',
+    sections: {
+      basic: 'Información básica',
+      technical: 'Especificaciones técnicas',
+      stock: 'Stock inicial',
+    },
+    fields: {
+      name: 'Nombre del producto',
+      sku: 'Código SKU',
+      category: 'Categoría',
+      weight: 'Peso (kg)',
+      dimensions: 'Dimensiones (largo × ancho × alto, cm)',
+      warehousePrimary: 'Depósito principal',
+      warehouse: 'Depósito',
+      quantity: 'Cantidad',
+    },
+    placeholders: {
+      name: 'ej. Servomotor industrial Z5',
+      sku: 'SKU-XXXX-XXX',
+      weight: '0.00',
+      length: 'L',
+      width: 'A',
+      height: 'H',
+    },
+    categoryHelper: 'Pendiente de backend: el producto todavía no tiene categoría.',
+    addWarehouse: 'Agregar depósito',
+    removeRow: (position: number) => `Quitar la fila ${position}`,
+    noWarehouses: 'La empresa todavía no tiene depósitos cargados.',
+    noWarehousesLeft: 'Ya asignaste todos los depósitos disponibles.',
+    selectWarehouse: 'Elegí un depósito',
+    cancel: 'Cancelar',
+    submit: 'Crear producto',
+    submitting: 'Creando…',
+    // El backend responde en inglés y con formato de Rails ("Validation failed:
+    // Sku has already been taken"). Se traduce acá en vez de mostrarlo crudo.
+    skuTaken: 'Ya existe un producto con ese SKU',
+  },
+  validation: {
+    nameRequired: 'El nombre es obligatorio',
+    skuRequired: 'El SKU es obligatorio',
+    numberRequired: 'Ingresá un número',
+    negative: 'No puede ser negativo',
+    quantityInteger: 'La cantidad debe ser un número entero',
+    warehouseRequired: 'Elegí un depósito',
+    duplicateWarehouse: 'No repitas el mismo depósito en dos filas',
+  },
+} as const

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,300,0,0&display=block" rel="stylesheet" />
+  <link rel="stylesheet" href="./theme.css" />
+  <style>
+    /* Espejo de theme.css: el exportador de imágenes sólo inlinea reglas del documento. */
+    body { margin: 0; background: #0b1220; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
+    a { color: #38bdf8; text-decoration: none; }
+    a:hover { color: #8ed5ff; }
+    .ic {
+      font-family: 'Material Symbols Outlined';
+      font-weight: normal; font-style: normal; line-height: 1;
+      letter-spacing: normal; text-transform: none; white-space: nowrap;
+      display: inline-block; direction: ltr; flex: none;
+      font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 20;
+      -webkit-font-feature-settings: 'liga'; font-feature-settings: 'liga';
+      -webkit-font-smoothing: antialiased; user-select: none;
+    }
+    .dark {
+      --bg:#051424; --surface:#122131; --container:#273647; --primary:#38bdf8; --on-primary:#051424;
+      --accent:#8ed5ff; --text:#d4e4fa; --text2:#bdc8d1; --border:#3e484f; --input:#0d1c2d;
+      --primary-soft:rgba(56,189,248,.14); --raised:#0f172a; --modal:#1c2b3c; --scrim:rgba(5,20,36,.66);
+      --sh1:0 1px 2px rgba(0,0,0,.3);
+      --sh2:0 12px 32px rgba(0,0,0,.5), 0 0 16px rgba(56,189,248,.12);
+      --sh3:0 24px 48px rgba(0,0,0,.6), 0 0 16px rgba(56,189,248,.12);
+      --b1:rgba(255,255,255,.06); --b2:rgba(255,255,255,.08); --b3:rgba(255,255,255,.10);
+      --ok:#34d399; --ok-bg:rgba(52,211,153,.12); --ok-fg:#a7f3d0;
+      --warn:#fbbf24; --warn-bg:rgba(251,191,36,.12); --warn-fg:#fde68a;
+      --err:#fb7185; --err-bg:rgba(251,113,133,.12); --err-fg:#fecdd3;
+      --info:#38bdf8; --info-bg:rgba(56,189,248,.12); --info-fg:#bae6fd;
+      --neu:#94a3b8; --neu-bg:rgba(148,163,184,.12); --neu-fg:#cbd5e1;
+      --grid-line:rgba(255,255,255,.07);
+    }
+    .light {
+      --bg:#f8f9fa; --surface:#ffffff; --container:#e1e3e4; --primary:#00629d; --on-primary:#ffffff;
+      --accent:#00a3ff; --text:#191c1d; --text2:#3f4852; --border:#bec7d4; --input:#f4f5f6;
+      --primary-soft:rgba(0,98,157,.10); --raised:#ffffff; --modal:#ffffff; --scrim:rgba(25,28,29,.44);
+      --sh1:0 1px 3px rgba(16,24,40,.06);
+      --sh2:0 12px 32px rgba(16,24,40,.12);
+      --sh3:0 24px 48px rgba(16,24,40,.16);
+      --b1:#bec7d4; --b2:#bec7d4; --b3:#bec7d4;
+      --ok:#10b981; --ok-bg:#d1fae5; --ok-fg:#065f46;
+      --warn:#f59e0b; --warn-bg:#fef3c7; --warn-fg:#92400e;
+      --err:#f43f5e; --err-bg:#ffe4e6; --err-fg:#9f1239;
+      --info:#0ea5e9; --info-bg:#e0f2fe; --info-fg:#0c4a6e;
+      --neu:#64748b; --neu-bg:#f1f5f9; --neu-fg:#1e293b;
+      --grid-line:rgba(25,28,29,.08);
+    }
+  </style>
+</helmet>
+<x-import component-from-global-scope="deck-stage" from="./deck-stage.js" width="1280" height="1024" hint-size="100%,100%">
+  <section class="dark" data-label="01 Inicio de sesión · oscuro" data-screen-label="01-oscuro" data-speaker-notes="Inicio de sesión. Correo, contraseña, mantener sesión, ingresar y enlace a registro." style="background:var(--bg)">
+    <dc-import name="S01-Login" theme="Oscuro" tenant="{{ tenant }}" initials="{{ initials }}" hint-size="1280px,1024px" style="width:1280px;height:1024px"></dc-import>
+  </section>
+  <section class="light" data-label="01 Inicio de sesión · claro" data-screen-label="01-claro" data-speaker-notes="Inicio de sesión, tema claro." style="background:var(--bg)">
+    <dc-import name="S01-Login" theme="Claro" tenant="{{ tenant }}" initials="{{ initials }}" hint-size="1280px,1024px" style="width:1280px;height:1024px"></dc-import>
+  </section>
+  <section class="dark" data-label="02 Registro · oscuro" data-screen-label="02-oscuro" data-speaker-notes="Registro: correo, usuario, contraseña con confirmación y aceptación de términos." style="background:var(--bg)">
+    <dc-import name="S02-Registro" theme="Oscuro" tenant="{{ tenant }}" initials="{{ initials }}" hint-size="1280px,1024px" style="width:1280px;height:1024px"></dc-import>
+  </section>
+  <section class="light" data-label="02 Registro · claro" data-screen-label="02-claro" data-speaker-notes="Registro, tema claro." style="background:var(--bg)">
+    <dc-import name="S02-Registro" theme="Claro" tenant="{{ tenant }}" initials="{{ initials }}" hint-size="1280px,1024px" style="width:1280px;height:1024px"></dc-import>
+  </section>
+  <section class="dark" data-label="03 Panel de operación · oscuro" data-screen-label="03-oscuro" data-speaker-notes="Cuatro métricas, órdenes recientes, integraciones y capacidad por depósito." style="background:var(--bg)">
+    <dc-import name="S03-Panel" theme="Oscuro" tenant="{{ tenant }}" initials="{{ initials }}" hint-size="1280px,1024px" style="width:1280px;height:1024px"></dc-import>
+  </section>
+  <section class="light" data-label="03 Panel de operación · claro" data-screen-label="03-claro" data-speaker-notes="Panel de operación, tema claro. Conserva el título de pantalla." style="background:var(--bg)">
+    <dc-import name="S03-Panel" theme="Claro" tenant="{{ tenant }}" initials="{{ initials }}" hint-size="1280px,1024px" style="width:1280px;height:1024px"></dc-import>
+  </section>
+  <section class="dark" data-label="04 Órdenes · oscuro" data-screen-label="04-oscuro" data-speaker-notes="Listado de órdenes con pestañas por estado, buscador y columnas ID, fecha, destino, estado, operador, total y acciones." style="background:var(--bg)">
+    <dc-import name="S04-Ordenes" theme="Oscuro" tenant="{{ tenant }}" initials="{{ initials }}" hint-size="1280px,1024px" style="width:1280px;height:1024px"></dc-import>
+  </section>
+  <section class="light" data-label="04 Órdenes · claro" data-screen-label="04-claro" data-speaker-notes="Listado de órdenes, tema claro." style="background:var(--bg)">
+    <dc-import name="S04-Ordenes" theme="Claro" tenant="{{ tenant }}" initials="{{ initials }}" hint-size="1280px,1024px" style="width:1280px;height:1024px"></dc-import>
+  </section>
+  <section class="dark" data-label="05 Alta de orden · paso 1 · oscuro" data-screen-label="05-oscuro" data-speaker-notes="Datos del cliente y selección de productos con cantidad. Muestra el peso total estimado." style="background:var(--bg)">
+    <dc-import name="S05-Alta1" theme="Oscuro" tenant="{{ tenant }}" initials="{{ initials }}" hint-size="1280px,1024px" style="width:1280px;height:1024px"></dc-import>
+  </section>
+  <section class="light" data-label="05 Alta de orden · paso 1 · claro" data-screen-label="05-claro" data-speaker-notes="Alta de orden paso 1, tema claro." style="background:var(--bg)">
+    <dc-import name="S05-Alta1" theme="Claro" tenant="{{ tenant }}" initials="{{ initials }}" hint-size="1280px,1024px" style="width:1280px;height:1024px"></dc-import>
+  </section>
+  <section class="dark" data-label="06 Alta de orden · paso 2 · oscuro" data-screen-label="06-oscuro" data-speaker-notes="Depósito de origen con nivel de stock y domicilio de entrega." style="background:var(--bg)">
+    <dc-import name="S06-Alta2" theme="Oscuro" tenant="{{ tenant }}" initials="{{ initials }}" hint-size="1280px,1024px" style="width:1280px;height:1024px"></dc-import>
+  </section>
+  <section class="light" data-label="06 Alta de orden · paso 2 · claro" data-screen-label="06-claro" data-speaker-notes="Alta de orden paso 2, tema claro." style="background:var(--bg)">
+    <dc-import name="S06-Alta2" theme="Claro" tenant="{{ tenant }}" initials="{{ initials }}" hint-size="1280px,1024px" style="width:1280px;height:1024px"></dc-import>
+  </section>
+  <section class="dark" data-label="07 Alta de orden · paso 3 · oscuro" data-screen-label="07-oscuro" data-speaker-notes="Comparación de cotizaciones entre operadores con precio y plazo, y resumen antes de confirmar." style="background:var(--bg)">
+    <dc-import name="S07-Alta3" theme="Oscuro" tenant="{{ tenant }}" initials="{{ initials }}" hint-size="1280px,1024px" style="width:1280px;height:1024px"></dc-import>
+  </section>
+  <section class="light" data-label="07 Alta de orden · paso 3 · claro" data-screen-label="07-claro" data-speaker-notes="Alta de orden paso 3, tema claro." style="background:var(--bg)">
+    <dc-import name="S07-Alta3" theme="Claro" tenant="{{ tenant }}" initials="{{ initials }}" hint-size="1280px,1024px" style="width:1280px;height:1024px"></dc-import>
+  </section>
+  <section class="dark" data-label="08 Detalle de orden · oscuro" data-screen-label="08-oscuro" data-speaker-notes="Totales, líneas, datos del cliente, envío con número de seguimiento y bitácora del ciclo de vida." style="background:var(--bg)">
+    <dc-import name="S08-Detalle" theme="Oscuro" tenant="{{ tenant }}" initials="{{ initials }}" hint-size="1280px,1024px" style="width:1280px;height:1024px"></dc-import>
+  </section>
+  <section class="light" data-label="08 Detalle de orden · claro" data-screen-label="08-claro" data-speaker-notes="Detalle de orden, tema claro." style="background:var(--bg)">
+    <dc-import name="S08-Detalle" theme="Claro" tenant="{{ tenant }}" initials="{{ initials }}" hint-size="1280px,1024px" style="width:1280px;height:1024px"></dc-import>
+  </section>
+  <section class="dark" data-label="09 Modificación de orden · oscuro" data-screen-label="09-oscuro" data-speaker-notes="Edición de líneas y del contexto de la orden, con recálculo del total." style="background:var(--bg)">
+    <dc-import name="S09-Modificar" theme="Oscuro" tenant="{{ tenant }}" initials="{{ initials }}" hint-size="1280px,1024px" style="width:1280px;height:1024px"></dc-import>
+  </section>
+  <section class="light" data-label="09 Modificación de orden · claro" data-screen-label="09-claro" data-speaker-notes="Modificación de orden, tema claro." style="background:var(--bg)">
+    <dc-import name="S09-Modificar" theme="Claro" tenant="{{ tenant }}" initials="{{ initials }}" hint-size="1280px,1024px" style="width:1280px;height:1024px"></dc-import>
+  </section>
+  <section class="dark" data-label="10 Inventario · oscuro" data-screen-label="10-oscuro" data-speaker-notes="Catálogo maestro con pestañas por disponibilidad y columnas SKU, nombre, categoría, disponible, estado, depósito y acciones." style="background:var(--bg)">
+    <dc-import name="S10-Inventario" theme="Oscuro" tenant="{{ tenant }}" initials="{{ initials }}" hint-size="1280px,1024px" style="width:1280px;height:1024px"></dc-import>
+  </section>
+  <section class="light" data-label="10 Inventario · claro" data-screen-label="10-claro" data-speaker-notes="Inventario, tema claro." style="background:var(--bg)">
+    <dc-import name="S10-Inventario" theme="Claro" tenant="{{ tenant }}" initials="{{ initials }}" hint-size="1280px,1024px" style="width:1280px;height:1024px"></dc-import>
+  </section>
+  <section class="dark" data-label="11 Alta de producto · oscuro" data-screen-label="11-oscuro" data-speaker-notes="Modal de alta: identificación, especificaciones técnicas y asignación inicial de stock por depósito." style="background:var(--bg)">
+    <dc-import name="S11-AltaProducto" theme="Oscuro" tenant="{{ tenant }}" initials="{{ initials }}" hint-size="1280px,1024px" style="width:1280px;height:1024px"></dc-import>
+  </section>
+  <section class="light" data-label="11 Alta de producto · claro" data-screen-label="11-claro" data-speaker-notes="Alta de producto, tema claro." style="background:var(--bg)">
+    <dc-import name="S11-AltaProducto" theme="Claro" tenant="{{ tenant }}" initials="{{ initials }}" hint-size="1280px,1024px" style="width:1280px;height:1024px"></dc-import>
+  </section>
+  <section class="dark" data-label="12 Detalle de producto · oscuro" data-screen-label="12-oscuro" data-speaker-notes="Especificaciones y distribución de stock por depósito: comprometido, en tránsito y disponible." style="background:var(--bg)">
+    <dc-import name="S12-Producto" theme="Oscuro" tenant="{{ tenant }}" initials="{{ initials }}" hint-size="1280px,1024px" style="width:1280px;height:1024px"></dc-import>
+  </section>
+  <section class="light" data-label="12 Detalle de producto · claro" data-screen-label="12-claro" data-speaker-notes="Detalle de producto, tema claro." style="background:var(--bg)">
+    <dc-import name="S12-Producto" theme="Claro" tenant="{{ tenant }}" initials="{{ initials }}" hint-size="1280px,1024px" style="width:1280px;height:1024px"></dc-import>
+  </section>
+  <section class="dark" data-label="13 Edición de producto · oscuro" data-screen-label="13-oscuro" data-speaker-notes="Modal de edición con el mismo esqueleto que el alta y los mismos componentes de barra y menú." style="background:var(--bg)">
+    <dc-import name="S13-EditarProducto" theme="Oscuro" tenant="{{ tenant }}" initials="{{ initials }}" hint-size="1280px,1024px" style="width:1280px;height:1024px"></dc-import>
+  </section>
+  <section class="light" data-label="13 Edición de producto · claro" data-screen-label="13-claro" data-speaker-notes="Edición de producto, tema claro." style="background:var(--bg)">
+    <dc-import name="S13-EditarProducto" theme="Claro" tenant="{{ tenant }}" initials="{{ initials }}" hint-size="1280px,1024px" style="width:1280px;height:1024px"></dc-import>
+  </section>
+  <section class="dark" data-label="14 Reportes · oscuro" data-screen-label="14-oscuro" data-speaker-notes="Volumen, facturación, cumplimiento, curva de despacho, nivel de servicio por operador y anomalías." style="background:var(--bg)">
+    <dc-import name="S14-Reportes" theme="Oscuro" tenant="{{ tenant }}" initials="{{ initials }}" hint-size="1280px,1024px" style="width:1280px;height:1024px"></dc-import>
+  </section>
+  <section class="light" data-label="14 Reportes · claro" data-screen-label="14-claro" data-speaker-notes="Reportes, tema claro." style="background:var(--bg)">
+    <dc-import name="S14-Reportes" theme="Claro" tenant="{{ tenant }}" initials="{{ initials }}" hint-size="1280px,1024px" style="width:1280px;height:1024px"></dc-import>
+  </section>
+</x-import>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;tenant&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Precision Logistics&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Tenant&quot;},&quot;initials&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;MR&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Tenant&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      tenant: this.props.tenant ?? 'Precision Logistics',
+      initials: this.props.initials ?? 'MR'
+    };
+  }
+}
+</script>
+</body>
+</html>

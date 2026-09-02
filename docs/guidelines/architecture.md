@@ -46,7 +46,7 @@ src/
 ├── app/                        # Configuración global de la aplicación
 │   ├── layout/                 # Estructura visual principal
 │   │   ├── AppLayout.tsx       # Layout raíz: Header + Sidebar + Outlet
-│   │   ├── Header.tsx          # AppBar fija con toggle de tema y sidebar
+│   │   ├── Header.tsx          # Cablea TopNavBar (shared/) con uiStore
 │   │   └── Sidebar.tsx         # Drawer persistente de navegación
 │   ├── providers/              # Providers globales
 │   │   ├── Providers.tsx       # QueryClientProvider + BrowserRouter + ThemeWrapper
@@ -141,14 +141,16 @@ index.html → src/main.tsx → <Providers><App /></Providers>
 
 **Router — registro único de rutas:**
 
-- `routes.tsx`: **fuente única de verdad** de las rutas. Exporta `appRoutes` (array de `{ path, element, nav? }`, con las páginas cargadas vía `lazy()`) y `navRoutes` (las que tienen `nav`, ya angostadas para el Sidebar). Sumar una ruta = agregar **una** entrada acá.
-- `AppRouter.tsx`: mapea `appRoutes` a `<Route>` anidados bajo `<AppLayout>`, envueltos en `<Suspense fallback={<LoadingSpinner fullScreen />}>`. Las rutas 404 redirigen a `/`.
+- `routes.tsx`: **fuente única de verdad** de las rutas. Exporta `appRoutes` (array de `{ path, element, nav?, layout? }`, con las páginas cargadas vía `lazy()`), `navRoutes` (las que tienen `nav`, ya angostadas para el Sidebar) y la partición `shellRoutes` / `bareRoutes` según `layout`. Sumar una ruta = agregar **una** entrada acá.
+- `AppRouter.tsx`: monta `bareRoutes` sueltas y públicas — cada una con su propio `ErrorBoundary` — y `shellRoutes` detrás de `<ProtectedRoute>` y dentro de `<AppLayout>`. Todo envuelto en `<Suspense fallback={<LoadingSpinner fullScreen />}>`. El catch-all vive dentro del guard, así una URL desconocida sin sesión también termina en el login.
 - El Sidebar y el Router se derivan del mismo `routes.tsx`, por lo que no pueden divergir.
+- **Rutas sin shell (`layout: 'bare'`):** públicas y full-bleed — hoy `/login`. No pasan por el guard ni renderizan Header/Sidebar. Como el `ErrorBoundary` de `AppLayout` sólo envuelve al `Outlet` privado, cada ruta bare lleva el suyo.
+- `ProtectedRoute.tsx`: si no hay sesión válida redirige a `/login` guardando el destino pedido en `location.state.from`, para volver ahí después de ingresar.
 
 **Layout:**
 
 - `AppLayout.tsx`: flex `Header + Sidebar + <Outlet>`. El margen izquierdo responde a `sidebarOpen` del `uiStore` (drawer width: 240px). El `<Outlet>` va envuelto en `<ErrorBoundary key={pathname}>`: los errores de render (o de carga de un chunk lazy) muestran el `ErrorFallback` en el área de contenido sin tumbar Header ni Sidebar, y se limpian al navegar.
-- `Header.tsx`: AppBar fija (`zIndex: drawer + 1`). Toggle de sidebar (MenuIcon) y toggle de tema (Brightness icons). Ambos desde `useUiStore`.
+- `Header.tsx`: único punto de cableado del `TopNavBar` (`shared/components`) — lee `themeMode`/`toggleTheme`/`toggleSidebar` de `useUiStore` y el email + `logout` de `useAuthStore`, todo con selectores individuales, y se los pasa por props. El componente en sí es presentacional — sin datos ni `uiStore`; su único acople es el `Link` de react-router (brand y engranaje), correcto para esta app (ver tabla de `shared/` más abajo). El logout no navega: limpia la sesión y el guard hace el redirect.
 - `Sidebar.tsx`: Drawer persistente con `navItems` estático. Usa `NavLink` con clase `active` que resalta en `primary.main`.
 
 **Tema** (`createAppTheme(mode)`):
@@ -156,6 +158,7 @@ index.html → src/main.tsx → <Providers><App /></Providers>
 - Fuente: Inter con fallbacks al sistema
 - `borderRadius`: 8px global
 - Overrides: `MuiButton` sin elevation · `MuiCard` sin elevation, borde `1px solid`
+- `MuiButton` suma la variante **`glass`**: relleno translúcido del propio tono + borde de un pelo, para la acción secundaria sobre superficies profundas. Se genera una entrada por intención, así `color` funciona igual que en las demás variantes (`variant="glass" color="neutral"`).
 - Light: primary `#1976d2`, bg `#f5f5f5`
 - Dark: primary `#90caf9`, bg `#121212`, paper `#1e1e1e`
 
@@ -166,8 +169,10 @@ index.html → src/main.tsx → <Providers><App /></Providers>
 **Cliente HTTP** (`shared/api/client.ts`):
 
 - `baseURL`: `import.meta.env.VITE_API_URL`
-- Request interceptor: inyecta `Authorization: Bearer <token>` desde `localStorage`
-- Response interceptor: normaliza errores → `Error(message)`. Si 401: limpia el token.
+- Request interceptor: inyecta `Authorization: Bearer <token>` leyendo el token del `authStore` (no de `localStorage`, para no tener dos fuentes de verdad sobre la sesión)
+- Response interceptor: normaliza errores a `ApiRequestError`, que **conserva el `status`** para que cada feature elija su mensaje en vez de mostrar el texto crudo de la API
+- **401**: limpia la sesión completa; el redirect lo hace el guard, así el interceptor no conoce el router
+- **403**: no desloguea — notifica "sin permisos" vía `notify()`
 
 **Tipos de API** (`shared/api/types.ts`):
 
@@ -207,21 +212,32 @@ interface PaginationParams {
 
 **Componentes compartidos:**
 
-| Componente       | Props                                   | Descripción                                                                                                               |
-| ---------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `LoadingSpinner` | `fullScreen?: boolean`                  | CircularProgress centrado. `fullScreen`: 100vh × 100%                                                                     |
-| `ErrorBoundary`  | `children`                              | Class component que captura errores de render y muestra `ErrorFallback`. Cableado en `AppLayout` alrededor del `<Outlet>` |
-| `ErrorFallback`  | `error?: Error`, `onRetry?: () => void` | Pantalla de error con botón Reintentar (presentacional)                                                                   |
-| `PageWrapper`    | `children`, `...BoxProps`               | `<main>` con `p: {xs:2, md:3}`, `maxWidth: 1200`, `mx: auto`                                                              |
+| Componente                     | Props                                               | Descripción                                                                                                                                                                                                                                                         |
+| ------------------------------ | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `LoadingSpinner`               | `fullScreen?: boolean`                              | CircularProgress centrado. `fullScreen`: 100vh × 100%                                                                                                                                                                                                               |
+| `ErrorBoundary`                | `children`                                          | Class component que captura errores de render y muestra `ErrorFallback`. Cableado en `AppLayout` alrededor del `<Outlet>` y en cada ruta `bare`                                                                                                                     |
+| `ErrorFallback`                | `error?: Error`, `onRetry?: () => void`             | Pantalla de error con botón Reintentar (presentacional)                                                                                                                                                                                                             |
+| `PageWrapper`                  | `children`, `...BoxProps`                           | `<main>` con `p: {xs:2, md:3}`, `maxWidth: 1200`, `mx: auto`                                                                                                                                                                                                        |
+| `NotificationHost`             | —                                                   | Render único de las notificaciones del `notificationStore`. Montado en los providers; una a la vez. Usa `Snackbar` + `Alert` de MUI hasta que TESIS-68 defina el Toast del DS                                                                                       |
+| `StatCard` / `CompactStatCard` | Ver `StatCard.types.ts`                             | Tarjeta de KPI: ícono + chip de tendencia o etiqueta, valor destacado y footer comparativo. `tone: 'error'` suma borde y halo de acento. La variante condensada es una sola fila. Presentacionales: el valor llega ya formateado                                    |
+| `ProgressIndicator`            | Ver `ProgressIndicator.types.ts`                    | Barra lineal con tono semántico. `size` thin/medium/large, `layout` stacked/inline, `indeterminate` para progreso desconocido. El ancho sale del porcentaje                                                                                                         |
+| `StepsProgress`                | `total`, `completed`, `tone?`, `label?`, `caption?` | Progreso por etapas discretas, para procesos con pasos nombrados                                                                                                                                                                                                    |
+| `ProgressSkeleton`             | `label?`, `avatar?`, `lines?`                       | Placeholder de carga con la silueta del contenido que reemplaza                                                                                                                                                                                                     |
+| `TopNavBar`                    | Ver `TopNavBar.types.ts`                            | Shell de navegación global (brand + búsqueda + acciones + usuario). Presentacional — sin datos, sin `uiStore`; único acople: el `Link` de Router (brand/engranaje). Fixed/z-index intrínsecos vía `MuiAppBar` en el tema. Cableado real en `app/layout/Header.tsx`. |
+| `StatusFeed`                   | Ver `StatusFeed.types.ts`                           | Bitácora de eventos de alta densidad: barra fina como eje temporal, título y metadato en monoespaciada. `current` marca la entrada vigente; el resto se atenúa. Renderiza `<ol>` porque el orden es información                                                     |
+| `Logo`                         | `brand`, `tagline`                                  | Lockup de marca (isotipo + wordmark). Las reglas del manual viajan con el componente: área de respeto como padding propio y mínimo de 140px como `minWidth`                                                                                                         |
+| `LogoMark`                     | `size?: number`                                     | Isotipo suelto, inline y con `currentColor` para que herede el color del contenedor                                                                                                                                                                                 |
 
-**Store global** (`shared/store/uiStore.ts`):
+**Stores globales** (`shared/store/`):
 
 ```ts
 const { themeMode, toggleTheme, sidebarOpen, toggleSidebar, setSidebarOpen } = useUiStore()
+const { token, user, isAuthenticated, login, logout } = useAuthStore()
 ```
 
-- `themeMode`: persiste en `localStorage` (clave `'ui-store'`)
-- `sidebarOpen`: no persiste — se resetea al recargar
+- `uiStore` — `themeMode` persiste en `localStorage` (clave `'ui-store'`); `sidebarOpen` no persiste.
+- `authStore` — persiste **sólo** token y email (clave `'auth-store'`). `user` (id + `companyId`) se **deriva del JWT** al rehidratar, así no puede quedar desincronizado, y un token vencido o corrupto se descarta antes de arrancar. Expone `getAuthToken()` y `clearSession()` para consumidores fuera de React, como el interceptor HTTP.
+- `notificationStore` — cola de notificaciones con `notify(mensaje, severidad)`, también invocable fuera de React. La renderiza `NotificationHost`, montado una vez en los providers.
 
 **Hook paginado** (`shared/hooks/usePaginatedQuery.ts`):
 
@@ -249,6 +265,33 @@ features/[nombre]/
 ├── types.ts        # Interfaces y tipos locales
 └── index.ts        # Barrel: solo exporta lo que otros módulos necesitan
 ```
+
+**Features existentes:**
+
+| Feature         | Contenido                                                                                                                                                                                                                                                  |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `design-system` | Catálogo de tokens y componentes del DS (`/design-system`). No tiene datos ni hooks                                                                                                                                                                        |
+| `home`          | Landing de la app (`/`)                                                                                                                                                                                                                                    |
+| `inventory`     | Catálogo de productos y stock por depósito (`/inventory`). Hoy el alta y la edición de producto (`CreateProductModal`, `EditProductModal`) sobre la API real; la vista real del catálogo la construye TESIS-62, que reemplaza el cuerpo de `InventoryPage` |
+
+**`inventory` — piezas y por qué:**
+
+| Archivo                          | Rol                                                                                                                                                                                                                                                |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `components/ProductModalShell/`  | Cáscara compartida por los dos modales de producto: raíz, formulario, header, body, footer y el campo con rótulo. Se extrajo al aparecer el **segundo** consumidor, no antes — `feature-structure.md` §6                                           |
+| `components/EditProductModal/`   | Modal de edición: datos básicos, medidas y asignación de stock. **Presentacional** — recibe `product` y `warehouses` ya resueltos y devuelve en `onSubmit` el cuerpo de `PUT /api/v1/products/:id`. Quien lo monta decide de dónde salen los datos |
+| `components/CreateProductModal/` | Modal de alta, mismo contrato: devuelve el cuerpo de `POST /api/v1/products`. Valida depósitos repetidos en el schema y resalta el campo `sku` cuando la API rechaza el alta por SKU duplicado                                                     |
+| `api.ts`                         | Frontera con Rails y único lugar que conoce el `snake_case`. También documenta que el index envuelve en `{ data, meta }` y usa `ProductListSerializer` (sin `stocks`), mientras `show`/`update` devuelven el objeto pelado                         |
+| `utils/dimensions.ts`            | `products.dimensions` es un único `string` en la API y el diseño lo edita en tres ejes. Define el formato canónico (`"45x30x30"`, cm) y es el único lugar que lo conoce                                                                            |
+| `utils/payload.ts`               | Traduce el formulario al cuerpo de la API. Funciones puras, aparte del componente, porque concentran las reglas no obvias (ver abajo) y así se pueden verificar solas                                                                              |
+
+> El diálogo en sí se tematizó en `app/theme/components/dialog.ts` (`MuiDialog` en el nivel 3 de la escala de elevación + `MuiBackdrop` con scrim y blur), no dentro del modal: es un componente base de MUI y sus estilos van al tema — ver `component-structure.md` §3.1.
+
+> **Tres reglas del submit que no se ven en el diseño**, todas en `utils/payload.ts`:
+>
+> 1. **Quitar un depósito viaja como `quantity: 0`, no como una omisión.** `Products::UpdateProduct` en el backend hace upsert por `warehouse_id` y **nunca destruye**: si el depósito no viene en el array, la fila queda viva con su cantidad anterior. Omitirlo haría que el usuario vea que borró y el stock siga ahí.
+> 2. **`description` se reenvía tal cual.** El modal no la edita; mandarla explícita evita depender de que el backend la deje intacta.
+> 3. **Una `dimensions` fuera de formato se conserva.** Un valor viejo (`"grande"`) se muestra como 0/0/0 porque no se puede representar en tres campos; guardar `null` ahí borraría un dato que el usuario nunca vio.
 
 **Query keys — factory por feature (`queryKeys.ts`):**
 

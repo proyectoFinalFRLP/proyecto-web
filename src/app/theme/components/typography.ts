@@ -11,6 +11,7 @@ export function muiTypography(): Components<Theme>['MuiTypography'] {
         bodyMd: 'p',
         labelMd: 'span',
         labelSm: 'span',
+        labelCaps: 'span',
         dataMono: 'span',
       },
     },

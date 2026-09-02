@@ -4,3 +4,8 @@ package-lock.json
 *.min.js
 *.min.css
 .claude
+
+# Fuentes del diseno exportadas del lienzo de Claude Design. No se formatean:
+# son artefactos externos y reformatearlos las hace divergir del original, con
+# riesgo de romper el escapado de data-props y los {{holes}} de la plantilla.
+docs/design/*.dc.html

@@ -1,29 +1,124 @@
+import AccessTimeOutlinedIcon from '@mui/icons-material/AccessTimeOutlined'
 import AddIcon from '@mui/icons-material/Add'
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined'
 import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
 import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined'
+import FilterListIcon from '@mui/icons-material/FilterList'
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
+import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined'
+import ParkOutlinedIcon from '@mui/icons-material/ParkOutlined'
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline'
+import ReportProblemOutlinedIcon from '@mui/icons-material/ReportProblemOutlined'
+import RouteOutlinedIcon from '@mui/icons-material/RouteOutlined'
+import SpeedOutlinedIcon from '@mui/icons-material/SpeedOutlined'
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined'
 import WarningAmberOutlinedIcon from '@mui/icons-material/WarningAmberOutlined'
-import { Box, Button, Divider, IconButton, Stack, TextField, Typography } from '@mui/material'
+import {
+  Box,
+  Button,
+  Card,
+  Divider,
+  IconButton,
+  Stack,
+  TextField,
+  Typography,
+  useTheme,
+} from '@mui/material'
 import { useState } from 'react'
 import type { ReactElement, ReactNode } from 'react'
-import { PageWrapper, StatusBadge, StatusSelect, type StatusVariant } from 'shared/components'
+import {
+  CompactStatCard,
+  Logo,
+  PageWrapper,
+  ProgressIndicator,
+  ProgressSkeleton,
+  StatCard,
+  StatusBadge,
+  StatusFeed,
+  StatusSelect,
+  StepsProgress,
+  TopNavBar,
+  type StatusVariant,
+  type TopNavThemeMode,
+} from 'shared/components'
 
+import { FulfillmentPanel } from '../components/FulfillmentPanel'
+import { OperationalStatusCard } from '../components/OperationalStatusCard'
 import {
   badgeSamples,
   badgeSizes,
   buttonHierarchies,
   buttonIntents,
+  compactGroups,
+  compactStatSamples,
   dsCopy,
   elevationLevels,
+  glassActions,
   inputSamples,
+  layerLevels,
+  loadSamples,
+  logoSpec,
+  progressSamples,
+  progressVariants,
+  statCardSamples,
+  statusFeedSample,
   statusOptions,
+  stepsSample,
+  topNavDemoNotifications,
+  topNavDemoUser,
   typeSpecs,
 } from '../content'
+import type { CompactSampleKey, StatSampleKey } from '../content'
+
+// Grillas del catálogo: colapsan a una columna en mobile para que las tarjetas
+// no se compriman.
+//
+// `minmax(0, 1fr)` y no `1fr`: `1fr` equivale a `minmax(auto, 1fr)`, y ese
+// `auto` impide que la columna baje del min-content de su contenido. Con un
+// valor largo adentro la grilla se ensancha más que el contenedor y la página
+// desborda a lo ancho, cortando el final de cada fila.
+const STAT_COLUMNS = {
+  xs: 'minmax(0, 1fr)',
+  sm: 'repeat(2, minmax(0, 1fr))',
+  lg: 'repeat(4, minmax(0, 1fr))',
+}
+const COMPACT_COLUMNS = { xs: 'minmax(0, 1fr)', sm: 'repeat(3, minmax(0, 1fr))' }
+const PAIR_COLUMNS = { xs: 'minmax(0, 1fr)', md: 'repeat(2, minmax(0, 1fr))' }
+const PANEL_COLUMNS = { xs: 'minmax(0, 1fr)', md: 'minmax(0, 2fr) minmax(0, 1fr)' }
+
+// Epígrafe de cada variante del catálogo (uppercase atenuado, como el spec).
+const VARIANT_CAPTION = {
+  display: 'block',
+  mb: 1,
+  textTransform: 'uppercase',
+  letterSpacing: '0.05em',
+} as const
+
+const STAT_ICONS: Record<StatSampleKey, ReactElement | undefined> = {
+  shipments: <LocalShippingOutlinedIcon />,
+  speed: <SpeedOutlinedIcon />,
+  damaged: <ReportProblemOutlinedIcon />,
+  // La tarjeta comparativa no lleva ícono: el foco es el contraste de cifras.
+  fleet: undefined,
+}
+
+const COMPACT_ICONS: Record<CompactSampleKey, ReactElement> = {
+  onTime: <AccessTimeOutlinedIcon />,
+  distance: <RouteOutlinedIcon />,
+  carbon: <ParkOutlinedIcon />,
+}
+
+// Ancho del panel de especificación, igual que en el diseño.
+const SPEC_PANEL_WIDTH = 592
+
+// Ancho de la barra de la columna Load (px), como en el spec: es una celda de
+// telemetría de ancho fijo, no una barra que acompañe el ancho del contenedor.
+const LOAD_BAR_WIDTH = 80
+const LOAD_ID_WIDTH = 104
+const RULE_COLUMNS = { xs: 'minmax(0, 1fr)', sm: 'repeat(3, minmax(0, 1fr))' }
+const GROUP_LABEL = { display: 'block', mb: 2 } as const
 
 const BADGE_ICONS: Record<StatusVariant, ReactElement> = {
   success: <CheckCircleOutlinedIcon />,
@@ -64,6 +159,16 @@ function StatusSelectDemo() {
 }
 
 export function DesignSystemPage() {
+  // Demo autocontenido: estado local, no toca el uiStore real. Un catálogo
+  // debe ser inerte — antes clickear la hamburguesa del ejemplo colapsaba el
+  // Sidebar real que estaba detrás (review PR #19). Por eso tampoco se pasa
+  // `onToggleSidebar`: sin sidebar en el preview, el botón no se renderiza.
+  const [demoThemeMode, setDemoThemeMode] = useState<TopNavThemeMode>('dark')
+
+  // Los hex de las capas se leen del tema, que es su único origen: el catálogo
+  // no puede importar de `app/` y duplicarlos acá los dejaría desincronizados.
+  const { layer } = useTheme().palette.background
+
   return (
     <PageWrapper>
       <Stack spacing={5}>
@@ -73,6 +178,107 @@ export function DesignSystemPage() {
             {dsCopy.pageSubtitle}
           </Typography>
         </Box>
+
+        <Divider />
+
+        <Section title={dsCopy.sections.topNav.title} subtitle={dsCopy.sections.topNav.subtitle}>
+          <Box
+            sx={(theme) => ({
+              position: 'relative',
+              // Altura explícita: el AppBar interno es `position: fixed`
+              // (intrínseco al componente vía el tema) y queda fuera del
+              // flujo, así que no empuja la altura de este contenedor.
+              height: theme.mixins.toolbar.minHeight,
+              // Crea un containing block propio para que ese `fixed` quede
+              // acotado a este preview en vez de cubrir la página.
+              transform: 'translateZ(0)',
+              overflow: 'hidden',
+              borderRadius: 2,
+              border: `1px solid ${theme.palette.divider}`,
+            })}
+          >
+            <TopNavBar
+              brandTo="/"
+              themeMode={demoThemeMode}
+              onToggleTheme={() =>
+                setDemoThemeMode((mode) => (mode === 'light' ? 'dark' : 'light'))
+              }
+              notificationsCount={topNavDemoNotifications}
+              user={topNavDemoUser}
+            />
+          </Box>
+        </Section>
+
+        <Divider />
+
+        <Section title={dsCopy.sections.compact.title} subtitle={dsCopy.sections.compact.subtitle}>
+          <Stack spacing={4}>
+            <Box>
+              <Typography variant="labelMd" color="text.secondary" sx={GROUP_LABEL}>
+                {compactGroups.feed}
+              </Typography>
+              <Card sx={{ p: 3, maxWidth: SPEC_PANEL_WIDTH }}>
+                <StatusFeed label={compactGroups.feed} entries={statusFeedSample} />
+              </Card>
+            </Box>
+
+            <Box>
+              <Typography variant="labelMd" color="text.secondary" sx={GROUP_LABEL}>
+                {compactGroups.actions}
+              </Typography>
+              <Card sx={{ p: 3, maxWidth: SPEC_PANEL_WIDTH }}>
+                <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap>
+                  {/* La acción principal queda sólida; las secundarias, glass. */}
+                  <Button variant="contained" color="primary" startIcon={<AddIcon />}>
+                    {glassActions.primary}
+                  </Button>
+                  <Button variant="glass" color="primary" startIcon={<FileDownloadOutlinedIcon />}>
+                    {glassActions.secondary}
+                  </Button>
+                  <Button variant="glass" color="neutral" startIcon={<FilterListIcon />}>
+                    {glassActions.tertiary}
+                  </Button>
+                </Stack>
+              </Card>
+            </Box>
+
+            <Box>
+              <Typography variant="labelMd" color="text.secondary" sx={GROUP_LABEL}>
+                {compactGroups.logo}
+              </Typography>
+              {/* El manual apoya el lockup sobre la superficie más profunda,
+                  dentro de un contenedor elevado. Hace falta la card exterior:
+                  sin ella el recuadro queda del mismo color que la página y la
+                  relación de profundidad no se lee. */}
+              <Card sx={{ p: 3 }}>
+                <Box
+                  sx={{
+                    display: 'inline-flex',
+                    borderRadius: 3,
+                    bgcolor: 'background.default',
+                    border: (theme) => `1px solid ${theme.palette.divider}`,
+                  }}
+                >
+                  <Logo brand={logoSpec.brand} tagline={logoSpec.tagline} />
+                </Box>
+                <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: RULE_COLUMNS, mt: 3 }}>
+                  {logoSpec.rules.map((rule) => (
+                    <Box key={rule.label}>
+                      <Typography
+                        variant="labelSm"
+                        color="text.secondary"
+                        sx={{ display: 'block' }}
+                      >
+                        {rule.label}
+                      </Typography>
+                      <Typography variant="bodyMd">{rule.value}</Typography>
+                    </Box>
+                  ))}
+                </Box>
+              </Card>
+            </Box>
+          </Stack>
+        </Section>
 
         <Divider />
 
@@ -119,6 +325,36 @@ export function DesignSystemPage() {
               >
                 <Typography variant="labelMd" color="text.secondary">
                   {label}
+                </Typography>
+              </Box>
+            ))}
+          </Stack>
+        </Section>
+
+        <Divider />
+
+        <Section title={dsCopy.sections.layers.title} subtitle={dsCopy.sections.layers.subtitle}>
+          <Stack spacing={2} sx={{ maxWidth: SPEC_PANEL_WIDTH }}>
+            {layerLevels.map(({ key, elevation, label }) => (
+              <Box
+                key={key}
+                sx={(theme) => ({
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 2,
+                  p: 2,
+                  borderRadius: 2,
+                  bgcolor: theme.palette.background.layer[key],
+                  border: theme.elevation[elevation].border,
+                  boxShadow: theme.elevation[elevation].boxShadow,
+                })}
+              >
+                <Typography variant="bodyLg" color="text.secondary">
+                  {label}
+                </Typography>
+                <Typography variant="dataMono" color="primary.main">
+                  {layer[key].toUpperCase()}
                 </Typography>
               </Box>
             ))}
@@ -294,6 +530,152 @@ export function DesignSystemPage() {
               <StatusSelectDemo />
             </Box>
           </Stack>
+        </Section>
+
+        <Divider />
+
+        <Section title={dsCopy.sections.stats.title} subtitle={dsCopy.sections.stats.subtitle}>
+          <Stack spacing={2.5}>
+            <Box sx={{ display: 'grid', gap: 2.5, gridTemplateColumns: STAT_COLUMNS }}>
+              {statCardSamples.map((stat) => (
+                <StatCard
+                  key={stat.key}
+                  label={stat.label}
+                  value={stat.value}
+                  tone={stat.tone}
+                  tag={stat.tag}
+                  trend={stat.trend}
+                  comparison={stat.comparison}
+                  icon={STAT_ICONS[stat.key]}
+                />
+              ))}
+            </Box>
+            <Box sx={{ display: 'grid', gap: 2.5, gridTemplateColumns: COMPACT_COLUMNS }}>
+              {compactStatSamples.map((stat) => (
+                <CompactStatCard
+                  key={stat.key}
+                  label={stat.label}
+                  value={stat.value}
+                  tone={stat.tone}
+                  icon={COMPACT_ICONS[stat.key]}
+                />
+              ))}
+            </Box>
+          </Stack>
+        </Section>
+
+        <Divider />
+
+        <Section
+          title={dsCopy.sections.progress.title}
+          subtitle={dsCopy.sections.progress.subtitle}
+        >
+          <Stack spacing={4}>
+            <Box>
+              <Typography variant="labelMd" color="text.secondary" sx={{ mb: 2, display: 'block' }}>
+                {dsCopy.progressGroups.load}
+              </Typography>
+              <Stack spacing={1.5}>
+                {loadSamples.map((row) => (
+                  <Box key={row.label} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Typography
+                      variant="dataMono"
+                      color="primary.main"
+                      sx={{ minWidth: LOAD_ID_WIDTH }}
+                    >
+                      {row.label}
+                    </Typography>
+                    <Box sx={{ width: LOAD_BAR_WIDTH }}>
+                      <ProgressIndicator
+                        size="thin"
+                        track="neutral"
+                        tone={row.tone}
+                        value={row.value}
+                        ariaLabel={`${dsCopy.progressGroups.load} — ${row.label}`}
+                      />
+                    </Box>
+                  </Box>
+                ))}
+              </Stack>
+            </Box>
+            <Box>
+              <Typography variant="labelMd" color="text.secondary" sx={{ mb: 2, display: 'block' }}>
+                {dsCopy.progressGroups.semantic}
+              </Typography>
+              <Box sx={{ display: 'grid', gap: 3, gridTemplateColumns: PAIR_COLUMNS }}>
+                {progressSamples.map((bar) => (
+                  <ProgressIndicator
+                    key={bar.label}
+                    label={bar.label}
+                    value={bar.value}
+                    tone={bar.tone}
+                    showValue
+                  />
+                ))}
+              </Box>
+            </Box>
+            <Box>
+              <Typography variant="labelMd" color="text.secondary" sx={{ mb: 2, display: 'block' }}>
+                {dsCopy.progressGroups.variants}
+              </Typography>
+              <Box sx={{ display: 'grid', gap: 3, gridTemplateColumns: PAIR_COLUMNS }}>
+                {/* Los rótulos de las variantes son epígrafes del catálogo, no
+                    labels de la métrica: van atenuados como en el spec, para no
+                    competir con el nombre del grupo. */}
+                <Box>
+                  <Typography variant="labelSm" color="text.secondary" sx={VARIANT_CAPTION}>
+                    {progressVariants.thin}
+                  </Typography>
+                  <ProgressIndicator
+                    value={60}
+                    size="thin"
+                    tone="info"
+                    ariaLabel={progressVariants.thin}
+                  />
+                </Box>
+                <Box>
+                  <Typography variant="labelSm" color="text.secondary" sx={VARIANT_CAPTION}>
+                    {progressVariants.indeterminate}
+                  </Typography>
+                  <ProgressIndicator
+                    indeterminate
+                    tone="info"
+                    ariaLabel={progressVariants.indeterminate}
+                  />
+                </Box>
+                <Box>
+                  <Typography variant="labelSm" color="text.secondary" sx={VARIANT_CAPTION}>
+                    {progressVariants.steps}
+                  </Typography>
+                  <StepsProgress
+                    tone="info"
+                    ariaLabel={progressVariants.steps}
+                    total={stepsSample.total}
+                    completed={stepsSample.completed}
+                    caption={stepsSample.caption}
+                  />
+                </Box>
+                <Box>
+                  <Typography variant="labelSm" color="text.secondary" sx={VARIANT_CAPTION}>
+                    {progressVariants.skeleton}
+                  </Typography>
+                  <ProgressSkeleton />
+                </Box>
+              </Box>
+            </Box>
+          </Stack>
+        </Section>
+
+        <Divider />
+
+        <Section
+          title={dsCopy.sections.dataPanels.title}
+          subtitle={dsCopy.sections.dataPanels.subtitle}
+        >
+          <Box sx={{ display: 'grid', gap: 2.5, gridTemplateColumns: PANEL_COLUMNS }}>
+            <FulfillmentPanel />
+            <OperationalStatusCard />
+          </Box>
         </Section>
       </Stack>
     </PageWrapper>
