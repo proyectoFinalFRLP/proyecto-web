@@ -23,6 +23,12 @@ export function muiDialog(): Components<Theme>['MuiDialog'] {
 
 // Scrim del overlay. El blur es sutil a propósito: separa el modal del fondo
 // sin esconder del todo el contexto de la pantalla que quedó atrás.
+//
+// El scrim es para lo que interrumpe —diálogo, drawer—, no para lo que sólo se
+// despliega. `Menu`, `Select` y `Popover` montan un backdrop con `invisible`
+// para capturar el clic de afuera, y este override lo pintaba igual: abrir el
+// kebab de una fila oscurecía y desenfocaba la app entera. Se respeta la
+// variante en vez de sacar el scrim, así el diálogo conserva el suyo.
 export function muiBackdrop(): Components<Theme>['MuiBackdrop'] {
   return {
     styleOverrides: {
@@ -32,6 +38,10 @@ export function muiBackdrop(): Components<Theme>['MuiBackdrop'] {
           theme.palette.mode === 'dark' ? 0.6 : 0.4,
         ),
         backdropFilter: 'blur(2px)',
+        '&.MuiBackdrop-invisible': {
+          backgroundColor: 'transparent',
+          backdropFilter: 'none',
+        },
       }),
     },
   }

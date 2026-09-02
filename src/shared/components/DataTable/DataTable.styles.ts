@@ -18,6 +18,9 @@ const TRANSIENT = new Set<string>(['tone'])
 export const TableCard = styled(Box)(({ theme }) => ({
   borderRadius: 12,
   overflow: 'hidden',
+  // La tarjeta nunca es más ancha que su hueco: el desborde lo absorbe el
+  // Scroller de adentro. Sin esto la tabla empuja el layout hacia afuera.
+  maxWidth: '100%',
   backgroundColor: theme.palette.background.paper,
   border: theme.elevation[1].border,
   boxShadow: theme.elevation[1].boxShadow,
@@ -60,8 +63,11 @@ export const FilterTab = styled(Tab)(({ theme }) => ({
 }))
 
 // El scroll horizontal es la salida en pantallas angostas: una tabla de 7
-// columnas no colapsa a una sola sin dejar de ser una tabla.
+// columnas no colapsa a una sola sin dejar de ser una tabla. El scroll vive
+// acá y no en la página — `maxWidth` es lo que lo mantiene adentro.
 export const Scroller = styled(TableContainer)({
+  width: '100%',
+  maxWidth: '100%',
   overflowX: 'auto',
 })
 
