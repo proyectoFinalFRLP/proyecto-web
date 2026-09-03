@@ -1,10 +1,14 @@
 import HomeIcon from '@mui/icons-material/Home'
+import InsightsOutlinedIcon from '@mui/icons-material/InsightsOutlined'
 import Inventory2Icon from '@mui/icons-material/Inventory2'
 import { lazy } from 'react'
 import type { ReactNode } from 'react'
 
 // Páginas cargadas de forma diferida (code-splitting por ruta).
 const HomePage = lazy(() => import('features/home').then((m) => ({ default: m.HomePage })))
+const DashboardPage = lazy(() =>
+  import('features/dashboard').then((m) => ({ default: m.DashboardPage })),
+)
 const DesignSystemPage = lazy(() =>
   import('features/design-system').then((m) => ({ default: m.DesignSystemPage })),
 )
@@ -46,6 +50,11 @@ export const appRoutes: AppRoute[] = [
     path: '/',
     element: <HomePage />,
     nav: { label: 'Inicio', icon: <HomeIcon /> },
+  },
+  {
+    path: '/dashboard',
+    element: <DashboardPage />,
+    nav: { label: 'Dashboard', icon: <InsightsOutlinedIcon /> },
   },
   {
     path: '/inventory',

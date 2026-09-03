@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div style="display:flex;flex-direction:column;gap:8px;font-family:'Plus Jakarta Sans',sans-serif;opacity:{{ op }}">
+  <sc-if value="{{ label }}">
+    <span style="font-size:12px;font-weight:700;line-height:1.4;letter-spacing:0.05em;text-transform:uppercase;color:var(--text2)">{{ label }}</span>
+  </sc-if>
+  <div style="height:44px;display:flex;align-items:center;gap:8px;padding:0 12px;border-radius:8px;background:var(--input);border:1px solid {{ bc }};outline:{{ ring }};outline-offset:2px;box-sizing:border-box">
+    <sc-if value="{{ icon }}">
+      <span class="ic" style="font-size:18px;flex:none;color:var(--text2)">{{ icon }}</span>
+    </sc-if>
+    <span style="font-size:14px;line-height:1.5;color:{{ vc }};font-family:{{ vf }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ shown }}</span>
+    <sc-if value="{{ isSelect }}">
+      <span class="ic" style="font-size:18px;flex:none;margin-left:auto;color:var(--text2)">expand_more</span>
+    </sc-if>
+    <sc-if value="{{ suffix }}">
+      <span style="font-size:12px;font-weight:600;line-height:1.4;margin-left:auto;color:var(--text2);font-family:'Space Grotesk',sans-serif">{{ suffix }}</span>
+    </sc-if>
+  </div>
+  <sc-if value="{{ msg }}">
+    <div style="display:flex;align-items:center;gap:6px">
+      <span class="ic" style="font-size:14px;flex:none;color:{{ msgColor }}">{{ msgIcon }}</span>
+      <span style="font-size:11px;font-weight:500;line-height:1.4;color:{{ msgColor }}">{{ msg }}</span>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:320,&quot;height&quot;:110},&quot;label&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Etiqueta&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;type&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;text&quot;,&quot;select&quot;,&quot;number&quot;],&quot;default&quot;:&quot;text&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;value&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;placeholder&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;state&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;default&quot;,&quot;focus&quot;,&quot;disabled&quot;,&quot;error&quot;],&quot;default&quot;:&quot;default&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;help&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;icon&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;suffix&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;mono&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const p = this.props;
+    const state = p.state || 'default';
+    const hasValue = p.value != null && p.value !== '';
+    const err = state === 'error';
+    return {
+      label: p.label || '',
+      icon: p.icon || '',
+      isSelect: p.type === 'select',
+      suffix: p.suffix || '',
+      shown: hasValue ? p.value : (p.placeholder ?? ''),
+      vc: hasValue ? 'var(--text)' : 'var(--text2)',
+      vf: p.type === 'number' || p.mono ? "'Space Grotesk',sans-serif" : "'Plus Jakarta Sans',sans-serif",
+      bc: err ? 'var(--err)' : (state === 'focus' ? 'var(--accent)' : 'var(--border)'),
+      ring: state === 'focus' ? '2px solid var(--accent)' : 'none',
+      op: state === 'disabled' ? '.45' : '1',
+      msg: p.help || '',
+      msgIcon: err ? 'error' : 'info',
+      msgColor: err ? 'var(--err)' : 'var(--text2)'
+    };
+  }
+}
+</script>
+</body>
+</html>

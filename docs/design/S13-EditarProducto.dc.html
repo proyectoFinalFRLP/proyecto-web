@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="./theme.css" />
+</helmet>
+<div class="{{ themeClass }}" style="position:relative;width:1280px;height:1024px;box-sizing:border-box;overflow:hidden">
+  <dc-import name="S12-Producto" theme="{{ theme }}" tenant="{{ tenant }}" initials="{{ initials }}" hint-size="1280px,1024px" style="width:1280px;height:1024px"></dc-import>
+  <dc-import name="ModalFrame" title="Editar producto" subtitle="SKU-8842-PL · Arreglo de sensores serie G" primary="Guardar cambios" primaryIcon="check" secondary="Cancelar" width="672px" hint-size="1280px,1024px" style="position:absolute;top:0;left:0;width:1280px;height:1024px">
+    <div style="display:flex;flex-direction:column;gap:24px;font-family:'Plus Jakarta Sans',sans-serif">
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="ic" style="font-size:20px;color:var(--primary)">badge</span>
+          <span style="font-size:18px;font-weight:600;line-height:1.35;color:var(--text)">Identificación</span>
+        </div>
+        <dc-import name="Field" label="Nombre del producto" value="Arreglo de sensores serie G" hint-size="100%,80px" style="width:100%"></dc-import>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <dc-import name="Field" label="Código SKU" mono="{{ true }}" value="SKU-8842-PL" state="disabled" help="El SKU no se puede modificar" hint-size="100%,100px" style="width:100%"></dc-import>
+          <dc-import name="Field" label="Categoría" type="select" value="Electronics" hint-size="100%,80px" style="width:100%"></dc-import>
+        </div>
+      </div>
+      <div style="height:1px;background:var(--border)"></div>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="ic" style="font-size:20px;color:var(--primary)">straighten</span>
+          <span style="font-size:18px;font-weight:600;line-height:1.35;color:var(--text)">Especificaciones técnicas</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;align-items:end">
+          <dc-import name="Field" label="Peso" type="number" value="1,45" suffix="kg" hint-size="100%,80px" style="width:100%"></dc-import>
+          <dc-import name="Field" label="Largo" type="number" value="12" suffix="cm" hint-size="100%,80px" style="width:100%"></dc-import>
+          <dc-import name="Field" label="Ancho" type="number" value="8" suffix="cm" hint-size="100%,80px" style="width:100%"></dc-import>
+          <dc-import name="Field" label="Alto" type="number" value="4" suffix="cm" hint-size="100%,80px" style="width:100%"></dc-import>
+        </div>
+        <dc-import name="Field" label="Empaque" type="select" value="Blindaje ESD" hint-size="100%,80px" style="width:100%"></dc-import>
+      </div>
+      <div style="height:1px;background:var(--border)"></div>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="ic" style="font-size:20px;color:var(--primary)">warehouse</span>
+          <span style="font-size:18px;font-weight:600;line-height:1.35;color:var(--text)">Stock por depósito</span>
+          <span style="margin-left:auto;font-size:12px;font-weight:700;line-height:1.4;letter-spacing:0.05em;text-transform:uppercase;color:var(--primary)">Agregar depósito</span>
+        </div>
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) 120px;gap:16px;padding:16px;border-radius:8px;background:var(--input);border:1px solid var(--border);box-sizing:border-box">
+          <dc-import name="Field" label="Depósito principal" type="select" value="CD Ezeiza (BUE-4)" hint-size="100%,80px" style="width:100%"></dc-import>
+          <dc-import name="Field" label="Cantidad" type="number" value="1.250" hint-size="100%,80px" style="width:100%"></dc-import>
+        </div>
+      </div>
+    </div>
+  </dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:1024},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Oscuro&quot;,&quot;Claro&quot;],&quot;default&quot;:&quot;Oscuro&quot;,&quot;tsType&quot;:&quot;'Oscuro'|'Claro'&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      themeClass: this.props.theme === 'Claro' ? 'light' : 'dark',
+      theme: this.props.theme ?? 'Oscuro',
+      tenant: this.props.tenant ?? 'Precision Logistics',
+      initials: this.props.initials ?? 'MR'
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div style="display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--b1);border-radius:12px;box-shadow:var(--sh1);overflow:hidden;box-sizing:border-box;font-family:'Plus Jakarta Sans',sans-serif">
+  <sc-if value="{{ hasTabs }}">
+    <div style="height:48px;flex:none;display:flex;align-items:center;gap:24px;padding:0 16px;border-bottom:1px solid var(--b1);box-sizing:border-box">
+      <sc-for list="{{ tabs }}" as="tab" hint-placeholder-count="4">
+        <div style="height:47px;display:flex;align-items:center;border-bottom:2px solid {{ tab.line }};box-sizing:border-box">
+          <span style="font-size:12px;font-weight:700;line-height:1.4;letter-spacing:0.05em;text-transform:uppercase;color:{{ tab.color }}">{{ tab.label }}</span>
+        </div>
+      </sc-for>
+      <sc-if value="{{ title }}">
+        <span style="font-size:18px;font-weight:600;line-height:1.35;color:var(--text)">{{ title }}</span>
+      </sc-if>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+        <sc-if value="{{ actionLabel }}">
+          <span style="font-size:12px;font-weight:700;line-height:1.4;letter-spacing:0.05em;text-transform:uppercase;color:var(--primary);cursor:pointer">{{ actionLabel }}</span>
+        </sc-if>
+        <sc-if value="{{ hasTools }}">
+          <span class="ic" style="font-size:18px;color:var(--text2)">filter_list</span>
+        </sc-if>
+        <sc-if value="{{ hasTools }}">
+          <span class="ic" style="font-size:18px;color:var(--text2)">view_column</span>
+        </sc-if>
+      </div>
+    </div>
+  </sc-if>
+  <div style="height:40px;flex:none;display:grid;grid-template-columns:{{ grid }};align-items:center;gap:12px;padding:0 16px;background:var(--input);border-bottom:1px solid var(--b1);box-sizing:border-box">
+    <sc-if value="{{ select }}">
+      <div style="width:16px;height:16px;border-radius:4px;border:1px solid var(--border);background:var(--surface)"></div>
+    </sc-if>
+    <sc-for list="{{ cols }}" as="col" hint-placeholder-count="5">
+      <span style="font-size:12px;font-weight:700;line-height:1.4;letter-spacing:0.05em;text-transform:uppercase;color:var(--text2);text-align:{{ col.align }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ col.label }}</span>
+    </sc-for>
+    <sc-if value="{{ actions }}">
+      <span style="font-size:12px;font-weight:700;line-height:1.4;letter-spacing:0.05em;text-transform:uppercase;color:var(--text2);text-align:right"></span>
+    </sc-if>
+  </div>
+  <sc-for list="{{ rows }}" as="row" hint-placeholder-count="6">
+    <div style="min-height:{{ rowH }};display:grid;grid-template-columns:{{ grid }};align-items:center;gap:12px;padding:0 16px;background:{{ row.bg }};border-bottom:1px solid var(--b1);border-left:3px solid {{ row.accent }};box-sizing:border-box" style-hover="background:var(--primary-soft)">
+      <sc-if value="{{ select }}">
+        <div style="width:16px;height:16px;border-radius:4px;border:1px solid var(--border);background:var(--input)"></div>
+      </sc-if>
+      <sc-for list="{{ row.cells }}" as="cell">
+        <div style="display:flex;flex-direction:column;gap:2px;align-items:{{ cell.items }};min-width:0">
+          <sc-if value="{{ cell.badge }}">
+            <dc-import name="StatusBadge" label="{{ cell.t }}" intent="{{ cell.intent }}" icon="{{ cell.icon }}" hint-size="110px,24px"></dc-import>
+          </sc-if>
+          <sc-if value="{{ cell.plain }}">
+            <span style="font-size:14px;line-height:1.5;font-weight:{{ cell.weight }};color:{{ cell.color }};font-family:{{ cell.font }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%">{{ cell.t }}</span>
+          </sc-if>
+          <sc-if value="{{ cell.sub }}">
+            <span style="font-size:11px;font-weight:500;line-height:1.4;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%">{{ cell.sub }}</span>
+          </sc-if>
+        </div>
+      </sc-for>
+      <sc-if value="{{ actions }}">
+        <div style="display:flex;justify-content:flex-end">
+          <span class="ic" style="font-size:18px;color:var(--text2);cursor:pointer">more_vert</span>
+        </div>
+      </sc-if>
+    </div>
+  </sc-for>
+  <sc-if value="{{ hasFoot }}">
+    <div style="height:56px;flex:none;margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 16px;border-top:1px solid var(--b1);box-sizing:border-box">
+      <span style="font-size:12px;font-weight:600;line-height:1.4;color:var(--text2)">{{ footer }}</span>
+      <div style="display:flex;align-items:center;gap:4px;opacity:{{ pagerOpacity }}">
+        <div style="width:28px;height:28px;border-radius:4px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center">
+          <span class="ic" style="font-size:14px;color:var(--text2)">chevron_left</span>
+        </div>
+        <sc-for list="{{ pages }}" as="pg" hint-placeholder-count="3">
+          <div style="min-width:28px;height:28px;padding:0 6px;border-radius:4px;background:{{ pg.bg }};border:1px solid {{ pg.bc }};display:flex;align-items:center;justify-content:center">
+            <span style="font-size:12px;font-weight:600;line-height:1.4;color:{{ pg.color }};font-family:'Space Grotesk',sans-serif">{{ pg.label }}</span>
+          </div>
+        </sc-for>
+        <div style="width:28px;height:28px;border-radius:4px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center">
+          <span class="ic" style="font-size:14px;color:var(--text2)">chevron_right</span>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:900,&quot;height&quot;:420},&quot;title&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;actionLabel&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;footer&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;select&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;actions&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;tools&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;rowH&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:52,&quot;min&quot;:48,&quot;max&quot;:56,&quot;tsType&quot;:&quot;number&quot;},&quot;cols&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;Array&lt;{label:string,w?:string,align?:string,mono?:boolean}&gt;&quot;},&quot;rows&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;Array&lt;{cells:Array&lt;object&gt;,hl?:boolean}&gt;&quot;},&quot;tabs&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;Array&lt;{label:string,count?:string,active?:boolean}&gt;&quot;},&quot;pages&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;string[]&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const p = this.props;
+    const cols = p.cols || [];
+    const select = !!p.select;
+    const actions = !!p.actions;
+    const grid = [select ? '16px' : null].concat(cols.map(c => c.w || '1fr')).concat(actions ? ['40px'] : []).filter(Boolean).join(' ');
+    const tabs = (p.tabs || []).map(t => ({
+      label: t.count ? t.label + ' (' + t.count + ')' : t.label,
+      color: t.active ? 'var(--primary)' : 'var(--text2)',
+      line: t.active ? 'var(--primary)' : 'transparent'
+    }));
+    const rows = (p.rows || []).map(r => ({
+      bg: r.hl ? 'var(--err-bg)' : 'transparent',
+      accent: r.hl ? 'var(--err)' : 'transparent',
+      cells: (r.cells || []).map((c, i) => {
+        const col = cols[i] || {};
+        const align = col.align || 'left';
+        return {
+          t: c.t ?? '',
+          sub: c.sub || '',
+          badge: !!c.intent,
+          plain: !c.intent,
+          intent: c.intent || 'neutral',
+          icon: c.icon || '',
+          items: align === 'right' ? 'flex-end' : 'flex-start',
+          weight: c.strong ? '600' : (col.mono ? '500' : '400'),
+          color: c.link ? 'var(--primary)' : (c.muted ? 'var(--text2)' : 'var(--text)'),
+          font: (col.mono || c.mono) ? "'Space Grotesk',sans-serif" : "'Plus Jakarta Sans',sans-serif"
+        };
+      })
+    }));
+    const pages = (p.pages || []).map(x => ({
+      label: String(x).replace('*', ''),
+      bg: String(x).includes('*') ? 'var(--primary)' : 'transparent',
+      bc: String(x).includes('*') ? 'var(--primary)' : 'var(--border)',
+      color: String(x).includes('*') ? 'var(--on-primary)' : 'var(--text2)'
+    }));
+    return {
+      cols: cols.map(c => ({ label: c.label, align: c.align || 'left' })),
+      grid, tabs, rows, pages, select, actions,
+      hasTabs: tabs.length > 0 || !!p.title,
+      hasTools: !!p.tools,
+      hasFoot: !!p.footer,
+      footer: p.footer || '',
+      title: p.title || '',
+      actionLabel: p.actionLabel || '',
+      rowH: (p.rowH || 52) + 'px',
+      pagerOpacity: (p.pages || []).length ? '1' : '0'
+    };
+  }
+}
+</script>
+</body>
+</html>
