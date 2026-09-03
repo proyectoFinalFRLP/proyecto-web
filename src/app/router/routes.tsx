@@ -11,6 +11,9 @@ const DesignSystemPage = lazy(() =>
 const InventoryPage = lazy(() =>
   import('features/inventory').then((m) => ({ default: m.InventoryPage })),
 )
+const ProductDetailPage = lazy(() =>
+  import('features/inventory').then((m) => ({ default: m.ProductDetailPage })),
+)
 const LoginPage = lazy(() => import('features/auth').then((m) => ({ default: m.LoginPage })))
 
 export interface NavMeta {
@@ -51,6 +54,11 @@ export const appRoutes: AppRoute[] = [
     path: '/inventory',
     element: <InventoryPage />,
     nav: { label: 'Inventario', icon: <Inventory2Icon /> },
+  },
+  {
+    path: '/inventory/:productId',
+    element: <ProductDetailPage />,
+    // Sin `nav`: se llega desde el catálogo, no desde el Sidebar.
   },
   {
     path: '/design-system',

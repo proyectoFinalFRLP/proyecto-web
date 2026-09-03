@@ -10,38 +10,32 @@ import {
   Typography,
 } from '@mui/material'
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { ErrorFallback, LoadingSpinner, PageWrapper } from 'shared/components'
 
 import { CreateProductModal } from '../components/CreateProductModal'
-import { EditProductModal } from '../components/EditProductModal'
 import { inventoryCopy } from '../content'
-import {
-  useCreateProduct,
-  useProduct,
-  useProductList,
-  useUpdateProduct,
-  useWarehouses,
-} from '../hooks/useInventory'
+import { useCreateProduct, useProductList, useWarehouses } from '../hooks/useInventory'
 
 const { page, createModal } = inventoryCopy
 
 /**
- * Listado del catálogo y punto de entrada a los modales de alta y edición.
+ * Listado del catálogo, alta de producto y entrada al detalle de cada SKU.
  *
  * El listado es deliberadamente plano — nombre, SKU y stock total: **TESIS-62
  * (Master Catalog) lo reemplaza** por el Data Grid con columnas, filtros y
  * paginación. Lo que sí es definitivo es el cableado: los datos salen de la API
  * real y las mutaciones impactan contra `/api/v1/products`.
+ *
+ * La edición ya no vive acá: como en el diseño (S10 → S12), tocar una fila abre
+ * el detalle del producto, que es donde está el botón "Editar producto".
  */
 export function InventoryPage() {
-  const [editingId, setEditingId] = useState<number | undefined>(undefined)
   const [creating, setCreating] = useState(false)
   const [savedName, setSavedName] = useState<string | null>(null)
 
   const products = useProductList()
   const warehouses = useWarehouses()
-  const product = useProduct(editingId)
-  const updateMutation = useUpdateProduct(editingId)
   const createMutation = useCreateProduct()
 
   if (products.isPending || warehouses.isPending) return <LoadingSpinner fullScreen />
@@ -88,7 +82,7 @@ export function InventoryPage() {
         ) : (
           <List disablePadding>
             {products.data.map((item) => (
-              <ListItemButton key={item.id} onClick={() => setEditingId(item.id)}>
+              <ListItemButton key={item.id} component={Link} to={`/inventory/${item.id}`}>
                 <ListItemText
                   primary={item.name}
                   secondary={`${item.sku} · ${page.stockSummary(item.totalStock)}`}
@@ -115,33 +109,6 @@ export function InventoryPage() {
             })
           }}
         />
-
-        {/* El detalle trae los `stocks`, que el listado no incluye: hasta que
-            resuelve no hay con qué poblar el formulario. */}
-        {product.data === undefined ? null : (
-          <EditProductModal
-            open={editingId !== undefined}
-            product={product.data}
-            warehouses={warehouses.data}
-            submitting={updateMutation.isPending}
-            onClose={() => setEditingId(undefined)}
-            onSubmit={(payload) => {
-              const name = product.data.name
-              updateMutation.mutate(payload, {
-                onSuccess: () => {
-                  setSavedName(name)
-                  setEditingId(undefined)
-                },
-              })
-            }}
-          />
-        )}
-
-        {updateMutation.isError ? (
-          <Typography variant="bodyMd" role="alert" sx={{ color: 'error.main' }}>
-            {updateMutation.error.message}
-          </Typography>
-        ) : null}
 
         <Snackbar
           open={savedName !== null}

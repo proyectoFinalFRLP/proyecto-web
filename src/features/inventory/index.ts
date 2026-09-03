@@ -3,6 +3,7 @@ export type { CreateProductModalProps } from './components/CreateProductModal'
 export { EditProductModal } from './components/EditProductModal'
 export type { EditProductModalProps } from './components/EditProductModal'
 export { InventoryPage } from './pages/InventoryPage'
+export { ProductDetailPage } from './pages/ProductDetailPage'
 export type {
   CreateProductPayload,
   Product,

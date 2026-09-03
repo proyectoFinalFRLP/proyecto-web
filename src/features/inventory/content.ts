@@ -11,6 +11,84 @@ export const inventoryCopy = {
     stockSummary: (total: number) => `${total} u. en total`,
     saved: (productName: string) => `${productName} actualizado.`,
   },
+  detail: {
+    breadcrumb: {
+      inventory: 'Inventario',
+      catalog: 'Catálogo maestro',
+      /** Nombre accesible del <nav>: el lector de pantalla necesita saber qué lista es. */
+      label: 'Ruta de navegación',
+    },
+    actions: {
+      export: 'Exportar datos',
+      // El export queda fuera del alcance mientras el modelo de datos siga
+      // incompleto (misma decisión que en el dashboard). El botón se maqueta
+      // igual que en el diseño, pero deshabilitado y diciendo por qué: prometer
+      // una descarga que no existe es peor que mostrar la acción apagada.
+      exportPending: 'La exportación se habilita cuando el modelo de datos esté completo.',
+      edit: 'Editar producto',
+    },
+    specs: {
+      title: 'Especificaciones',
+      subtitle: 'Datos técnicos y categoría del producto.',
+      fields: {
+        category: 'Categoría',
+        weight: 'Peso unitario',
+        dimensions: 'Dimensiones',
+        packaging: 'Empaque',
+        standard: 'Norma técnica',
+        updatedAt: 'Última actualización',
+      },
+      weightValue: (kilograms: string) => `${kilograms} kg`,
+      dimensionsValue: (length: string, width: string, height: string) =>
+        `${length} × ${width} × ${height} cm`,
+      /** Marca de "sin dato" del DS, la misma que usa el dashboard. */
+      unknown: '—',
+      pendingBackend: 'Categoría, empaque y norma técnica todavía no existen en la API.',
+    },
+    master: {
+      title: 'Stock maestro',
+      subtitle: 'Agregado de todos los depósitos.',
+      units: 'unidades',
+      warehouseCount: (count: number) =>
+        count === 1 ? 'Repartido en 1 depósito.' : `Repartido en ${count} depósitos.`,
+      buckets: {
+        committed: 'Comprometido',
+        inTransit: 'En tránsito',
+        availableToPromise: 'Disponible para prometer',
+      },
+      // Cubre las dos piezas del diseño que la API no puede alimentar: la barra
+      // de capacidad ("71 % del umbral máximo de 6.000 unidades"), que necesita
+      // un techo por producto, y el desglose por estado de reserva.
+      pending:
+        'El porcentaje de capacidad y el desglose por reserva esperan datos que la API todavía no expone.',
+      edit: 'Editar stock',
+    },
+    distribution: {
+      title: 'Distribución por depósito',
+      columns: {
+        warehouse: 'Depósito',
+        committed: 'Comprom.',
+        inTransit: 'En tránsito',
+        // El diseño rotula esta columna "Disponible", pero el número que manda
+        // la API es el on hand: sin reservas modeladas, disponible y en depósito
+        // no son lo mismo y el rótulo tiene que decir cuál de los dos es.
+        onHand: 'En depósito',
+        status: 'Estado',
+      },
+      footer: (count: number) =>
+        count === 1 ? '1 depósito con stock asignado' : `${count} depósitos con stock asignado`,
+      empty: 'Este producto no tiene stock asignado en ningún depósito.',
+      pending: 'Comprometido y en tránsito esperan que la API los modele.',
+    },
+    status: {
+      available: 'Disponible',
+      low: 'Stock bajo',
+      critical: 'Crítico',
+      out: 'Sin stock',
+    },
+    notFound: 'No encontramos el producto que buscabas.',
+    backToCatalog: 'Volver al catálogo',
+  },
   modal: {
     /** El título lleva el nombre del producto; el subtítulo, el SKU. */
     title: (productName: string) => `Editar producto: ${productName}`,
