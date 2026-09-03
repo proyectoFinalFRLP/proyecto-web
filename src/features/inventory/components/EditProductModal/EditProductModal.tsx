@@ -4,12 +4,12 @@ import CloseIcon from '@mui/icons-material/Close'
 import { Button, IconButton, Menu, MenuItem, TextField, Typography } from '@mui/material'
 import { useEffect, useId, useMemo, useState } from 'react'
 import { useFieldArray, useForm } from 'react-hook-form'
+import { formatRelativeTime } from 'shared/utils'
 
 import { inventoryCopy } from '../../content'
 import type { Product } from '../../types'
 import { parseDimensions } from '../../utils/dimensions'
 import { buildUpdatePayload } from '../../utils/payload'
-import { formatRelativeTime } from '../../utils/relativeTime'
 import {
   FooterActions,
   LabeledField,

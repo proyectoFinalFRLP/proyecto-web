@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from 'react'
-import type { StatusVariant } from 'shared/components'
+import type { StatTone } from 'shared/components'
 
 import type { IntegrationNode, NodeSyncStatus, ServiceType } from '../types'
 
@@ -40,7 +40,7 @@ export interface InfraHealth {
   onlineNodes: number
   /** Porcentaje 0-100, o `null` si ningún nodo reporta sync todavía. */
   healthPercentage: number | null
-  healthTone: StatusVariant
+  healthTone: StatTone
   isLoading: boolean
   isError: boolean
   error: Error | null
@@ -71,7 +71,7 @@ function toNode(integration: IntegrationNode, now: number): InfraNode {
   }
 }
 
-function resolveTone(healthPercentage: number | null): StatusVariant {
+function resolveTone(healthPercentage: number | null): StatTone {
   if (healthPercentage === null) return 'neutral'
   if (healthPercentage >= HEALTH_THRESHOLD.healthy) return 'success'
   if (healthPercentage >= HEALTH_THRESHOLD.degraded) return 'warning'

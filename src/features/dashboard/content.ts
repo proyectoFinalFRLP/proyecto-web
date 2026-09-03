@@ -7,27 +7,32 @@ export const dashboardCopy = {
   metrics: {
     pendingOrders: {
       label: 'Órdenes pendientes',
-      caption: (total: number) => `sobre ${total} ${total === 1 ? 'orden' : 'órdenes'}`,
     },
     activeShipments: {
       label: 'Envíos activos',
-      caption: (total: number) => `sobre ${total} ${total === 1 ? 'envío' : 'envíos'}`,
     },
   },
   infra: {
     health: {
-      label: 'Salud de infraestructura',
+      // Vocabulario del diseño (S03-Panel): "Salud del sistema", no "de infraestructura".
+      label: 'Salud del sistema',
       unknownValue: '—',
-      caption: (online: number, reporting: number) =>
-        `${online}/${reporting} ${reporting === 1 ? 'nodo sincronizado' : 'nodos sincronizados'}`,
-      noReportsCaption: 'ningún nodo reporta sincronización',
     },
     nodes: {
-      title: 'Nodos de integración',
-      subtitle: (count: number) =>
-        `${count} ${count === 1 ? 'integración activa' : 'integraciones activas'}`,
+      title: 'Integraciones',
+      subtitleSynced: (online: number, reporting: number) =>
+        `${online}/${reporting} ${reporting === 1 ? 'nodo sincronizado' : 'nodos sincronizados'}`,
+      subtitleNoReports: (active: number) =>
+        `${active} ${active === 1 ? 'integración activa' : 'integraciones activas'} · sin datos de sincronización`,
       empty: 'La empresa no tiene integraciones activas.',
-      syncPrefix: 'Sync:',
+      // Línea inferior de cada fila. El diseño la usa como frase de estado
+      // ("Sincronizado hace 2 ms"), no como un timestamp suelto.
+      sync: {
+        online: (elapsed: string) => `Sincronizado ${elapsed}`,
+        stale: (elapsed: string) => `Sin sincronizar desde ${elapsed}`,
+        unknown: 'Sin datos de sincronización',
+      },
+      // Texto accesible del ícono de estado.
       status: {
         online: 'Sincronizado',
         stale: 'Sincronización atrasada',

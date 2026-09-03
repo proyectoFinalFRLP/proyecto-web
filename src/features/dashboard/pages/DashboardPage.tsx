@@ -1,11 +1,10 @@
-import HubOutlinedIcon from '@mui/icons-material/HubOutlined'
 import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined'
+import MonitorHeartOutlinedIcon from '@mui/icons-material/MonitorHeartOutlined'
 import PendingActionsOutlinedIcon from '@mui/icons-material/PendingActionsOutlined'
 import { Alert, Box, Button, Grid, Stack, Typography } from '@mui/material'
-import { PageWrapper } from 'shared/components'
+import { PageWrapper, StatCard } from 'shared/components'
 
 import { IntegrationNodeList } from '../components/IntegrationNodeList'
-import { StatCard } from '../components/StatCard'
 import { dashboardCopy } from '../content'
 import { useInfraHealth } from '../hooks/useInfraHealth'
 import { useLogisticsKpis } from '../hooks/useLogisticsKpis'
@@ -13,16 +12,15 @@ import { useLogisticsKpis } from '../hooks/useLogisticsKpis'
 const { metrics, infra, error: errorCopy } = dashboardCopy
 const healthCopy = infra.health
 
+// Los KPIs llegan como número y `StatCard` los recibe ya formateados: el
+// componente del DS no decide separadores ni unidades.
+const NUMBER_FORMAT = new Intl.NumberFormat('es-AR')
+
 export function DashboardPage() {
   const {
     pendingOrders,
-    totalOrders,
     activeShipments,
-    totalShipments,
-    isOrdersLoading,
-    isShipmentsLoading,
     isError: isKpisError,
-    error: kpisError,
     refetch: refetchKpis,
   } = useLogisticsKpis()
 
@@ -34,26 +32,23 @@ export function DashboardPage() {
     healthTone,
     isLoading: isInfraLoading,
     isError: isInfraError,
-    error: infraError,
     refetch: refetchInfra,
   } = useInfraHealth()
 
   const isError = isKpisError || isInfraError
-  const error = kpisError ?? infraError
 
   const retry = () => {
     refetchKpis()
     refetchInfra()
   }
 
-  // Sin ningún nodo reportando sync, el KPI no tiene numerador ni denominador
-  // reales: se muestra "—" y el caption explica por qué, en vez de un 0% que se
-  // leería como caída total de la infraestructura.
-  const healthValue = healthPercentage === null ? healthCopy.unknownValue : `${healthPercentage}%`
-  const healthCaption =
-    reportingNodes === 0
-      ? healthCopy.noReportsCaption
-      : healthCopy.caption(onlineNodes, reportingNodes)
+  // Sin nodos reportando sync, el KPI no tiene numerador ni denominador reales:
+  // se muestra "—" en vez de un 0% que se leería como caída total de la
+  // infraestructura, o un 100% que afirmaría una salud que nadie verificó.
+  const healthValue =
+    isInfraLoading || healthPercentage === null
+      ? healthCopy.unknownValue
+      : `${NUMBER_FORMAT.format(healthPercentage)}%`
 
   return (
     <PageWrapper>
@@ -74,46 +69,51 @@ export function DashboardPage() {
               </Button>
             }
           >
-            {error?.message ?? errorCopy.fallback}
+            {/* Copy propio, no el texto crudo de la API (architecture.md §4.2). */}
+            {errorCopy.fallback}
           </Alert>
         ) : null}
 
         <Grid container spacing={2}>
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
             <StatCard
               label={metrics.pendingOrders.label}
-              value={pendingOrders}
-              caption={isOrdersLoading ? undefined : metrics.pendingOrders.caption(totalOrders)}
+              value={NUMBER_FORMAT.format(pendingOrders)}
               icon={<PendingActionsOutlinedIcon />}
               tone="warning"
-              loading={isOrdersLoading}
             />
           </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
             <StatCard
               label={metrics.activeShipments.label}
-              value={activeShipments}
-              caption={
-                isShipmentsLoading ? undefined : metrics.activeShipments.caption(totalShipments)
-              }
+              value={NUMBER_FORMAT.format(activeShipments)}
               icon={<LocalShippingOutlinedIcon />}
               tone="info"
-              loading={isShipmentsLoading}
             />
           </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
             <StatCard
               label={healthCopy.label}
               value={healthValue}
-              caption={isInfraLoading ? undefined : healthCaption}
-              icon={<HubOutlinedIcon />}
+              icon={<MonitorHeartOutlinedIcon />}
               tone={healthTone}
-              loading={isInfraLoading}
             />
           </Grid>
         </Grid>
 
-        <IntegrationNodeList nodes={nodes} loading={isInfraLoading} />
+        {/* El diseño lo ubica en la columna lateral de 280px, al lado de la
+            tabla de órdenes recientes que trae TESIS-52. Hasta que exista, ocupa
+            su tercio y el resto queda libre. */}
+        <Grid container spacing={2}>
+          <Grid size={{ xs: 12, md: 4 }}>
+            <IntegrationNodeList
+              nodes={nodes}
+              reportingNodes={reportingNodes}
+              onlineNodes={onlineNodes}
+              loading={isInfraLoading}
+            />
+          </Grid>
+        </Grid>
       </Stack>
     </PageWrapper>
   )
