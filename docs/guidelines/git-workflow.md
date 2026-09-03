@@ -91,11 +91,11 @@ master
 
 ## 5. Hooks de Git (Husky)
 
-| Hook         | Acción                                               |
-| ------------ | ---------------------------------------------------- |
-| `commit-msg` | Valida el mensaje de commit con commitlint           |
-| `pre-push`   | Valida el nombre de la rama + ejecuta `npm run lint` |
-| `pre-commit` | Sin configuración activa actualmente                 |
+| Hook         | Acción                                                                                |
+| ------------ | ------------------------------------------------------------------------------------- |
+| `commit-msg` | Valida el mensaje de commit con commitlint                                            |
+| `pre-push`   | Valida el nombre de la rama + `npm run lint`, `npm run format:check` y `npm run test` |
+| `pre-commit` | Sin configuración activa actualmente                                                  |
 
 > `lint-staged` está configurado en `package.json` pero no está asignado a ningún hook activo. El lint completo corre en `pre-push`.
 
@@ -109,6 +109,9 @@ Pipeline en `.github/workflows/ci.yml`. Se dispara en push y pull_request sobre 
 | ------------- | -------------------------------------------- | ----------- |
 | `lint`        | ESLint (`--max-warnings 0`) + Prettier check | —           |
 | `branch-name` | Valida nombre de rama (solo en PRs)          | —           |
+| `test`        | `npm run test` (Vitest)                      | `lint`      |
 | `build`       | `npm run build` (tsc + vite)                 | `lint`      |
 
-El job `build` solo corre si `lint` pasa.
+`test` y `build` sólo corren si `lint` pasa, y corren en paralelo entre sí.
+
+Cómo se escribe un test está en [testing.md](./testing.md).
