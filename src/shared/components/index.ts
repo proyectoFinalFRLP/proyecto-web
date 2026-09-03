@@ -31,3 +31,14 @@ export { StatusFeed } from './StatusFeed'
 export type { StatusFeedEntry, StatusFeedProps } from './StatusFeed'
 export { Logo, LogoMark } from './Logo'
 export type { LogoProps } from './Logo'
+export { DataTable } from './DataTable'
+export type {
+  DataTableAction,
+  DataTableAlign,
+  DataTableColumn,
+  DataTablePagination,
+  DataTablePaginationLabels,
+  DataTableProps,
+  DataTableRowTone,
+  DataTableTab,
+} from './DataTable'
