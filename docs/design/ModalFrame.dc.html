@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div style="position:absolute;inset:0;background:rgba(5,20,36,0.6);display:flex;align-items:center;justify-content:center;font-family:'Plus Jakarta Sans',sans-serif">
+  <div style="width:{{ w }};max-height:880px;display:flex;flex-direction:column;background:var(--modal);border:1px solid var(--b3);border-radius:16px;box-shadow:var(--sh3);overflow:hidden;box-sizing:border-box">
+    <div style="flex:none;display:flex;align-items:flex-start;gap:16px;padding:24px 24px 16px;border-bottom:1px solid var(--b1)">
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <span style="font-size:24px;font-weight:600;line-height:1.25;color:var(--text)">{{ title }}</span>
+        <sc-if value="{{ subtitle }}">
+          <span style="font-size:14px;line-height:1.5;color:var(--text2)">{{ subtitle }}</span>
+        </sc-if>
+      </div>
+      <div style="margin-left:auto;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer" style-hover="background:var(--container)">
+        <span class="ic" style="font-size:20px;color:var(--text2)">close</span>
+      </div>
+    </div>
+    <div style="flex:1;min-height:0;overflow:hidden;padding:24px">{{ children }}</div>
+    <div style="flex:none;display:flex;align-items:center;justify-content:flex-end;gap:16px;padding:16px 24px;border-top:1px solid var(--b1);background:var(--surface)">
+      <dc-import name="Btn" label="{{ secondary }}" variant="ghost" size="md" hint-size="90px,40px"></dc-import>
+      <dc-import name="Btn" label="{{ primary }}" variant="solid" size="md" icon="{{ primaryIcon }}" hint-size="160px,40px"></dc-import>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:900},&quot;title&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Título del modal&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;subtitle&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;primary&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Guardar&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;secondary&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Cancelar&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;primaryIcon&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;width&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;672px&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;children&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;ReactNode&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const p = this.props;
+    return {
+      title: p.title ?? 'Título del modal',
+      subtitle: p.subtitle || '',
+      primary: p.primary ?? 'Guardar',
+      secondary: p.secondary ?? 'Cancelar',
+      primaryIcon: p.primaryIcon || '',
+      w: p.width || '672px',
+      children: p.children
+    };
+  }
+}
+</script>
+</body>
+</html>

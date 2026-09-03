@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="./theme.css" />
+</helmet>
+<div class="{{ themeClass }}" style="width:1280px;height:1024px;display:grid;grid-template-columns:240px minmax(0,1fr);grid-template-rows:64px 1fr;background:var(--bg);box-sizing:border-box;overflow:hidden">
+  <div style="grid-row:1 / span 2">
+    <dc-import name="SideNav" active="reportes" hint-size="240px,100%" style="width:240px;height:100%"></dc-import>
+  </div>
+  <dc-import name="TopBar" tenant="{{ tenant }}" initials="{{ initials }}" hint-size="100%,64px" style="width:100%;height:64px"></dc-import>
+  <div style="padding:32px;display:flex;flex-direction:column;gap:24px;min-height:0;min-width:0;box-sizing:border-box">
+    <div style="display:flex;align-items:flex-start;gap:16px">
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <span style="font-size:24px;font-weight:600;line-height:1.25;color:var(--text);font-family:'Plus Jakarta Sans',sans-serif">Reportes</span>
+        <span style="font-size:14px;line-height:1.5;color:var(--text2);font-family:'Plus Jakarta Sans',sans-serif">Volumen, facturación y cumplimiento de la operación.</span>
+      </div>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:12px">
+        <dc-import name="Btn" label="Últimos 30 días" variant="outline" size="md" icon="calendar_month" iconRight="expand_more" hint-size="200px,40px"></dc-import>
+        <dc-import name="Btn" label="Exportar reporte" variant="solid" size="md" icon="download" hint-size="190px,40px"></dc-import>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
+      <dc-import name="MetricCard" icon="inventory_2" label="Volumen despachado" value="124.592" chip="+12,4%" dir="up" hint-size="100%,140px"></dc-import>
+      <dc-import name="MetricCard" icon="payments" label="Facturación" value="$4,2 MM" chip="+8,1%" dir="up" hint-size="100%,140px"></dc-import>
+      <dc-import name="MetricCard" icon="schedule" label="Cumplimiento de entregas" value="98,2%" chip="-0,4%" dir="down" hint-size="100%,140px"></dc-import>
+      <dc-import name="MetricCard" icon="warning" label="Anomalías activas" value="142" chip="Crítico" critical="{{ true }}" hint-size="100%,140px"></dc-import>
+    </div>
+    <div style="display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:24px">
+      <div style="background:var(--surface);border:1px solid var(--b1);border-radius:12px;box-shadow:var(--sh1);padding:24px;display:flex;flex-direction:column;gap:16px;box-sizing:border-box">
+        <div style="display:flex;align-items:center;gap:16px">
+          <span style="font-size:18px;font-weight:600;line-height:1.35;color:var(--text);font-family:'Plus Jakarta Sans',sans-serif">Curva de despacho</span>
+          <div style="margin-left:auto;display:flex;align-items:center;gap:4px;padding:4px;border-radius:8px;background:var(--input);border:1px solid var(--border)">
+            <div style="height:28px;display:flex;align-items:center;padding:0 12px;border-radius:4px;background:var(--primary)">
+              <span style="font-size:12px;font-weight:600;line-height:1.4;color:var(--on-primary);font-family:'Plus Jakarta Sans',sans-serif">Órdenes</span>
+            </div>
+            <div style="height:28px;display:flex;align-items:center;padding:0 12px;border-radius:4px">
+              <span style="font-size:12px;font-weight:600;line-height:1.4;color:var(--text2);font-family:'Plus Jakarta Sans',sans-serif">Facturación</span>
+            </div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:44px minmax(0,1fr);gap:8px">
+          <div style="height:220px;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-end">
+            <sc-for list="{{ yAxis }}" as="y" hint-placeholder-count="5">
+              <span style="font-size:11px;font-weight:500;line-height:1.4;color:var(--text2);font-family:'Space Grotesk',sans-serif">{{ y }}</span>
+            </sc-for>
+          </div>
+          <svg viewBox="0 0 640 220" preserveAspectRatio="none" style="width:100%;height:220px;display:block">
+            <line x1="0" y1="6" x2="640" y2="6" stroke="var(--grid-line)" stroke-width="1" vector-effect="non-scaling-stroke"></line>
+            <line x1="0" y1="59" x2="640" y2="59" stroke="var(--grid-line)" stroke-width="1" vector-effect="non-scaling-stroke"></line>
+            <line x1="0" y1="112" x2="640" y2="112" stroke="var(--grid-line)" stroke-width="1" vector-effect="non-scaling-stroke"></line>
+            <line x1="0" y1="165" x2="640" y2="165" stroke="var(--grid-line)" stroke-width="1" vector-effect="non-scaling-stroke"></line>
+            <line x1="0" y1="214" x2="640" y2="214" stroke="var(--grid-line)" stroke-width="1" vector-effect="non-scaling-stroke"></line>
+            <path d="M0,168 C60,160 96,132 148,128 C200,124 232,54 292,48 C352,42 372,74 428,84 C484,94 528,46 584,24 L640,14 L640,220 L0,220 Z" fill="var(--primary)" opacity="0.14"></path>
+            <path d="M0,168 C60,160 96,132 148,128 C200,124 232,54 292,48 C352,42 372,74 428,84 C484,94 528,46 584,24 L640,14" fill="none" stroke="var(--primary)" stroke-width="3" stroke-linecap="round" vector-effect="non-scaling-stroke"></path>
+          </svg>
+          <span></span>
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <sc-for list="{{ days }}" as="d" hint-placeholder-count="7">
+              <span style="font-size:11px;font-weight:500;line-height:1.4;color:var(--text2);font-family:'Plus Jakarta Sans',sans-serif">{{ d }}</span>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--b1);border-radius:12px;box-shadow:var(--sh1);padding:24px;display:flex;flex-direction:column;gap:20px;box-sizing:border-box">
+        <div style="display:flex;flex-direction:column;gap:2px">
+          <span style="font-size:18px;font-weight:600;line-height:1.35;color:var(--text);font-family:'Plus Jakarta Sans',sans-serif">Nivel de servicio</span>
+          <span style="font-size:12px;font-weight:500;line-height:1.4;color:var(--text2);font-family:'Plus Jakarta Sans',sans-serif">Entregas en plazo por operador logístico.</span>
+        </div>
+        <dc-import name="ProgressBar" label="Andreani" value="99" pct="99,4%" tone="tonal" hint-size="100%,44px" style="width:100%"></dc-import>
+        <dc-import name="ProgressBar" label="Moova" value="97" pct="96,8%" tone="ok" hint-size="100%,44px" style="width:100%"></dc-import>
+        <dc-import name="ProgressBar" label="Correo Argentino" value="94" pct="94,2%" tone="warn" hint-size="100%,44px" style="width:100%"></dc-import>
+        <dc-import name="ProgressBar" label="OCASA" value="88" pct="88,5%" tone="err" hint-size="100%,44px" style="width:100%"></dc-import>
+      </div>
+    </div>
+    <dc-import name="DataTable" title="Anomalías recientes" actionLabel="Ver bitácora completa" cols="{{ cols }}" rows="{{ rows }}" hint-size="100%,244px" style="width:100%"></dc-import>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:1024},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Oscuro&quot;,&quot;Claro&quot;],&quot;default&quot;:&quot;Oscuro&quot;,&quot;tsType&quot;:&quot;'Oscuro'|'Claro'&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      themeClass: this.props.theme === 'Claro' ? 'light' : 'dark',
+      tenant: this.props.tenant ?? 'Precision Logistics',
+      initials: this.props.initials ?? 'MR',
+      yAxis: ['10k', '7,5k', '5k', '2,5k', '0'],
+      days: ['lun', 'mar', 'mié', 'jue', 'vie', 'sáb', 'dom'],
+      cols: [
+        { label: 'Incidente', w: '130px', mono: true },
+        { label: 'Nodo', w: 'minmax(0,1fr)' },
+        { label: 'Tipo de desvío', w: '200px' },
+        { label: 'Volumen impactado', w: '160px', align: 'right', mono: true },
+        { label: 'Estado', w: '150px' }
+      ],
+      rows: [
+        { cells: [{ t: '#INC-8892', link: true }, { t: 'CD Ezeiza', sub: 'BUE-4' }, { t: 'Demora por clima' }, { t: '4.200 u' }, { t: 'En análisis', intent: 'warn' }] },
+        { cells: [{ t: '#INC-8891', link: true }, { t: 'CD Córdoba', sub: 'COR-1' }, { t: 'Retención aduanera' }, { t: '850 u' }, { t: 'Crítico', intent: 'err' }], hl: true },
+        { cells: [{ t: '#INC-8889', link: true }, { t: 'CD Rosario', sub: 'ROS-2' }, { t: 'Caída de API del operador' }, { t: '12.000 u' }, { t: 'Resuelto', intent: 'ok' }] }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="./theme.css" />
+</helmet>
+<div class="{{ themeClass }}" style="width:1280px;height:1024px;display:flex;flex-direction:column;background:var(--bg);box-sizing:border-box;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif">
+  <div style="height:64px;flex:none;display:flex;align-items:center;gap:12px;padding:0 32px;background:var(--surface);border-bottom:1px solid var(--border);box-sizing:border-box">
+    <div style="width:28px;height:28px;border-radius:8px;background:var(--primary);display:flex;align-items:center;justify-content:center">
+      <span class="ic" style="font-size:18px;color:var(--on-primary)">inventory_2</span>
+    </div>
+    <span style="font-size:16px;font-weight:700;line-height:1.3;color:var(--text)">Precision OMS</span>
+    <span style="margin-left:auto;font-size:14px;line-height:1.5;color:var(--text2)">Centro de ayuda</span>
+  </div>
+  <div style="flex:1;display:flex;align-items:center;justify-content:center;min-height:0">
+    <div style="width:440px;background:var(--surface);border:1px solid var(--b1);border-radius:16px;box-shadow:var(--sh2);padding:32px;display:flex;flex-direction:column;gap:24px;box-sizing:border-box">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+        <div style="width:48px;height:48px;border-radius:12px;background:var(--primary-soft);display:flex;align-items:center;justify-content:center;margin-bottom:8px">
+          <span class="ic" style="font-size:24px;color:var(--primary)">lock</span>
+        </div>
+        <span style="font-size:20px;font-weight:600;line-height:1.3;color:var(--text)">Bienvenido de nuevo</span>
+        <span style="font-size:14px;line-height:1.5;color:var(--text2);text-align:center">Accedé al panel de operación de Precision OMS.</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <dc-import name="Field" label="Correo electrónico" type="text" icon="mail" placeholder="nombre@empresa.com.ar" hint-size="100%,80px" style="width:100%"></dc-import>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px">
+            <span style="font-size:12px;font-weight:700;line-height:1.4;letter-spacing:0.05em;text-transform:uppercase;color:var(--text2)">Contraseña</span>
+            <span style="font-size:12px;font-weight:600;line-height:1.4;color:var(--primary)">¿Olvidaste tu contraseña?</span>
+          </div>
+          <dc-import name="Field" type="text" icon="key" value="••••••••••" state="focus" hint-size="100%,44px" style="width:100%"></dc-import>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="width:16px;height:16px;flex:none;border-radius:4px;border:1px solid var(--border);background:var(--input)"></div>
+          <span style="font-size:14px;line-height:1.5;color:var(--text2)">Mantener la sesión iniciada por 30 días</span>
+        </div>
+      </div>
+      <dc-import name="Btn" label="Ingresar" variant="solid" size="lg" full="{{ true }}" iconRight="arrow_forward" hint-size="100%,48px" style="width:100%"></dc-import>
+      <div style="display:flex;align-items:center;gap:16px">
+        <div style="flex:1;height:1px;background:var(--border)"></div>
+        <span style="font-size:11px;font-weight:500;line-height:1.4;letter-spacing:0.05em;text-transform:uppercase;color:var(--text2)">o</span>
+        <div style="flex:1;height:1px;background:var(--border)"></div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:center;gap:6px">
+        <span style="font-size:14px;line-height:1.5;color:var(--text2)">¿No tenés cuenta?</span>
+        <span style="font-size:14px;font-weight:600;line-height:1.5;color:var(--primary)">Registrate</span>
+      </div>
+    </div>
+  </div>
+  <div style="height:56px;flex:none;display:flex;align-items:center;justify-content:space-between;gap:24px;padding:0 32px;border-top:1px solid var(--border);box-sizing:border-box">
+    <span style="font-size:12px;font-weight:500;line-height:1.4;color:var(--text2)">© 2026 Precision OMS. Todos los derechos reservados.</span>
+    <div style="display:flex;align-items:center;gap:24px">
+      <span style="font-size:12px;font-weight:500;line-height:1.4;color:var(--text2)">Política de privacidad</span>
+      <span style="font-size:12px;font-weight:500;line-height:1.4;color:var(--text2)">Términos del servicio</span>
+      <span style="font-size:12px;font-weight:500;line-height:1.4;color:var(--text2)">Cookies</span>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:1024},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Oscuro&quot;,&quot;Claro&quot;],&quot;default&quot;:&quot;Oscuro&quot;,&quot;tsType&quot;:&quot;'Oscuro'|'Claro'&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    return { themeClass: this.props.theme === 'Claro' ? 'light' : 'dark' };
+  }
+}
+</script>
+</body>
+</html>

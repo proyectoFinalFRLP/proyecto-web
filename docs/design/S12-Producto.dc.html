@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="./theme.css" />
+</helmet>
+<div class="{{ themeClass }}" style="width:1280px;height:1024px;display:grid;grid-template-columns:240px minmax(0,1fr);grid-template-rows:64px 1fr;background:var(--bg);box-sizing:border-box;overflow:hidden">
+  <div style="grid-row:1 / span 2">
+    <dc-import name="SideNav" active="inventario" hint-size="240px,100%" style="width:240px;height:100%"></dc-import>
+  </div>
+  <dc-import name="TopBar" tenant="{{ tenant }}" initials="{{ initials }}" hint-size="100%,64px" style="width:100%;height:64px"></dc-import>
+  <div style="padding:32px;display:flex;flex-direction:column;gap:16px;min-height:0;min-width:0;box-sizing:border-box">
+    <div style="display:flex;align-items:center;gap:8px">
+      <span style="font-size:12px;font-weight:700;line-height:1.4;letter-spacing:0.05em;text-transform:uppercase;color:var(--text2);font-family:'Plus Jakarta Sans',sans-serif">Inventario</span>
+      <span class="ic" style="font-size:16px;color:var(--text2)">chevron_right</span>
+      <span style="font-size:12px;font-weight:700;line-height:1.4;letter-spacing:0.05em;text-transform:uppercase;color:var(--text2);font-family:'Plus Jakarta Sans',sans-serif">Catálogo maestro</span>
+      <span class="ic" style="font-size:16px;color:var(--text2)">chevron_right</span>
+      <span style="font-size:12px;font-weight:700;line-height:1.4;letter-spacing:0.05em;text-transform:uppercase;color:var(--primary);font-family:'Space Grotesk',sans-serif">SKU-8842-PL</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px">
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <div style="display:flex;align-items:center;gap:12px">
+          <span style="font-size:24px;font-weight:600;line-height:1.25;color:var(--text);font-family:'Space Grotesk',sans-serif">SKU-8842-PL</span>
+          <dc-import name="StatusBadge" label="Disponible" intent="ok" hint-size="130px,24px"></dc-import>
+        </div>
+        <span style="font-size:14px;line-height:1.5;color:var(--text2);font-family:'Plus Jakarta Sans',sans-serif">Arreglo de sensores serie G</span>
+      </div>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:12px">
+        <dc-import name="Btn" label="Exportar datos" variant="outline" size="md" icon="download" hint-size="170px,40px"></dc-import>
+        <dc-import name="Btn" label="Editar producto" variant="solid" size="md" icon="edit" hint-size="180px,40px"></dc-import>
+      </div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--b1);border-radius:12px;box-shadow:var(--sh1);padding:24px;display:flex;flex-direction:column;gap:16px;box-sizing:border-box">
+      <div style="display:flex;flex-direction:column;gap:2px">
+        <span style="font-size:18px;font-weight:600;line-height:1.35;color:var(--text);font-family:'Plus Jakarta Sans',sans-serif">Especificaciones</span>
+        <span style="font-size:14px;line-height:1.5;color:var(--text2);font-family:'Plus Jakarta Sans',sans-serif">Datos técnicos y categoría del producto.</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
+        <sc-for list="{{ specs }}" as="s" hint-placeholder-count="4">
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <span style="font-size:11px;font-weight:500;line-height:1.4;color:var(--text2);font-family:'Plus Jakarta Sans',sans-serif">{{ s.label }}</span>
+            <span style="font-size:16px;font-weight:600;line-height:1.6;color:var(--text);font-family:{{ s.font }}">{{ s.value }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="height:1px;background:var(--border)"></div>
+      <div style="display:flex;align-items:center;gap:32px">
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <span style="font-size:11px;font-weight:500;line-height:1.4;color:var(--text2);font-family:'Plus Jakarta Sans',sans-serif">Norma técnica</span>
+          <span style="font-size:16px;font-weight:600;line-height:1.6;color:var(--text);font-family:'Space Grotesk',sans-serif">ISO-9001:2015</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <span style="font-size:11px;font-weight:500;line-height:1.4;color:var(--text2);font-family:'Plus Jakarta Sans',sans-serif">Última actualización</span>
+          <span style="font-size:16px;font-weight:600;line-height:1.6;color:var(--text);font-family:'Plus Jakarta Sans',sans-serif">24 ago 2026 · 09:14</span>
+        </div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:280px minmax(0,1fr);gap:24px;min-height:0">
+      <div style="background:var(--surface);border:1px solid var(--b1);border-radius:12px;box-shadow:var(--sh1);padding:24px;display:flex;flex-direction:column;gap:16px;box-sizing:border-box">
+        <div style="display:flex;flex-direction:column;gap:2px">
+          <span style="font-size:18px;font-weight:600;line-height:1.35;color:var(--text);font-family:'Plus Jakarta Sans',sans-serif">Stock maestro</span>
+          <span style="font-size:14px;line-height:1.5;color:var(--text2);font-family:'Plus Jakarta Sans',sans-serif">Agregado de todos los depósitos.</span>
+        </div>
+        <div style="display:flex;align-items:baseline;gap:8px">
+          <span style="font-size:48px;font-weight:700;line-height:1.1;color:var(--text);font-family:'Space Grotesk',sans-serif">4.280</span>
+          <span style="font-size:14px;line-height:1.5;color:var(--text2);font-family:'Plus Jakarta Sans',sans-serif">unidades</span>
+        </div>
+        <dc-import name="ProgressBar" value="71" tone="tonal" hint-size="100%,4px" style="width:100%"></dc-import>
+        <span style="font-size:12px;font-weight:500;line-height:1.4;color:var(--text2);font-family:'Plus Jakarta Sans',sans-serif">71 % del umbral máximo de 6.000 unidades.</span>
+        <sc-for list="{{ buckets }}" as="b" hint-placeholder-count="3">
+          <div style="height:52px;display:flex;align-items:center;gap:12px;padding:0 16px;border-radius:8px;background:var(--input);border:1px {{ b.style }} {{ b.bc }};box-sizing:border-box">
+            <span class="ic" style="font-size:18px;color:{{ b.fg }}">{{ b.icon }}</span>
+            <span style="font-size:14px;line-height:1.5;color:{{ b.labelColor }};font-family:'Plus Jakarta Sans',sans-serif">{{ b.label }}</span>
+            <span style="margin-left:auto;font-size:14px;font-weight:500;line-height:1.4;color:{{ b.fg }};font-family:'Space Grotesk',sans-serif">{{ b.value }}</span>
+          </div>
+        </sc-for>
+        <dc-import name="Btn" label="Editar stock" variant="solid" size="md" full="{{ true }}" icon="edit" hint-size="100%,40px" style="width:100%"></dc-import>
+      </div>
+      <dc-import name="DataTable" title="Distribución por depósito" actionLabel="Ver todos" cols="{{ cols }}" rows="{{ rows }}" footer="4 de 12 depósitos activos" actions="{{ true }}" hint-size="100%,100%" style="width:100%"></dc-import>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:1024},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Oscuro&quot;,&quot;Claro&quot;],&quot;default&quot;:&quot;Oscuro&quot;,&quot;tsType&quot;:&quot;'Oscuro'|'Claro'&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const _t = this.props.tenant ?? 'Precision Logistics';
+    const _i = this.props.initials ?? 'MR';
+    const jak = "'Plus Jakarta Sans',sans-serif";
+    const mono = "'Space Grotesk',sans-serif";
+    return {
+      themeClass: this.props.theme === 'Claro' ? 'light' : 'dark',
+      tenant: _t,
+      initials: _i,
+      specs: [
+        { label: 'Categoría', value: 'Electronics', font: jak },
+        { label: 'Peso unitario', value: '1,45 kg', font: mono },
+        { label: 'Dimensiones', value: '12 × 8 × 4 cm', font: mono },
+        { label: 'Empaque', value: 'Blindaje ESD', font: jak }
+      ],
+      buckets: [
+        { label: 'Comprometido', value: '1.120', icon: 'lock', fg: 'var(--text)', labelColor: 'var(--text2)', bc: 'var(--border)', style: 'solid' },
+        { label: 'En tránsito', value: '450', icon: 'local_shipping', fg: 'var(--text)', labelColor: 'var(--text2)', bc: 'var(--border)', style: 'solid' },
+        { label: 'Disponible para prometer', value: '2.710', icon: 'check_circle', fg: 'var(--primary)', labelColor: 'var(--text)', bc: 'var(--primary)', style: 'dashed' }
+      ],
+      cols: [
+        { label: 'Depósito', w: 'minmax(0,1fr)' },
+        { label: 'Comprom.', w: '96px', align: 'right', mono: true },
+        { label: 'En tránsito', w: '96px', align: 'right', mono: true },
+        { label: 'Disponible', w: '96px', align: 'right', mono: true },
+        { label: 'Estado', w: '118px' }
+      ],
+      rows: [
+        { cells: [{ t: 'CD Ezeiza', sub: 'BUE-4 · Ezeiza' }, { t: '620' }, { t: '180' }, { t: '1.250', strong: true }, { t: 'Disponible', intent: 'ok' }] },
+        { cells: [{ t: 'CD Córdoba', sub: 'COR-1 · Córdoba' }, { t: '260' }, { t: '120' }, { t: '840', strong: true }, { t: 'Disponible', intent: 'ok' }] },
+        { cells: [{ t: 'CD Rosario', sub: 'ROS-2 · Rosario' }, { t: '180' }, { t: '150' }, { t: '420', strong: true }, { t: 'Stock bajo', intent: 'warn' }] },
+        { cells: [{ t: 'CD Mendoza', sub: 'MDZ-3 · Mendoza' }, { t: '60' }, { t: '0' }, { t: '200', strong: true }, { t: 'Crítico', intent: 'err' }], hl: true }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="./theme.css" />
+</helmet>
+<div class="{{ themeClass }}" style="width:1280px;height:1024px;display:grid;grid-template-columns:240px minmax(0,1fr);grid-template-rows:64px 1fr;background:var(--bg);box-sizing:border-box;overflow:hidden">
+  <div style="grid-row:1 / span 2">
+    <dc-import name="SideNav" active="ordenes" hint-size="240px,100%" style="width:240px;height:100%"></dc-import>
+  </div>
+  <dc-import name="TopBar" tenant="{{ tenant }}" initials="{{ initials }}" hint-size="100%,64px" style="width:100%;height:64px"></dc-import>
+  <div style="padding:32px;display:flex;flex-direction:column;gap:24px;min-height:0;min-width:0;box-sizing:border-box">
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;align-items:baseline;gap:16px">
+        <span style="font-size:24px;font-weight:600;line-height:1.25;color:var(--text);font-family:'Plus Jakarta Sans',sans-serif">Nueva orden</span>
+        <span style="font-size:14px;line-height:1.5;color:var(--text2);font-family:'Plus Jakarta Sans',sans-serif">Origen y destino</span>
+        <span style="margin-left:auto;font-size:12px;font-weight:700;line-height:1.4;letter-spacing:0.05em;text-transform:uppercase;color:var(--primary);font-family:'Plus Jakarta Sans',sans-serif">Paso 2 de 3</span>
+      </div>
+      <dc-import name="ProgressBar" value="66" tone="tonal" hint-size="100%,4px" style="width:100%"></dc-import>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--b1);border-radius:12px;box-shadow:var(--sh1);padding:24px;display:flex;flex-direction:column;gap:16px;box-sizing:border-box">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="ic" style="font-size:20px;color:var(--primary)">warehouse</span>
+        <span style="font-size:18px;font-weight:600;line-height:1.35;color:var(--text);font-family:'Plus Jakarta Sans',sans-serif">Depósito de origen</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+        <sc-for list="{{ depots }}" as="d" hint-placeholder-count="3">
+          <div style="background:{{ d.bg }};border:1px solid {{ d.bc }};border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:12px;box-sizing:border-box">
+            <div style="display:flex;align-items:flex-start;gap:8px">
+              <div style="display:flex;flex-direction:column;gap:2px;min-width:0">
+                <span style="font-size:16px;font-weight:600;line-height:1.6;color:var(--text);font-family:'Plus Jakarta Sans',sans-serif">{{ d.name }}</span>
+                <span style="font-size:11px;font-weight:500;line-height:1.4;color:var(--text2);font-family:'Space Grotesk',sans-serif">{{ d.code }}</span>
+              </div>
+              <span class="ic" style="font-size:20px;margin-left:auto;color:{{ d.checkColor }}">{{ d.check }}</span>
+            </div>
+            <span style="font-size:14px;line-height:1.5;color:var(--text2);font-family:'Plus Jakarta Sans',sans-serif">{{ d.address }}</span>
+            <dc-import name="StatusBadge" label="{{ d.stockLabel }}" intent="{{ d.stockIntent }}" hint-size="150px,24px"></dc-import>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--b1);border-radius:12px;box-shadow:var(--sh1);padding:24px;display:flex;flex-direction:column;gap:16px;box-sizing:border-box">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="ic" style="font-size:20px;color:var(--primary)">location_on</span>
+        <span style="font-size:18px;font-weight:600;line-height:1.35;color:var(--text);font-family:'Plus Jakarta Sans',sans-serif">Domicilio de entrega</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <dc-import name="Field" label="Destinatario" value="Marina Rodríguez" hint-size="100%,80px" style="width:100%"></dc-import>
+        <dc-import name="Field" label="Teléfono de contacto" mono="{{ true }}" value="+54 11 4812-9934" hint-size="100%,80px" style="width:100%"></dc-import>
+      </div>
+      <dc-import name="Field" label="Calle y número" value="Av. Corrientes 3247, piso 5" hint-size="100%,80px" style="width:100%"></dc-import>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">
+        <dc-import name="Field" label="Ciudad" value="CABA" hint-size="100%,80px" style="width:100%"></dc-import>
+        <dc-import name="Field" label="Provincia" type="select" value="Buenos Aires" hint-size="100%,80px" style="width:100%"></dc-import>
+        <dc-import name="Field" label="Código postal" type="number" value="1193" hint-size="100%,80px" style="width:100%"></dc-import>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px">
+      <dc-import name="Btn" label="Paso anterior" variant="outline" size="md" icon="arrow_back" hint-size="160px,40px"></dc-import>
+      <div style="margin-left:auto">
+        <dc-import name="Btn" label="Siguiente: cotizaciones" variant="solid" size="lg" iconRight="arrow_forward" hint-size="260px,48px"></dc-import>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:1024},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Oscuro&quot;,&quot;Claro&quot;],&quot;default&quot;:&quot;Oscuro&quot;,&quot;tsType&quot;:&quot;'Oscuro'|'Claro'&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const _t = this.props.tenant ?? 'Precision Logistics';
+    const _i = this.props.initials ?? 'MR';
+    const D = (name, code, address, stockLabel, stockIntent, sel) => ({
+      name, code, address, stockLabel, stockIntent,
+      bg: sel ? 'var(--primary-soft)' : 'var(--input)',
+      bc: sel ? 'var(--primary)' : 'var(--border)',
+      check: sel ? 'check_circle' : 'radio_button_unchecked',
+      checkColor: sel ? 'var(--primary)' : 'var(--text2)'
+    });
+    return {
+      themeClass: this.props.theme === 'Claro' ? 'light' : 'dark',
+      tenant: _t,
+      initials: _i,
+      depots: [
+        D('CD Ezeiza', 'BUE-4', 'Autopista Riccheri km 22,5 · Ezeiza, Buenos Aires', 'Stock óptimo', 'ok', true),
+        D('CD Córdoba', 'COR-1', 'Av. Circunvalación 3200 · Córdoba, Córdoba', 'Capacidad limitada', 'warn', false),
+        D('CD Rosario', 'ROS-2', 'Ruta 9 km 305 · Rosario, Santa Fe', 'Sin stock del SKU principal', 'err', false)
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>
