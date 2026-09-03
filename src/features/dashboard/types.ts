@@ -1,27 +1,3 @@
-// Tipos mínimos de orden y envío: solo lo que hoy consume el dashboard. Los
-// valores de `status` y el nombre de los campos salen del backend real
-// (`Order::STATUSES`, `Shipment::STATUSES` y el schema de la API), que serializa
-// con Blueprinter en snake_case. Crecerán cuando existan las features `orders` y
-// `shipments`.
-
-export type OrderStatus = 'pending' | 'paid' | 'cancelled'
-
-export type ShipmentStatus = 'pending' | 'ready_to_ship' | 'in_transit' | 'delivered'
-
-export interface Order {
-  id: number
-  status: OrderStatus
-  created_at: string
-}
-
-export interface Shipment {
-  id: number
-  status: ShipmentStatus
-  created_at: string
-}
-
-// ── Infraestructura / nodos de integración ───────────────────────────────────
-
 // Tipo de servicio externo (`services.type`, con check constraint en la DB).
 export type ServiceType = 'ecommerce' | 'courier'
 
@@ -59,7 +35,7 @@ export interface IntegrationNode {
 }
 
 // Estado de frescura derivado de `last_synced_at`:
-// - `online`  → sincronizó dentro de la ventana esperada (LED azul)
-// - `stale`   → la última sync quedó fuera de la ventana (LED rojo)
-// - `unknown` → no hay marca de sync: no afirmamos nada (LED neutro)
+// - `online`  → sincronizó dentro de la ventana esperada (ícono `check_circle`)
+// - `stale`   → la última sync quedó fuera de la ventana (ícono `error`)
+// - `unknown` → no hay marca de sync: no afirmamos nada (ícono neutro)
 export type NodeSyncStatus = 'online' | 'stale' | 'unknown'

@@ -2,16 +2,8 @@
 // idea que `content.ts` de design-system: si mañana sumamos i18n, este módulo es
 // el único punto a migrar a claves de traducción).
 export const dashboardCopy = {
-  pageTitle: 'Operación logística',
-  pageSubtitle: 'Métricas de flujo de órdenes y envíos.',
-  metrics: {
-    pendingOrders: {
-      label: 'Órdenes pendientes',
-    },
-    activeShipments: {
-      label: 'Envíos activos',
-    },
-  },
+  pageTitle: 'Panel de operación',
+  pageSubtitle: 'Datos en vivo de los centros de distribución.',
   infra: {
     health: {
       // Vocabulario del diseño (S03-Panel): "Salud del sistema", no "de infraestructura".
@@ -45,7 +37,7 @@ export const dashboardCopy = {
     },
   },
   error: {
-    fallback: 'No se pudieron cargar las métricas de la operación.',
+    fallback: 'No se pudo cargar el estado de las integraciones.',
     retry: 'Reintentar',
   },
 } as const
