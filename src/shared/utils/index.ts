@@ -21,3 +21,5 @@ export function sleep(ms: number): Promise<void> {
 export function isNonEmpty<T>(value: T | null | undefined): value is T {
   return value !== null && value !== undefined
 }
+
+export { formatRelativeTime } from './relativeTime'
