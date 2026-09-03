@@ -55,8 +55,12 @@ export function InventoryPage() {
   // El 412 llega con la versión ya invalidada: React Query refetchea el detalle
   // y de esa lectura sale la comparación contra lo que el modal había abierto.
   const isConflict = updateMutation.error?.status === CONFLICT_STATUS
+  // `isFetching` es load-bearing: mientras el refetch está en vuelo `product.data`
+  // sigue siendo la lectura vieja, o sea el mismo objeto que `baseline`.
+  // Compararlos ahí da una lista vacía, y el modal mostraba "no pudimos
+  // determinar qué cambió" por un render antes de decir la verdad.
   const conflict =
-    isConflict && baseline !== undefined && product.data !== undefined
+    isConflict && baseline !== undefined && product.data !== undefined && !product.isFetching
       ? describeConflict(baseline, product.data, inventoryCopy.modal.conflict.labels)
       : undefined
 
@@ -161,16 +165,23 @@ export function InventoryPage() {
             conflict={conflict}
             onOverwrite={lastPayload === undefined ? undefined : () => save(lastPayload)}
             onClose={() => {
+              // Sin el reset, el error de la mutación sobrevive al modal y queda
+              // colgado en la página — un 412 que ya no aplica a nada visible.
+              updateMutation.reset()
               setEditingId(undefined)
               setBaseline(undefined)
+              setLastPayload(undefined)
             }}
             onSubmit={save}
           />
         )}
 
         {/* El 412 no es un error a mostrar acá: lo explica el propio modal, que
-            queda abierto con lo que el usuario cargó. */}
-        {updateMutation.isError && conflict === undefined ? (
+            queda abierto con lo que el usuario cargó. La condición mira
+            `isConflict` y no `conflict`, que es `undefined` también mientras se
+            resuelve el refetch: con lo otro, el 412 se filtraba a este banner
+            durante ese render. */}
+        {updateMutation.isError && !isConflict ? (
           <Typography variant="bodyMd" role="alert" sx={{ color: 'error.main' }}>
             {updateMutation.error.message}
           </Typography>

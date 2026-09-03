@@ -54,6 +54,9 @@ function product(overrides: Partial<Product> = {}): Product {
       },
     ],
     updatedAt: '2026-08-30T12:00:00.000Z',
+    // La versión del agregado que viaja como ETag (TESIS-101). No participa del
+    // payload, pero `Product` la exige.
+    version: '"abc"',
     ...overrides,
   }
 }

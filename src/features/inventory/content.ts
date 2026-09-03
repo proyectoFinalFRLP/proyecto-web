@@ -23,6 +23,9 @@ export const inventoryCopy = {
       overwrite: 'Guardar de todos modos',
       labels: {
         name: 'Nombre',
+        // La descripción no se edita en el modal, pero sí entra en la versión
+        // que compara el backend: si cambió, hay que poder nombrarla.
+        description: 'Descripción',
         weight: 'Peso',
         dimensions: 'Medidas',
         stockIn: (warehouse: string) => `Stock en ${warehouse}`,
@@ -58,18 +61,6 @@ export const inventoryCopy = {
     title: 'Crear producto',
     subtitle: 'Da de alta una entrada nueva en el catálogo maestro.',
     close: 'Cerrar',
-    conflict: {
-      title: 'Alguien editó este producto mientras lo tenías abierto',
-      body: 'Tus cambios siguen acá. Revisá qué se modificó antes de decidir.',
-      unknown: 'No pudimos determinar qué cambió.',
-      overwrite: 'Guardar de todos modos',
-      labels: {
-        name: 'Nombre',
-        weight: 'Peso',
-        dimensions: 'Medidas',
-        stockIn: (warehouse: string) => `Stock en ${warehouse}`,
-      },
-    },
     sections: {
       basic: 'Información básica',
       technical: 'Especificaciones técnicas',

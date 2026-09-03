@@ -118,9 +118,12 @@ export async function fetchWarehouses(): Promise<Warehouse[]> {
  * interceptor de Axios lo convierte en `Error` con ese mensaje.
  */
 export async function createProduct(payload: CreateProductPayload): Promise<Product> {
-  const { data } = await client.post<ApiProduct>('/products', payload)
+  const response = await client.post<ApiProduct>('/products', payload)
 
-  return toProduct(data)
+  // El alta también devuelve el ETag, igual que `show` y `update`. Se guarda por
+  // la misma razón: el producto recién creado ya nace con su versión, y quien lo
+  // edite a continuación arranca con la precondición puesta en vez de sin ella.
+  return toProduct(response.data, readVersion(response.headers.etag))
 }
 
 export async function updateProduct(

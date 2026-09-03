@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 
 import type { Product, UpdateProductPayload, Warehouse } from '../../types'
+import type { ConflictChange } from '../../utils/conflict'
 
 export interface EditProductModalProps {
   open: boolean
@@ -18,7 +19,7 @@ export interface EditProductModalProps {
    * Lista qué se modificó. El modal NO se cierra ni pierde lo cargado — el
    * usuario decide si pisa igual.
    */
-  conflict?: string[]
+  conflict?: ConflictChange[]
   /** Reintenta el guardado contra la versión vigente, pisando lo que cambió. */
   onOverwrite?: () => void
 }
