@@ -58,6 +58,10 @@ export const dsCopy = {
       title: 'Paneles de integración de datos',
       subtitle: 'Los primitivos compuestos, con datos de muestra',
     },
+    dataTable: {
+      title: 'Tabla de datos estándar',
+      subtitle: 'Pestañas, selección, badges de estado, acciones por fila y paginación',
+    },
   },
   progressGroups: {
     load: 'Columna Load — canal neutro',
@@ -323,3 +327,97 @@ export const statusOptions: { status: StatusVariant; label: string }[] = [
   { status: 'warning', label: 'Retenido en aduana' },
   { status: 'error', label: 'Demorado' },
 ]
+
+// ── Tabla de datos estándar (TESIS-70) ───────────────────────────────────────
+// Muestras del catálogo. Los importes y las fechas llegan ya formateados: la
+// tabla no formatea nada, cada columna decide cómo se pinta su celda.
+
+export interface DemoOrder {
+  id: string
+  placedAt: string
+  destination: string
+  status: StatusVariant
+  statusLabel: string
+  total: string
+  /** `critical` tiñe la fila, `muted` la atenúa. */
+  tone: 'default' | 'critical' | 'muted'
+}
+
+export const dataTableTabs = [
+  { id: 'all', label: 'Todas' },
+  { id: 'processing', label: 'En preparación', count: '342' },
+  { id: 'transit', label: 'En tránsito', count: '1,2K' },
+  { id: 'exceptions', label: 'Excepciones', count: '18' },
+]
+
+export const dataTableOrders: DemoOrder[] = [
+  {
+    id: '#ORD-8829-X',
+    placedAt: '24 oct, 09:14',
+    destination: 'Frankfurt, DE',
+    status: 'info',
+    statusLabel: 'En preparación',
+    total: '$14.250,00',
+    tone: 'default',
+  },
+  {
+    id: '#ORD-8828-A',
+    placedAt: '24 oct, 08:45',
+    destination: 'Austin, TX, US',
+    status: 'success',
+    statusLabel: 'En tránsito',
+    total: '$8.120,50',
+    tone: 'default',
+  },
+  {
+    id: '#ORD-8821-E',
+    placedAt: '23 oct, 23:20',
+    destination: 'Londres, UK',
+    status: 'error',
+    statusLabel: 'Retenida en aduana',
+    total: '$45.000,00',
+    tone: 'critical',
+  },
+  {
+    id: '#ORD-8815-C',
+    placedAt: '23 oct, 14:15',
+    destination: 'Seattle, WA, US',
+    status: 'neutral',
+    statusLabel: 'Entregada',
+    total: '$2.400,00',
+    tone: 'muted',
+  },
+  {
+    id: '#ORD-8812-Y',
+    placedAt: '23 oct, 13:10',
+    destination: 'Tokio, JP',
+    status: 'info',
+    statusLabel: 'En preparación',
+    total: '$88.300,00',
+    tone: 'default',
+  },
+]
+
+export const dataTableCopy = {
+  label: 'Órdenes recientes',
+  columns: {
+    id: 'ID de orden',
+    placedAt: 'Fecha y hora',
+    destination: 'Destino',
+    status: 'Estado',
+    total: 'Total',
+  },
+  actionsHeader: 'Acciones',
+  actions: { edit: 'Modificar', view: 'Ver', remove: 'Eliminar' },
+  rowActions: (orderId: string) => `Acciones de la orden ${orderId}`,
+  selectAll: 'Seleccionar todas las órdenes',
+  selectRow: 'Seleccionar orden',
+  toolbar: { filter: 'Filtrar', columns: 'Columnas' },
+  summary: (from: number, to: number, total: string) =>
+    `Mostrando ${from} a ${to} de ${total} órdenes`,
+  totalOrders: '4.829',
+  previous: 'Página anterior',
+  next: 'Página siguiente',
+  page: (page: number) => `Ir a la página ${page}`,
+  selectedCount: (count: number) => `${count} seleccionadas`,
+} as const
