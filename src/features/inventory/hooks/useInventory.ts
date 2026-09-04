@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import type { ApiRequestError } from 'shared/api/types'
 
 import {
   createProduct,
@@ -63,11 +64,14 @@ export function useCreateProduct() {
  * Al terminar invalida todo el dominio: el update toca cantidades de stock, así
  * que el `total_stock` del listado también quedó viejo, no sólo el detalle.
  */
-export function useUpdateProduct(id: number | undefined) {
+export function useUpdateProduct(id: number | undefined, version: string | null) {
   const queryClient = useQueryClient()
 
-  return useMutation<Product, Error, UpdateProductPayload>({
-    mutationFn: (payload) => updateProduct(id ?? 0, payload),
+  return useMutation<Product, ApiRequestError, UpdateProductPayload>({
+    mutationFn: (payload) => updateProduct(id ?? 0, payload, version),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: inventoryKeys.all }),
   })
 }
+
+/** La API rechaza con 412 el guardado que parte de una versión vieja. */
+export const CONFLICT_STATUS = 412

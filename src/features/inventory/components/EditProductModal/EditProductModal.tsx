@@ -1,8 +1,17 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import AddIcon from '@mui/icons-material/Add'
 import CloseIcon from '@mui/icons-material/Close'
-import { Button, IconButton, Menu, MenuItem, TextField, Typography } from '@mui/material'
-import { useEffect, useId, useMemo, useState } from 'react'
+import {
+  Alert,
+  AlertTitle,
+  Button,
+  IconButton,
+  Menu,
+  MenuItem,
+  TextField,
+  Typography,
+} from '@mui/material'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { useFieldArray, useForm } from 'react-hook-form'
 import { formatRelativeTime } from 'shared/utils'
 
@@ -70,6 +79,8 @@ export function EditProductModal({
   onSubmit,
   onClose,
   submitting = false,
+  conflict,
+  onOverwrite,
 }: EditProductModalProps) {
   const titleId = useId()
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null)
@@ -87,11 +98,27 @@ export function EditProductModal({
 
   const { fields, append, remove } = useFieldArray({ control, name: 'stocks' })
 
-  // Al reabrir el modal (o al cambiar de producto) el formulario vuelve a los
+  // Al abrir el modal —o al cambiar de producto— el formulario se llena con los
   // valores del servidor: si el usuario canceló a mitad, esos cambios se pierden
   // a propósito.
+  //
+  // Se rellena una sola vez por apertura, y ahí está el detalle que importa: al
+  // llegar un 412 la página refetchea el detalle, así que `product` cambia de
+  // REFERENCIA con el mismo id. Con `product` como disparador, ese refetch
+  // reseteaba el formulario y le borraba al usuario lo que tenía tipeado —
+  // exactamente en el momento en que el aviso de conflicto le promete que sus
+  // cambios siguen ahí. El ref distingue "otro producto" de "el mismo, releído".
+  const filledFor = useRef<number | null>(null)
+
   useEffect(() => {
-    if (open) reset(buildDefaults(product))
+    if (!open) {
+      filledFor.current = null
+      return
+    }
+    if (filledFor.current === product.id) return
+
+    filledFor.current = product.id
+    reset(buildDefaults(product))
   }, [open, product, reset])
 
   const assignedIds = new Set(fields.map((field) => field.warehouseId))
@@ -115,13 +142,41 @@ export function EditProductModal({
             {modal.subtitle(product.sku)}
           </Typography>
         </div>
-        <IconButton aria-label={modal.close} onClick={onClose} size="small">
+        <IconButton aria-label={modal.close} onClick={onClose} size="small" disabled={submitting}>
           <CloseIcon />
         </IconButton>
       </ModalHeader>
 
       <ModalForm onSubmit={submit} noValidate>
         <ModalBody>
+          {/* El conflicto va arriba del formulario y no reemplaza nada: lo que
+              el usuario cargó sigue intacto abajo. */}
+          {conflict === undefined ? null : (
+            <Alert
+              severity="warning"
+              variant="outlined"
+              action={
+                onOverwrite === undefined ? undefined : (
+                  <Button color="warning" size="small" onClick={onOverwrite} disabled={submitting}>
+                    {modal.conflict.overwrite}
+                  </Button>
+                )
+              }
+            >
+              <AlertTitle>{modal.conflict.title}</AlertTitle>
+              {modal.conflict.body}
+              {conflict.length === 0 ? (
+                <div>{modal.conflict.unknown}</div>
+              ) : (
+                <ul>
+                  {conflict.map((change) => (
+                    <li key={change.id}>{change.text}</li>
+                  ))}
+                </ul>
+              )}
+            </Alert>
+          )}
+
           <SectionRoot>
             <SectionHeading title={modal.sections.basic} />
             <BasicGrid>
