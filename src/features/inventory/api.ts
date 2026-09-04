@@ -120,9 +120,13 @@ export async function fetchWarehouses(): Promise<Warehouse[]> {
 export async function createProduct(payload: CreateProductPayload): Promise<Product> {
   const response = await client.post<ApiProduct>('/products', payload)
 
-  // El alta también devuelve el ETag, igual que `show` y `update`. Se guarda por
-  // la misma razón: el producto recién creado ya nace con su versión, y quien lo
-  // edite a continuación arranca con la precondición puesta en vez de sin ella.
+  // El alta también devuelve el ETag, y se captura para que `Product` tenga
+  // siempre la misma forma venga del endpoint que venga: nadie tiene que
+  // recordar cuál de los tres deja `version` en `null`.
+  //
+  // Ojo con lo que NO hace: este producto no entra en la cache de `product(id)`
+  // —`useCreateProduct` sólo invalida—, así que quien abra el modal de edición
+  // dispara igual un `fetchProduct` y usa el ETag de esa lectura.
   return toProduct(response.data, readVersion(response.headers.etag))
 }
 

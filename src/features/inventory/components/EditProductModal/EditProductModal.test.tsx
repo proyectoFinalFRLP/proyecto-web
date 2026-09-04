@@ -93,17 +93,21 @@ describe('EditProductModal', () => {
         product={product()}
         conflict={[
           { id: 'name', text: 'Nombre: A → B' },
+          // Mismo texto, dos depósitos distintos: es el caso que antes producía
+          // una clave duplicada.
           { id: 'stock:1', text: 'Stock en Central: 10 → 4' },
-          { id: 'stock:2', text: 'Stock en Central: 10 → 6' },
+          { id: 'stock:2', text: 'Stock en Central: 10 → 4' },
         ]}
       />,
     )
 
-    // Dos depósitos con el mismo nombre producen textos distintos pero podrían
-    // colisionar como clave: las tres entradas tienen que estar.
+    // Este caso fija que se pinta una entrada por cambio, incluso cuando dos
+    // producen el mismo texto. Que las claves no colisionen lo fija
+    // `conflict.test.ts` comparando los ids: React avisa por consola ante una
+    // clave repetida pero no falla, así que no es algo que este test pueda
+    // afirmar.
     expect(screen.getByText('Nombre: A → B')).toBeInTheDocument()
-    expect(screen.getByText('Stock en Central: 10 → 4')).toBeInTheDocument()
-    expect(screen.getByText('Stock en Central: 10 → 6')).toBeInTheDocument()
+    expect(screen.getAllByText('Stock en Central: 10 → 4')).toHaveLength(2)
   })
 
   it('does not let the close button fire while the save is in flight', () => {
