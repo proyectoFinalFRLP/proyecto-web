@@ -1,6 +1,6 @@
 import { TopNavBar } from 'shared/components'
 import type { TopNavUser } from 'shared/components'
-import { useAuthStore, useUiStore } from 'shared/store'
+import { useAuthStore, useTenantName, useUiStore } from 'shared/store'
 
 export function Header() {
   // Selectores individuales (no el store completo): Header está en todas las
@@ -11,6 +11,7 @@ export function Header() {
   const toggleSidebar = useUiStore((state) => state.toggleSidebar)
   const sessionUser = useAuthStore((state) => state.user)
   const logout = useAuthStore((state) => state.logout)
+  const organization = useTenantName()
 
   // El email es lo único que la app sabe del usuario: no viaja en el JWT ni lo
   // devuelve el login, se guarda del formulario. Hasta que exista `GET /me` es
@@ -20,6 +21,7 @@ export function Header() {
   return (
     <TopNavBar
       brandTo="/"
+      organization={organization}
       onToggleSidebar={toggleSidebar}
       themeMode={themeMode}
       onToggleTheme={toggleTheme}

@@ -6,8 +6,11 @@ import type { ThemeMode } from '../tokens'
 
 // Input relleno del DS: fill recesado + borde outline. Focus = borde accent +
 // anillo. Disabled = fill más oscuro + borde punteado. Error = borde error.
-export function muiOutlinedInput(mode: ThemeMode): Components<Theme>['MuiOutlinedInput'] {
-  const role = roleColors[mode]
+export function muiOutlinedInput(
+  mode: ThemeMode,
+  accentOverride?: string,
+): Components<Theme>['MuiOutlinedInput'] {
+  const role = { ...roleColors[mode], accent: accentOverride ?? roleColors[mode].accent }
   const { fill, fillDisabled, textDisabled } = inputColors[mode]
   const error = mode === 'dark' ? semanticColors.error.baseD : semanticColors.error.baseL
 
