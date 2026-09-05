@@ -5,7 +5,7 @@ import VpnKeyOutlinedIcon from '@mui/icons-material/VpnKeyOutlined'
 import { Alert, Button, InputAdornment, Stack, TextField, Typography } from '@mui/material'
 import { useForm } from 'react-hook-form'
 import { Navigate, useLocation } from 'react-router-dom'
-import { useAuthStore } from 'shared/store'
+import { useAuthStore, useTenantStore } from 'shared/store'
 import { z } from 'zod'
 
 import { AuthShell } from '../components/AuthShell'
@@ -26,6 +26,9 @@ interface RedirectState {
 
 export function LoginPage() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+  // Copy del tenant: si la empresa declaró una bajada en su config, es la que
+  // corresponde acá. La genérica queda de fallback.
+  const tagline = useTenantStore((state) => state.config?.branding.tagline)
   const location = useLocation()
   const { mutate, isPending, error } = useLogin()
 
@@ -53,7 +56,7 @@ export function LoginPage() {
           </BrandMark>
           <Typography variant="bodyLg">{authContent.heading}</Typography>
           <Typography variant="bodyLg" color="text.secondary" align="center">
-            {authContent.subtitle}
+            {tagline ?? authContent.subtitle}
           </Typography>
         </Stack>
 
