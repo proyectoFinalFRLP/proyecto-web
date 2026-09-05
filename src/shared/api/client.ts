@@ -2,6 +2,7 @@ import axios from 'axios'
 
 import { clearSession, getAuthToken } from '../store/authStore'
 import { notify } from '../store/notificationStore'
+import { currentTenantSlug, TENANT_HEADER } from '../utils/tenant'
 
 import type { ApiRequestError } from './types'
 
@@ -39,6 +40,16 @@ client.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
+
+  // El slug viaja en **todos** los requests, sin condicionar por endpoint (§1
+  // del contrato). Es inofensivo: donde hay JWT el backend lo ignora y usa el
+  // `company_id` del token. Condicionar por endpoint sería duplicar acá la
+  // lista de rutas públicas del backend para no ganar nada.
+  const tenantSlug = currentTenantSlug()
+  if (tenantSlug) {
+    config.headers[TENANT_HEADER] = tenantSlug
+  }
+
   return config
 })
 
