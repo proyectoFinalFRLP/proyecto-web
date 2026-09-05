@@ -2,7 +2,7 @@ import axios from 'axios'
 
 import { clearSession, getAuthToken } from '../store/authStore'
 import { notify } from '../store/notificationStore'
-import { currentTenantSlug, TENANT_HEADER } from '../utils/tenant'
+import { currentTenantSlug, TENANT_CONFIG_PATH, TENANT_HEADER } from '../utils/tenant'
 
 import type { ApiRequestError } from './types'
 
@@ -36,8 +36,13 @@ export const client = axios.create({
 // El token se lee del store y no de localStorage para no tener dos fuentes de
 // verdad sobre la sesión.
 client.interceptors.request.use((config) => {
+  // `/tenant-config` es público y describe **el portal**, no la sesión. Con un
+  // JWT adjunto el backend contesta por el tenant del token (§3 del contrato),
+  // que en local puede no ser el del slug: con sesión de Sur y `?tenant=norte`
+  // volvía la config de Sur, y el front la guardaba bajo `norte`. La pregunta
+  // sale sin firmar para que la respuesta sea siempre sobre el slug que se pide.
   const token = getAuthToken()
-  if (token) {
+  if (token && config.url !== TENANT_CONFIG_PATH) {
     config.headers.Authorization = `Bearer ${token}`
   }
 

@@ -11,6 +11,16 @@
 /** Header con el que el slug viaja al backend. */
 export const TENANT_HEADER = 'X-Tenant-Slug'
 
+/**
+ * Endpoint público de config de tenant.
+ *
+ * Vive acá, y no suelto en cada archivo, porque dos lugares tienen que estar de
+ * acuerdo sobre cuál es: el que lo pide y el interceptor que decide no firmarlo
+ * con el JWT. Si se desincronizan, el síntoma es una marca equivocada en
+ * pantalla y no un error.
+ */
+export const TENANT_CONFIG_PATH = '/tenant-config'
+
 /** Tenant que se asume en local cuando no hay override. */
 export const DEFAULT_TENANT_SLUG = 'norte'
 

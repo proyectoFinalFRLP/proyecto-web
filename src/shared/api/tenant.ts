@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+import { TENANT_CONFIG_PATH } from '../utils/tenant'
+
 import { client } from './client'
 
 // Frontera con Rails para la config de tenant y único lugar que conoce su
@@ -51,10 +53,11 @@ export function isFeatureEnabled(
 }
 
 /**
- * `GET /tenant-config` — público, sin JWT. El slug viaja en el header que
- * agrega el interceptor del cliente.
+ * `GET /tenant-config` — público. El slug viaja en el header que agrega el
+ * interceptor del cliente, que además **omite el JWT** en este endpoint: la
+ * respuesta tiene que describir el portal que se pide y no la sesión abierta.
  */
 export async function fetchTenantConfig(): Promise<TenantConfig> {
-  const { data } = await client.get<unknown>('/tenant-config')
+  const { data } = await client.get<unknown>(TENANT_CONFIG_PATH)
   return tenantConfigSchema.parse(data)
 }

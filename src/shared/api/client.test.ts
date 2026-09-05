@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import { sessionToken } from '../../test/tokens'
 import { useAuthStore } from '../store/authStore'
-import { TENANT_HEADER } from '../utils/tenant'
+import { TENANT_CONFIG_PATH, TENANT_HEADER } from '../utils/tenant'
 
 import { client } from './client'
 
@@ -56,5 +56,31 @@ describe('tenant header', () => {
 
     expect(headerOf(sent[0], 'Authorization')).toBe(`Bearer ${token}`)
     expect(headerOf(sent[0], TENANT_HEADER)).toBe(HOST_TENANT)
+  })
+})
+
+describe('authorization header', () => {
+  // `/tenant-config` describe el portal, no la sesión. Con el JWT adjunto el
+  // backend contesta por el tenant del token (§3), así que en local una sesión
+  // de Sur devolvía la config de Sur para `?tenant=norte` y el front la
+  // guardaba bajo `norte`: la app quedaba mostrando la marca equivocada.
+  it('is left out of the public tenant-config request', async () => {
+    useAuthStore.getState().login(sessionToken(), 'a@b.com')
+
+    await client.get(TENANT_CONFIG_PATH)
+
+    expect(headerOf(sent[0], 'Authorization')).toBeUndefined()
+    expect(headerOf(sent[0], TENANT_HEADER)).toBe(HOST_TENANT)
+  })
+
+  it('still travels in every other request of the same session', async () => {
+    const token = sessionToken()
+    useAuthStore.getState().login(token, 'a@b.com')
+
+    await client.get('/products')
+    await client.get(TENANT_CONFIG_PATH)
+
+    expect(headerOf(sent[0], 'Authorization')).toBe(`Bearer ${token}`)
+    expect(headerOf(sent[1], 'Authorization')).toBeUndefined()
   })
 })
