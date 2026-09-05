@@ -27,7 +27,12 @@ export function AppLayout() {
           // componente que scrollea. `minWidth: 0` es lo que habilita a la
           // tabla a resolver su propio desborde.
           minWidth: 0,
-          ml: sidebarOpen ? `${DRAWER_WIDTH}px` : 0,
+          // La sidebar ya ocupa su ancho como flex item, así que abierta el
+          // contenido no necesita margen: empieza justo donde ella termina.
+          // Cerrada, el margen negativo recupera la columna que el drawer
+          // sigue reservando, y es lo que se anima para que el contenido
+          // acompañe al panel en vez de saltar.
+          ml: sidebarOpen ? 0 : `-${DRAWER_WIDTH}px`,
           transition: (theme) =>
             theme.transitions.create('margin', {
               easing: theme.transitions.easing.sharp,

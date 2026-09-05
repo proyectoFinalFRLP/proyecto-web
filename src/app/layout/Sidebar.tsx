@@ -27,7 +27,11 @@ export function Sidebar() {
       variant="persistent"
       open={sidebarOpen}
       sx={{
-        width: sidebarOpen ? DRAWER_WIDTH : 0,
+        // Ancho fijo, también cerrada: el drawer reserva su columna en el flex
+        // del layout y el contenido la reclama con un margen negativo (ver
+        // AppLayout). Condicionar el ancho acá **y** el margen allá descontaba
+        // la sidebar dos veces y abría un hueco de 480px.
+        width: DRAWER_WIDTH,
         flexShrink: 0,
         '& .MuiDrawer-paper': {
           width: DRAWER_WIDTH,
