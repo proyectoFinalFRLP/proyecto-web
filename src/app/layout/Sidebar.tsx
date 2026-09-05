@@ -8,14 +8,19 @@ import {
   ListItemText,
   Toolbar,
 } from '@mui/material'
-import { navRoutes } from 'app/router/routes'
+import { navRoutesFor } from 'app/router/routes'
+import { useMemo } from 'react'
 import { NavLink } from 'react-router-dom'
-import { useUiStore } from 'shared/store'
+import { useTenantStore, useUiStore } from 'shared/store'
 
 const DRAWER_WIDTH = 240
 
 export function Sidebar() {
   const { sidebarOpen } = useUiStore()
+  // La navegación sale de la config del tenant: una feature que la empresa no
+  // tiene no se lista (TESIS-121).
+  const features = useTenantStore((state) => state.config?.features)
+  const navRoutes = useMemo(() => navRoutesFor(features), [features])
 
   return (
     <Drawer

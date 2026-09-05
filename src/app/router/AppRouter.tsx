@@ -3,6 +3,7 @@ import { Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { ErrorBoundary, LoadingSpinner } from 'shared/components'
 
+import { FeatureGate } from './FeatureGate'
 import { ProtectedRoute } from './ProtectedRoute'
 import { bareRoutes, shellRoutes } from './routes'
 
@@ -32,7 +33,17 @@ export function AppRouter() {
         <Route element={<ProtectedRoute />}>
           <Route element={<AppLayout />}>
             {shellRoutes.map((route) => (
-              <Route key={route.path} path={route.path} element={route.element} />
+              <Route
+                key={route.path}
+                path={route.path}
+                element={
+                  route.feature ? (
+                    <FeatureGate feature={route.feature}>{route.element}</FeatureGate>
+                  ) : (
+                    route.element
+                  )
+                }
+              />
             ))}
             <Route path="*" element={<NotFoundRedirect />} />
           </Route>
