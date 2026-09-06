@@ -5,7 +5,7 @@ import VpnKeyOutlinedIcon from '@mui/icons-material/VpnKeyOutlined'
 import { Alert, Button, InputAdornment, Stack, TextField, Typography } from '@mui/material'
 import { useForm } from 'react-hook-form'
 import { Navigate, useLocation } from 'react-router-dom'
-import { useAuthStore, useTenantStore } from 'shared/store'
+import { useAuthStore, useTenantName, useTenantStore } from 'shared/store'
 import { z } from 'zod'
 
 import { AuthShell } from '../components/AuthShell'
@@ -29,6 +29,7 @@ export function LoginPage() {
   // Copy del tenant: si la empresa declaró una bajada en su config, es la que
   // corresponde acá. La genérica queda de fallback.
   const tagline = useTenantStore((state) => state.config?.branding.tagline)
+  const tenantName = useTenantName()
   const location = useLocation()
   const { mutate, isPending, error } = useLogin()
 
@@ -54,7 +55,12 @@ export function LoginPage() {
           <BrandMark sx={{ mb: 1 }}>
             <LockOutlinedIcon />
           </BrandMark>
-          <Typography variant="bodyLg">{authContent.heading}</Typography>
+          {/* El portal es de la empresa: su nombre manda en la cabecera de la
+              tarjeta y hereda el color primario del tenant. El fallback cubre
+              el caso sin branding (el producto genérico). */}
+          <Typography variant="h2" color="primary.main">
+            {tenantName ?? authContent.brand}
+          </Typography>
           <Typography variant="bodyLg" color="text.secondary" align="center">
             {tagline ?? authContent.subtitle}
           </Typography>

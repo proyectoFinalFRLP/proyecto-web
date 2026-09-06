@@ -21,6 +21,9 @@ const brandingSchema = z.object({
   accent_color: z.string().optional(),
   logo_url: z.string().nullish(),
   tagline: z.string().nullish(),
+  // Modo con el que el tenant prefiere que su portal arranque. Es un default,
+  // no una imposición: el toggle del usuario pesa más (ver `uiStore`).
+  theme_mode: z.enum(['light', 'dark']).optional(),
 })
 
 export const tenantConfigSchema = z.object({

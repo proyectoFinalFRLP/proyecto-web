@@ -3,10 +3,12 @@ import { brandingFromSlug } from 'app/theme/branding'
 import { createAppTheme } from 'app/theme/theme'
 import { useMemo } from 'react'
 import type { ReactNode } from 'react'
-import { useTenantStore, useUiStore } from 'shared/store'
+import { useTenantStore } from 'shared/store'
+import { useThemeMode } from 'shared/store/uiStore'
 
 export function ThemeWrapper({ children }: { children: ReactNode }) {
-  const themeMode = useUiStore((state) => state.themeMode)
+  // Modo efectivo: elección del usuario, o la del tenant si nunca eligió.
+  const themeMode = useThemeMode()
   const slug = useTenantStore((state) => state.slug)
   const config = useTenantStore((state) => state.config)
 
