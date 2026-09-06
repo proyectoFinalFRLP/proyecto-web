@@ -1,6 +1,8 @@
 import { alpha, createTheme } from '@mui/material/styles'
 import type { PaletteOptions, SimplePaletteColorOptions, ThemeOptions } from '@mui/material/styles'
+import type { TenantBranding } from 'shared/api'
 
+import { brandColor, contrastTextFor } from './branding'
 import { buildComponents } from './components'
 import {
   breakpoints,
@@ -94,18 +96,29 @@ function brandTones(main: string) {
   }
 }
 
-function buildPalette(mode: ThemeMode): PaletteOptions {
+// El branding del tenant entra por acá y sólo por acá: pisa el primario y el
+// acento, y nada más. El texto que va encima se mide en vez de fijarse por modo
+// (ver `contrastTextFor`), porque con un color por empresa la regla "en light va
+// blanco" deja de valer.
+function tenantRoles(mode: ThemeMode, branding?: TenantBranding) {
   const role = roleColors[mode]
   return {
+    primary: brandColor(branding?.primary_color) ?? role.primary,
+    accent: brandColor(branding?.accent_color) ?? role.accent,
+  }
+}
+
+function buildPalette(mode: ThemeMode, branding?: TenantBranding): PaletteOptions {
+  const role = roleColors[mode]
+  const { primary, accent } = tenantRoles(mode, branding)
+  return {
     mode,
-    // Regla del primario: en light el CTA es navy con texto blanco; en dark es
-    // sky brillante con texto oscuro.
     primary: {
-      main: role.primary,
-      contrastText: mode === 'light' ? '#ffffff' : '#051424',
-      ...brandTones(role.primary),
+      main: primary,
+      contrastText: contrastTextFor(primary),
+      ...brandTones(primary),
     },
-    secondary: { main: role.accent, contrastText: '#051424', ...brandTones(role.accent) },
+    secondary: { main: accent, contrastText: contrastTextFor(accent), ...brandTones(accent) },
     success: semanticPalette(mode, 'success'),
     warning: semanticPalette(mode, 'warning'),
     error: semanticPalette(mode, 'error'),
@@ -143,11 +156,15 @@ function buildElevation(mode: ThemeMode) {
 
 // ── Tema ──────────────────────────────────────────────────────────────────────
 
-export function createAppTheme(mode: ThemeMode) {
+/**
+ * Tema de la app. `branding` es la config del tenant activo: sin él sale el tema
+ * del DS tal cual, con él se repintan primario y acento.
+ */
+export function createAppTheme(mode: ThemeMode, branding?: TenantBranding) {
   return createTheme({
     cssVariables: true,
     elevation: buildElevation(mode),
-    palette: buildPalette(mode),
+    palette: buildPalette(mode, branding),
     typography,
     shape: { borderRadius: radius.base },
     // Breakpoints del DS mapeados a las keys estándar de MUI (xs/sm/md/lg/xl)
@@ -183,6 +200,10 @@ export function createAppTheme(mode: ThemeMode) {
         minHeight: layout.topNavHeight,
       },
     },
-    components: buildComponents(mode),
+    // El acento resuelto también viaja a los overrides: el anillo de foco y el
+    // borde del input enfocado lo leen de los tokens, no de la paleta, y sin
+    // esto la pantalla de login quedaría con el celeste del DS alrededor de los
+    // campos de una empresa que es verde.
+    components: buildComponents(mode, tenantRoles(mode, branding).accent),
   })
 }

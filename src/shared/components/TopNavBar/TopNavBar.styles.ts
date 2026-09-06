@@ -17,6 +17,22 @@ export const BrandLink = styled(Link)(({ theme }) => ({
   [theme.breakpoints.down('sm')]: { display: 'none' },
 }))
 
+// Nombre de la empresa, separado de la marca del producto por una divisoria.
+// Se trunca en vez de empujar la barra: hay razones sociales largas y la
+// búsqueda y las acciones no pueden perder su lugar.
+export const OrganizationName = styled(Box)(({ theme }) => ({
+  ...theme.typography.labelMd,
+  maxWidth: 220,
+  marginInlineStart: theme.spacing(1.5),
+  paddingInlineStart: theme.spacing(1.5),
+  borderInlineStart: `1px solid ${theme.palette.divider}`,
+  color: theme.palette.text.secondary,
+  whiteSpace: 'nowrap',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  [theme.breakpoints.down('sm')]: { display: 'none' },
+}))
+
 interface SearchRootProps {
   expanded?: boolean
 }

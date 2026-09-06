@@ -31,9 +31,10 @@ Frontend de trabajo final de la carrera de Ingeniería en Sistemas de Informaci�
 
 ```bash
 VITE_API_URL=http://localhost:3000/api/v1   # URL base de la API Rails (sin trailing slash)
+VITE_TENANT=norte                           # Tenant a emular en desarrollo (opcional)
 ```
 
-Copiar `.env.example` a `.env` y completar el valor.
+Copiar `.env.example` a `.env` y completar los valores. `VITE_TENANT` sólo se usa cuando el host no nombra al tenant (`localhost`) y no hay `?tenant=` en la URL; en producción el slug sale siempre del subdominio.
 
 ---
 
@@ -49,13 +50,14 @@ src/
 │   │   ├── Header.tsx          # Cablea TopNavBar (shared/) con uiStore
 │   │   └── Sidebar.tsx         # Drawer persistente de navegación
 │   ├── providers/              # Providers globales
-│   │   ├── Providers.tsx       # QueryClientProvider + BrowserRouter + ThemeWrapper
+│   │   ├── Providers.tsx       # QueryClientProvider + BrowserRouter + ThemeWrapper + TenantGate
+│   │   ├── TenantGate.tsx      # Gate de arranque: splash / tenant desconocido / app
 │   │   └── ThemeWrapper.tsx    # ThemeProvider MUI + CssBaseline
 │   ├── router/                 # Routing
 │   │   ├── AppRouter.tsx       # Árbol de rutas con Suspense + AppLayout
 │   │   └── routes.tsx          # Lazy imports de páginas
 │   └── theme/                  # Tema MUI
-│       └── theme.ts            # createAppTheme(mode): 'light' | 'dark'
+│       └── theme.ts            # createAppTheme(mode, branding?): 'light' | 'dark' + marca del tenant
 │
 ├── features/                   # Módulos de negocio (uno por feature)
 │   └── [feature]/
@@ -68,6 +70,7 @@ src/
 ├── shared/                     # Código reutilizable entre features
 │   ├── api/
 │   │   ├── client.ts           # Instancia Axios configurada (baseURL, interceptors)
+│   │   ├── tenant.ts           # Frontera de GET /tenant-config (schema + fetch)
 │   │   ├── types.ts            # ApiResponse<T>, PaginatedResponse<T>, ApiError
 │   │   └── index.ts            # Barrel export
 │   ├── components/
@@ -76,13 +79,16 @@ src/
 │   │   ├── PageWrapper.tsx     # Box con padding responsivo y maxWidth: 1200
 │   │   └── index.ts            # Barrel export
 │   ├── hooks/
-│   │   └── usePaginatedQuery.ts # Hook genérico para queries paginadas
+│   │   ├── usePaginatedQuery.ts # Hook genérico para queries paginadas
+│   │   └── useTenantConfig.ts   # Config del tenant al arrancar la app
 │   ├── store/
 │   │   ├── uiStore.ts          # Estado de UI (themeMode, sidebarOpen) con persist
+│   │   ├── tenantStore.ts      # Slug + config del tenant activo, con persist
 │   │   └── index.ts            # Barrel export
 │   ├── types/
 │   │   └── index.ts            # ID, Nullable<T>, Optional<T>, Option<T>, PaginationParams
 │   └── utils/
+│       ├── tenant.ts           # Resolución del slug (subdominio / override de dev)
 │       └── index.ts            # formatDate, capitalize, sleep, isNonEmpty
 │
 └── tests/                      # Tests de integración / globales
@@ -137,11 +143,20 @@ index.html → src/main.tsx → <Providers><App /></Providers>
 
 1. `QueryClientProvider` — React Query (`staleTime`: 5 min, `retry`: 1, `refetchOnWindowFocus`: false)
 2. `BrowserRouter` — React Router
-3. `ThemeWrapper` — MUI `ThemeProvider` + `CssBaseline`
+3. `ThemeWrapper` — MUI `ThemeProvider` + `CssBaseline`, con la marca del tenant activo
+4. `TenantGate` — gate de arranque multi-tenant
+
+**Multi-tenancy en el frontend** (TESIS-121; contrato en `plan-demo/CONTRATO-tenant.md`):
+
+- El slug sale del subdominio (`norte.<dominio>` → `norte`). En `localhost` hay override de desarrollo: `?tenant=` > `VITE_TENANT` > `norte`. Vive en `shared/utils/tenant.ts`.
+- `TenantGate` no monta la app hasta saber para qué empresa se sirve: mientras `GET /tenant-config` está en vuelo muestra un splash con la identidad derivada del slug —**nunca** el tema base genérico— y ante un slug irresoluble o un 404 muestra la pantalla de tenant desconocido.
+- La config (branding + feature flags) vive en `tenantStore`, persistida por slug, y la trae `shared/hooks/useTenantConfig`.
+- La diferenciación entre clientes es **config + flags**, nunca una rama de código por empresa.
 
 **Router — registro único de rutas:**
 
-- `routes.tsx`: **fuente única de verdad** de las rutas. Exporta `appRoutes` (array de `{ path, element, nav?, layout? }`, con las páginas cargadas vía `lazy()`), `navRoutes` (las que tienen `nav`, ya angostadas para el Sidebar) y la partición `shellRoutes` / `bareRoutes` según `layout`. Sumar una ruta = agregar **una** entrada acá.
+- `routes.tsx`: **fuente única de verdad** de las rutas. Exporta `appRoutes` (array de `{ path, element, nav?, layout?, feature? }`, con las páginas cargadas vía `lazy()`), `navRoutesFor(features)` (las que tienen `nav` **y** cuya feature está habilitada para el tenant activo, ya angostadas para el Sidebar) y la partición `shellRoutes` / `bareRoutes` según `layout`. Sumar una ruta = agregar **una** entrada acá.
+- **Rutas por feature flag (`feature`):** una ruta con `feature` sólo aparece en el Sidebar si la config del tenant la trae encendida, y `FeatureGate` la reemplaza por una pantalla de "no disponible" si se navega directo. Un flag ausente es un flag apagado.
 - `AppRouter.tsx`: monta `bareRoutes` sueltas y públicas — cada una con su propio `ErrorBoundary` — y `shellRoutes` detrás de `<ProtectedRoute>` y dentro de `<AppLayout>`. Todo envuelto en `<Suspense fallback={<LoadingSpinner fullScreen />}>`. El catch-all vive dentro del guard, así una URL desconocida sin sesión también termina en el login.
 - El Sidebar y el Router se derivan del mismo `routes.tsx`, por lo que no pueden divergir.
 - **Rutas sin shell (`layout: 'bare'`):** públicas y full-bleed — hoy `/login`. No pasan por el guard ni renderizan Header/Sidebar. Como el `ErrorBoundary` de `AppLayout` sólo envuelve al `Outlet` privado, cada ruta bare lleva el suyo.
@@ -151,10 +166,11 @@ index.html → src/main.tsx → <Providers><App /></Providers>
 
 - `AppLayout.tsx`: flex `Header + Sidebar + <Outlet>`. El margen izquierdo responde a `sidebarOpen` del `uiStore` (drawer width: 240px). El `<Outlet>` va envuelto en `<ErrorBoundary key={pathname}>`: los errores de render (o de carga de un chunk lazy) muestran el `ErrorFallback` en el área de contenido sin tumbar Header ni Sidebar, y se limpian al navegar.
 - `Header.tsx`: único punto de cableado del `TopNavBar` (`shared/components`) — lee `themeMode`/`toggleTheme`/`toggleSidebar` de `useUiStore` y el email + `logout` de `useAuthStore`, todo con selectores individuales, y se los pasa por props. El componente en sí es presentacional — sin datos ni `uiStore`; su único acople es el `Link` de react-router (brand y engranaje), correcto para esta app (ver tabla de `shared/` más abajo). El logout no navega: limpia la sesión y el guard hace el redirect.
-- `Sidebar.tsx`: Drawer persistente con `navItems` estático. Usa `NavLink` con clase `active` que resalta en `primary.main`.
+- `Sidebar.tsx`: Drawer persistente. Los ítems salen de `navRoutesFor(features)` con los feature flags del tenant activo. Usa `NavLink` con clase `active` que resalta en `primary.main`.
 
-**Tema** (`createAppTheme(mode)`):
+**Tema** (`createAppTheme(mode, branding?)`):
 
+- `branding` es el del tenant activo: `primary_color` y `accent_color` pisan el primario y el acento de la paleta (y el acento llega también al anillo de foco y al input enfocado). El resto de los tokens del DS no se toca. El texto sobre esos colores se calcula por contraste, no se fija por modo.
 - Fuente: Inter con fallbacks al sistema
 - `borderRadius`: 8px global
 - Overrides: `MuiButton` sin elevation · `MuiCard` sin elevation, borde `1px solid`
@@ -169,7 +185,7 @@ index.html → src/main.tsx → <Providers><App /></Providers>
 **Cliente HTTP** (`shared/api/client.ts`):
 
 - `baseURL`: `import.meta.env.VITE_API_URL`
-- Request interceptor: inyecta `Authorization: Bearer <token>` leyendo el token del `authStore` (no de `localStorage`, para no tener dos fuentes de verdad sobre la sesión)
+- Request interceptor: inyecta `Authorization: Bearer <token>` leyendo el token del `authStore` (no de `localStorage`, para no tener dos fuentes de verdad sobre la sesión), y `X-Tenant-Slug` con el slug del tenant activo en **todos** los requests — el backend lo ignora donde manda el JWT (§1 del contrato de tenant)
 - Response interceptor: normaliza errores a `ApiRequestError`, que **conserva el `status`** para que cada feature elija su mensaje en vez de mostrar el texto crudo de la API
 - **401**: limpia la sesión completa; el redirect lo hace el guard, así el interceptor no conoce el router
 - **403**: no desloguea — notifica "sin permisos" vía `notify()`
@@ -233,10 +249,12 @@ interface PaginationParams {
 ```ts
 const { themeMode, toggleTheme, sidebarOpen, toggleSidebar, setSidebarOpen } = useUiStore()
 const { token, user, isAuthenticated, login, logout } = useAuthStore()
+const { slug, config, setConfig } = useTenantStore()
 ```
 
 - `uiStore` — `themeMode` persiste en `localStorage` (clave `'ui-store'`); `sidebarOpen` no persiste.
 - `authStore` — persiste **sólo** token y email (clave `'auth-store'`). `user` (id + `companyId`) se **deriva del JWT** al rehidratar, así no puede quedar desincronizado, y un token vencido o corrupto se descarta antes de arrancar. Expone `getAuthToken()` y `clearSession()` para consumidores fuera de React, como el interceptor HTTP.
+- `tenantStore` — `slug` (resuelto del host, no lo cambia la app) y `config` del tenant (clave `'tenant-store'`). La config persistida se restaura **sólo** si es del mismo slug, y se valida con el mismo schema que la respuesta del backend. Expone `useTenantName()` y `useTenantFeature(feature)` como selectores, y `setTenantConfig()` para escribirla desde afuera de React.
 - `notificationStore` — cola de notificaciones con `notify(mensaje, severidad)`, también invocable fuera de React. La renderiza `NotificationHost`, montado una vez en los providers.
 
 **Hook paginado** (`shared/hooks/usePaginatedQuery.ts`):
@@ -270,6 +288,7 @@ features/[nombre]/
 
 | Feature         | Contenido                                                                                                                                                                                                                                                  |
 | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `dashboard`     | Panel de operación (`/dashboard`) y la sección de Integraciones (`/integrations`, detrás del feature flag `integrations` del tenant). Comparten `useInfraHealth` e `IntegrationNodeList`                                                                   |
 | `design-system` | Catálogo de tokens y componentes del DS (`/design-system`). No tiene datos ni hooks                                                                                                                                                                        |
 | `home`          | Landing de la app (`/`)                                                                                                                                                                                                                                    |
 | `inventory`     | Catálogo de productos y stock por depósito (`/inventory`). Hoy el alta y la edición de producto (`CreateProductModal`, `EditProductModal`) sobre la API real; la vista real del catálogo la construye TESIS-62, que reemplaza el cuerpo de `InventoryPage` |

@@ -2,7 +2,8 @@ import Brightness4Icon from '@mui/icons-material/Brightness4'
 import Brightness7Icon from '@mui/icons-material/Brightness7'
 import { IconButton, Tooltip, Typography } from '@mui/material'
 import type { ReactNode } from 'react'
-import { useUiStore } from 'shared/store'
+import { useTenantName, useUiStore } from 'shared/store'
+import { useThemeMode } from 'shared/store/uiStore'
 
 import { authContent } from '../content'
 
@@ -19,8 +20,13 @@ import { BackgroundGlow, ShellFooter, ShellMain, ShellRoot, TopBar } from './Aut
  * ausencia.
  */
 export function AuthShell({ children }: { children: ReactNode }) {
-  const themeMode = useUiStore((state) => state.themeMode)
+  const themeMode = useThemeMode()
   const toggleTheme = useUiStore((state) => state.toggleTheme)
+  // El login es la primera pantalla y también va con la marca de la empresa: es
+  // el portal de ese tenant, no el de un producto genérico (TESIS-121). El
+  // fallback sólo se usaría si la app se montara sin config, que el gate de
+  // arranque no permite.
+  const tenantName = useTenantName()
 
   const isLight = themeMode === 'light'
 
@@ -31,7 +37,7 @@ export function AuthShell({ children }: { children: ReactNode }) {
 
       <TopBar>
         <Typography variant="labelMd" color="primary.main" sx={{ letterSpacing: '0.08em' }}>
-          {authContent.brand}
+          {tenantName ?? authContent.brand}
         </Typography>
 
         {/* Añadido respecto del diseño: el toggle de tema vive en el Header de la

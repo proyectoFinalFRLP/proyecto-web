@@ -3,8 +3,11 @@ import type { Components, Theme } from '@mui/material/styles'
 import { roleColors } from '../tokens'
 import type { ThemeMode } from '../tokens'
 
-export function muiCssBaseline(mode: ThemeMode): Components<Theme>['MuiCssBaseline'] {
-  const { accent } = roleColors[mode]
+export function muiCssBaseline(
+  mode: ThemeMode,
+  accentOverride?: string,
+): Components<Theme>['MuiCssBaseline'] {
+  const accent = accentOverride ?? roleColors[mode].accent
 
   return {
     styleOverrides: {
