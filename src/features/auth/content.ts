@@ -3,7 +3,7 @@
 // catálogo, design system): se traduce por consistencia y queda anotado.
 
 export const authContent = {
-  brand: 'PRECISION LOGISTICS',
+  brand: 'ONESTOCK',
   heading: 'Bienvenido de nuevo',
   subtitle: 'Ingresá para acceder a tu panel de operaciones.',
   emailLabel: 'Email',
@@ -16,7 +16,7 @@ export const authContent = {
     toLight: 'Modo claro',
     ariaLabel: 'Alternar tema',
   },
-  legal: `© ${new Date().getFullYear()} Precision Logistics. Todos los derechos reservados.`,
+  legal: `© ${new Date().getFullYear()} OneStock. Todos los derechos reservados.`,
   errors: {
     emailRequired: 'Ingresá tu email',
     emailInvalid: 'El email no tiene un formato válido',

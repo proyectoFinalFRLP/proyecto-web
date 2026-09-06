@@ -1,7 +1,7 @@
 // Copy centralizado del TopNavBar — sin literales sueltos en el JSX
 // (docs/guidelines/component-structure.md §4).
 export const topNavContent = {
-  brandLabel: 'PRECISION LOGISTICS',
+  brandLabel: 'ONESTOCK',
   toggleSidebarAriaLabel: 'Alternar navegación lateral',
   darkModeLabel: 'Modo oscuro',
   lightModeLabel: 'Modo claro',
