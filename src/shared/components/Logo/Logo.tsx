@@ -14,7 +14,7 @@ import { LogoMark } from './LogoMark'
 const CORNERS = ['tl', 'tr', 'bl', 'br'] as const
 
 /**
- * Lockup de la marca: isotipo + "PRECISION" con "LOGISTICS" de bajada.
+ * Lockup de la marca: isotipo + "OneStock" con "ORDER MANAGEMENT" de bajada.
  *
  * Las dos reglas del manual viajan con el componente y no con quien lo usa: el
  * área de respeto va como padding propio y el mínimo de 140px como `minWidth`.

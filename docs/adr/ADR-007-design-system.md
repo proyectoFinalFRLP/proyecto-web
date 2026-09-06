@@ -7,7 +7,7 @@
 
 ## Contexto
 
-El proyecto adopta un design system definido externamente: **Precision OMS v1.2** (exportado
+El proyecto adopta un design system definido externamente: **OneStock Design System v1.2** (exportado
 desde un proyecto de Claude Design, tema dark canónico + light derivado). Hasta ahora el tema de
 MUI usaba la paleta y tipografía por defecto (ver [ADR-004](./ADR-004-ui-library.md)), sin tokens
 propios.

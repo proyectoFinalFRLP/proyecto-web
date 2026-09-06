@@ -4,7 +4,7 @@
 
 export const homeCopy = {
   page: {
-    title: 'Precision OMS',
+    title: 'OneStock',
     subtitle: 'Gestión de órdenes, inventario y envíos.',
     /** El email lo confirma la sesión; no se pinta si todavía no hay uno. */
     session: (email: string) => `Sesión iniciada como ${email}`,

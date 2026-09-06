@@ -1,6 +1,6 @@
 # Diseño de la interfaz
 
-Fuentes del diseño de Precision OMS. **Esta carpeta es la referencia visual del proyecto**: antes
+Fuentes del diseño de OneStock. **Esta carpeta es la referencia visual del proyecto**: antes
 de implementar una pantalla, se mira acá.
 
 El archivo de Figma que usaban las cards anteriores **está obsoleto** — el motivo y la decisión
@@ -81,7 +81,10 @@ aparte.
 
 Respetarlo al implementar, porque es donde el Figma anterior se desordenó:
 
-- El producto se llama **Precision OMS**. En ningún lado "OMS Pro" ni "Global OMS".
+- El producto se llama **OneStock**. En ningún lado "Precision OMS", "OMS Pro" ni
+  "Global OMS". **"Precision Logistics" no es el producto**: es el nombre de la empresa
+  de ejemplo, es decir un tenant, y como tal viaja por configuración (TESIS-121), no
+  hardcodeado.
 - Los operadores logísticos son **Andreani, Moova, Correo Argentino y OCASA**.
 - Las categorías de producto son las cuatro de `Product::CATEGORIES` en el backend:
   **Electronics, Machinery, Cabling, Power**.
