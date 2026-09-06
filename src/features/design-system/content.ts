@@ -15,7 +15,7 @@ import type {
 // de traducción (ver ADR-007).
 
 export const dsCopy = {
-  pageTitle: 'Design System — Precision OMS',
+  pageTitle: 'Design System — OneStock',
   pageSubtitle: 'Catálogo de tokens y componentes del design system.',
   sections: {
     typography: { title: 'Tipografía', subtitle: 'Plus Jakarta Sans + Space Grotesk' },
@@ -311,10 +311,10 @@ export const glassActions = {
 } as const
 
 export const logoSpec = {
-  brand: 'Precision',
-  tagline: 'Logistics',
+  brand: 'OneStock',
+  tagline: 'Order Management',
   rules: [
-    { label: 'Área de respeto', value: "Clearance: 1× la altura de la 'P'" },
+    { label: 'Área de respeto', value: "Clearance: 1× la altura de la 'O'" },
     { label: 'Color de marca', value: 'Primary (luminescente)' },
     { label: 'Tamaño mínimo', value: 'Web: 140px | Print: 25mm' },
   ],

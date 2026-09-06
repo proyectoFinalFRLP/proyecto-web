@@ -1,4 +1,4 @@
-// Design tokens — Precision OMS Design System v1.2
+// Design tokens — OneStock Design System v1.2
 //
 // Único source of truth de los valores crudos del design system. Nadie hardcodea
 // un color, radio, duración o breakpoint fuera de este archivo: todo lo consume
