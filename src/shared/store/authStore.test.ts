@@ -14,12 +14,27 @@ async function loadStore() {
   return { useAuthStore, getAuthToken, queryClient }
 }
 
+/**
+ * Igual que `loadStore`, pero con la revocación contra el backend reemplazada
+ * por un doble. El store la dispara sin esperarla, así que sin el doble los
+ * casos de logout saldrían a la red.
+ */
+async function loadStoreWithRevokeStub(revoke = vi.fn().mockResolvedValue(undefined)) {
+  vi.resetModules()
+  vi.doMock('../api/session', () => ({ revokeSession: revoke }))
+
+  const { useAuthStore } = await import('./authStore')
+
+  return { useAuthStore, revoke }
+}
+
 function persist(state: unknown, version = 1) {
   localStorage.setItem('auth-store', JSON.stringify({ state, version }))
 }
 
 beforeEach(() => {
   localStorage.clear()
+  vi.doUnmock('../api/session')
 })
 
 describe('login', () => {
@@ -76,6 +91,56 @@ describe('logout', () => {
     useAuthStore.getState().logout()
 
     expect(queryClient.getQueryData(['products'])).toBeUndefined()
+  })
+
+  // Hasta TESIS-116 el logout sólo limpiaba el navegador: el token seguía
+  // siendo válido contra la API hasta que vencía.
+  it('revokes the token against the backend', async () => {
+    const { useAuthStore, revoke } = await loadStoreWithRevokeStub()
+    const token = sessionToken()
+    useAuthStore.getState().login(token, 'a@b.com')
+
+    useAuthStore.getState().logout()
+
+    expect(revoke).toHaveBeenCalledWith(token)
+  })
+
+  // El token a revocar es el que está en el store en ese momento, así que la
+  // llamada se dispara ANTES de vaciarlo.
+  it('revokes before emptying the session', async () => {
+    let tokenAlLlamar: string | null = null
+    const { useAuthStore } = await loadStoreWithRevokeStub(
+      vi.fn((received: string) => {
+        tokenAlLlamar = received
+        return Promise.resolve()
+      }),
+    )
+    useAuthStore.getState().login(sessionToken(), 'a@b.com')
+
+    useAuthStore.getState().logout()
+
+    expect(tokenAlLlamar).not.toBeNull()
+  })
+
+  // Dejar al usuario adentro porque se cayó la red sería peor que no revocar:
+  // la revocación es del servidor y el token ya está en el aire igual.
+  it('empties the session even if the revocation fails', async () => {
+    const { useAuthStore } = await loadStoreWithRevokeStub(
+      vi.fn().mockRejectedValue(new Error('sin red')),
+    )
+    useAuthStore.getState().login(sessionToken(), 'a@b.com')
+
+    useAuthStore.getState().logout()
+
+    expect(useAuthStore.getState().isAuthenticated).toBe(false)
+  })
+
+  it('does not call the backend when there is no session to revoke', async () => {
+    const { useAuthStore, revoke } = await loadStoreWithRevokeStub()
+
+    useAuthStore.getState().logout()
+
+    expect(revoke).not.toHaveBeenCalled()
   })
 })
 

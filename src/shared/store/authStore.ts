@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
 import { queryClient } from '../api/queryClient'
+import { revokeSession } from '../api/session'
 import { decodeJwt, isExpired } from '../utils/jwt'
 
 export interface SessionUser {
@@ -60,7 +61,7 @@ function sessionFromToken(token: string, email: string): Session {
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       ...EMPTY_SESSION,
       login: (token, email) => {
         const session = sessionFromToken(token, email)
@@ -68,6 +69,13 @@ export const useAuthStore = create<AuthState>()(
         return session.isAuthenticated
       },
       logout: () => {
+        // Se dispara la revocación ANTES de limpiar y sin esperarla: el token
+        // que hay que revocar es el que está en el store ahora, y hacer esperar
+        // al usuario a que el servidor conteste para sacarlo de la pantalla no
+        // aporta nada — la revocación es del lado del servidor y pasa igual.
+        const { token } = get()
+        if (token) void revokeSession(token)
+
         set(EMPTY_SESSION)
         // La cache de React Query es por tenant: el JWT lleva `company_id`, así
         // que dejarla viva le mostraría al próximo usuario los datos de la
