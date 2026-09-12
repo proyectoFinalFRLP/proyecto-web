@@ -80,7 +80,6 @@ export function EditProductModal({
   onClose,
   submitting = false,
   conflict,
-  onOverwrite,
 }: EditProductModalProps) {
   const titleId = useId()
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null)
@@ -152,17 +151,7 @@ export function EditProductModal({
           {/* El conflicto va arriba del formulario y no reemplaza nada: lo que
               el usuario cargó sigue intacto abajo. */}
           {conflict === undefined ? null : (
-            <Alert
-              severity="warning"
-              variant="outlined"
-              action={
-                onOverwrite === undefined ? undefined : (
-                  <Button color="warning" size="small" onClick={onOverwrite} disabled={submitting}>
-                    {modal.conflict.overwrite}
-                  </Button>
-                )
-              }
-            >
+            <Alert severity="warning" variant="outlined">
               <AlertTitle>{modal.conflict.title}</AlertTitle>
               {modal.conflict.body}
               {conflict.length === 0 ? (
@@ -291,8 +280,17 @@ export function EditProductModal({
             <Button color="neutral" variant="text" onClick={onClose} disabled={submitting}>
               {modal.cancel}
             </Button>
-            <Button type="submit" variant="contained" disabled={submitting}>
-              {modal.submit}
+            {/* Con un conflicto a la vista el botón no cambia de acción —manda
+                el formulario tal como está— pero sí de rótulo: guardar ahora
+                pisa lo que cambió la otra persona, y eso tiene que leerse en
+                el botón que lo hace. */}
+            <Button
+              type="submit"
+              variant="contained"
+              color={conflict === undefined ? 'primary' : 'warning'}
+              disabled={submitting}
+            >
+              {conflict === undefined ? modal.submit : modal.conflict.overwrite}
             </Button>
           </FooterActions>
         </ModalFooter>

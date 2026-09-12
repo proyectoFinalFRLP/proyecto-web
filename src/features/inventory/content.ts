@@ -18,8 +18,13 @@ export const inventoryCopy = {
     close: 'Cerrar',
     conflict: {
       title: 'Alguien editó este producto mientras lo tenías abierto',
-      body: 'Tus cambios siguen acá. Revisá qué se modificó antes de decidir.',
+      body: 'Tus cambios siguen acá. Si guardás ahora, pisás lo que modificó la otra persona.',
       unknown: 'No pudimos determinar qué cambió.',
+      /**
+       * Reemplaza a «Guardar cambios» mientras hay un conflicto a la vista. Es
+       * el mismo botón y manda lo mismo —el formulario tal como está—; lo que
+       * cambia es que el rótulo nombra la consecuencia.
+       */
       overwrite: 'Guardar de todos modos',
       labels: {
         name: 'Nombre',
