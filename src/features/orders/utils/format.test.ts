@@ -32,15 +32,22 @@ describe('formatOrderDate', () => {
   })
 })
 
+// Los ejemplos afirman horas locales; la zona la fija `vite.config.ts` para
+// que no dependan de la máquina que los corre.
 describe('formatOrderTime', () => {
   it('renders hours and minutes in 24-hour format', () => {
-    const time = formatOrderTime('2026-08-24T21:14:00-03:00')
-
-    expect(time).toBe('21:14')
+    expect(formatOrderTime('2026-08-24T21:14:00-03:00')).toBe('21:14')
   })
 
   it('pads the hour to two digits', () => {
     expect(formatOrderTime('2026-08-24T09:05:00-03:00')).toBe('09:05')
+  })
+
+  // Con `hour12: false` en lugar del ciclo h23, es-AR rotula la medianoche
+  // como «24:14»: una hora que no existe, en la columna que el operador usa
+  // para ordenar el día.
+  it('renders midnight as 00 and not as 24', () => {
+    expect(formatOrderTime('2026-08-25T00:14:00-03:00')).toBe('00:14')
   })
 })
 

@@ -30,5 +30,11 @@ export default defineConfig({
     // `vi.spyOn(x, 'y').mockReturnValue(1)` seguiría vivo en los tests
     // siguientes del mismo archivo.
     restoreMocks: true,
+    // Huso horario fijo. Todo lo que se muestra con fecha u hora se formatea en
+    // la zona de quien mira, así que sin fijarla un ejemplo pasa en la máquina
+    // de quien lo escribió y falla en el CI, que corre en UTC. Se elige la
+    // zona del usuario del producto para que lo que afirma el test sea lo que
+    // ve el operador.
+    env: { TZ: 'America/Argentina/Buenos_Aires' },
   },
 })

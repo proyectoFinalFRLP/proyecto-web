@@ -14,10 +14,12 @@ const DATE = new Intl.DateTimeFormat('es-AR', {
   year: 'numeric',
 })
 
+// `hourCycle: 'h23'` y no `hour12: false`: en es-AR, el segundo deja el reloj
+// en el ciclo h24 y la medianoche sale como «24:14» en vez de «00:14».
 const TIME = new Intl.DateTimeFormat('es-AR', {
   hour: '2-digit',
   minute: '2-digit',
-  hour12: false,
+  hourCycle: 'h23',
 })
 
 /**
