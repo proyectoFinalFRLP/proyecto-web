@@ -15,7 +15,7 @@ import { clearSession } from '../store/authStore'
 import { notify } from '../store/notificationStore'
 
 import { LOGOUT_PATH, client } from './client'
-import { revokeSession } from './session'
+import { ME_PATH, fetchCurrentUser, revokeSession } from './session'
 
 const realAdapter = client.defaults.adapter
 
@@ -56,6 +56,64 @@ function failing(status: number): AxiosAdapter {
       }),
     )
 }
+
+/** Responde 200 con el cuerpo dado, para los casos de `GET /me`. */
+function serving(body: unknown): AxiosAdapter {
+  return (config) =>
+    Promise.resolve({
+      data: body,
+      status: 200,
+      statusText: 'OK',
+      headers: new AxiosHeaders(),
+      config,
+    })
+}
+
+// ------------------------------------------------------------------ TESIS-117
+describe('fetchCurrentUser', () => {
+  const ME = {
+    id: 7,
+    email: 'confirmado@acme.com',
+    company_id: 3,
+    company: { id: 3, name: 'Acme' },
+  }
+
+  it('asks the backend who owns the session', async () => {
+    const adapter = vi.fn(serving(ME))
+    stubAdapter(adapter)
+
+    await fetchCurrentUser()
+
+    expect(adapter.mock.calls[0][0].url).toBe(ME_PATH)
+  })
+
+  it('returns the email the API confirms', async () => {
+    stubAdapter(serving(ME))
+
+    await expect(fetchCurrentUser()).resolves.toMatchObject({ email: 'confirmado@acme.com' })
+  })
+
+  // El dato que antes no existía en ningún lado: el JWT lleva el id de la
+  // empresa pero no su nombre, y una app multi-tenant necesita nombrarla.
+  it('brings the name of the company, not just its id', async () => {
+    stubAdapter(serving(ME))
+
+    await expect(fetchCurrentUser()).resolves.toMatchObject({ companyId: 3, companyName: 'Acme' })
+  })
+
+  /**
+   * Un token válido de un usuario borrado. El backend responde 401 y de limpiar
+   * la sesión se encarga el interceptor, no esta función: la regla vive en un
+   * solo lugar y acá se verifica que efectivamente corra por este camino.
+   */
+  it('lets the interceptor clear the session when the user no longer exists', async () => {
+    stubAdapter(failing(401))
+
+    await expect(fetchCurrentUser()).rejects.toThrow()
+
+    expect(clearSession).toHaveBeenCalled()
+  })
+})
 
 describe('revokeSession', () => {
   it('calls the logout endpoint', async () => {
