@@ -1,10 +1,18 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+  keepPreviousData,
+  useMutation,
+  useQueries,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query'
 import type { ApiRequestError } from 'shared/api/types'
 
 import {
   createProduct,
   fetchProduct,
-  fetchProductList,
+  deleteProduct,
+  fetchProductCount,
+  fetchProductPage,
   fetchWarehouses,
   updateProduct,
 } from '../api'
@@ -12,16 +20,58 @@ import { inventoryKeys } from '../queryKeys'
 import type {
   CreateProductPayload,
   Product,
-  ProductSummary,
+  ProductFilters,
+  ProductPage,
+  StockStatus,
   UpdateProductPayload,
   Warehouse,
 } from '../types'
 
-/** Listado paginado del catálogo. Sin `stocks` — ver `ProductSummary`. */
-export function useProductList(page = 1, perPage = 20) {
-  return useQuery<ProductSummary[]>({
-    queryKey: inventoryKeys.productList(page, perPage),
-    queryFn: () => fetchProductList(page, perPage),
+/**
+ * Las pestañas del catálogo, en el orden del diseño, con el estado que filtra
+ * cada una. Es una sola lista y no dos arrays paralelos: los contadores se
+ * piden en este mismo orden y se leen por índice.
+ */
+export const CATALOG_TABS = [
+  { id: 'all', status: undefined },
+  { id: 'available', status: 'available' },
+  { id: 'low', status: 'low' },
+  { id: 'out_of_stock', status: 'out_of_stock' },
+] as const satisfies readonly { id: string; status: StockStatus | undefined }[]
+
+export type CatalogTabId = (typeof CATALOG_TABS)[number]['id']
+
+/**
+ * Una página del catálogo. Sin `stocks` — ver `ProductSummary`.
+ *
+ * `keepPreviousData` es lo que evita que cambiar de página vacíe la tabla: sin
+ * esto el cuerpo queda en blanco hasta que responde la API y la pantalla salta
+ * de alto en cada click.
+ */
+export function useProductPage(filters: ProductFilters) {
+  return useQuery<ProductPage>({
+    queryKey: inventoryKeys.productList(filters),
+    queryFn: () => fetchProductPage(filters),
+    placeholderData: keepPreviousData,
+  })
+}
+
+/**
+ * Los cuatro contadores de las pestañas, en paralelo. Son consultas de una sola
+ * fila que leen nada más que el `meta.total`.
+ *
+ * Respetan la búsqueda: si no lo hicieran, buscar algo inexistente dejaría la
+ * tabla vacía con una pestaña que sigue diciendo «Todos (1.284)».
+ */
+export function useProductCounts(search: string) {
+  return useQueries({
+    queries: CATALOG_TABS.map(({ status }) => ({
+      queryKey: inventoryKeys.count(status, search),
+      queryFn: () => fetchProductCount(status, search),
+    })),
+    // Un contador que falla no puede voltear la pantalla: la tabla se ve igual
+    // y la pestaña queda sin número.
+    combine: (results) => results.map((result) => result.data),
   })
 }
 
@@ -75,3 +125,19 @@ export function useUpdateProduct(id: number | undefined, version: string | null)
 
 /** La API rechaza con 412 el guardado que parte de una versión vieja. */
 export const CONFLICT_STATUS = 412
+
+/** Status con el que el backend rechaza borrar un producto con historia. */
+export const RESTRICTED_STATUS = 409
+
+/**
+ * Baja del catálogo. Invalida todo el dominio: la fila desaparece del listado y
+ * los contadores de las pestañas se recalculan sin recargar la página.
+ */
+export function useDeleteProduct() {
+  const queryClient = useQueryClient()
+
+  return useMutation<void, ApiRequestError, number>({
+    mutationFn: deleteProduct,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: inventoryKeys.all }),
+  })
+}

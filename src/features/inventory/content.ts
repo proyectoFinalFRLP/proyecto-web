@@ -4,12 +4,67 @@
 
 export const inventoryCopy = {
   page: {
-    title: 'Gestión de inventario',
-    subtitle: 'Catálogo de productos y stock consolidado por depósito.',
-    listHeading: 'Productos',
-    empty: 'Todavía no hay productos cargados en esta empresa.',
-    stockSummary: (total: number) => `${total} u. en total`,
+    title: 'Inventario',
+    subtitle: 'Catálogo maestro de productos y disponibilidad por depósito.',
+    searchLabel: 'Buscar productos',
+    searchPlaceholder: 'Buscar por SKU o nombre',
+    tableLabel: 'Catálogo de productos',
+    empty: 'No hay productos que coincidan con el filtro.',
+    error: 'No pudimos cargar el catálogo.',
     saved: (productName: string) => `${productName} actualizado.`,
+    deleted: (productName: string) => `${productName} eliminado.`,
+  },
+  tabs: {
+    all: 'Todos',
+    available: 'Disponibles',
+    low: 'Stock bajo',
+    out_of_stock: 'Sin stock',
+  },
+  columns: {
+    sku: 'SKU',
+    name: 'Nombre',
+    category: 'Categoría',
+    available: 'Disponible',
+    status: 'Estado',
+    warehouse: 'Depósito',
+    actions: 'Acciones',
+  },
+  stockStatus: {
+    available: 'Disponible',
+    low: 'Stock bajo',
+    out_of_stock: 'Sin stock',
+  },
+  cells: {
+    noCategory: 'Sin categoría',
+    /** Un producto sin unidades en ningún depósito no tiene nodo que mostrar. */
+    noWarehouse: 'Sin asignar',
+    inTransit: (units: number) => `+${formatUnits(units)} en tránsito`,
+    /** "en 3 depósitos" cuando hay más de uno además del principal. */
+    moreWarehouses: (count: number) => `en ${count} depósitos`,
+  },
+  actions: {
+    view: 'Ver',
+    edit: 'Editar',
+    delete: 'Eliminar',
+    menuFor: (sku: string) => `Acciones del producto ${sku}`,
+  },
+  remove: {
+    title: 'Eliminar producto',
+    body: (productName: string, sku: string) =>
+      `Se va a eliminar ${productName} (${sku}). Esta acción no se puede deshacer.`,
+    /** El backend responde 409 cuando el producto tiene ventas registradas. */
+    blocked:
+      'No se puede eliminar: el producto tiene ventas o transferencias registradas. ' +
+      'Borrarlo haría desaparecer esos registros.',
+    cancel: 'Cancelar',
+    confirm: 'Eliminar',
+  },
+  pagination: {
+    previous: 'Página anterior',
+    next: 'Página siguiente',
+    page: (page: number) => `Ir a la página ${page}`,
+    summary: (from: number, to: number, total: number) =>
+      `Mostrando ${from} a ${to} de ${formatUnits(total)} ${total === 1 ? 'producto' : 'productos'}`,
   },
   modal: {
     /** El título lleva el nombre del producto; el subtítulo, el SKU. */
@@ -107,3 +162,8 @@ export const inventoryCopy = {
     duplicateWarehouse: 'No repitas el mismo depósito en dos filas',
   },
 } as const
+
+/** Miles con punto, como el resto de los números de la pantalla. */
+export function formatUnits(value: number): string {
+  return new Intl.NumberFormat('es-AR').format(value)
+}
