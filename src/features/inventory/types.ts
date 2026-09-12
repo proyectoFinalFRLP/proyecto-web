@@ -5,6 +5,23 @@
 // no transforma las claves, así que la traducción vive en la capa que hace el
 // fetch — no acá. Este modal es presentacional: recibe ya el dominio armado.
 
+/** Las cuatro categorías del catálogo (`Product::CATEGORIES`). */
+export type ProductCategory = 'Electronics' | 'Machinery' | 'Cabling' | 'Power'
+
+/**
+ * Disponibilidad del producto. **La decide el backend**, que es donde vive el
+ * umbral: si el front la recalculara, pedir «stock bajo» y contar las filas
+ * amarillas podrían dar distinto (TESIS-62).
+ */
+export type StockStatus = 'out_of_stock' | 'low' | 'available'
+
+/** El depósito donde está el grueso de las unidades, para la columna Depósito. */
+export interface PrimaryWarehouse {
+  id: number
+  name: string
+  quantity: number
+}
+
 /**
  * Fila del listado (`GET /api/v1/products`). El index usa `ProductListSerializer`
  * y **no trae `stocks`**: el desglose por depósito sólo viene en el detalle.
@@ -13,7 +30,35 @@ export interface ProductSummary {
   id: number
   sku: string
   name: string
+  /** Opcional: los productos anteriores a TESIS-102 no tienen ninguna. */
+  category: ProductCategory | null
   totalStock: number
+  stockStatus: StockStatus
+  /** Unidades que salieron de un depósito y todavía no llegaron a otro. */
+  inTransitQuantity: number
+  /** `null` cuando el producto no tiene unidades en ningún depósito. */
+  primaryWarehouse: PrimaryWarehouse | null
+  /** En cuántos depósitos hay unidades. Si es 0, `primaryWarehouse` es null. */
+  warehouseCount: number
+}
+
+/** Cómo viene paginado el catálogo: el `meta` del backend, en camelCase. */
+export interface ProductPage {
+  products: ProductSummary[]
+  page: number
+  perPage: number
+  total: number
+}
+
+/** Filtros que viajan como query params a `GET /api/v1/products`. */
+export interface ProductFilters {
+  page: number
+  perPage: number
+  /** Sin estado, el backend devuelve el catálogo entero. */
+  status?: StockStatus
+  /** Busca por SKU o por nombre. */
+  search?: string
+  category?: ProductCategory
 }
 
 /** Depósito físico de la empresa. Espejo de `GET /api/v1/warehouses`. */
