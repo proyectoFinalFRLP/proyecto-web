@@ -58,7 +58,13 @@ function toWarehouse(warehouse: ApiWarehouse): Warehouse {
   return { id: warehouse.id, name: warehouse.name, address: warehouse.address }
 }
 
-function toProduct(product: ApiProduct): Product {
+// El ETag viene entrecomillado y puede traer el prefijo débil `W/`. Se guarda
+// tal cual llegó: es opaco para el front y se devuelve sin tocar.
+function readVersion(etag: unknown): string | null {
+  return typeof etag === 'string' && etag.length > 0 ? etag : null
+}
+
+function toProduct(product: ApiProduct, version: string | null = null): Product {
   return {
     id: product.id,
     sku: product.sku,
@@ -67,6 +73,7 @@ function toProduct(product: ApiProduct): Product {
     weight: product.weight,
     dimensions: product.dimensions,
     updatedAt: product.updated_at,
+    version,
     stocks: (product.stocks ?? []).map((stock) => ({
       warehouseId: stock.warehouse_id,
       quantity: stock.quantity,
@@ -89,9 +96,12 @@ export async function fetchProductList(page: number, perPage: number): Promise<P
 }
 
 export async function fetchProduct(id: number): Promise<Product> {
-  const { data } = await client.get<ApiProduct>(`/products/${id}`)
+  const response = await client.get<ApiProduct>(`/products/${id}`)
 
-  return toProduct(data)
+  // El ETag viaja en el header, no en el cuerpo. Axios lo entrega en minúsculas.
+  // Si el backend no lo expone por CORS llega `undefined` y el producto queda
+  // sin versión: se guarda igual, pero sin la precondición.
+  return toProduct(response.data, readVersion(response.headers.etag))
 }
 
 export async function fetchWarehouses(): Promise<Warehouse[]> {
@@ -108,13 +118,28 @@ export async function fetchWarehouses(): Promise<Warehouse[]> {
  * interceptor de Axios lo convierte en `Error` con ese mensaje.
  */
 export async function createProduct(payload: CreateProductPayload): Promise<Product> {
-  const { data } = await client.post<ApiProduct>('/products', payload)
+  const response = await client.post<ApiProduct>('/products', payload)
 
-  return toProduct(data)
+  // El alta también devuelve el ETag, y se captura para que `Product` tenga
+  // siempre la misma forma venga del endpoint que venga: nadie tiene que
+  // recordar cuál de los tres deja `version` en `null`.
+  //
+  // Ojo con lo que NO hace: este producto no entra en la cache de `product(id)`
+  // —`useCreateProduct` sólo invalida—, así que quien abra el modal de edición
+  // dispara igual un `fetchProduct` y usa el ETag de esa lectura.
+  return toProduct(response.data, readVersion(response.headers.etag))
 }
 
-export async function updateProduct(id: number, payload: UpdateProductPayload): Promise<Product> {
-  const { data } = await client.put<ApiProduct>(`/products/${id}`, payload)
+export async function updateProduct(
+  id: number,
+  payload: UpdateProductPayload,
+  version: string | null,
+): Promise<Product> {
+  const response = await client.put<ApiProduct>(`/products/${id}`, payload, {
+    // Sin versión no se manda el header: `If-Match` ausente significa "sin
+    // precondición" en HTTP, que es el comportamiento que había antes.
+    headers: version === null ? undefined : { 'If-Match': version },
+  })
 
-  return toProduct(data)
+  return toProduct(response.data, readVersion(response.headers.etag))
 }

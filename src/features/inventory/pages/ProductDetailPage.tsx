@@ -15,8 +15,9 @@ import type { ProductSpec } from '../components/ProductSpecsCard'
 import { WarehouseDistributionCard } from '../components/WarehouseDistributionCard'
 import type { WarehouseDistributionRow } from '../components/WarehouseDistributionCard'
 import { inventoryCopy } from '../content'
-import { useProduct, useUpdateProduct, useWarehouses } from '../hooks/useInventory'
-import type { Product } from '../types'
+import { CONFLICT_STATUS, useProduct, useUpdateProduct, useWarehouses } from '../hooks/useInventory'
+import type { Product, UpdateProductPayload } from '../types'
+import { describeConflict } from '../utils/conflict'
 import { parseDimensions } from '../utils/dimensions'
 import { formatSpecTimestamp, formatUnits, formatWeight } from '../utils/format'
 import { STOCK_LEVEL_STATUS, sortByQuantityDesc, stockLevel, totalOnHand } from '../utils/stock'
@@ -152,6 +153,11 @@ export function ProductDetailPage() {
   const { productId } = useParams()
   const [editing, setEditing] = useState(false)
   const [savedName, setSavedName] = useState<string | null>(null)
+  // Estado del producto cuando el modal lo abrió. Se guarda para poder decir
+  // QUÉ cambió si la API rechaza el guardado por versión vieja (TESIS-101).
+  const [baseline, setBaseline] = useState<Product | undefined>(undefined)
+  // Último cuerpo enviado, para poder reintentarlo tal cual al pisar.
+  const [lastPayload, setLastPayload] = useState<UpdateProductPayload | undefined>(undefined)
 
   // Un `:productId` que no es un entero positivo no llega a la API: la query
   // queda deshabilitada y la pantalla resuelve en "no encontrado".
@@ -160,7 +166,37 @@ export function ProductDetailPage() {
 
   const product = useProduct(id)
   const warehouses = useWarehouses()
-  const updateMutation = useUpdateProduct(id)
+  const updateMutation = useUpdateProduct(id, product.data?.version ?? null)
+
+  // El 412 llega con la versión ya invalidada: React Query refetchea el detalle
+  // y de esa lectura sale la comparación contra lo que el modal había abierto.
+  const isConflict = updateMutation.error?.status === CONFLICT_STATUS
+  // `isFetching` es load-bearing: mientras el refetch está en vuelo `product.data`
+  // sigue siendo la lectura vieja, o sea el mismo objeto que `baseline`.
+  // Compararlos ahí da una lista vacía, y el modal mostraba "no pudimos
+  // determinar qué cambió" por un render antes de decir la verdad.
+  const conflict =
+    isConflict && baseline !== undefined && product.data !== undefined && !product.isFetching
+      ? describeConflict(baseline, product.data, inventoryCopy.modal.conflict.labels)
+      : undefined
+
+  // La foto del estado de partida se saca al GUARDAR y no al abrir: en este
+  // momento `product.data` es todavía lo que el usuario estaba editando, y el
+  // refetch que dispara el error llega después. Evita un efecto que sincronice
+  // estado —que además ESLint rechaza— para obtener exactamente el mismo dato.
+  function save(payload: UpdateProductPayload) {
+    setLastPayload(payload)
+    if (product.data !== undefined) setBaseline(product.data)
+    const name = product.data?.name ?? ''
+    updateMutation.mutate(payload, {
+      onSuccess: () => {
+        setSavedName(name)
+        setEditing(false)
+        setBaseline(undefined)
+      },
+      onError: () => void product.refetch(),
+    })
+  }
 
   if (id === undefined) {
     return (
@@ -224,7 +260,12 @@ export function ProductDetailPage() {
           />
         </Box>
 
-        {updateMutation.isError ? (
+        {/* El 412 no es un error a mostrar acá: lo explica el propio modal, que
+            queda abierto con lo que el usuario cargó. La condición mira
+            `isConflict` y no `conflict`, que es `undefined` también mientras se
+            resuelve el refetch: con lo otro, el 412 se filtraba a este banner
+            durante ese render. */}
+        {updateMutation.isError && !isConflict ? (
           <Typography variant="bodyMd" role="alert" sx={{ color: 'error.main' }}>
             {updateMutation.error.message}
           </Typography>
@@ -236,16 +277,17 @@ export function ProductDetailPage() {
         product={product.data}
         warehouses={warehouses.data}
         submitting={updateMutation.isPending}
-        onClose={() => setEditing(false)}
-        onSubmit={(payload) => {
-          const name = product.data.name
-          updateMutation.mutate(payload, {
-            onSuccess: () => {
-              setSavedName(name)
-              setEditing(false)
-            },
-          })
+        conflict={conflict}
+        onOverwrite={lastPayload === undefined ? undefined : () => save(lastPayload)}
+        onClose={() => {
+          // Sin el reset, el error de la mutación sobrevive al modal y queda
+          // colgado en la página — un 412 que ya no aplica a nada visible.
+          updateMutation.reset()
+          setEditing(false)
+          setBaseline(undefined)
+          setLastPayload(undefined)
         }}
+        onSubmit={save}
       />
 
       <Snackbar

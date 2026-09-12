@@ -20,6 +20,13 @@ export function AppLayout() {
         component="div"
         sx={{
           flexGrow: 1,
+          // Un flex item arranca en `min-width: auto`, o sea que no se puede
+          // achicar debajo del ancho intrínseco de su contenido. Con una tabla
+          // ancha adentro eso empuja el layout entero y saca el scroll
+          // horizontal al nivel del browser, en vez de dejarlo en el
+          // componente que scrollea. `minWidth: 0` es lo que habilita a la
+          // tabla a resolver su propio desborde.
+          minWidth: 0,
           ml: sidebarOpen ? `${DRAWER_WIDTH}px` : 0,
           transition: (theme) =>
             theme.transitions.create('margin', {
