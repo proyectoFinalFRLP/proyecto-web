@@ -71,12 +71,17 @@ export function UserMenu({ user, onProfileClick, onLogout }: UserMenuProps) {
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
         slotProps={{ paper: { sx: userMenuPaperSx } }}
       >
-        {/* Identidad de la sesión: hasta que exista `GET /me`, el nombre es el
-            email tipeado en el login (se muestra como alt del avatar y acá). */}
+        {/* Identidad de la sesión, tal como la confirma `GET /me`: el correo
+            del usuario y, debajo, la empresa en la que está trabajando. */}
         <Box sx={{ px: 2, py: 1 }}>
           <Typography variant="bodyMd" color="text.primary" noWrap sx={{ maxWidth: 240 }}>
             {displayName}
           </Typography>
+          {user?.company === undefined ? null : (
+            <Typography variant="labelSm" color="text.secondary" noWrap sx={{ maxWidth: 240 }}>
+              {user.company}
+            </Typography>
+          )}
         </Box>
         <Divider sx={{ my: 0.5 }} />
         <MenuItem onClick={runAndClose(onProfileClick)}>

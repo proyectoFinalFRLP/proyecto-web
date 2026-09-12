@@ -12,10 +12,12 @@ export function Header() {
   const sessionUser = useAuthStore((state) => state.user)
   const logout = useAuthStore((state) => state.logout)
 
-  // El email es lo único que la app sabe del usuario: no viaja en el JWT ni lo
-  // devuelve el login, se guarda del formulario. Hasta que exista `GET /me` es
-  // también el nombre que muestra el menú de cuenta.
-  const user: TopNavUser | undefined = sessionUser ? { name: sessionUser.email } : undefined
+  // `sessionUser` es null hasta que `GET /me` contesta, también al recargar la
+  // página con sesión abierta. El menú de cuenta cae a su nombre genérico
+  // durante ese instante en vez de mostrar un correo que la API no confirmó.
+  const user: TopNavUser | undefined = sessionUser
+    ? { name: sessionUser.email, company: sessionUser.companyName }
+    : undefined
 
   return (
     <TopNavBar
