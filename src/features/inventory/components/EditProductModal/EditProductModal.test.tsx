@@ -1,4 +1,4 @@
-import { fireEvent, screen } from '@testing-library/react'
+import { fireEvent, screen, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { renderWithTheme } from '../../../../test/renderWithTheme'
@@ -117,5 +117,65 @@ describe('EditProductModal', () => {
     fireEvent.click(screen.getByRole('button', { name: /cerrar/i }))
 
     expect(view.props.onClose).not.toHaveBeenCalled()
+  })
+
+  // ----------------------------------------------------------------- TESIS-118
+  describe('saving while a conflict is on screen', () => {
+    const CONFLICT = [{ id: 'name', text: 'Nombre: A → B' }]
+
+    function withConflict() {
+      const view = renderModal(product())
+      view.rerender(<EditProductModal {...view.props} product={product()} conflict={CONFLICT} />)
+
+      return view
+    }
+
+    it('labels the save button with what saving now does', () => {
+      withConflict()
+
+      expect(screen.getByRole('button', { name: 'Guardar de todos modos' })).toBeInTheDocument()
+    })
+
+    it('goes back to the plain label when there is no conflict', () => {
+      renderModal(product())
+
+      expect(screen.getByRole('button', { name: 'Guardar cambios' })).toBeInTheDocument()
+    })
+
+    /**
+     * El bug de la card.
+     *
+     * Había un segundo botón —«Guardar de todos modos» dentro del aviso— que
+     * reenviaba el cuerpo congelado en el primer submit. Desde que el
+     * formulario sobrevive al 412 (TESIS-101), quien escribe después del
+     * conflicto y aprieta ese botón perdía lo tipeado sin enterarse.
+     *
+     * Ahora hay una sola acción y manda el formulario tal como está.
+     */
+    it('sends what the user has on screen, not the body of the failed attempt', async () => {
+      const view = withConflict()
+
+      fireEvent.change(screen.getByDisplayValue('Cable UTP Cat6'), {
+        target: { value: 'Escrito después del conflicto' },
+      })
+      fireEvent.click(screen.getByRole('button', { name: 'Guardar de todos modos' }))
+
+      // `handleSubmit` de React Hook Form valida antes de llamar: el submit no
+      // es sincrónico con el click.
+      await waitFor(() => {
+        expect(view.props.onSubmit).toHaveBeenCalledWith({
+          product: expect.objectContaining({ name: 'Escrito después del conflicto' }),
+        })
+      })
+    })
+
+    // Contraprueba de la decisión de la card: dos acciones distintas eran lo
+    // que permitía que una mandara algo distinto de la otra.
+    it('leaves a single way to save', () => {
+      withConflict()
+
+      expect(screen.queryByRole('button', { name: 'Guardar cambios' })).not.toBeInTheDocument()
+      expect(screen.getAllByRole('button', { name: /guardar/i })).toHaveLength(1)
+    })
   })
 })

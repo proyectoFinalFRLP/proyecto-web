@@ -43,8 +43,6 @@ export function InventoryPage() {
   // Estado del producto cuando el modal lo abrió. Se guarda para poder decir
   // QUÉ cambió si la API rechaza el guardado por versión vieja (TESIS-101).
   const [baseline, setBaseline] = useState<Product | undefined>(undefined)
-  // Último cuerpo enviado, para poder reintentarlo tal cual al pisar.
-  const [lastPayload, setLastPayload] = useState<UpdateProductPayload | undefined>(undefined)
 
   const products = useProductList()
   const warehouses = useWarehouses()
@@ -69,7 +67,6 @@ export function InventoryPage() {
   // refetch que dispara el error llega después. Evita un efecto que sincronice
   // estado —que además ESLint rechaza— para obtener exactamente el mismo dato.
   function save(payload: UpdateProductPayload) {
-    setLastPayload(payload)
     if (product.data !== undefined) setBaseline(product.data)
     const name = product.data?.name ?? ''
     updateMutation.mutate(payload, {
@@ -163,14 +160,12 @@ export function InventoryPage() {
             warehouses={warehouses.data}
             submitting={updateMutation.isPending}
             conflict={conflict}
-            onOverwrite={lastPayload === undefined ? undefined : () => save(lastPayload)}
             onClose={() => {
               // Sin el reset, el error de la mutación sobrevive al modal y queda
               // colgado en la página — un 412 que ya no aplica a nada visible.
               updateMutation.reset()
               setEditingId(undefined)
               setBaseline(undefined)
-              setLastPayload(undefined)
             }}
             onSubmit={save}
           />

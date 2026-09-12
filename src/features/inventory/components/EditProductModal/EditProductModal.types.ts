@@ -18,10 +18,12 @@ export interface EditProductModalProps {
    * Conflicto de versión (412): el producto cambió desde que se abrió el modal.
    * Lista qué se modificó. El modal NO se cierra ni pierde lo cargado — el
    * usuario decide si pisa igual.
+   *
+   * Mientras esté presente, el botón de guardar se rotula «Guardar de todos
+   * modos»: la acción es la misma de siempre —mandar el formulario tal como
+   * está— pero ahora pisa el trabajo de otra persona, y eso se nombra.
    */
   conflict?: ConflictChange[]
-  /** Reintenta el guardado contra la versión vigente, pisando lo que cambió. */
-  onOverwrite?: () => void
 }
 
 export interface SectionHeadingProps {
