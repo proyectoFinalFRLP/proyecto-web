@@ -3,7 +3,10 @@ import { client } from 'shared/api/client'
 import type {
   CreateProductPayload,
   Product,
+  ProductFilters,
+  ProductPage,
   ProductSummary,
+  StockStatus,
   UpdateProductPayload,
   Warehouse,
 } from './types'
@@ -35,7 +38,12 @@ interface ApiProductSummary {
   id: number
   sku: string
   name: string
+  category: string | null
   total_stock: number
+  stock_status: StockStatus
+  in_transit_quantity: number
+  primary_warehouse: { id: number; name: string; quantity: number } | null
+  warehouse_count: number
 }
 
 interface ApiProduct {
@@ -82,17 +90,57 @@ function toProduct(product: ApiProduct, version: string | null = null): Product 
   }
 }
 
-export async function fetchProductList(page: number, perPage: number): Promise<ProductSummary[]> {
-  const { data } = await client.get<ApiList<ApiProductSummary>>('/products', {
-    params: { page, per_page: perPage },
-  })
-
-  return data.data.map((product) => ({
+function toSummary(product: ApiProductSummary): ProductSummary {
+  return {
     id: product.id,
     sku: product.sku,
     name: product.name,
+    category: (product.category ?? null) as ProductSummary['category'],
     totalStock: product.total_stock,
-  }))
+    stockStatus: product.stock_status,
+    inTransitQuantity: product.in_transit_quantity,
+    primaryWarehouse: product.primary_warehouse,
+    warehouseCount: product.warehouse_count,
+  }
+}
+
+// Un filtro vacío no viaja: mandar `status=` o `search=` en blanco haría que el
+// backend filtre por cadena vacía y devuelva cero filas.
+function toParams({ page, perPage, status, search, category }: ProductFilters) {
+  return {
+    page,
+    per_page: perPage,
+    ...(status === undefined ? {} : { status }),
+    ...(search === undefined || search === '' ? {} : { search }),
+    ...(category === undefined ? {} : { category }),
+  }
+}
+
+export async function fetchProductPage(filters: ProductFilters): Promise<ProductPage> {
+  const { data } = await client.get<ApiList<ApiProductSummary>>('/products', {
+    params: toParams(filters),
+  })
+
+  return {
+    products: data.data.map(toSummary),
+    page: data.meta.page,
+    perPage: data.meta.per_page,
+    total: data.meta.total,
+  }
+}
+
+/**
+ * Cuántos productos matchean un filtro, sin traerlos.
+ *
+ * Alimenta los contadores de las pestañas: pide una sola fila y lee nada más
+ * que el `meta.total`, que el backend cuenta sobre el scope ya filtrado.
+ */
+export async function fetchProductCount(status?: StockStatus, search?: string): Promise<number> {
+  const { data } = await client.get<ApiList<ApiProductSummary>>('/products', {
+    params: toParams({ page: 1, perPage: 1, status, search }),
+  })
+
+  return data.meta.total
 }
 
 export async function fetchProduct(id: number): Promise<Product> {
@@ -142,4 +190,17 @@ export async function updateProduct(
   })
 
   return toProduct(response.data, readVersion(response.headers.etag))
+}
+
+/**
+ * Baja de un producto del catálogo.
+ *
+ * El backend responde **409** cuando el producto tiene ítems de orden o
+ * transferencias: son registros con valor —ventas ya hechas, unidades en
+ * vuelo— y `restrict_with_error` impide que un DELETE los evapore. El
+ * interceptor de Axios convierte esa respuesta en un `Error` con su status, y
+ * la pantalla lo traduce a un mensaje entendible.
+ */
+export async function deleteProduct(id: number): Promise<void> {
+  await client.delete(`/products/${id}`)
 }
