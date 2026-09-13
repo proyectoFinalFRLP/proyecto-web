@@ -32,6 +32,11 @@ export function useSessionIdentity() {
     queryFn: fetchCurrentUser,
     enabled: token !== null,
     staleTime: Infinity,
+    // `retry: false` contra el `retry: 1` global. El único fallo esperable acá
+    // es el 401 de un token válido de un usuario borrado, y reintentarlo no lo
+    // va a arreglar: el segundo intento es inofensivo —el interceptor ya dejó
+    // el store vacío— pero es un pedido de más y deja la intención ambigua.
+    retry: false,
   })
 
   // El efecto sincroniza hacia el store en lugar de que el store sea la fuente:
