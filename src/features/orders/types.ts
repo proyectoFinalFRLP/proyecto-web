@@ -16,7 +16,10 @@ export type OrderStatus = 'pending' | 'paid' | 'cancelled'
  *
  * · `externalOrderId` es null en las ventas cargadas a mano, que no vienen de
  *   ningún canal externo.
- * · `carrier` cuelga del envío: es null mientras la orden no tenga envío o el
+ * · `carrier` es el nombre del operador logístico. La API lo devuelve como el
+ *   objeto `courier` —el mismo que exponen los endpoints de envíos—; la capa de
+ *   api.ts se queda con el nombre, que es lo único que la tabla muestra.
+ *   Cuelga del envío: es null mientras la orden no tenga envío o el
  *   envío no tenga courier asignado, que es el caso más frecuente.
  * · `totalAmount` es null en las órdenes anteriores a TESIS-114 que no tienen
  *   líneas.
