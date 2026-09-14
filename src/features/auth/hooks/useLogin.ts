@@ -37,8 +37,9 @@ export function useLogin() {
 
       return data
     },
-    // El email tipeado se guarda con la sesión: no viaja en el JWT ni lo
-    // devuelve el login, y es lo único que la UI puede mostrar del usuario.
-    onSuccess: (data, variables) => login(data.token, variables.email),
+    // Sólo el token: quién es el usuario lo contesta `GET /me`, que dispara
+    // `useSessionIdentity` apenas hay sesión. El correo tipeado acá no sirve
+    // como identidad — si el registro lo normalizó, no es el que la API tiene.
+    onSuccess: (data) => login(data.token),
   })
 }

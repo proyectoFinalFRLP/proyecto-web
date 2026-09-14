@@ -3,6 +3,9 @@ export type TopNavThemeMode = 'light' | 'dark'
 export interface TopNavUser {
   /** Nombre completo — fuente de las iniciales cuando no hay `avatarUrl`. */
   name: string
+  /** Empresa de la sesión. En una app multi-tenant, saber en cuál se está
+      trabajando es parte de la identidad, no un adorno. */
+  company?: string
   avatarUrl?: string
 }
 

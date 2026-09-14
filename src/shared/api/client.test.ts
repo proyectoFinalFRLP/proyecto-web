@@ -50,7 +50,7 @@ describe('tenant header', () => {
   // El backend ignora el header cuando hay JWT: los dos conviven, no se pisan.
   it('is sent alongside the authorization header of an open session', async () => {
     const token = sessionToken()
-    useAuthStore.getState().login(token, 'a@b.com')
+    useAuthStore.getState().login(token)
 
     await client.get('/products')
 
@@ -65,7 +65,7 @@ describe('authorization header', () => {
   // de Sur devolvía la config de Sur para `?tenant=norte` y el front la
   // guardaba bajo `norte`: la app quedaba mostrando la marca equivocada.
   it('is left out of the public tenant-config request', async () => {
-    useAuthStore.getState().login(sessionToken(), 'a@b.com')
+    useAuthStore.getState().login(sessionToken())
 
     await client.get(TENANT_CONFIG_PATH)
 
@@ -75,7 +75,7 @@ describe('authorization header', () => {
 
   it('still travels in every other request of the same session', async () => {
     const token = sessionToken()
-    useAuthStore.getState().login(token, 'a@b.com')
+    useAuthStore.getState().login(token)
 
     await client.get('/products')
     await client.get(TENANT_CONFIG_PATH)
