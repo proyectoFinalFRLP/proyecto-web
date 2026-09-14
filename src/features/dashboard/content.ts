@@ -36,6 +36,12 @@ export const dashboardCopy = {
       },
     },
   },
+  // Sección propia de integraciones, visible sólo para los tenants que tienen
+  // la feature encendida (TESIS-121).
+  integrationsPage: {
+    title: 'Integraciones',
+    subtitle: 'Estado de sincronización de los sistemas conectados a tu empresa.',
+  },
   error: {
     fallback: 'No se pudo cargar el estado de las integraciones.',
     retry: 'Reintentar',

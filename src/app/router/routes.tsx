@@ -1,13 +1,19 @@
 import HomeIcon from '@mui/icons-material/Home'
+import HubOutlinedIcon from '@mui/icons-material/HubOutlined'
 import InsightsOutlinedIcon from '@mui/icons-material/InsightsOutlined'
 import Inventory2Icon from '@mui/icons-material/Inventory2'
 import { lazy } from 'react'
 import type { ReactNode } from 'react'
+import { isFeatureEnabled } from 'shared/api'
+import type { TenantFeature, TenantFeatureFlags } from 'shared/api'
 
 // Páginas cargadas de forma diferida (code-splitting por ruta).
 const HomePage = lazy(() => import('features/home').then((m) => ({ default: m.HomePage })))
 const DashboardPage = lazy(() =>
   import('features/dashboard').then((m) => ({ default: m.DashboardPage })),
+)
+const IntegrationsPage = lazy(() =>
+  import('features/dashboard').then((m) => ({ default: m.IntegrationsPage })),
 )
 const DesignSystemPage = lazy(() =>
   import('features/design-system').then((m) => ({ default: m.DesignSystemPage })),
@@ -34,7 +40,16 @@ export interface AppRoute {
    * Ver docs/guidelines/architecture.md §4.1.
    */
   layout?: 'app' | 'bare'
+  /**
+   * Feature flag del tenant que habilita la ruta. Sin flag la ruta es del
+   * producto y la ve todo el mundo; con flag, sólo las empresas que la tienen
+   * encendida en su config (TESIS-121).
+   */
+  feature?: TenantFeature
 }
+
+/** Ruta ya angostada para el Sidebar: `nav` garantizado. */
+export type NavRoute = AppRoute & { nav: NavMeta }
 
 // Fuente única de verdad de las rutas de la app. El Router (AppRouter) y la
 // navegación (Sidebar) se derivan de acá: sumar una feature es agregar una sola
@@ -57,6 +72,14 @@ export const appRoutes: AppRoute[] = [
     nav: { label: 'Dashboard', icon: <InsightsOutlinedIcon /> },
   },
   {
+    path: '/integrations',
+    element: <IntegrationsPage />,
+    nav: { label: 'Integraciones', icon: <HubOutlinedIcon /> },
+    // La feature que diferencia a las dos empresas de la demo: Norte la tiene
+    // encendida y Sur no (§2 del contrato).
+    feature: 'integrations',
+  },
+  {
     path: '/inventory',
     element: <InventoryPage />,
     nav: { label: 'Inventario', icon: <Inventory2Icon /> },
@@ -68,10 +91,19 @@ export const appRoutes: AppRoute[] = [
   },
 ]
 
-// Rutas que se muestran en el Sidebar, ya angostadas (nav garantizado) para el render.
-export const navRoutes = appRoutes.filter((route): route is AppRoute & { nav: NavMeta } =>
-  Boolean(route.nav),
-)
+/**
+ * Rutas que muestra el Sidebar para la config de tenant activa.
+ *
+ * Es una función y no una constante porque la navegación depende de los feature
+ * flags de la empresa: la diferencia entre dos clientes es su config, nunca una
+ * rama del código.
+ */
+export function navRoutesFor(features: TenantFeatureFlags | undefined): NavRoute[] {
+  return appRoutes.filter(
+    (route): route is NavRoute =>
+      Boolean(route.nav) && (!route.feature || isFeatureEnabled(features, route.feature)),
+  )
+}
 
 // Partición por layout — AppRouter monta `shellRoutes` detrás del guard y dentro
 // de `AppLayout`, y `bareRoutes` sueltas, públicas y sin shell.

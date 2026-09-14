@@ -1,3 +1,5 @@
 export { client } from './client'
 export { queryClient } from './queryClient'
+export { fetchTenantConfig, isFeatureEnabled, tenantConfigSchema } from './tenant'
+export type { TenantBranding, TenantConfig, TenantFeature, TenantFeatureFlags } from './tenant'
 export type { ApiResponse, PaginatedResponse, ApiError, ApiRequestError } from './types'

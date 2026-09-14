@@ -9,6 +9,11 @@ export interface TopNavUser {
 export interface TopNavBarProps {
   /** Ruta a la que linkea el brand */
   brandTo: string
+  /**
+   * Nombre de la empresa del tenant, al lado de la marca del producto. Sin esto
+   * la barra sólo dice de qué producto se trata, no para quién está configurado.
+   */
+  organization?: string
   /** Si se define, muestra el botón de hamburguesa para el sidebar. */
   onToggleSidebar?: () => void
   /** Requerido junto a `onToggleTheme` para mostrar el toggle de tema. */

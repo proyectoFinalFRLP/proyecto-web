@@ -8,7 +8,7 @@ import { Link } from 'react-router-dom'
 
 import { topNavContent } from './content'
 import { NavSearch } from './NavSearch'
-import { BrandLink } from './TopNavBar.styles'
+import { BrandLink, OrganizationName } from './TopNavBar.styles'
 import type { TopNavBarProps } from './TopNavBar.types'
 import { UserMenu } from './UserMenu'
 
@@ -17,6 +17,7 @@ import { UserMenu } from './UserMenu'
 // (MuiAppBar en app/theme/components/appBar.ts), no configurable por props.
 export function TopNavBar({
   brandTo,
+  organization,
   onToggleSidebar,
   themeMode,
   onToggleTheme,
@@ -42,6 +43,8 @@ export function TopNavBar({
         ) : null}
 
         <BrandLink to={brandTo}>{topNavContent.brandLabel}</BrandLink>
+
+        {organization ? <OrganizationName>{organization}</OrganizationName> : null}
 
         <Box sx={{ flexGrow: 1 }} />
 
