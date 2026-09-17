@@ -41,6 +41,11 @@ export interface StatCardProps {
   trend?: StatTrend
   /** Footer comparativo contra el período anterior. */
   comparison?: StatComparison
+  /**
+   * Aclaración debajo del valor (la `note` del MetricCard del diseño): el dato
+   * que acompaña al número sin competir con él, como "3 líneas" bajo "67".
+   */
+  note?: string
 }
 
 export interface CompactStatCardProps {

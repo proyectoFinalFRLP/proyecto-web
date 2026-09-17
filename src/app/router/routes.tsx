@@ -20,6 +20,9 @@ const DesignSystemPage = lazy(() =>
   import('features/design-system').then((m) => ({ default: m.DesignSystemPage })),
 )
 const OrdersPage = lazy(() => import('features/orders').then((m) => ({ default: m.OrdersPage })))
+const OrderDetailPage = lazy(() =>
+  import('features/orders').then((m) => ({ default: m.OrderDetailPage })),
+)
 const InventoryPage = lazy(() =>
   import('features/inventory').then((m) => ({ default: m.InventoryPage })),
 )
@@ -80,6 +83,11 @@ export const appRoutes: AppRoute[] = [
     path: '/orders',
     element: <OrdersPage />,
     nav: { label: 'Órdenes', icon: <ReceiptLongOutlinedIcon /> },
+  },
+  {
+    path: '/orders/:orderId',
+    element: <OrderDetailPage />,
+    // Sin `nav`: se llega desde el listado, no desde el Sidebar.
   },
   {
     path: '/integrations',

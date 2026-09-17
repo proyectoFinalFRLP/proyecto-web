@@ -79,6 +79,17 @@ export interface DataTableProps<Row> {
   /** Acciones del extremo derecho de la barra (filtros, columnas). */
   toolbarActions?: ReactNode
   emptyMessage?: string
+  /**
+   * Título de la tabla, en la barra superior. Es para las tablas que viven
+   * dentro de una pantalla ("Líneas de la orden"); con `tabs` no se muestra,
+   * porque las pestañas ocupan ese lugar.
+   */
+  title?: string
+  /**
+   * Texto del pie ("3 líneas · 67 unidades"). Con `pagination` no se muestra:
+   * el paginador ya trae su propio resumen.
+   */
+  footer?: string
 }
 
 /**
