@@ -1,4 +1,6 @@
 export { client } from './client'
+export { fetchCount } from './count'
+export type { CountFilters } from './count'
 export { queryClient } from './queryClient'
 export { fetchTenantConfig, isFeatureEnabled, tenantConfigSchema } from './tenant'
 export type { TenantBranding, TenantConfig, TenantFeature, TenantFeatureFlags } from './tenant'

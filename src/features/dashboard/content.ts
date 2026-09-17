@@ -1,14 +1,29 @@
 // Copy centralizado de la feature — evitamos literales sueltos en el JSX (misma
 // idea que `content.ts` de design-system: si mañana sumamos i18n, este módulo es
 // el único punto a migrar a claves de traducción).
+
+// Lo que muestra una tarjeta cuando el dato no está: falló la consulta o no hay
+// con qué calcularlo. Nunca un 0, que se leería como un dato real.
+const UNKNOWN_VALUE = '—'
+
 export const dashboardCopy = {
   pageTitle: 'Panel de operación',
   pageSubtitle: 'Datos en vivo de los centros de distribución.',
+  // Vocabulario y orden del diseño (S03-Panel).
+  metrics: {
+    unknownValue: UNKNOWN_VALUE,
+    activeShipments: {
+      label: 'Envíos activos',
+    },
+    pendingOrders: {
+      label: 'Órdenes pendientes',
+    },
+  },
   infra: {
     health: {
       // Vocabulario del diseño (S03-Panel): "Salud del sistema", no "de infraestructura".
       label: 'Salud del sistema',
-      unknownValue: '—',
+      unknownValue: UNKNOWN_VALUE,
     },
     nodes: {
       title: 'Integraciones',
@@ -43,7 +58,7 @@ export const dashboardCopy = {
     subtitle: 'Estado de sincronización de los sistemas conectados a tu empresa.',
   },
   error: {
-    fallback: 'No se pudo cargar el estado de las integraciones.',
+    fallback: 'No se pudieron cargar algunas métricas del panel.',
     retry: 'Reintentar',
   },
 } as const
