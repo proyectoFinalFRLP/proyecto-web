@@ -78,8 +78,26 @@ export const ordersCopy = {
       error: 'No pudimos cargar el envío de la orden.',
       retry: 'Reintentar',
     },
+    notFound: 'No encontramos la orden que buscabas.',
+    backToOrders: 'Volver a órdenes',
+    error: 'No pudimos cargar la orden.',
     /** Marca de "sin dato": el campo existe en el diseño pero no en el modelo. */
     unknown: '—',
+    metrics: {
+      total: 'Total de la orden',
+      /** La orden no registra cómo se pagó. */
+      paymentMethodUnknown: 'Medio de pago sin registrar',
+      units: 'Unidades',
+      lines: (count: number) => `${formatCount(count)} ${count === 1 ? 'línea' : 'líneas'}`,
+      carrier: 'Operador logístico',
+      /** El courier se asigna al confirmar el despacho. */
+      noCarrier: 'Sin asignar',
+      serviceTypeUnknown: 'Tipo de servicio sin registrar',
+      delivery: 'Entrega',
+      delivered: 'Entregada',
+      /** Ningún endpoint expone una fecha comprometida de entrega. */
+      noEstimate: 'Sin fecha estimada',
+    },
     customer: {
       title: 'Datos del cliente',
       fields: {
