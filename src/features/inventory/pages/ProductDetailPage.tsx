@@ -3,7 +3,7 @@ import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
 import { Box, Button, Snackbar, Stack, Typography } from '@mui/material'
 import { useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useLocation, useParams } from 'react-router-dom'
 import { ErrorFallback, LoadingSpinner, PageWrapper } from 'shared/components'
 
 import { EditProductModal } from '../components/EditProductModal'
@@ -151,7 +151,16 @@ function buildRows(product: Product): WarehouseDistributionRow[] {
  */
 export function ProductDetailPage() {
   const { productId } = useParams()
-  const [editing, setEditing] = useState(false)
+  // El catálogo (S10) tiene «Ver» y «Editar» en el menú de cada fila, y las dos
+  // llevan acá. `state.edit` es lo único que las distingue: abre el formulario
+  // al llegar en vez de mostrar sólo la ficha.
+  //
+  // Se lee como valor inicial del estado y no con un efecto: el efecto pintaría
+  // la ficha durante un render antes de abrir el modal, y además dejaría el
+  // formulario reapareciendo cada vez que el usuario lo cierra.
+  const { state } = useLocation()
+  const abrirEdicion = typeof state === 'object' && state !== null && 'edit' in state
+  const [editing, setEditing] = useState(abrirEdicion)
   const [savedName, setSavedName] = useState<string | null>(null)
   // Estado del producto cuando el modal lo abrió. Se guarda para poder decir
   // QUÉ cambió si la API rechaza el guardado por versión vieja (TESIS-101).
