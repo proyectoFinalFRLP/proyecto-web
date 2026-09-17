@@ -1,0 +1,35 @@
+import { Box, Typography } from '@mui/material'
+
+interface StackedCellProps {
+  primary: string
+  secondary?: string | null
+}
+
+/**
+ * Celda de dos líneas: el dato arriba y su contexto abajo, atenuado.
+ *
+ * La usan «Fecha y hora» (fecha / hora) y «Destino» (dirección / código
+ * postal). Sin `secondary` colapsa a una sola línea y la fila no cambia de
+ * alto, así la tabla no se desalinea cuando una orden no tiene dirección.
+ */
+export function StackedCell({ primary, secondary }: StackedCellProps) {
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+      <Typography
+        variant="bodyMd"
+        sx={{
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        {primary}
+      </Typography>
+      {secondary ? (
+        <Typography variant="labelSm" sx={{ color: 'text.secondary' }}>
+          {secondary}
+        </Typography>
+      ) : null}
+    </Box>
+  )
+}

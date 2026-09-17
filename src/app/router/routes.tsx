@@ -2,6 +2,7 @@ import HomeIcon from '@mui/icons-material/Home'
 import HubOutlinedIcon from '@mui/icons-material/HubOutlined'
 import InsightsOutlinedIcon from '@mui/icons-material/InsightsOutlined'
 import Inventory2Icon from '@mui/icons-material/Inventory2'
+import ReceiptLongOutlinedIcon from '@mui/icons-material/ReceiptLongOutlined'
 import { lazy } from 'react'
 import type { ReactNode } from 'react'
 import { isFeatureEnabled } from 'shared/api'
@@ -18,6 +19,7 @@ const IntegrationsPage = lazy(() =>
 const DesignSystemPage = lazy(() =>
   import('features/design-system').then((m) => ({ default: m.DesignSystemPage })),
 )
+const OrdersPage = lazy(() => import('features/orders').then((m) => ({ default: m.OrdersPage })))
 const InventoryPage = lazy(() =>
   import('features/inventory').then((m) => ({ default: m.InventoryPage })),
 )
@@ -73,6 +75,11 @@ export const appRoutes: AppRoute[] = [
     path: '/dashboard',
     element: <DashboardPage />,
     nav: { label: 'Dashboard', icon: <InsightsOutlinedIcon /> },
+  },
+  {
+    path: '/orders',
+    element: <OrdersPage />,
+    nav: { label: 'Órdenes', icon: <ReceiptLongOutlinedIcon /> },
   },
   {
     path: '/integrations',
