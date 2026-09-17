@@ -149,7 +149,9 @@ describe('InventoryTable', () => {
       expect(onView).toHaveBeenCalledWith(row)
     })
 
-    it('opens the edit modal from the actions menu', () => {
+    // La tabla no decide a dónde va «Editar»: sólo avisa cuál fila fue. Quién
+    // la monta lleva al detalle, que es donde vive el formulario (S12 → S13).
+    it('reports which row was chosen from the actions menu', () => {
       const row = product()
       const { onEdit } = renderTable([row])
 

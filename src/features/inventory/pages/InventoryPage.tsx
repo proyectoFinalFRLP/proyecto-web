@@ -9,24 +9,19 @@ import { useDebouncedValue } from 'shared/hooks/useDebouncedValue'
 
 import { CreateProductModal } from '../components/CreateProductModal'
 import { DeleteProductDialog } from '../components/DeleteProductDialog'
-import { EditProductModal } from '../components/EditProductModal'
 import { InventoryTable } from '../components/InventoryTable'
 import { formatUnits, inventoryCopy } from '../content'
 import {
   CATALOG_TABS,
-  CONFLICT_STATUS,
   RESTRICTED_STATUS,
   useCreateProduct,
   useDeleteProduct,
-  useProduct,
   useProductCounts,
   useProductPage,
-  useUpdateProduct,
   useWarehouses,
 } from '../hooks/useInventory'
 import type { CatalogTabId } from '../hooks/useInventory'
-import type { Product, ProductSummary, UpdateProductPayload } from '../types'
-import { describeConflict } from '../utils/conflict'
+import type { ProductSummary } from '../types'
 
 const { page, createModal, tabs: tabCopy, pagination } = inventoryCopy
 
@@ -42,7 +37,11 @@ const TAB_LABELS: Record<CatalogTabId, string> = {
 
 /**
  * Catálogo maestro: pestañas por disponibilidad, búsqueda y paginación contra
- * `GET /api/v1/products`, más las altas, ediciones y bajas del producto.
+ * `GET /api/v1/products`, más el alta y la baja de un producto.
+ *
+ * La edición no vive acá. El menú de acciones de cada fila lleva al detalle del
+ * producto, que es donde está el formulario (S10 → S12 → S13 en el diseño). La
+ * card lo pide así: «la opción Editar redirige a la ruta de edición».
  *
  * El estado de stock de cada fila lo decide el backend y no esta pantalla: el
  * umbral vive en el modelo, así que la pestaña y el badge no pueden discrepar.
@@ -52,13 +51,9 @@ export function InventoryPage() {
   const [tabId, setTabId] = useState<CatalogTabId>('all')
   const [pageNumber, setPageNumber] = useState(1)
   const [search, setSearch] = useState('')
-  const [editingId, setEditingId] = useState<number | undefined>(undefined)
   const [creating, setCreating] = useState(false)
   const [removing, setRemoving] = useState<ProductSummary | undefined>(undefined)
   const [notice, setNotice] = useState<string | null>(null)
-  // Estado del producto cuando el modal lo abrió. Se guarda para poder decir
-  // QUÉ cambió si la API rechaza el guardado por versión vieja (TESIS-101).
-  const [baseline, setBaseline] = useState<Product | undefined>(undefined)
 
   // Lo que se tipea actualiza el campo en el acto; lo que viaja a la API espera
   // a que la persona deje de escribir.
@@ -73,34 +68,8 @@ export function InventoryPage() {
   })
   const counts = useProductCounts(debouncedSearch)
   const warehouses = useWarehouses()
-  const product = useProduct(editingId)
-  const updateMutation = useUpdateProduct(editingId, product.data?.version ?? null)
   const createMutation = useCreateProduct()
   const deleteMutation = useDeleteProduct()
-
-  // El 412 llega con la versión ya invalidada: React Query refetchea el detalle
-  // y de esa lectura sale la comparación contra lo que el modal había abierto.
-  const isConflict = updateMutation.error?.status === CONFLICT_STATUS
-  // `isFetching` es load-bearing: mientras el refetch está en vuelo
-  // `product.data` sigue siendo la lectura vieja, o sea el mismo objeto que
-  // `baseline`, y compararlos daría una lista vacía.
-  const conflict =
-    isConflict && baseline !== undefined && product.data !== undefined && !product.isFetching
-      ? describeConflict(baseline, product.data, inventoryCopy.modal.conflict.labels)
-      : undefined
-
-  function save(payload: UpdateProductPayload) {
-    if (product.data !== undefined) setBaseline(product.data)
-    const name = product.data?.name ?? ''
-    updateMutation.mutate(payload, {
-      onSuccess: () => {
-        setNotice(page.saved(name))
-        setEditingId(undefined)
-        setBaseline(undefined)
-      },
-      onError: () => void product.refetch(),
-    })
-  }
 
   // Cambiar de pestaña o de búsqueda vuelve a la primera página: quedarse en la
   // 7 de un filtro que ahora tiene 2 deja la tabla vacía sin motivo visible.
@@ -222,7 +191,9 @@ export function InventoryPage() {
           onPageChange: setPageNumber,
         }}
         onView={(target) => void navigate(`/inventory/${target.id}`)}
-        onEdit={(target) => setEditingId(target.id)}
+        // Editar lleva al mismo detalle, pero pidiéndole que abra el formulario
+        // al llegar: sin esa señal las dos acciones harían exactamente lo mismo.
+        onEdit={(target) => void navigate(`/inventory/${target.id}`, { state: { edit: true } })}
         onDelete={askToRemove}
       />
 
@@ -244,26 +215,6 @@ export function InventoryPage() {
         }}
       />
 
-      {/* El detalle trae los `stocks`, que el listado no incluye: hasta que
-          resuelve no hay con qué poblar el formulario. */}
-      {product.data === undefined ? null : (
-        <EditProductModal
-          open={editingId !== undefined}
-          product={product.data}
-          warehouses={warehouses.data}
-          submitting={updateMutation.isPending}
-          conflict={conflict}
-          onClose={() => {
-            // Sin el reset, el error de la mutación sobrevive al modal y queda
-            // colgado en la página — un 412 que ya no aplica a nada visible.
-            updateMutation.reset()
-            setEditingId(undefined)
-            setBaseline(undefined)
-          }}
-          onSubmit={save}
-        />
-      )}
-
       <DeleteProductDialog
         product={removing}
         deleting={deleteMutation.isPending}
@@ -271,15 +222,6 @@ export function InventoryPage() {
         onConfirm={confirmRemove}
         onClose={() => setRemoving(undefined)}
       />
-
-      {/* El 412 no es un error a mostrar acá: lo explica el propio modal. La
-          condición mira `isConflict` y no `conflict`, que es `undefined`
-          también mientras se resuelve el refetch. */}
-      {updateMutation.isError && !isConflict ? (
-        <Typography variant="bodyMd" role="alert" sx={{ color: 'error.main', mt: 2 }}>
-          {updateMutation.error.message}
-        </Typography>
-      ) : null}
 
       <Snackbar
         open={notice !== null}
