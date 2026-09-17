@@ -4,7 +4,6 @@
 
 export const authContent = {
   brand: 'ONESTOCK',
-  heading: 'Bienvenido de nuevo',
   subtitle: 'Ingresá para acceder a tu panel de operaciones.',
   emailLabel: 'Email',
   emailPlaceholder: 'nombre@empresa.com',

@@ -1,5 +1,6 @@
 export { useUiStore } from './uiStore'
 export { clearSession, getAuthToken, useAuthStore } from './authStore'
 export type { SessionUser } from './authStore'
+export { setTenantConfig, useTenantFeature, useTenantName, useTenantStore } from './tenantStore'
 export { notify, useNotificationStore } from './notificationStore'
 export type { Notification, NotificationSeverity } from './notificationStore'
