@@ -173,7 +173,7 @@ export function OrderDetailPage() {
   const status = headerStatus(order.data.status, shipment.data)
 
   return (
-    <PageWrapper sx={{ maxWidth: 1400 }}>
+    <PageWrapper>
       <Stack spacing={3}>
         <OrderDetailHeader
           orderLabel={formatOrderId(order.data.externalOrderId, order.data.id)}
