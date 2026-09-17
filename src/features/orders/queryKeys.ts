@@ -14,4 +14,8 @@ export const orderKeys = {
   // de búsqueda entra en la clave porque los contadores también lo respetan.
   count: (status: OrderStatus | undefined, search: string) =>
     [...orderKeys.counts(), status ?? 'all', search] as const,
+  detail: (id: number) => [...orderKeys.all, 'detail', id] as const,
+  // Cuelga de `orders` y no de un dominio `shipments` propio: se pide por orden,
+  // y así invalidar `orderKeys.all` también refresca el envío que muestra.
+  shipment: (orderId: number) => [...orderKeys.all, 'shipment', orderId] as const,
 }

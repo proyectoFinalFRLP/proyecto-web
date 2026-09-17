@@ -43,6 +43,7 @@ export function StatCard({
   trend,
   comparison,
   loading = false,
+  note,
 }: StatCardProps) {
   // El tono de alerta es el único que además acentúa el borde y suma el halo:
   // una métrica en rojo tiene que saltar sin depender de leer el número.
@@ -83,6 +84,12 @@ export function StatCard({
           {loading ? <Skeleton width={VALUE_SKELETON_WIDTH} /> : value}
         </Typography>
       </CardBody>
+
+      {note ? (
+        <Typography variant="labelSm" color="text.secondary">
+          {note}
+        </Typography>
+      ) : null}
 
       {comparison ? (
         <ComparisonFooter>

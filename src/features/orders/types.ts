@@ -45,6 +45,96 @@ export interface OrderPage {
   total: number
 }
 
+/** Una línea de la orden, con el producto que se vendió. */
+export interface OrderLine {
+  id: number
+  productId: number
+  sku: string
+  productName: string
+  quantity: number
+  /** Precio facturado en la línea, no el precio actual del producto. */
+  unitPrice: number
+}
+
+/**
+ * Detalle de la orden (`GET /api/v1/orders/:id`). A diferencia del listado trae
+ * las líneas, pero no el envío: ése se pide aparte a `GET /shipments`.
+ */
+export interface OrderDetail {
+  id: number
+  externalOrderId: string | null
+  customerName: string
+  customerDocument: string | null
+  customerAddress: string | null
+  customerZipCode: string | null
+  status: OrderStatus
+  /** Lo que suman las líneas, persistido al crear la orden (TESIS-114). */
+  totalAmount: number | null
+  lines: OrderLine[]
+  createdAt: string
+}
+
+/** Los cuatro estados del envío (`Shipment::STATUSES`), en el orden del ciclo. */
+export type ShipmentStatus = 'pending' | 'ready_to_ship' | 'in_transit' | 'delivered'
+
+/** El operador logístico: la integración de la empresa con el courier. */
+export interface Courier {
+  id: number
+  serviceId: number
+  name: string
+}
+
+/**
+ * Una entrada de la bitácora del envío. `internalStatus` es el vocabulario
+ * normalizado del sistema y `externalStatus` el texto crudo que mandó el
+ * courier: la pantalla muestra los dos.
+ */
+export interface ShipmentEvent {
+  id: number
+  internalStatus: ShipmentStatus
+  externalStatus: string
+  description: string | null
+  occurredAt: string
+}
+
+/** Detalle del envío (`GET /api/v1/shipments/:id`), con su bitácora. */
+export interface Shipment {
+  id: number
+  orderId: number
+  status: ShipmentStatus
+  /** Null hasta que el courier confirma el despacho. */
+  trackingNumber: string | null
+  /** Null mientras no se cotizó: un envío sin cotizar no cuesta 0. */
+  shippingCost: number | null
+  /** Null hasta que se asigna el courier al confirmar el despacho. */
+  courier: Courier | null
+  /** Ordenados por `occurredAt`, del más viejo al más nuevo. */
+  events: ShipmentEvent[]
+}
+
+/**
+ * El envío de una orden, tal como lo resuelve la pantalla.
+ *
+ * El modelo garantiza un envío por orden (índice único sobre `order_id`), pero
+ * la pantalla no lo da por sentado: si la API devolviera más de uno, elegir
+ * cualquiera mostraría un tracking y un costo que pueden no ser los de la
+ * orden. `duplicated` es ese caso, y la pantalla lo informa en vez de adivinar.
+ */
+export type OrderShipment =
+  | { kind: 'none' }
+  | { kind: 'single'; shipment: Shipment }
+  | { kind: 'duplicated'; count: number }
+
+/**
+ * Lo que los paneles del envío tienen para mostrar: el envío ya resuelto, o
+ * por qué todavía no hay uno. La carga y el error son estados de la pantalla,
+ * no del dominio, pero los paneles los dibujan igual que los otros casos.
+ */
+export type ShipmentView =
+  | OrderShipment
+  | { kind: 'loading' }
+  | { kind: 'error'; onRetry: () => void }
+
 /** Filtros que viajan como query params a `GET /api/v1/orders`. */
 export interface OrderFilters {
   page: number

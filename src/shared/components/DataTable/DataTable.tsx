@@ -4,12 +4,14 @@ import {
   BodyCell,
   BodyRow,
   EmptyState,
+  FooterBar,
   HeadCell,
   Scroller,
   SelectCell,
   TableCard,
   Toolbar,
   ToolbarActions,
+  ToolbarTitle,
 } from './DataTable.styles'
 import type { DataTableProps } from './DataTable.types'
 import { DataTablePaginationBar } from './DataTablePaginationBar'
@@ -48,6 +50,8 @@ export function DataTable<Row>({
   paginationLabels,
   toolbarActions,
   emptyMessage,
+  title,
+  footer,
 }: DataTableProps<Row>) {
   const selected = new Set(selectedIds)
   const visibleIds = rows.map(getRowId)
@@ -73,22 +77,35 @@ export function DataTable<Row>({
     onSelectionChange?.([...next])
   }
 
-  const hasToolbar = tabs !== undefined || toolbarActions !== undefined
+  const hasToolbar = tabs !== undefined || toolbarActions !== undefined || Boolean(title)
+  const hasPaginator = pagination !== undefined && paginationLabels !== undefined
+
+  function toolbarStart() {
+    if (tabs !== undefined) {
+      return (
+        <DataTableTabs
+          tabs={tabs}
+          activeTabId={activeTabId}
+          onTabChange={onTabChange}
+          label={label}
+        />
+      )
+    }
+    if (title) {
+      return (
+        <ToolbarTitle variant="h3" component="h2">
+          {title}
+        </ToolbarTitle>
+      )
+    }
+    return <span />
+  }
 
   return (
     <TableCard>
       {hasToolbar ? (
         <Toolbar>
-          {tabs === undefined ? (
-            <span />
-          ) : (
-            <DataTableTabs
-              tabs={tabs}
-              activeTabId={activeTabId}
-              onTabChange={onTabChange}
-              label={label}
-            />
-          )}
+          {toolbarStart()}
           {toolbarActions === undefined ? null : <ToolbarActions>{toolbarActions}</ToolbarActions>}
         </Toolbar>
       ) : null}
@@ -169,9 +186,15 @@ export function DataTable<Row>({
         </EmptyState>
       ) : null}
 
-      {pagination === undefined || paginationLabels === undefined ? null : (
-        <DataTablePaginationBar {...pagination} {...paginationLabels} />
-      )}
+      {hasPaginator ? <DataTablePaginationBar {...pagination} {...paginationLabels} /> : null}
+
+      {!hasPaginator && footer ? (
+        <FooterBar>
+          <Typography variant="labelMd" color="text.secondary">
+            {footer}
+          </Typography>
+        </FooterBar>
+      ) : null}
     </TableCard>
   )
 }

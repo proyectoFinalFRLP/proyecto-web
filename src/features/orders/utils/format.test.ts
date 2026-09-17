@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest'
 
-import { formatMoney, formatOrderDate, formatOrderId, formatOrderTime } from './format'
+import {
+  formatEventTimestamp,
+  formatMoney,
+  formatOrderDate,
+  formatOrderId,
+  formatOrderTime,
+  formatShortDate,
+} from './format'
 
 describe('formatMoney', () => {
   it('groups thousands with a dot', () => {
@@ -48,6 +55,27 @@ describe('formatOrderTime', () => {
   // para ordenar el día.
   it('renders midnight as 00 and not as 24', () => {
     expect(formatOrderTime('2026-08-25T00:14:00-03:00')).toBe('00:14')
+  })
+})
+
+describe('formatShortDate', () => {
+  it('renders day and short month, without the year', () => {
+    const formatted = formatShortDate('2026-08-26T12:00:00Z')
+
+    expect(formatted).toMatch(/26.*ago/)
+    expect(formatted).not.toContain('2026')
+  })
+
+  // La zona es la del operador: un evento de las 23:30 de Buenos Aires es del
+  // mismo día aunque en UTC ya sea el siguiente.
+  it('uses the local day of the event', () => {
+    expect(formatShortDate('2026-08-27T02:30:00Z')).toMatch(/^26/)
+  })
+})
+
+describe('formatEventTimestamp', () => {
+  it('joins the short date and the time with a middle dot', () => {
+    expect(formatEventTimestamp('2026-08-12T09:42:00-03:00')).toMatch(/^12 ago\.? · 09:42$/)
   })
 })
 
