@@ -125,6 +125,16 @@ export type OrderShipment =
   | { kind: 'single'; shipment: Shipment }
   | { kind: 'duplicated'; count: number }
 
+/**
+ * Lo que los paneles del envío tienen para mostrar: el envío ya resuelto, o
+ * por qué todavía no hay uno. La carga y el error son estados de la pantalla,
+ * no del dominio, pero los paneles los dibujan igual que los otros casos.
+ */
+export type ShipmentView =
+  | OrderShipment
+  | { kind: 'loading' }
+  | { kind: 'error'; onRetry: () => void }
+
 /** Filtros que viajan como query params a `GET /api/v1/orders`. */
 export interface OrderFilters {
   page: number

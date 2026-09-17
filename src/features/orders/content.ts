@@ -58,6 +58,26 @@ export const ordersCopy = {
       /** Más de un envío para una orden: el modelo lo prohíbe, la pantalla no adivina. */
       duplicatedShipment: 'Envío inconsistente',
     },
+    lifecycle: {
+      title: 'Ciclo de vida del envío',
+      progressLabel: 'Avance del envío',
+      stagesLabel: 'Etapas del envío',
+      /** Etapa a la que el envío todavía no llegó. */
+      notReached: 'Pendiente',
+      /** Etapa alcanzada sin un evento que la feche (el envío nace en `pending`). */
+      noDate: 'Sin registro',
+      logLabel: 'Bitácora del operador logístico',
+      emptyLog: 'El operador logístico todavía no reportó eventos.',
+      /** "En tránsito · 15 ago · 08:30": el estado normalizado y cuándo pasó. */
+      eventMeta: (status: string, when: string) => `${status} · ${when}`,
+    },
+    shipmentState: {
+      none: 'La orden todavía no tiene un envío creado.',
+      duplicated: (count: number) =>
+        `La orden tiene ${count} envíos registrados y debería tener uno solo. No se muestra ninguno hasta que se corrija.`,
+      error: 'No pudimos cargar el envío de la orden.',
+      retry: 'Reintentar',
+    },
     items: {
       title: 'Líneas de la orden',
       columns: {
