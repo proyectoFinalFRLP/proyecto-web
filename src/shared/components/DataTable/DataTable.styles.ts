@@ -1,5 +1,6 @@
-import { Box, TableCell, TableContainer, TableRow, Tab } from '@mui/material'
+import { Box, TableCell, TableContainer, TableRow, Tab, Typography } from '@mui/material'
 import { alpha, styled } from '@mui/material/styles'
+import type { ElementType } from 'react'
 
 import type { DataTableRowTone } from './DataTable.types'
 
@@ -40,6 +41,20 @@ export const Toolbar = styled(Box)(({ theme }) => ({
     paddingBlock: theme.spacing(1),
   },
 }))
+
+// `styled(Typography)` pierde el tipo del prop `component`; declararlo deja
+// renderizar el título como `h2` sin perder la variante.
+interface AsProp {
+  component?: ElementType
+}
+
+// Título de la tabla (S08): el `h3` del DS, con el mismo alto que la fila de
+// pestañas para que las dos barras midan igual.
+export const ToolbarTitle = styled(Typography)<AsProp>({
+  display: 'flex',
+  alignItems: 'center',
+  minHeight: 48,
+})
 
 export const ToolbarActions = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -130,6 +145,13 @@ export const PaginationBar = styled(Box)(({ theme }) => ({
     flexDirection: 'column',
     alignItems: 'stretch',
   },
+}))
+
+// Pie sin paginador: la misma banda hundida que el paginador, con sólo el texto.
+export const FooterBar = styled(Box)(({ theme }) => ({
+  padding: theme.spacing(2, 3),
+  backgroundColor: theme.palette.background.default,
+  borderTop: `1px solid ${theme.palette.divider}`,
 }))
 
 export const PageButtons = styled(Box)(({ theme }) => ({
