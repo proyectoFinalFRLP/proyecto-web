@@ -42,6 +42,17 @@ export const ordersCopy = {
   },
   detail: {
     header: {
+      title: (orderLabel: string) => `Orden ${orderLabel}`,
+      breadcrumb: {
+        label: 'Ruta de navegación',
+        orders: 'Órdenes',
+      },
+      actions: {
+        modify: 'Modificar orden',
+        print: 'Imprimir remito',
+        /** No hay endpoint que genere el remito: la acción queda visible y apagada. */
+        printPending: 'El remito todavía no se puede generar desde el sistema.',
+      },
       /** La orden todavía no tiene envío creado (TESIS-105). */
       noShipment: 'Sin envío',
       /** Más de un envío para una orden: el modelo lo prohíbe, la pantalla no adivina. */
