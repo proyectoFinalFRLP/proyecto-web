@@ -1,6 +1,16 @@
 import { client } from 'shared/api/client'
 
-import type { OrderFilters, OrderPage, OrderStatus, OrderSummary } from './types'
+import type {
+  Courier,
+  OrderDetail,
+  OrderFilters,
+  OrderPage,
+  OrderShipment,
+  OrderStatus,
+  OrderSummary,
+  Shipment,
+  ShipmentStatus,
+} from './types'
 
 // Frontera con la API Rails. Lo que entra en snake_case se traduce acá y sale
 // como el dominio en camelCase.
@@ -36,9 +46,67 @@ interface ApiOrderSummary {
   created_at: string
 }
 
+interface ApiListMeta {
+  page: number
+  per_page: number
+  total: number
+}
+
 interface ApiOrderList {
   data: ApiOrderSummary[]
-  meta: { page: number; per_page: number; total: number }
+  meta: ApiListMeta
+}
+
+interface ApiOrderItem {
+  id: number
+  product_id: number
+  quantity: number
+  unit_price: number
+  product: { id: number; sku: string; name: string }
+}
+
+// `show` devuelve el objeto pelado, sin el envoltorio `{ data }` del listado.
+interface ApiOrderDetail {
+  id: number
+  external_order_id: string | null
+  customer_name: string
+  customer_document: string | null
+  customer_address: string | null
+  customer_zip_code: string | null
+  status: OrderStatus
+  total_amount: number | null
+  order_items: ApiOrderItem[]
+  created_at: string
+}
+
+interface ApiShipmentEvent {
+  id: number
+  internal_status: ShipmentStatus
+  external_status: string
+  description: string | null
+  occurred_at: string
+}
+
+interface ApiShipment {
+  id: number
+  order_id: number
+  status: ShipmentStatus
+  tracking_number: string | null
+  shipping_cost: number | null
+  courier: ApiCourier | null
+  events: ApiShipmentEvent[]
+}
+
+// La fila del listado de envíos: sólo se lee para saber cuántos hay y cuál es.
+interface ApiShipmentList {
+  data: { id: number }[]
+  meta: ApiListMeta
+}
+
+function toCourier(courier: ApiCourier | null): Courier | null {
+  if (courier === null) return null
+
+  return { id: courier.id, serviceId: courier.service_id, name: courier.name }
 }
 
 function toOrder(order: ApiOrderSummary): OrderSummary {
@@ -79,6 +147,74 @@ export async function fetchOrderPage(filters: OrderFilters): Promise<OrderPage> 
     perPage: data.meta.per_page,
     total: data.meta.total,
   }
+}
+
+export async function fetchOrder(id: number): Promise<OrderDetail> {
+  const { data } = await client.get<ApiOrderDetail>(`/orders/${id}`)
+
+  return {
+    id: data.id,
+    externalOrderId: data.external_order_id,
+    customerName: data.customer_name,
+    customerDocument: data.customer_document,
+    customerAddress: data.customer_address,
+    customerZipCode: data.customer_zip_code,
+    status: data.status,
+    totalAmount: data.total_amount,
+    lines: data.order_items.map((item) => ({
+      id: item.id,
+      productId: item.product_id,
+      sku: item.product.sku,
+      productName: item.product.name,
+      quantity: item.quantity,
+      unitPrice: item.unit_price,
+    })),
+    createdAt: data.created_at,
+  }
+}
+
+function toShipment(shipment: ApiShipment): Shipment {
+  return {
+    id: shipment.id,
+    orderId: shipment.order_id,
+    status: shipment.status,
+    trackingNumber: shipment.tracking_number,
+    shippingCost: shipment.shipping_cost,
+    courier: toCourier(shipment.courier),
+    // El backend ya los ordena por `occurred_at` (con desempate por id): no se
+    // reordenan acá para no tener dos definiciones del mismo orden.
+    events: shipment.events.map((event) => ({
+      id: event.id,
+      internalStatus: event.internal_status,
+      externalStatus: event.external_status,
+      description: event.description,
+      occurredAt: event.occurred_at,
+    })),
+  }
+}
+
+/**
+ * El envío de una orden, con su bitácora.
+ *
+ * Son dos requests porque la API no anida el envío en la orden: el listado
+ * filtrado por `order_id` dice cuántos hay y cuál es, y el detalle trae los
+ * eventos, que el listado no incluye.
+ *
+ * Se piden dos filas y no una a propósito: con `per_page=1` un segundo envío
+ * quedaría fuera de la página, y el `meta.total` es lo que lo delata.
+ */
+export async function fetchOrderShipment(orderId: number): Promise<OrderShipment> {
+  const { data: list } = await client.get<ApiShipmentList>('/shipments', {
+    params: { order_id: orderId, page: 1, per_page: 2 },
+  })
+
+  if (list.meta.total > 1) return { kind: 'duplicated', count: list.meta.total }
+
+  if (list.data.length === 0) return { kind: 'none' }
+
+  const { data } = await client.get<ApiShipment>(`/shipments/${list.data[0].id}`)
+
+  return { kind: 'single', shipment: toShipment(data) }
 }
 
 /**
