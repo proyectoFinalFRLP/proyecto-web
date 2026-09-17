@@ -58,6 +58,22 @@ export const ordersCopy = {
       /** Más de un envío para una orden: el modelo lo prohíbe, la pantalla no adivina. */
       duplicatedShipment: 'Envío inconsistente',
     },
+    items: {
+      title: 'Líneas de la orden',
+      columns: {
+        sku: 'SKU',
+        product: 'Producto',
+        unitPrice: 'P. unitario',
+        quantity: 'Cant.',
+        subtotal: 'Subtotal',
+      },
+      empty: 'La orden no tiene líneas.',
+      /** "3 líneas · 67 unidades". */
+      footer: (lines: number, units: number) =>
+        `${formatCount(lines)} ${lines === 1 ? 'línea' : 'líneas'} · ${formatCount(units)} ${
+          units === 1 ? 'unidad' : 'unidades'
+        }`,
+    },
   },
   actions: {
     view: 'Ver',
