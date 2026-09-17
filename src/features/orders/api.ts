@@ -1,4 +1,5 @@
 import { client } from 'shared/api/client'
+import { fetchCount } from 'shared/api/count'
 
 import type { OrderFilters, OrderPage, OrderStatus, OrderSummary } from './types'
 
@@ -61,13 +62,15 @@ function toOrder(order: ApiOrderSummary): OrderSummary {
 
 // Un filtro vacío no viaja: mandar `status=` o `search=` en blanco haría que el
 // backend filtre por cadena vacía y devuelva cero filas.
-function toParams({ page, perPage, status, search }: OrderFilters) {
+function toFilters({ status, search }: Pick<OrderFilters, 'status' | 'search'>) {
   return {
-    page,
-    per_page: perPage,
     ...(status === undefined ? {} : { status }),
     ...(search === undefined || search === '' ? {} : { search }),
   }
+}
+
+function toParams({ page, perPage, status, search }: OrderFilters) {
+  return { page, per_page: perPage, ...toFilters({ status, search }) }
 }
 
 export async function fetchOrderPage(filters: OrderFilters): Promise<OrderPage> {
@@ -84,15 +87,10 @@ export async function fetchOrderPage(filters: OrderFilters): Promise<OrderPage> 
 /**
  * Cuántas órdenes matchean un filtro, sin traerlas.
  *
- * Alimenta los contadores de las pestañas. Pide una sola fila y lee nada más
- * que el `meta.total`, que es el conteo del scope filtrado: es el mismo truco
- * que usan los KPIs del tablero (TESIS-53) y evita traer cuatro páginas
- * completas para mostrar cuatro números.
+ * Alimenta los contadores de las pestañas. Lee sólo el `meta.total` del scope
+ * filtrado (ver `fetchCount`): es el mismo truco que usan los KPIs del tablero
+ * y evita traer cuatro páginas completas para mostrar cuatro números.
  */
-export async function fetchOrderCount(status?: OrderStatus, search?: string): Promise<number> {
-  const { data } = await client.get<ApiOrderList>('/orders', {
-    params: toParams({ page: 1, perPage: 1, status, search }),
-  })
-
-  return data.meta.total
+export function fetchOrderCount(status?: OrderStatus, search?: string): Promise<number> {
+  return fetchCount('/orders', toFilters({ status, search }))
 }
