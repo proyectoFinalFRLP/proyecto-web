@@ -17,11 +17,11 @@ const { columns: columnCopy, cells, actions: actionCopy, page } = inventoryCopy
 function Stacked({ primary, secondary }: { primary: string; secondary?: string | null }) {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-      <Typography variant="body2" noWrap>
+      <Typography variant="bodyMd" noWrap>
         {primary}
       </Typography>
       {secondary ? (
-        <Typography variant="caption" sx={{ color: 'text.secondary' }} noWrap>
+        <Typography variant="labelSm" sx={{ color: 'text.secondary' }} noWrap>
           {secondary}
         </Typography>
       ) : null}
@@ -43,7 +43,10 @@ function buildColumns(
           type="button"
           underline="hover"
           onClick={() => onView(product)}
-          sx={{ fontFamily: 'monospace', fontSize: 14, textAlign: 'left' }}
+          // `typography: 'dataMono'` y no fontFamily suelto: el token trae la
+          // familia mono del Design System (Space Grotesk), el tamaño y el peso.
+          // `fontFamily: 'monospace'` caía en la monoespaciada del sistema.
+          sx={{ typography: 'dataMono', textAlign: 'left' }}
         >
           {product.sku}
         </Link>
@@ -56,11 +59,11 @@ function buildColumns(
       width: 130,
       render: (product) =>
         product.category === null ? (
-          <Typography variant="body2" sx={{ color: 'text.disabled' }}>
+          <Typography variant="bodyMd" sx={{ color: 'text.disabled' }}>
             {cells.noCategory}
           </Typography>
         ) : (
-          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+          <Typography variant="bodyMd" sx={{ color: 'text.secondary' }}>
             {product.category}
           </Typography>
         ),
@@ -75,11 +78,9 @@ function buildColumns(
       // en ningún nodo. Sumarlas diría que hay mercadería que no está.
       render: (product) => (
         <Box sx={{ textAlign: 'right' }}>
-          <Typography variant="body2" sx={{ fontFamily: 'monospace', fontWeight: 600 }}>
-            {formatUnits(product.totalStock)}
-          </Typography>
+          <Typography variant="dataMono">{formatUnits(product.totalStock)}</Typography>
           {product.inTransitQuantity > 0 ? (
-            <Typography variant="caption" sx={{ color: 'info.main' }}>
+            <Typography variant="labelSm" sx={{ color: 'info.main' }}>
               {cells.inTransit(product.inTransitQuantity)}
             </Typography>
           ) : null}
@@ -103,7 +104,7 @@ function buildColumns(
       width: 160,
       render: (product) =>
         product.primaryWarehouse === null ? (
-          <Typography variant="body2" sx={{ color: 'text.disabled' }}>
+          <Typography variant="bodyMd" sx={{ color: 'text.disabled' }}>
             {cells.noWarehouse}
           </Typography>
         ) : (
