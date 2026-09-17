@@ -78,6 +78,48 @@ export const ordersCopy = {
       error: 'No pudimos cargar el envío de la orden.',
       retry: 'Reintentar',
     },
+    /** Marca de "sin dato": el campo existe en el diseño pero no en el modelo. */
+    unknown: '—',
+    customer: {
+      title: 'Datos del cliente',
+      fields: {
+        name: 'Razón social',
+        document: 'Documento',
+        contact: 'Contacto',
+        phone: 'Teléfono',
+        address: 'Domicilio de entrega',
+      },
+      /** "Av. Corrientes 3247 · CP C1193". */
+      addressValue: (address: string, zipCode: string | null) =>
+        zipCode === null ? address : `${address} · CP ${zipCode}`,
+      footnote: 'La orden no registra contacto ni teléfono del cliente.',
+    },
+    shipping: {
+      title: 'Datos del envío',
+      tracking: {
+        label: 'Número de seguimiento',
+        /** El courier asigna el número al confirmar el despacho (TESIS-47). */
+        pending: 'Pendiente de despacho',
+        copy: 'Copiar número de seguimiento',
+        copied: 'Número de seguimiento copiado.',
+        copyFailed: 'No se pudo copiar. Seleccioná el número y copialo a mano.',
+      },
+      fields: {
+        serviceType: 'Tipo de servicio',
+        origin: 'Depósito de origen',
+      },
+      footnote: 'El envío no registra el tipo de servicio ni el depósito de origen.',
+    },
+    payment: {
+      title: 'Resumen de pago',
+      subtotal: 'Productos',
+      shipping: 'Envío',
+      /** El envío todavía no tiene costo: no es gratis, falta cotizarlo. */
+      shippingPending: 'Sin cotizar',
+      total: 'Total',
+      invoice: 'Descargar factura',
+      invoicePending: 'La factura todavía no se puede generar desde el sistema.',
+    },
     items: {
       title: 'Líneas de la orden',
       columns: {
