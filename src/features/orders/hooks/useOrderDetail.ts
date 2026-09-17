@@ -5,12 +5,25 @@ import { fetchOrder, fetchOrderShipment } from '../api'
 import { orderKeys } from '../queryKeys'
 import type { OrderDetail, OrderShipment } from '../types'
 
+const NOT_FOUND_STATUS = 404
+
+/**
+ * Cuántas veces reintentar la orden. Un 404 no se reintenta: la orden no existe
+ * (o es de otra empresa) y no va a aparecer. Reintentarlo sólo demora la
+ * pantalla de "no encontrada", y React Query pausa los reintentos mientras la
+ * ventana no tiene foco, así que la demora puede no terminar nunca.
+ */
+export function shouldRetryOrder(failureCount: number, error: ApiRequestError): boolean {
+  return error.status !== NOT_FOUND_STATUS && failureCount < 1
+}
+
 /** Detalle de la orden con sus líneas. Sin id válido la query no se dispara. */
 export function useOrder(id: number | undefined) {
   return useQuery<OrderDetail, ApiRequestError>({
     queryKey: orderKeys.detail(id ?? 0),
     queryFn: () => fetchOrder(id ?? 0),
     enabled: id !== undefined,
+    retry: shouldRetryOrder,
   })
 }
 
