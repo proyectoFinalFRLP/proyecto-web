@@ -12,6 +12,10 @@ const COMPACT_ICON_BOX = 32
 const CHIP_HEIGHT = 22
 const GLOW_SIZE = 64
 
+// Ancho del skeleton del valor. Es relativo a la tarjeta para que una cifra
+// corta y una larga carguen con la misma silueta.
+export const VALUE_SKELETON_WIDTH = '60%'
+
 const TRANSIENT_PROPS = new Set<string>(['tone', 'accent'])
 
 const notForwarded = (prop: string | number | symbol) => !TRANSIENT_PROPS.has(prop as string)

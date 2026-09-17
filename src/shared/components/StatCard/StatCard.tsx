@@ -1,6 +1,6 @@
 import TrendingDownIcon from '@mui/icons-material/TrendingDown'
 import TrendingUpIcon from '@mui/icons-material/TrendingUp'
-import { Typography } from '@mui/material'
+import { Skeleton, Typography } from '@mui/material'
 
 import {
   CardBody,
@@ -12,6 +12,7 @@ import {
   CornerGlow,
   IconBox,
   MetaChip,
+  VALUE_SKELETON_WIDTH,
 } from './StatCard.styles'
 import type { StatCardProps, StatTone, StatTrend } from './StatCard.types'
 
@@ -41,6 +42,7 @@ export function StatCard({
   tag,
   trend,
   comparison,
+  loading = false,
 }: StatCardProps) {
   // El tono de alerta es el único que además acentúa el borde y suma el halo:
   // una métrica en rojo tiene que saltar sin depender de leer el número.
@@ -61,7 +63,7 @@ export function StatCard({
   const hasHeader = Boolean(icon) || chip !== null
 
   return (
-    <CardRoot accent={accent}>
+    <CardRoot accent={accent} aria-busy={loading}>
       {accent ? <CornerGlow tone={accent} /> : null}
 
       {hasHeader ? (
@@ -75,7 +77,11 @@ export function StatCard({
         <Typography variant="bodyMd" color="text.secondary">
           {label}
         </Typography>
-        <Typography variant="displaySm">{value}</Typography>
+        {/* El skeleton va adentro del Typography para heredar su tamaño de
+            fuente: así mide exactamente la línea que después ocupa el valor. */}
+        <Typography variant="displaySm">
+          {loading ? <Skeleton width={VALUE_SKELETON_WIDTH} /> : value}
+        </Typography>
       </CardBody>
 
       {comparison ? (

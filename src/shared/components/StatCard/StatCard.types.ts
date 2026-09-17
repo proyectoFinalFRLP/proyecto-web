@@ -41,6 +41,12 @@ export interface StatCardProps {
   trend?: StatTrend
   /** Footer comparativo contra el período anterior. */
   comparison?: StatComparison
+  /**
+   * Mientras el dato viaja, el valor se reemplaza por un skeleton con la misma
+   * altura de línea, así la tarjeta no salta cuando llega el número. `value`
+   * se ignora en ese estado; el resto (ícono, chip, label) se muestra igual.
+   */
+  loading?: boolean
 }
 
 export interface CompactStatCardProps {
