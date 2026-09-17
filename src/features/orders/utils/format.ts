@@ -22,6 +22,13 @@ const TIME = new Intl.DateTimeFormat('es-AR', {
   hourCycle: 'h23',
 })
 
+// Sin año: el detalle muestra fechas del ciclo de un envío, que caen todas en
+// las mismas semanas. «26 ago», como en el diseño.
+const SHORT_DATE = new Intl.DateTimeFormat('es-AR', {
+  day: 'numeric',
+  month: 'short',
+})
+
 /**
  * Importe de la orden.
  *
@@ -41,6 +48,16 @@ export function formatOrderDate(iso: string): string {
 /** "09:14" — la línea secundaria, en 24 horas. */
 export function formatOrderTime(iso: string): string {
   return TIME.format(new Date(iso))
+}
+
+/** "26 ago" — la entrega en la métrica del encabezado. */
+export function formatShortDate(iso: string): string {
+  return SHORT_DATE.format(new Date(iso))
+}
+
+/** "12 ago · 09:42" — cuándo pasó un evento del ciclo del envío. */
+export function formatEventTimestamp(iso: string): string {
+  return `${formatShortDate(iso)} · ${formatOrderTime(iso)}`
 }
 
 /**

@@ -33,6 +33,21 @@ export const ordersCopy = {
     paid: 'Pagada',
     cancelled: 'Cancelada',
   },
+  /** Estados del envío (`Shipment::STATUSES`), con los nombres de las etapas de S08. */
+  shipmentStatus: {
+    pending: 'Pendiente',
+    ready_to_ship: 'Listo para despachar',
+    in_transit: 'En tránsito',
+    delivered: 'Entregado',
+  },
+  detail: {
+    header: {
+      /** La orden todavía no tiene envío creado (TESIS-105). */
+      noShipment: 'Sin envío',
+      /** Más de un envío para una orden: el modelo lo prohíbe, la pantalla no adivina. */
+      duplicatedShipment: 'Envío inconsistente',
+    },
+  },
   actions: {
     view: 'Ver',
     edit: 'Editar',
