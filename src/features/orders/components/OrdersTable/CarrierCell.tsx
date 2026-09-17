@@ -19,7 +19,7 @@ interface CarrierCellProps {
 export function CarrierCell({ carrier }: CarrierCellProps) {
   if (carrier === null) {
     return (
-      <Typography variant="body2" sx={{ color: 'text.disabled' }}>
+      <Typography variant="bodyMd" sx={{ color: 'text.disabled' }}>
         {ordersCopy.cells.noCarrier}
       </Typography>
     )
@@ -33,8 +33,7 @@ export function CarrierCell({ carrier }: CarrierCellProps) {
         sx={{
           width: 28,
           height: 28,
-          fontSize: 12,
-          fontWeight: 600,
+          typography: 'labelMd',
           bgcolor: 'action.selected',
           color: 'text.secondary',
         }}
@@ -42,7 +41,7 @@ export function CarrierCell({ carrier }: CarrierCellProps) {
         {carrierInitials(carrier)}
       </Avatar>
       <Typography
-        variant="body2"
+        variant="bodyMd"
         sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
       >
         {carrier}

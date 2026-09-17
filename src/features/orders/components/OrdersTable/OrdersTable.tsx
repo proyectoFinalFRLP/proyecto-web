@@ -32,7 +32,10 @@ function buildColumns(onView: (order: OrderSummary) => void): DataTableColumn<Or
           type="button"
           underline="hover"
           onClick={() => onView(order)}
-          sx={{ fontFamily: 'monospace', fontSize: 14, textAlign: 'left' }}
+          // `typography: 'dataMono'` y no fontFamily suelto: el token trae la
+          // familia mono del Design System, el tamaño y el peso. `'monospace'`
+          // caía en la monoespaciada del sistema.
+          sx={{ typography: 'dataMono', textAlign: 'left' }}
         >
           {formatOrderId(order.externalOrderId, order.id)}
         </Link>
@@ -54,7 +57,7 @@ function buildColumns(onView: (order: OrderSummary) => void): DataTableColumn<Or
       header: columnCopy.destination,
       render: (order) =>
         order.customerAddress === null ? (
-          <Typography variant="body2" sx={{ color: 'text.disabled' }}>
+          <Typography variant="bodyMd" sx={{ color: 'text.disabled' }}>
             {cells.noDestination}
           </Typography>
         ) : (
@@ -82,8 +85,7 @@ function buildColumns(onView: (order: OrderSummary) => void): DataTableColumn<Or
       width: 140,
       render: (order) => (
         <Typography
-          variant="body2"
-          sx={{ fontFamily: 'monospace', fontWeight: 600 }}
+          variant="dataMono"
           // Sin total la celda queda atenuada en vez de en blanco: un hueco
           // se lee como un error de carga y esto es un dato que no existe.
           color={order.totalAmount === null ? 'text.disabled' : undefined}

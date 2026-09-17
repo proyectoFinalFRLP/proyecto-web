@@ -98,10 +98,10 @@ export function OrdersPage() {
         sx={{ alignItems: { md: 'flex-start' }, mb: 3 }}
       >
         <Box>
-          <Typography variant="h5" sx={{ fontWeight: 600 }}>
+          <Typography variant="h1" component="h1">
             {pageCopy.title}
           </Typography>
-          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+          <Typography variant="bodyLg" sx={{ color: 'text.secondary' }}>
             {pageCopy.subtitle}
           </Typography>
         </Box>
