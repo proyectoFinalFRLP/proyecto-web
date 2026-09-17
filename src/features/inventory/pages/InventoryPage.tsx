@@ -174,10 +174,10 @@ export function InventoryPage() {
         sx={{ alignItems: { md: 'flex-start' }, mb: 3 }}
       >
         <Box>
-          <Typography variant="h5" sx={{ fontWeight: 600 }}>
+          <Typography variant="h1" component="h1">
             {page.title}
           </Typography>
-          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+          <Typography variant="bodyLg" sx={{ color: 'text.secondary' }}>
             {page.subtitle}
           </Typography>
         </Box>
@@ -276,7 +276,7 @@ export function InventoryPage() {
           condición mira `isConflict` y no `conflict`, que es `undefined`
           también mientras se resuelve el refetch. */}
       {updateMutation.isError && !isConflict ? (
-        <Typography variant="body2" role="alert" sx={{ color: 'error.main', mt: 2 }}>
+        <Typography variant="bodyMd" role="alert" sx={{ color: 'error.main', mt: 2 }}>
           {updateMutation.error.message}
         </Typography>
       ) : null}
