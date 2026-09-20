@@ -9,7 +9,7 @@ function toCents(amount: number): number {
 }
 
 /** Importe de una línea: precio facturado por cantidad. */
-export function lineSubtotal(line: OrderLine): number {
+export function lineSubtotal(line: Pick<OrderLine, 'unitPrice' | 'quantity'>): number {
   return toCents(line.unitPrice * line.quantity) / 100
 }
 

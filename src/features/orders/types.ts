@@ -144,3 +144,23 @@ export interface OrderFilters {
   /** Busca por id externo, nombre de cliente o dirección. */
   search?: string
 }
+
+/**
+ * Un producto del catálogo como lo ve el buscador del alta manual (paso 1 del
+ * asistente, S05). Es la fila de `GET /api/v1/products` recortada a lo que el
+ * picker muestra y lo que la línea del borrador necesita copiar.
+ *
+ * No hay precio: `products` no tiene esa columna, así que el precio unitario
+ * de cada línea lo carga quien arma la orden y viaja en `unit_price`.
+ */
+export interface CatalogProduct {
+  id: number
+  sku: string
+  name: string
+  /** Una de `Product::CATEGORIES`, o null en los productos anteriores a TESIS-102. */
+  category: string | null
+  /** Peso unitario en kg. */
+  weight: number
+  /** Unidades sumando todos los depósitos. */
+  totalStock: number
+}

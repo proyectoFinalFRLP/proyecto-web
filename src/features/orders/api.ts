@@ -2,6 +2,7 @@ import { client } from 'shared/api/client'
 import { fetchCount } from 'shared/api/count'
 
 import type {
+  CatalogProduct,
   Courier,
   OrderDetail,
   OrderFilters,
@@ -45,6 +46,15 @@ interface ApiOrderSummary {
   total_amount: number | null
   item_count: number
   created_at: string
+}
+
+interface ApiCatalogProduct {
+  id: number
+  sku: string
+  name: string
+  category: string | null
+  weight: number
+  total_stock: number
 }
 
 interface ApiListMeta {
@@ -229,4 +239,32 @@ export async function fetchOrderShipment(orderId: number): Promise<OrderShipment
  */
 export function fetchOrderCount(status?: OrderStatus, search?: string): Promise<number> {
   return fetchCount('/orders', toFilters({ status, search }))
+}
+
+/**
+ * Cuántos productos trae el buscador del alta manual. Es el máximo que la API
+ * permite por página (`per_page.clamp(1, 100)`).
+ *
+ * `GET /products` no tiene parámetro de búsqueda —el index sólo pagina—, así
+ * que el filtro por SKU o nombre corre del lado del cliente sobre esta página.
+ * Un catálogo de más de cien productos deja los últimos fuera del buscador;
+ * cuando eso pase, la salida es un `search` en el backend, no una segunda
+ * página acá.
+ */
+export const CATALOG_PAGE_SIZE = 100
+
+/** El catálogo de la empresa, para el buscador del paso 1 del alta manual. */
+export async function fetchCatalogProducts(): Promise<CatalogProduct[]> {
+  const { data } = await client.get<{ data: ApiCatalogProduct[]; meta: ApiListMeta }>('/products', {
+    params: { page: 1, per_page: CATALOG_PAGE_SIZE },
+  })
+
+  return data.data.map((product) => ({
+    id: product.id,
+    sku: product.sku,
+    name: product.name,
+    category: product.category,
+    weight: product.weight,
+    totalStock: product.total_stock,
+  }))
 }

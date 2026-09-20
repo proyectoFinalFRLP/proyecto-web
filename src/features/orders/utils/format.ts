@@ -71,3 +71,15 @@ export function formatEventTimestamp(iso: string): string {
 export function formatOrderId(externalOrderId: string | null, id: number): string {
   return `#${externalOrderId ?? id}`
 }
+
+// Un decimal como en el diseño («46,9 kg»): el peso es una estimación para el
+// envío, no un dato facturado, y los gramos no cambian ninguna decisión.
+const WEIGHT = new Intl.NumberFormat('es-AR', {
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 1,
+})
+
+/** "46,9 kg" — el peso estimado del envío. */
+export function formatWeight(kilograms: number): string {
+  return `${WEIGHT.format(kilograms)} kg`
+}

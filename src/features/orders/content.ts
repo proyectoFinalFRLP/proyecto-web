@@ -155,6 +155,84 @@ export const ordersCopy = {
         }`,
     },
   },
+  /** El asistente de alta manual (S05 · S06 · S07). */
+  wizard: {
+    title: 'Nueva orden',
+    stepOf: (step: number, total: number) => `Paso ${step} de ${total}`,
+    progressLabel: 'Avance del alta',
+    cancel: 'Cancelar orden',
+    /** Etapas en el orden del asistente; cada paso rotula el botón con la siguiente. */
+    steps: {
+      customer: 'Cliente y productos',
+      shipping: 'Destino y origen',
+      carrier: 'Cotizaciones',
+    },
+    next: (stepLabel: string) => `Siguiente: ${stepLabel.toLowerCase()}`,
+  },
+  /** Paso 1: cliente y productos. */
+  draft: {
+    customer: {
+      title: 'Datos del cliente',
+      fields: {
+        firstName: 'Nombre',
+        lastName: 'Apellido',
+        document: 'DNI / CUIT',
+      },
+      placeholders: {
+        firstName: 'Marina',
+        lastName: 'Rodríguez',
+        document: '20-31298744-9',
+      },
+      validation: {
+        firstNameRequired: 'Ingresá el nombre.',
+        lastNameRequired: 'Ingresá el apellido.',
+        documentRequired: 'Ingresá el DNI o CUIT.',
+      },
+    },
+    products: {
+      title: 'Productos',
+      tableLabel: 'Productos de la orden',
+      searchLabel: 'Buscar por SKU o nombre',
+      searchPlaceholder: 'SKU o nombre del producto',
+      noMatches: 'Ningún producto coincide.',
+      loadingCatalog: 'Cargando el catálogo…',
+      catalogError: 'No pudimos cargar el catálogo de productos.',
+      retry: 'Reintentar',
+      /** El producto ya tiene su fila: se edita ahí, no se agrega dos veces. */
+      alreadyAdded: 'Ya está en la lista',
+      quantity: 'Cantidad',
+      unitPrice: 'Precio unitario',
+      add: 'Agregar SKU',
+      /** "Electronics · 1.240 u. disponibles". */
+      optionMeta: (category: string | null, stock: string) =>
+        category === null ? `${stock} u. disponibles` : `${category} · ${stock} u. disponibles`,
+      columns: {
+        sku: 'SKU',
+        product: 'Producto',
+        category: 'Categoría',
+        weight: 'Peso unitario',
+        unitPrice: 'P. unitario',
+        quantity: 'Cantidad',
+        subtotal: 'Subtotal',
+        actions: 'Acciones',
+      },
+      /** Un producto anterior a TESIS-102 no tiene categoría. */
+      noCategory: '—',
+      remove: 'Quitar',
+      quantityFor: (sku: string) => `Cantidad de ${sku}`,
+      menuFor: (sku: string) => `Acciones de ${sku}`,
+      empty: 'Buscá un producto y agregalo para armar la orden.',
+      /** "3 SKU seleccionados · las cantidades ajustan el peso estimado". */
+      footer: (count: number) =>
+        `${formatCount(count)} SKU ${count === 1 ? 'seleccionado' : 'seleccionados'} · las cantidades ajustan el peso estimado`,
+    },
+    summary: {
+      subtotal: 'Subtotal de productos',
+      subtotalHint: 'Precio unitario por cantidad de cada SKU. El envío se cotiza en el paso 3.',
+      weight: 'Peso total estimado',
+      weightHint: 'Calculado sobre el peso unitario declarado de cada SKU.',
+    },
+  },
   actions: {
     view: 'Ver',
     edit: 'Editar',
