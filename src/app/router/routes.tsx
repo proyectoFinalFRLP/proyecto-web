@@ -1,3 +1,4 @@
+import BarChartOutlinedIcon from '@mui/icons-material/BarChartOutlined'
 import HomeIcon from '@mui/icons-material/Home'
 import HubOutlinedIcon from '@mui/icons-material/HubOutlined'
 import InsightsOutlinedIcon from '@mui/icons-material/InsightsOutlined'
@@ -29,6 +30,7 @@ const InventoryPage = lazy(() =>
 const ProductDetailPage = lazy(() =>
   import('features/inventory').then((m) => ({ default: m.ProductDetailPage })),
 )
+const ReportsPage = lazy(() => import('features/reports').then((m) => ({ default: m.ReportsPage })))
 const LoginPage = lazy(() => import('features/auth').then((m) => ({ default: m.LoginPage })))
 
 export interface NavMeta {
@@ -106,6 +108,11 @@ export const appRoutes: AppRoute[] = [
     path: '/inventory/:productId',
     element: <ProductDetailPage />,
     // Sin `nav`: se llega desde el catálogo, no desde el Sidebar.
+  },
+  {
+    path: '/reports',
+    element: <ReportsPage />,
+    nav: { label: 'Reportes', icon: <BarChartOutlinedIcon /> },
   },
   {
     path: '/design-system',
