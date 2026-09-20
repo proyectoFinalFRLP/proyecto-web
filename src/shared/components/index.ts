@@ -31,6 +31,8 @@ export { StatusFeed } from './StatusFeed'
 export type { StatusFeedEntry, StatusFeedProps } from './StatusFeed'
 export { Logo, LogoMark } from './Logo'
 export type { LogoProps } from './Logo'
+export { StackedCell } from './StackedCell'
+export type { StackedCellProps } from './StackedCell'
 export { DataTable } from './DataTable'
 export type {
   DataTableAction,
