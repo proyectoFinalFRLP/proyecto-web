@@ -1,16 +1,29 @@
-import { Box, TableCell, TableContainer, TableRow, Tab, Typography } from '@mui/material'
+import {
+  Box,
+  TableCell,
+  TableContainer,
+  TableRow,
+  Tab,
+  Typography,
+  tableCellClasses,
+  tableRowClasses,
+} from '@mui/material'
 import { alpha, styled } from '@mui/material/styles'
 import type { ElementType } from 'react'
 
-import type { DataTableRowTone } from './DataTable.types'
+import type { DataTableDensity, DataTableRowTone } from './DataTable.types'
 
 // Alto de fila del diseño (padding vertical 22.5px sobre contenido de 21px).
 export const ROW_HEIGHT = 66
 
+// Alto de la fila compacta: el `rowH` de la DataTable del diseño (52px), para
+// las tablas que viven dentro de un formulario y no son la pantalla entera.
+export const COMPACT_ROW_HEIGHT = 52
+
 // Ancho de la columna de selección — el checkbox más su padding de 24px.
 export const SELECT_COLUMN_WIDTH = 64
 
-const TRANSIENT = new Set<string>(['tone'])
+const TRANSIENT = new Set<string>(['tone', 'density'])
 
 // La tarjeta es la superficie elevada; las bandas (barra, encabezado y pie) van
 // sobre el fondo de página, más hundido. En el frame la relación está invertida
@@ -31,6 +44,9 @@ export const Toolbar = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
+  // Las acciones bajan a su propia línea cuando no entran al lado del título:
+  // un buscador con varios campos no puede achicarse hasta caber.
+  flexWrap: 'wrap',
   gap: theme.spacing(2),
   paddingInline: theme.spacing(3),
   backgroundColor: theme.palette.background.default,
@@ -61,6 +77,10 @@ export const ToolbarActions = styled(Box)(({ theme }) => ({
   alignItems: 'center',
   gap: theme.spacing(1.5),
   flexShrink: 0,
+  // Nunca más ancho que la barra: si lo que trae adentro se envuelve, que se
+  // envuelva acá y no empuje la tarjeta hacia afuera.
+  maxWidth: '100%',
+  minWidth: 0,
   paddingBlock: theme.spacing(1),
 }))
 
@@ -80,11 +100,24 @@ export const FilterTab = styled(Tab)(({ theme }) => ({
 // El scroll horizontal es la salida en pantallas angostas: una tabla de 7
 // columnas no colapsa a una sola sin dejar de ser una tabla. El scroll vive
 // acá y no en la página — `maxWidth` es lo que lo mantiene adentro.
-export const Scroller = styled(TableContainer)({
+//
+// La densidad se aplica desde acá y no celda por celda: así una sola prop
+// alcanza a todas las filas del cuerpo sin enhebrarla por cada `BodyCell`.
+interface ScrollerProps {
+  density: DataTableDensity
+}
+
+export const Scroller = styled(TableContainer, {
+  shouldForwardProp: (prop) => !TRANSIENT.has(prop as string),
+})<ScrollerProps>(({ theme, density }) => ({
   width: '100%',
   maxWidth: '100%',
   overflowX: 'auto',
-})
+  ...(density === 'compact' && {
+    [`& tbody .${tableRowClasses.root}`]: { height: COMPACT_ROW_HEIGHT },
+    [`& tbody .${tableCellClasses.root}`]: { paddingBlock: theme.spacing(1) },
+  }),
+}))
 
 export const HeadCell = styled(TableCell)(({ theme }) => ({
   paddingBlock: theme.spacing(1.5),

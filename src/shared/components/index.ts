@@ -38,9 +38,12 @@ export type {
   DataTableAction,
   DataTableAlign,
   DataTableColumn,
+  DataTableDensity,
   DataTablePagination,
   DataTablePaginationLabels,
   DataTableProps,
   DataTableRowTone,
   DataTableTab,
 } from './DataTable'
+export { FieldLabel, FieldRoot, FullRow, LabeledField } from './LabeledField'
+export type { LabeledFieldProps } from './LabeledField'

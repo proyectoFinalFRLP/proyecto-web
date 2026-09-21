@@ -52,6 +52,7 @@ export function DataTable<Row>({
   emptyMessage,
   title,
   footer,
+  density = 'regular',
 }: DataTableProps<Row>) {
   const selected = new Set(selectedIds)
   const visibleIds = rows.map(getRowId)
@@ -110,7 +111,7 @@ export function DataTable<Row>({
         </Toolbar>
       ) : null}
 
-      <Scroller>
+      <Scroller density={density}>
         <Table aria-label={label}>
           <TableHead>
             <TableRow>
