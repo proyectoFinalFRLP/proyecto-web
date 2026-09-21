@@ -15,6 +15,9 @@ export const integrationKeys = {
 export const orderKeys = {
   all: ['orders'] as const,
   kpi: (status: string) => [...orderKeys.all, 'kpi', status] as const,
+  // Cuelga de `orders` por lo mismo que el KPI: un alta o una edición de orden
+  // invalida ese dominio y refresca también la tabla del panel.
+  recent: (size: number) => [...orderKeys.all, 'recent', size] as const,
 }
 
 export const shipmentKeys = {

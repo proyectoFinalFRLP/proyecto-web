@@ -48,6 +48,31 @@ export const dashboardCopy = {
       `${name}: ${UNITS_FORMAT.format(units)} ${units === 1 ? 'unidad' : 'unidades'}`,
     empty: 'La empresa no tiene depósitos cargados.',
   },
+  // Tabla de órdenes recientes del panel (TESIS-56). Vocabulario y orden de
+  // columnas de S03-Panel.
+  recentOrders: {
+    title: 'Órdenes recientes',
+    tableLabel: 'Últimas órdenes de la empresa',
+    viewAll: 'Ver todas',
+    empty: 'Todavía no hay órdenes cargadas.',
+    loading: 'Cargando las últimas órdenes…',
+    noDestination: 'Sin destino',
+    noTotal: '—',
+    columns: {
+      id: 'ID de orden',
+      destination: 'Destino',
+      total: 'Total',
+      status: 'Estado',
+      date: 'Fecha',
+    },
+    // Las mismas etiquetas que usa el listado global: son el vocabulario del
+    // producto, no de esta pantalla.
+    status: {
+      pending: 'Pendiente',
+      paid: 'Pagada',
+      cancelled: 'Cancelada',
+    },
+  },
   infra: {
     health: {
       // Vocabulario del diseño (S03-Panel): "Salud del sistema", no "de infraestructura".

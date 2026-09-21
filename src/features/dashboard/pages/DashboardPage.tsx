@@ -7,11 +7,13 @@ import { Link as RouterLink } from 'react-router-dom'
 import { PageWrapper, StatCard } from 'shared/components'
 
 import { IntegrationNodeList } from '../components/IntegrationNodeList'
+import { RecentOrdersTable } from '../components/RecentOrdersTable'
 import { WarehouseLoadCard } from '../components/WarehouseLoadCard'
 import { dashboardCopy } from '../content'
 import { useInfraHealth } from '../hooks/useInfraHealth'
 import { useInventoryAlerts } from '../hooks/useInventoryAlerts'
 import { useLogisticsKpis } from '../hooks/useLogisticsKpis'
+import { useRecentOrders } from '../hooks/useRecentOrders'
 
 const { metrics, infra, error: errorCopy } = dashboardCopy
 const healthCopy = infra.health
@@ -73,12 +75,20 @@ export function DashboardPage() {
     refetch: refetchInventory,
   } = useInventoryAlerts()
 
-  const isError = isKpisError || isInfraError || isInventoryError
+  const {
+    orders,
+    isLoading: ordersLoading,
+    isError: isOrdersError,
+    refetch: refetchOrders,
+  } = useRecentOrders()
+
+  const isError = isKpisError || isInfraError || isInventoryError || isOrdersError
 
   const retry = () => {
     refetchKpis()
     refetchInfra()
     refetchInventory()
+    refetchOrders()
   }
 
   // El tono de alerta se enciende sólo si hay algo que alertar: con cero
@@ -167,11 +177,13 @@ export function DashboardPage() {
           </Grid>
         </Grid>
 
-        {/* La columna lateral de 280px del diseño: integraciones arriba y carga
-            de depósitos abajo. A su izquierda va la tabla de órdenes recientes,
-            que construye TESIS-56; hasta que exista, la columna ocupa su tercio
-            y el resto queda libre. */}
+        {/* La fila inferior del diseño: la tabla de órdenes recientes y, a su
+            derecha, la columna de 280px con integraciones y carga de depósitos.
+            En pantallas angostas la columna baja debajo de la tabla. */}
         <Grid container spacing={2}>
+          <Grid size={{ xs: 12, md: 8 }}>
+            <RecentOrdersTable orders={orders} loading={ordersLoading} />
+          </Grid>
           <Grid size={{ xs: 12, md: 4 }}>
             <Stack spacing={3}>
               <IntegrationNodeList
