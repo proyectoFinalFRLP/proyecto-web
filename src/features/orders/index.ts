@@ -1,5 +1,6 @@
 export { OrdersTable } from './components/OrdersTable'
 export type { OrdersTableProps } from './components/OrdersTable'
+export { NewOrderPage } from './pages/NewOrderPage'
 export { OrderDetailPage } from './pages/OrderDetailPage'
 export { OrdersPage } from './pages/OrdersPage'
-export type { OrderFilters, OrderPage, OrderStatus, OrderSummary } from './types'
+export type { CatalogProduct, OrderFilters, OrderPage, OrderStatus, OrderSummary } from './types'

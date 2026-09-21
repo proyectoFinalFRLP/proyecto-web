@@ -50,4 +50,47 @@ describe('StatCard', () => {
 
     expect(container.textContent).toBe('Unidades67')
   })
+
+  describe('trend chip', () => {
+    // El valor de la tarjeta llega en es-AR («124.592»); la tendencia se
+    // formatea acá y tiene que hablar el mismo idioma, con el signo a la vista.
+    it('formats the variation in the locale of the app, with its sign', () => {
+      renderWithTheme(<StatCard label="Volumen" value="124.592" trend={{ value: 12.4 }} />)
+
+      expect(screen.getByText('+12,4%')).toBeInTheDocument()
+    })
+
+    it('keeps the minus sign of a drop', () => {
+      renderWithTheme(<StatCard label="Entregas" value="98,2%" trend={{ value: -0.4 }} />)
+
+      expect(screen.getByText('-0,4%')).toBeInTheDocument()
+    })
+
+    it('shows no sign when nothing changed', () => {
+      renderWithTheme(<StatCard label="Entregas" value="98,2%" trend={{ value: 0 }} />)
+
+      expect(screen.getByText('0%')).toBeInTheDocument()
+    })
+
+    it('rounds to one decimal: the chip signals direction, not the exact figure', () => {
+      renderWithTheme(<StatCard label="Volumen" value="1" trend={{ value: 3.14159 }} />)
+
+      expect(screen.getByText('+3,1%')).toBeInTheDocument()
+    })
+  })
+
+  it('shows the fixed tag with its icon when there is no trend', () => {
+    renderWithTheme(
+      <StatCard
+        label="Anomalías activas"
+        value="142"
+        tag="Crítico"
+        tagTone="error"
+        tagIcon={<svg data-testid="tag-icon" />}
+      />,
+    )
+
+    expect(screen.getByText('Crítico')).toBeInTheDocument()
+    expect(screen.getByTestId('tag-icon')).toBeInTheDocument()
+  })
 })

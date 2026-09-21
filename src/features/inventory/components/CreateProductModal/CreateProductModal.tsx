@@ -7,12 +7,12 @@ import WarehouseOutlinedIcon from '@mui/icons-material/WarehouseOutlined'
 import { Alert, Button, Divider, IconButton, MenuItem, TextField, Typography } from '@mui/material'
 import { useEffect, useId } from 'react'
 import { useFieldArray, useForm } from 'react-hook-form'
+import { LabeledField } from 'shared/components'
 
 import { inventoryCopy } from '../../content'
 import { buildCreatePayload } from '../../utils/payload'
 import {
   FooterActions,
-  LabeledField,
   ModalBody,
   ModalFooter,
   ModalForm,

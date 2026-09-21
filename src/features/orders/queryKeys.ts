@@ -19,3 +19,17 @@ export const orderKeys = {
   // y así invalidar `orderKeys.all` también refresca el envío que muestra.
   shipment: (orderId: number) => [...orderKeys.all, 'shipment', orderId] as const,
 }
+
+/**
+ * El catálogo que consulta el buscador del alta manual.
+ *
+ * Cuelga de la raíz del recurso que lee —`['inventory', 'products']`, la misma
+ * que usa `features/inventory/queryKeys.ts`— y no de `orders`: así un alta o
+ * una edición de producto, que invalidan ese dominio, refrescan también este
+ * buscador. Es la misma regla que los contadores (architecture.md §4.2). Se
+ * escribe como literal porque una feature no puede importar la factory de
+ * otra.
+ */
+export const catalogKeys = {
+  products: () => ['inventory', 'products', 'catalog'] as const,
+}

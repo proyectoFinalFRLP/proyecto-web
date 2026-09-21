@@ -1,11 +1,12 @@
 import { Typography } from '@mui/material'
 
+import { FieldLabel, FieldRoot, FullRow } from './LabeledField.styles'
 import type { LabeledFieldProps } from './LabeledField.types'
-import { FieldLabel, FieldRoot, FullRow } from './ProductModalShell.styles'
 
 /**
  * Campo con el label arriba del input, como pide el DS (MUI por defecto lo
- * flota dentro del borde).
+ * flota dentro del borde). Nació en los modales de producto y subió acá cuando
+ * el alta manual de órdenes lo necesitó (Regla de Dos, feature-structure.md §6).
  *
  * El contenedor se renderiza como `<label>`: envolver al input asocia ambos sin
  * tener que inyectarle un `id` desde afuera, y de paso hace clickeable el texto.
