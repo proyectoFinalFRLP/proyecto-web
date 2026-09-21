@@ -1,16 +1,39 @@
 import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined'
 import MonitorHeartOutlinedIcon from '@mui/icons-material/MonitorHeartOutlined'
 import ScheduleOutlinedIcon from '@mui/icons-material/ScheduleOutlined'
+import WarningAmberOutlinedIcon from '@mui/icons-material/WarningAmberOutlined'
 import { Alert, Box, Button, Grid, Stack, Typography } from '@mui/material'
+import { Link as RouterLink } from 'react-router-dom'
 import { PageWrapper, StatCard } from 'shared/components'
 
 import { IntegrationNodeList } from '../components/IntegrationNodeList'
+import { WarehouseLoadCard } from '../components/WarehouseLoadCard'
 import { dashboardCopy } from '../content'
 import { useInfraHealth } from '../hooks/useInfraHealth'
+import { useInventoryAlerts } from '../hooks/useInventoryAlerts'
 import { useLogisticsKpis } from '../hooks/useLogisticsKpis'
 
 const { metrics, infra, error: errorCopy } = dashboardCopy
 const healthCopy = infra.health
+const alertsCopy = metrics.inventoryAlerts
+
+// Destino del click en la tarjeta de alertas. Las rutas se registran en
+// `app/router/routes.tsx`, capa que una feature no puede importar
+// (architecture.md §3.2), así que el destino se declara acá. El `tab` es el id
+// de la pestaña «Stock bajo» del catálogo: la tarjeta lleva al listado de los
+// productos que está contando, no al catálogo entero.
+const LOW_STOCK_PATH = '/inventory?tab=low'
+
+// La tarjeta entera es el enlace: un ancla y no un onClick, así el foco, el
+// Enter y el "abrir en pestaña nueva" salen del navegador y no hay que
+// reimplementarlos.
+const CARD_LINK = {
+  display: 'block',
+  height: '100%',
+  textDecoration: 'none',
+  borderRadius: 3,
+  '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: 2 },
+}
 
 // `StatCard` recibe el valor ya formateado: el componente del DS no decide
 // separadores ni unidades.
@@ -41,12 +64,28 @@ export function DashboardPage() {
     refetch: refetchInfra,
   } = useInfraHealth()
 
-  const isError = isKpisError || isInfraError
+  const {
+    alerts,
+    warehouses,
+    storedUnits,
+    warehousesLoading,
+    isError: isInventoryError,
+    refetch: refetchInventory,
+  } = useInventoryAlerts()
+
+  const isError = isKpisError || isInfraError || isInventoryError
 
   const retry = () => {
     refetchKpis()
     refetchInfra()
+    refetchInventory()
   }
+
+  // El tono de alerta se enciende sólo si hay algo que alertar: con cero
+  // productos por debajo del umbral, el borde rojo y el chip «Crítico»
+  // afirmarían un problema inexistente. Mientras el número viaja tampoco se
+  // enciende: `undefined` no es cero.
+  const hasAlerts = alerts.value !== undefined && alerts.value > 0
 
   // Sin nodos reportando sync, el KPI no tiene numerador ni denominador reales:
   // se muestra "—" en vez de un 0% que se leería como caída total de la
@@ -81,8 +120,7 @@ export function DashboardPage() {
         ) : null}
 
         {/* Fila de métricas de S03-Panel, en su orden y con su grilla de cuatro
-            columnas. El cuarto lugar del diseño, "Alertas de inventario", no
-            entra en esta card. */}
+            columnas. */}
         <Grid container spacing={2}>
           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <StatCard
@@ -108,19 +146,46 @@ export function DashboardPage() {
               tone={healthTone}
             />
           </Grid>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Box
+              component={RouterLink}
+              to={LOW_STOCK_PATH}
+              aria-label={alertsCopy.link}
+              sx={CARD_LINK}
+            >
+              <StatCard
+                label={alertsCopy.label}
+                value={formatCount(alerts.value)}
+                loading={alerts.isLoading}
+                icon={<WarningAmberOutlinedIcon />}
+                tone={hasAlerts ? 'error' : 'neutral'}
+                tag={hasAlerts ? alertsCopy.tag : undefined}
+                tagTone="error"
+                note={hasAlerts ? alertsCopy.note : alertsCopy.calmNote}
+              />
+            </Box>
+          </Grid>
         </Grid>
 
-        {/* El diseño lo ubica en la columna lateral de 280px, al lado de la
-            tabla de órdenes recientes, que tampoco entra en esta card. Hasta
-            que exista, ocupa su tercio y el resto queda libre. */}
+        {/* La columna lateral de 280px del diseño: integraciones arriba y carga
+            de depósitos abajo. A su izquierda va la tabla de órdenes recientes,
+            que construye TESIS-56; hasta que exista, la columna ocupa su tercio
+            y el resto queda libre. */}
         <Grid container spacing={2}>
           <Grid size={{ xs: 12, md: 4 }}>
-            <IntegrationNodeList
-              nodes={nodes}
-              reportingNodes={reportingNodes}
-              onlineNodes={onlineNodes}
-              loading={isInfraLoading}
-            />
+            <Stack spacing={3}>
+              <IntegrationNodeList
+                nodes={nodes}
+                reportingNodes={reportingNodes}
+                onlineNodes={onlineNodes}
+                loading={isInfraLoading}
+              />
+              <WarehouseLoadCard
+                warehouses={warehouses}
+                storedUnits={storedUnits}
+                loading={warehousesLoading}
+              />
+            </Stack>
           </Grid>
         </Grid>
       </Stack>

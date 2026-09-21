@@ -1,4 +1,7 @@
+import { client } from 'shared/api/client'
 import { fetchCount } from 'shared/api/count'
+
+import type { WarehouseLoad } from './types'
 
 // Frontera con Rails de los KPIs de órdenes y envíos (TESIS-53). Único lugar de
 // la feature que conoce los endpoints y el vocabulario de estados del backend.
@@ -30,4 +33,42 @@ export function fetchPendingOrderCount(): Promise<number> {
  */
 export function fetchActiveShipmentCount(): Promise<number> {
   return fetchCount('/shipments', { status: ACTIVE_SHIPMENT_STATUS })
+}
+
+/**
+ * Estado de stock que cuenta como alerta de inventario (TESIS-55).
+ *
+ * El umbral no vive acá: lo decide `Product::LOW_STOCK_THRESHOLD` en el
+ * backend, y el mismo `status` alimenta la pestaña «Stock bajo» del catálogo.
+ * Contarlo en el cliente con una regla propia haría que el panel y el
+ * inventario mostraran números distintos del mismo hecho.
+ */
+export const LOW_STOCK_STATUS = 'low'
+
+/** `GET /api/v1/products?status=low&per_page=1` → `meta.total`. */
+export function fetchLowStockCount(): Promise<number> {
+  return fetchCount('/products', { status: LOW_STOCK_STATUS })
+}
+
+interface ApiWarehouse {
+  id: number
+  name: string
+  stored_units: number
+}
+
+/**
+ * Cuántas unidades guarda cada depósito (`GET /api/v1/warehouses`).
+ *
+ * El listado no pagina, así que vienen todos. `stored_units` lo agrega la API
+ * (TESIS-127): sumarlo acá obligaría a recorrer el catálogo entero, que corta
+ * en 100 filas por página y dejaría el panel contando de menos sin avisar.
+ */
+export async function fetchWarehouseLoads(): Promise<WarehouseLoad[]> {
+  const { data } = await client.get<{ data: ApiWarehouse[] }>('/warehouses')
+
+  return data.data.map((warehouse) => ({
+    id: warehouse.id,
+    name: warehouse.name,
+    storedUnits: warehouse.stored_units,
+  }))
 }
