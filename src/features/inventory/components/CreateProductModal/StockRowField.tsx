@@ -1,7 +1,6 @@
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 import { IconButton } from '@mui/material'
-
-import { LabeledField } from '../ProductModalShell'
+import { LabeledField } from 'shared/components'
 
 import { StockQuantity, StockRow, StockWarehouse } from './CreateProductModal.styles'
 import type { StockRowFieldProps } from './CreateProductModal.types'

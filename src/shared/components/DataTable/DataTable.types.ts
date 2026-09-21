@@ -9,6 +9,13 @@ export type DataTableAlign = 'left' | 'right' | 'center'
  */
 export type DataTableRowTone = 'default' | 'critical' | 'muted'
 
+/**
+ * Alto de las filas. `regular` es el listado a pantalla completa (66px);
+ * `compact` es la tabla que vive dentro de un formulario (52px), donde una
+ * fila alta compite con los campos que la rodean.
+ */
+export type DataTableDensity = 'regular' | 'compact'
+
 export interface DataTableColumn<Row> {
   id: string
   header: string
@@ -90,6 +97,8 @@ export interface DataTableProps<Row> {
    * el paginador ya trae su propio resumen.
    */
   footer?: string
+  /** Por defecto `regular`. Ver `DataTableDensity`. */
+  density?: DataTableDensity
 }
 
 /**

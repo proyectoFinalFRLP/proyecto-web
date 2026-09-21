@@ -20,6 +20,9 @@ const DesignSystemPage = lazy(() =>
   import('features/design-system').then((m) => ({ default: m.DesignSystemPage })),
 )
 const OrdersPage = lazy(() => import('features/orders').then((m) => ({ default: m.OrdersPage })))
+const NewOrderPage = lazy(() =>
+  import('features/orders').then((m) => ({ default: m.NewOrderPage })),
+)
 const OrderDetailPage = lazy(() =>
   import('features/orders').then((m) => ({ default: m.OrderDetailPage })),
 )
@@ -83,6 +86,12 @@ export const appRoutes: AppRoute[] = [
     path: '/orders',
     element: <OrdersPage />,
     nav: { label: 'Órdenes', icon: <ReceiptLongOutlinedIcon /> },
+  },
+  {
+    path: '/orders/new',
+    element: <NewOrderPage />,
+    // Sin `nav`: se llega desde «Crear orden» del listado. Paso 1 del alta
+    // manual; los pasos 2 y 3 (TESIS-58, TESIS-59) cuelgan de esta ruta.
   },
   {
     path: '/orders/:orderId',

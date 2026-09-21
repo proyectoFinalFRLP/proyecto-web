@@ -13,6 +13,7 @@ import {
 } from '@mui/material'
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { useFieldArray, useForm } from 'react-hook-form'
+import { LabeledField } from 'shared/components'
 import { formatRelativeTime } from 'shared/utils'
 
 import { inventoryCopy } from '../../content'
@@ -21,7 +22,6 @@ import { parseDimensions } from '../../utils/dimensions'
 import { buildUpdatePayload } from '../../utils/payload'
 import {
   FooterActions,
-  LabeledField,
   ModalBody,
   ModalFooter,
   ModalForm,
