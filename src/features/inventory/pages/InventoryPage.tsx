@@ -98,10 +98,15 @@ export function InventoryPage() {
     if (removing === undefined) return
 
     const name = removing.name
+    // Si se va la última fila de la página, esa página deja de existir: el
+    // listado volvería vacío y el pie diciendo "Mostrando 81 a 80".
+    const eraLaUltimaDeLaPagina = (products.data?.products.length ?? 0) === 1
+
     deleteMutation.mutate(removing.id, {
       onSuccess: () => {
         setNotice(page.deleted(name))
         setRemoving(undefined)
+        if (eraLaUltimaDeLaPagina) setPageNumber((current) => Math.max(current - 1, 1))
       },
     })
   }

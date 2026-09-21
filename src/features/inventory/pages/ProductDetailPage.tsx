@@ -2,8 +2,8 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined'
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
 import { Box, Button, Snackbar, Stack, Typography } from '@mui/material'
-import { useState } from 'react'
-import { Link, useLocation, useParams } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { ErrorFallback, LoadingSpinner, PageWrapper } from 'shared/components'
 
 import { EditProductModal } from '../components/EditProductModal'
@@ -158,9 +158,20 @@ export function ProductDetailPage() {
   // Se lee como valor inicial del estado y no con un efecto: el efecto pintaría
   // la ficha durante un render antes de abrir el modal, y además dejaría el
   // formulario reapareciendo cada vez que el usuario lo cierra.
-  const { state } = useLocation()
+  const { pathname, state } = useLocation()
+  const navigate = useNavigate()
   const abrirEdicion = typeof state === 'object' && state !== null && 'edit' in state
   const [editing, setEditing] = useState(abrirEdicion)
+
+  // La intención se consume una sola vez. `location.state` vive en
+  // `history.state`, que el navegador conserva al recargar y al ir y volver:
+  // sin borrarla, cerrar el formulario y apretar F5 lo vuelve a abrir solo,
+  // porque el estado inicial se recalcula desde la misma señal.
+  useEffect(() => {
+    if (!abrirEdicion) return
+
+    void navigate(pathname, { replace: true, state: null })
+  }, [abrirEdicion, navigate, pathname])
   const [savedName, setSavedName] = useState<string | null>(null)
   // Estado del producto cuando el modal lo abrió. Se guarda para poder decir
   // QUÉ cambió si la API rechaza el guardado por versión vieja (TESIS-101).
