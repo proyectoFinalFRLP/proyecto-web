@@ -18,9 +18,12 @@ const WAREHOUSES = [
   { id: 2, name: 'CD Sur', storedUnits: 50, share: 25 },
 ]
 
+// 18 por debajo del umbral y 6 agotados: 24 en alerta. El desglose importa
+// porque los agotados eran justo los que el contador dejaba afuera.
 function mockInventory(overrides: Partial<ReturnType<typeof useInventoryAlerts>> = {}) {
   vi.mocked(useInventoryAlerts).mockReturnValue({
     alerts: { value: 24, isLoading: false, isError: false },
+    breakdown: { low: 18, outOfStock: 6 },
     warehouses: WAREHOUSES,
     storedUnits: 250,
     warehousesLoading: false,
@@ -30,7 +33,7 @@ function mockInventory(overrides: Partial<ReturnType<typeof useInventoryAlerts>>
   })
 }
 
-const alertCard = () => screen.getByRole('link', { name: 'Ver los productos con stock bajo' })
+const alertCard = () => screen.getByRole('link', { name: /Alertas de inventario/ })
 
 function renderPage() {
   return renderWithTheme(
@@ -64,19 +67,58 @@ beforeEach(() => {
 })
 
 describe('DashboardPage · inventory alerts', () => {
-  it('shows how many products the backend counts below the threshold', () => {
+  // El agotado también es alerta: `low` en el backend es `BETWEEN 1 AND umbral`,
+  // así que contar sólo eso dejaba afuera los productos que ya no se venden.
+  it('counts the products that are out of stock as well as the low ones', () => {
     renderPage()
 
     expect(within(alertCard()).getByText('24')).toBeInTheDocument()
   })
 
-  // Criterio de la card: la tarjeta lleva al catálogo ya filtrado, no al
-  // catálogo entero. Si no, el número de la tarjeta y lo que se ve al llegar no
-  // se corresponden.
-  it('links to the catalog with the low stock tab already selected', () => {
+  it('says what the number is made of', () => {
+    renderPage()
+
+    expect(
+      within(alertCard()).getByText('6 sin stock · 18 por debajo del umbral'),
+    ).toBeInTheDocument()
+  })
+
+  // Con agotados, ésos son los que hay que trabajar primero: ya no se pueden
+  // vender.
+  it('links to the out of stock tab while there is anything out of stock', () => {
+    renderPage()
+
+    expect(alertCard()).toHaveAttribute('href', '/inventory?tab=out_of_stock')
+  })
+
+  it('links to the low stock tab when nothing is out of stock', () => {
+    mockInventory({
+      alerts: { value: 18, isLoading: false, isError: false },
+      breakdown: { low: 18, outOfStock: 0 },
+    })
     renderPage()
 
     expect(alertCard()).toHaveAttribute('href', '/inventory?tab=low')
+  })
+
+  it('links to the plain catalog when the inventory is healthy', () => {
+    mockInventory({
+      alerts: { value: 0, isLoading: false, isError: false },
+      breakdown: { low: 0, outOfStock: 0 },
+    })
+    renderPage()
+
+    expect(alertCard()).toHaveAttribute('href', '/inventory')
+  })
+
+  // Un `aria-label` reemplaza al contenido: si dijera sólo «ver los productos»,
+  // un lector de pantalla perdería el número y el «crítico».
+  it('keeps the number inside the accessible name of the link', () => {
+    renderPage()
+
+    expect(
+      screen.getByRole('link', { name: /Alertas de inventario: 24, crítico/ }),
+    ).toBeInTheDocument()
   })
 
   it('flags the card as critical while there is something to flag', () => {
@@ -87,17 +129,23 @@ describe('DashboardPage · inventory alerts', () => {
 
   // Un cero no es una alerta: el chip y el borde rojo afirmarían un problema
   // que no existe.
-  it('stays calm when no product is below the threshold', () => {
-    mockInventory({ alerts: { value: 0, isLoading: false, isError: false } })
+  it('stays calm when nothing is in alert', () => {
+    mockInventory({
+      alerts: { value: 0, isLoading: false, isError: false },
+      breakdown: { low: 0, outOfStock: 0 },
+    })
     renderPage()
 
     expect(within(alertCard()).queryByText('Crítico')).not.toBeInTheDocument()
-    expect(within(alertCard()).getByText('Sin productos por debajo del umbral')).toBeInTheDocument()
+    expect(within(alertCard()).getByText('Sin productos en alerta de stock')).toBeInTheDocument()
   })
 
   // Tampoco grita mientras el número viaja: `undefined` no es cero.
   it('does not flag anything while the count is still travelling', () => {
-    mockInventory({ alerts: { value: undefined, isLoading: true, isError: false } })
+    mockInventory({
+      alerts: { value: undefined, isLoading: true, isError: false },
+      breakdown: undefined,
+    })
     renderPage()
 
     expect(within(alertCard()).queryByText('Crítico')).not.toBeInTheDocument()

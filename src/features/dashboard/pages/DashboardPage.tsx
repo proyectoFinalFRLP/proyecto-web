@@ -19,10 +19,20 @@ const alertsCopy = metrics.inventoryAlerts
 
 // Destino del click en la tarjeta de alertas. Las rutas se registran en
 // `app/router/routes.tsx`, capa que una feature no puede importar
-// (architecture.md §3.2), así que el destino se declara acá. El `tab` es el id
-// de la pestaña «Stock bajo» del catálogo: la tarjeta lleva al listado de los
-// productos que está contando, no al catálogo entero.
-const LOW_STOCK_PATH = '/inventory?tab=low'
+// (architecture.md §3.2), así que el destino se declara acá.
+//
+// El catálogo no tiene una pestaña que junte los dos estados de alerta, así
+// que la tarjeta lleva a la que hay que trabajar primero: si hay productos
+// agotados, a ésos —ya no se pueden vender—; si no, a los que están por
+// debajo del umbral. Con el inventario sano, al catálogo entero.
+const CATALOG_PATH = '/inventory'
+
+function alertsPath(outOfStock: number, low: number): string {
+  if (outOfStock > 0) return `${CATALOG_PATH}?tab=out_of_stock`
+  if (low > 0) return `${CATALOG_PATH}?tab=low`
+
+  return CATALOG_PATH
+}
 
 // La tarjeta entera es el enlace: un ancla y no un onClick, así el foco, el
 // Enter y el "abrir en pestaña nueva" salen del navegador y no hay que
@@ -66,6 +76,7 @@ export function DashboardPage() {
 
   const {
     alerts,
+    breakdown,
     warehouses,
     storedUnits,
     warehousesLoading,
@@ -86,6 +97,7 @@ export function DashboardPage() {
   // afirmarían un problema inexistente. Mientras el número viaja tampoco se
   // enciende: `undefined` no es cero.
   const hasAlerts = alerts.value !== undefined && alerts.value > 0
+  const alertsValue = formatCount(alerts.value)
 
   // Sin nodos reportando sync, el KPI no tiene numerador ni denominador reales:
   // se muestra "—" en vez de un 0% que se leería como caída total de la
@@ -149,19 +161,23 @@ export function DashboardPage() {
           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Box
               component={RouterLink}
-              to={LOW_STOCK_PATH}
-              aria-label={alertsCopy.link}
+              to={alertsPath(breakdown?.outOfStock ?? 0, breakdown?.low ?? 0)}
+              aria-label={alertsCopy.linkLabel(alertsValue, !hasAlerts)}
               sx={CARD_LINK}
             >
               <StatCard
                 label={alertsCopy.label}
-                value={formatCount(alerts.value)}
+                value={alertsValue}
                 loading={alerts.isLoading}
                 icon={<WarningAmberOutlinedIcon />}
                 tone={hasAlerts ? 'error' : 'neutral'}
                 tag={hasAlerts ? alertsCopy.tag : undefined}
                 tagTone="error"
-                note={hasAlerts ? alertsCopy.note : alertsCopy.calmNote}
+                note={
+                  hasAlerts && breakdown
+                    ? alertsCopy.note(breakdown.outOfStock, breakdown.low)
+                    : alertsCopy.calmNote
+                }
               />
             </Box>
           </Grid>
