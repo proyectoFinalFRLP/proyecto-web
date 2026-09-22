@@ -9,6 +9,7 @@ import { muiCssBaseline } from './cssBaseline'
 import { muiBackdrop, muiDialog } from './dialog'
 import { muiOutlinedInput, muiTextField } from './input'
 import { muiSkeleton } from './skeleton'
+import { muiToggleButton, muiToggleButtonGroup } from './toggleButton'
 import { muiTypography } from './typography'
 
 // Compone los overrides de MUI. Un archivo por componente: al sumar nuevos,
@@ -29,5 +30,7 @@ export function buildComponents(mode: ThemeMode, accent?: string): ThemeOptions[
     MuiDialog: muiDialog(),
     MuiBackdrop: muiBackdrop(),
     MuiTypography: muiTypography(),
+    MuiToggleButtonGroup: muiToggleButtonGroup(mode),
+    MuiToggleButton: muiToggleButton(),
   }
 }

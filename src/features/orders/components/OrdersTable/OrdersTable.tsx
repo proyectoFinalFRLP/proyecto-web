@@ -1,7 +1,7 @@
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined'
 import { Link, Typography } from '@mui/material'
-import { DataTable, StatusBadge } from 'shared/components'
+import { DataTable, StackedCell, StatusBadge } from 'shared/components'
 import type { DataTableAction, DataTableColumn } from 'shared/components'
 
 import { ordersCopy } from '../../content'
@@ -11,7 +11,6 @@ import { statusLabel, statusRowTone, statusVariant } from '../../utils/status'
 
 import { CarrierCell } from './CarrierCell'
 import type { OrdersTableProps } from './OrdersTable.types'
-import { StackedCell } from './StackedCell'
 
 const { columns: columnCopy, cells, actions: actionCopy, page } = ordersCopy
 

@@ -38,6 +38,13 @@ export interface StatCardProps {
   tone?: StatTone
   /** Chip fijo (ej. `LIVE`). Se ignora si además se pasa `trend`. */
   tag?: string
+  /**
+   * Tono del chip fijo. Por defecto `neutral`, que es lo que corresponde a una
+   * etiqueta informativa; una alerta («Crítico») lleva el tono del estado.
+   */
+  tagTone?: StatTone
+  /** Ícono a la izquierda del chip fijo: nunca color solo, siempre color + ícono. */
+  tagIcon?: ReactNode
   trend?: StatTrend
   /** Footer comparativo contra el período anterior. */
   comparison?: StatComparison

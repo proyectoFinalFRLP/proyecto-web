@@ -7,6 +7,7 @@ import {
   formatOrderId,
   formatOrderTime,
   formatShortDate,
+  formatWeight,
 } from './format'
 
 describe('formatMoney', () => {
@@ -88,5 +89,15 @@ describe('formatOrderId', () => {
   // La columna no puede quedar vacía: es la que abre el detalle.
   it('falls back to the internal id when there is no external one', () => {
     expect(formatOrderId(null, 42)).toBe('#42')
+  })
+})
+
+describe('formatWeight', () => {
+  it('shows one decimal with the unit, as in the design', () => {
+    expect(formatWeight(46.9)).toBe('46,9 kg')
+  })
+
+  it('keeps the decimal on a round weight, so the column lines up', () => {
+    expect(formatWeight(12)).toBe('12,0 kg')
   })
 })

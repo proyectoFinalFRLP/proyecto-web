@@ -31,14 +31,19 @@ export { StatusFeed } from './StatusFeed'
 export type { StatusFeedEntry, StatusFeedProps } from './StatusFeed'
 export { Logo, LogoMark } from './Logo'
 export type { LogoProps } from './Logo'
+export { StackedCell } from './StackedCell'
+export type { StackedCellProps } from './StackedCell'
 export { DataTable } from './DataTable'
 export type {
   DataTableAction,
   DataTableAlign,
   DataTableColumn,
+  DataTableDensity,
   DataTablePagination,
   DataTablePaginationLabels,
   DataTableProps,
   DataTableRowTone,
   DataTableTab,
 } from './DataTable'
+export { FieldLabel, FieldRoot, FullRow, LabeledField } from './LabeledField'
+export type { LabeledFieldProps } from './LabeledField'

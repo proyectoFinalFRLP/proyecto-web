@@ -24,9 +24,16 @@ function trendTone(trend: StatTrend): StatTone {
   return trend.value < 0 ? 'error' : 'info'
 }
 
-// Los negativos ya traen su signo; a los positivos hay que agregarlo.
+// Con el signo siempre a la vista y en el locale de la app: un «+12.4%» al lado
+// de un valor «124.592» mezcla el punto decimal con el de miles. Un decimal
+// alcanza: el chip señala la dirección, no la cifra exacta.
+const TREND_FORMAT = new Intl.NumberFormat('es-AR', {
+  signDisplay: 'exceptZero',
+  maximumFractionDigits: 1,
+})
+
 function formatTrend(value: number) {
-  return `${value > 0 ? '+' : ''}${value}%`
+  return `${TREND_FORMAT.format(value)}%`
 }
 
 function trendArrow(value: number) {
@@ -40,6 +47,8 @@ export function StatCard({
   icon,
   tone = 'primary',
   tag,
+  tagTone = 'neutral',
+  tagIcon,
   trend,
   comparison,
   loading = false,
@@ -58,7 +67,12 @@ export function StatCard({
     </MetaChip>
   ) : null
 
-  const tagChip = tag ? <MetaChip tone="neutral">{tag}</MetaChip> : null
+  const tagChip = tag ? (
+    <MetaChip tone={tagTone}>
+      {tagIcon}
+      {tag}
+    </MetaChip>
+  ) : null
   // La tendencia manda sobre la etiqueta fija: nunca se muestran las dos.
   const chip = trendChip ?? tagChip
   const hasHeader = Boolean(icon) || chip !== null
