@@ -130,7 +130,10 @@ function lastPayload(): UpdateOrderPayload {
 
 beforeEach(() => mockAll())
 
-describe('OrderEditPage', () => {
+// Límite propio: el primer render de la pantalla monta el árbol entero del
+// formulario en frío y, con la suite corriendo en paralelo, puede pasar los 5 s
+// por defecto (pasó en local: 5,06 s) sin que haya nada roto.
+describe('OrderEditPage', { timeout: 15_000 }, () => {
   it('shows the order being edited', () => {
     renderPage()
 
