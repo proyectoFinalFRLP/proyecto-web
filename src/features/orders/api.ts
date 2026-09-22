@@ -14,6 +14,7 @@ import type {
   ProductStockByWarehouse,
   Shipment,
   ShipmentStatus,
+  UpdateOrderPayload,
 } from './types'
 
 // Frontera con la API Rails. Lo que entra en snake_case se traduce acá y sale
@@ -75,6 +76,7 @@ interface ApiOrderItem {
   product_id: number
   quantity: number
   unit_price: number
+  warehouse_id: number | null
   product: { id: number; sku: string; name: string }
 }
 
@@ -86,6 +88,8 @@ interface ApiOrderDetail {
   customer_document: string | null
   customer_address: string | null
   customer_zip_code: string | null
+  customer_city: string | null
+  customer_province: string | null
   status: OrderStatus
   total_amount: number | null
   order_items: ApiOrderItem[]
@@ -164,9 +168,7 @@ export async function fetchOrderPage(filters: OrderFilters): Promise<OrderPage> 
   }
 }
 
-export async function fetchOrder(id: number): Promise<OrderDetail> {
-  const { data } = await client.get<ApiOrderDetail>(`/orders/${id}`)
-
+function toOrderDetail(data: ApiOrderDetail, version: string | null): OrderDetail {
   return {
     id: data.id,
     externalOrderId: data.external_order_id,
@@ -174,7 +176,10 @@ export async function fetchOrder(id: number): Promise<OrderDetail> {
     customerDocument: data.customer_document,
     customerAddress: data.customer_address,
     customerZipCode: data.customer_zip_code,
+    customerCity: data.customer_city,
+    customerProvince: data.customer_province,
     status: data.status,
+    version,
     totalAmount: data.total_amount,
     lines: data.order_items.map((item) => ({
       id: item.id,
@@ -183,9 +188,44 @@ export async function fetchOrder(id: number): Promise<OrderDetail> {
       productName: item.product.name,
       quantity: item.quantity,
       unitPrice: item.unit_price,
+      warehouseId: item.warehouse_id,
     })),
     createdAt: data.created_at,
   }
+}
+
+// El ETag viene entrecomillado y puede traer el prefijo débil `W/`. Se guarda
+// tal cual llegó —es opaco para el front— y se devuelve sin tocar en `If-Match`.
+// Mismo criterio que `features/inventory/api.ts`.
+function readVersion(etag: unknown): string | null {
+  return typeof etag === 'string' && etag.length > 0 ? etag : null
+}
+
+export async function fetchOrder(id: number): Promise<OrderDetail> {
+  const response = await client.get<ApiOrderDetail>(`/orders/${id}`)
+
+  return toOrderDetail(response.data, readVersion(response.headers.etag))
+}
+
+/**
+ * Guarda la modificación de una orden (TESIS-126).
+ *
+ * Con versión viaja `If-Match`, y el backend responde 412 si otro operador
+ * cambió la orden desde que se leyó. La respuesta trae la orden como quedó, con
+ * su versión nueva.
+ */
+export async function updateOrder(
+  id: number,
+  payload: UpdateOrderPayload,
+  version: string | null,
+): Promise<OrderDetail> {
+  const response = await client.put<ApiOrderDetail>(`/orders/${id}`, payload, {
+    // Sin versión no se manda el header: `If-Match` ausente significa "sin
+    // precondición", no "versión vacía".
+    headers: version === null ? undefined : { 'If-Match': version },
+  })
+
+  return toOrderDetail(response.data, readVersion(response.headers.etag))
 }
 
 function toShipment(shipment: ApiShipment): Shipment {
