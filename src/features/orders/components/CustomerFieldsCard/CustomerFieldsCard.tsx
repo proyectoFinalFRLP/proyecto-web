@@ -3,9 +3,8 @@ import { TextField } from '@mui/material'
 import { LabeledField } from 'shared/components'
 
 import { ordersCopy } from '../../content'
-import { FormSection } from '../FormSection'
+import { FormFieldsGrid, FormSection } from '../FormSection'
 
-import { FieldsGrid } from './CustomerFieldsCard.styles'
 import type { CustomerFieldsCardProps } from './CustomerFieldsCard.types'
 
 const { customer: copy } = ordersCopy.draft
@@ -23,7 +22,7 @@ const MONO_INPUT = { input: { sx: { typography: 'dataMono' } } }
 export function CustomerFieldsCard({ register, errors }: CustomerFieldsCardProps) {
   return (
     <FormSection icon={<BadgeOutlinedIcon aria-hidden />} title={copy.title}>
-      <FieldsGrid>
+      <FormFieldsGrid>
         <LabeledField label={copy.fields.firstName} error={errors.firstName?.message}>
           <TextField
             {...register('firstName')}
@@ -53,7 +52,7 @@ export function CustomerFieldsCard({ register, errors }: CustomerFieldsCardProps
             fullWidth
           />
         </LabeledField>
-      </FieldsGrid>
+      </FormFieldsGrid>
     </FormSection>
   )
 }
