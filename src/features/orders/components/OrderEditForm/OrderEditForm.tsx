@@ -97,7 +97,15 @@ export function OrderEditForm({
   const stocks = useProductStocks([
     ...new Set([...original, ...lines].map((line) => line.productId)),
   ])
-  const update = useUpdateOrder(order.id, order.version)
+  // La versión con la que se abrió el formulario, congelada. La orden se puede
+  // volver a pedir en segundo plano (al volver el foco a la ventana, al
+  // invalidar), y mandar esa versión nueva en `If-Match` pisaría sin aviso lo
+  // que otro operador cambió mientras tanto: justo lo que el 412 existe para
+  // evitar. Se renueva recién al remontar, cuando el operador pide recargar: por
+  // eso no hay setter.
+  // eslint-disable-next-line react/hook-use-state
+  const [baseVersion] = useState(order.version)
+  const update = useUpdateOrder(order.id, baseVersion)
 
   const context = useForm<OrderContextFormData>({
     resolver: zodResolver(orderContextSchema),

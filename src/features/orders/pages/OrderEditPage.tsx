@@ -1,4 +1,5 @@
 import { Button, Stack, Typography } from '@mui/material'
+import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ErrorFallback, LoadingSpinner, PageWrapper } from 'shared/components'
 
@@ -35,8 +36,14 @@ function NotFound() {
  *
  * Resuelve la orden con las mismas queries que el detalle (y comparte su caché)
  * y monta el formulario recién cuando la orden está: sus valores iniciales salen
- * de ella. La `key` por versión hace que, al recargar después de un 412, el
- * formulario arranque de nuevo con la orden como la dejó el otro operador.
+ * de ella.
+ *
+ * La `key` del formulario cambia sólo cuando el operador pide recargar después
+ * de un 412, y recién cuando llegó la orden nueva: así arranca de nuevo con la
+ * orden como la dejó el otro operador. No va atada a la versión a propósito:
+ * guardar también cambia la versión (el hook invalida y se vuelve a pedir el
+ * detalle), y remontar el formulario en ese momento descartaría el callback que
+ * lleva al detalle.
  */
 export function OrderEditPage() {
   const { orderId } = useParams()
@@ -47,6 +54,7 @@ export function OrderEditPage() {
 
   const order = useOrder(id)
   const shipment = useOrderShipment(id)
+  const [reloads, setReloads] = useState(0)
 
   if (id === undefined || order.error?.status === NOT_FOUND_STATUS) return <NotFound />
 
@@ -59,13 +67,13 @@ export function OrderEditPage() {
   return (
     <PageWrapper sx={{ maxWidth: 1400 }}>
       <OrderEditForm
-        key={order.data.version ?? order.data.id}
+        key={reloads}
         order={order.data}
         orderLabel={formatOrderId(order.data.externalOrderId, order.data.id)}
         shipment={shipment.data}
         ordersPath={ORDERS_PATH}
         detailPath={detailPath(order.data.id)}
-        onReload={() => void order.refetch()}
+        onReload={() => void order.refetch().then(() => setReloads((count) => count + 1))}
       />
     </PageWrapper>
   )

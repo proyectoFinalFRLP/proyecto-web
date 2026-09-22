@@ -51,6 +51,9 @@ export function NewLineToolbar({
         onChange={(event) => onWarehouseChange(Number(event.target.value))}
         sx={{ minWidth: 200 }}
         slotProps={{
+          // Con `displayEmpty` el valor vacío muestra el texto de ayuda: el
+          // rótulo tiene que quedar arriba siempre, o se pisan los dos.
+          inputLabel: { shrink: true },
           select: {
             displayEmpty: true,
             renderValue: (value) =>

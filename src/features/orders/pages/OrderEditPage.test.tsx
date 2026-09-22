@@ -294,6 +294,31 @@ describe('OrderEditPage', () => {
     ).toBeInTheDocument()
   })
 
+  // Guardar invalida la orden y la vuelve a pedir con otra versión. Si eso
+  // remontara el formulario, TanStack descartaría el callback de `mutate` que
+  // lleva al detalle (pasó en el navegador: el PUT daba 200 y la pantalla no se
+  // movía).
+  it('does not remount the form when the order comes back with a new version', () => {
+    const { rerender } = renderPage()
+    fireEvent.change(screen.getByRole('textbox', { name: 'Ciudad' }), {
+      target: { value: 'Rosario' },
+    })
+
+    mockAll({ order: { ...ORDER, version: '"v2"' } })
+    rerender(
+      <MemoryRouter initialEntries={['/orders/edit/8829']}>
+        <Routes>
+          <Route path="/orders/edit/:orderId" element={<OrderEditPage />} />
+        </Routes>
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByRole('textbox', { name: 'Ciudad' })).toHaveValue('Rosario')
+    // Y guarda con la versión que se leyó al abrir, no con la del refetch: si
+    // no, pisaría sin aviso lo que cambió otro operador.
+    expect(vi.mocked(useUpdateOrder)).toHaveBeenLastCalledWith(8829, '"v1"')
+  })
+
   it('goes back to the detail without saving on Discard', async () => {
     renderPage()
 
