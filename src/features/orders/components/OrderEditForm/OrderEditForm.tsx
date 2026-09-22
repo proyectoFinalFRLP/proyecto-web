@@ -110,17 +110,29 @@ export function OrderEditForm({
     defaultValues: destinationDefaults(order),
   })
 
+  // Los flags se leen acá, todos y sin condición. React Hook Form sólo calcula
+  // `isValid` e `isDirty` si se leyeron durante el render: leerlos al final de
+  // una cadena de `&&` que corta antes —como `canSave` al montar, con el
+  // formulario todavía sin cambios— los deja sin suscribir, y `isValid` queda en
+  // `false` para siempre aunque los datos sean válidos.
+  const { isValid: contextValid, isDirty: contextDirty, errors: contextErrors } = context.formState
+  const {
+    isValid: destinationValid,
+    isDirty: destinationDirty,
+    errors: destinationErrors,
+  } = destination.formState
+
   const locked = lockReason(order, shipment)
   const readOnly = locked !== null
   const removed = original.filter((line) => !lines.some((current) => current.key === line.key))
   const overStock = linesOverStock(lines, removed, stocks.stocks)
   const changed = linesChanged(original, lines)
-  const dirty = changed || context.formState.isDirty || destination.formState.isDirty
+  const dirty = changed || contextDirty || destinationDirty
   const canSave =
     !readOnly &&
     dirty &&
-    context.formState.isValid &&
-    destination.formState.isValid &&
+    contextValid &&
+    destinationValid &&
     lines.length > 0 &&
     lines.every((line) => isQuantityValid(line.quantity)) &&
     overStock.size === 0
@@ -221,13 +233,13 @@ export function OrderEditForm({
           <OrderContextCard
             register={context.register}
             control={context.control}
-            errors={context.formState.errors}
+            errors={contextErrors}
             readOnly={readOnly}
           />
           <DestinationFieldsCard
             register={destination.register}
             control={destination.control}
-            errors={destination.formState.errors}
+            errors={destinationErrors}
             provinces={provinces.data ?? []}
             provincesLoading={provinces.isPending}
             provincesError={provinces.isError}

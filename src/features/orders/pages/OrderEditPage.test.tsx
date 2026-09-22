@@ -121,6 +121,8 @@ function renderPage() {
 const saveButton = () => screen.getByRole('button', { name: 'Guardar cambios' })
 const quantity = (sku: string) => screen.getByRole('spinbutton', { name: `Cantidad de ${sku}` })
 const recalc = () => screen.getByRole('region', { name: 'Recálculo' })
+// La fila «Subtotal nuevo»: sin envío cotizado, el nuevo total es el mismo monto.
+const newSubtotal = () => within(recalc()).getByText('Subtotal nuevo').parentElement as HTMLElement
 
 function lastPayload(): UpdateOrderPayload {
   return mutate.mock.calls.at(-1)?.[0] as UpdateOrderPayload
@@ -132,7 +134,7 @@ describe('OrderEditPage', () => {
   it('shows the order being edited', () => {
     renderPage()
 
-    expect(screen.getByRole('heading', { name: 'Modificar ORD-8829-X' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Modificar #ORD-8829-X' })).toBeInTheDocument()
     expect(quantity('PRO-8812-A')).toHaveValue(8)
   })
 
@@ -147,10 +149,10 @@ describe('OrderEditPage', () => {
     renderPage()
 
     fireEvent.click(screen.getByRole('button', { name: 'Sumar una unidad de PRO-8812-A' }))
-    expect(within(recalc()).getByText(/1\.380\.000/)).toBeInTheDocument()
+    expect(newSubtotal()).toHaveTextContent(/1\.380\.000/)
 
     fireEvent.click(screen.getByRole('button', { name: 'Quitar PRO-2294-K' }))
-    expect(within(recalc()).getByText(/1\.080\.000/)).toBeInTheDocument()
+    expect(newSubtotal()).toHaveTextContent(/1\.080\.000/)
   })
 
   // Criterio de la card: el estado elegido se ve en el acto en el encabezado.
@@ -160,7 +162,7 @@ describe('OrderEditPage', () => {
     fireEvent.mouseDown(screen.getByRole('combobox', { name: 'Estado' }))
     fireEvent.click(await screen.findByRole('option', { name: 'Pagada' }))
 
-    const header = screen.getByRole('heading', { name: 'Modificar ORD-8829-X' }).parentElement
+    const header = screen.getByRole('heading', { name: 'Modificar #ORD-8829-X' }).parentElement
     expect(within(header as HTMLElement).getByText('Pagada')).toBeInTheDocument()
   })
 

@@ -59,7 +59,15 @@ export function OrderContextCard({ register, control, errors, readOnly }: OrderC
             name="status"
             control={control}
             render={({ field }) => (
-              <TextField {...field} select disabled={readOnly} fullWidth>
+              <TextField
+                {...field}
+                select
+                disabled={readOnly}
+                fullWidth
+                // El `<label>` de LabeledField no nombra al combobox del Select
+                // de MUI: mismo arreglo que la provincia del domicilio.
+                slotProps={{ select: { SelectDisplayProps: { 'aria-label': copy.fields.status } } }}
+              >
                 {EDITABLE_STATUSES.map((status) => (
                   <MenuItem key={status} value={status}>
                     {statusLabel(status)}
