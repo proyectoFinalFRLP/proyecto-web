@@ -73,6 +73,11 @@ export function DestinationFieldsCard({
                 fullWidth
                 slotProps={{
                   select: {
+                    // El `<label>` de LabeledField no nombra al combobox: el
+                    // Select de MUI lo dibuja en un `div`, que no es un control
+                    // etiquetable. Sin esto, el lector de pantalla no anuncia
+                    // «Provincia».
+                    SelectDisplayProps: { 'aria-label': copy.fields.province },
                     displayEmpty: true,
                     renderValue: (value) =>
                       value === ''

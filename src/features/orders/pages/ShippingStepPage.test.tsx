@@ -160,7 +160,9 @@ describe('ShippingStepPage', () => {
   it('requires the zip code', async () => {
     renderPage()
     fireEvent.click(option(/CD Ezeiza/))
-    await fillDestination('')
+    await fillDestination()
+    // Tipeado y borrado: cambiar un campo vacío a vacío no dispara nada.
+    type(textbox('Código postal'), '')
 
     expect(await screen.findByText('Ingresá el código postal.')).toBeInTheDocument()
     expect(nextButton()).toBeDisabled()
