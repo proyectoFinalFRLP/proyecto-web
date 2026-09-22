@@ -75,25 +75,44 @@ function groupKey(productId: number, warehouseId: number): string {
   return `${productId}@${warehouseId}`
 }
 
+/** Un producto y un depósito que no alcanza para lo que las líneas piden. */
+export interface StockShortfall {
+  /** Producto y depósito, para usar como clave de lista. */
+  key: string
+  sku: string
+  warehouseId: number
+  /** Cuántas unidades más pide el grupo de las que hay libres. */
+  missing: number
+  /** Cuántas líneas del grupo hay en el formulario. */
+  lines: number
+  /** Las líneas que aumentaron: las únicas sobre las que se puede actuar. */
+  lineKeys: string[]
+}
+
 /**
- * Las líneas que piden más unidades de las que su depósito tiene.
+ * Lo que falta para que las líneas entren en el stock de su depósito, un
+ * elemento por grupo de producto y depósito.
  *
- * La cuenta es por producto y depósito, no por línea, y es la misma que hace el
- * backend: lo que la orden ya tenía descontado vuelve antes de descontar lo
- * nuevo. Por eso una línea que sube puede usar las unidades que libera otra del
- * mismo producto que baja —o que se quita— en el mismo depósito, y lo que se
- * compara contra el stock libre es el neto del grupo: cantidades actuales menos
- * las originales, incluidas las de las líneas quitadas.
+ * La cuenta es por grupo y no por línea, y es la misma que hace el backend: lo
+ * que la orden ya tenía descontado vuelve antes de descontar lo nuevo. Por eso
+ * una línea que sube puede usar las unidades que libera otra del mismo producto
+ * que baja —o que se quita— en el mismo depósito, y lo que se compara contra el
+ * stock libre es el neto del grupo: cantidades actuales menos las originales,
+ * incluidas las de las líneas quitadas.
  *
- * Devuelve las claves de las líneas del grupo que no alcanza. Sin el stock de un
- * producto todavía cargado, sus líneas no se marcan: el backend tiene la última
- * palabra, y un aviso sin datos sería adivinar.
+ * Como el que no entra es el grupo, el faltante es del grupo y así se dice en
+ * pantalla. `lineKeys`, en cambio, trae sólo las líneas que **aumentaron**: una
+ * línea que bajó puede estar en un grupo que no entra, y marcarla en rojo sería
+ * acusarla de algo que no hizo — el operador miraría la fila equivocada.
+ *
+ * Sin el stock de un producto todavía cargado, su grupo no se marca: el backend
+ * tiene la última palabra, y un aviso sin datos sería adivinar.
  */
-export function linesOverStock(
+export function stockShortfalls(
   lines: EditLine[],
   removed: EditLine[],
   stocks: ProductStockByWarehouse[],
-): Set<string> {
+): StockShortfall[] {
   const free = new Map(stocks.map((stock) => [stock.productId, stock.quantities]))
   const net = new Map<string, number>()
 
@@ -103,23 +122,66 @@ export function linesOverStock(
     net.set(key, (net.get(key) ?? 0) + delta)
   }
 
-  lines.forEach((line) =>
-    add(line, (Number.isFinite(line.quantity) ? line.quantity : 0) - line.originalQuantity),
-  )
+  lines.forEach((line) => add(line, lineQuantity(line) - line.originalQuantity))
   removed.forEach((line) => add(line, -line.originalQuantity))
 
-  return new Set(
-    lines
-      .filter((line) => {
-        if (line.warehouseId === null) return false
-        const quantities = free.get(line.productId)
-        if (quantities === undefined) return false
+  return groupsOf(lines).flatMap((group) => {
+    const quantities = free.get(group.productId)
+    if (quantities === undefined) return []
 
-        const needed = net.get(groupKey(line.productId, line.warehouseId)) ?? 0
-        return needed > (quantities[line.warehouseId] ?? 0)
-      })
-      .map((line) => line.key),
-  )
+    const missing = (net.get(group.key) ?? 0) - (quantities[group.warehouseId] ?? 0)
+    if (missing <= 0) return []
+
+    return [
+      {
+        key: group.key,
+        sku: group.sku,
+        warehouseId: group.warehouseId,
+        missing,
+        lines: group.lines.length,
+        lineKeys: group.lines
+          .filter((line) => lineQuantity(line) > line.originalQuantity)
+          .map((line) => line.key),
+      },
+    ]
+  })
+}
+
+/** Una cantidad a medio tipear (`NaN`) cuenta como cero, no como el original. */
+function lineQuantity(line: EditLine): number {
+  return Number.isFinite(line.quantity) ? line.quantity : 0
+}
+
+interface EditLineGroup {
+  key: string
+  productId: number
+  warehouseId: number
+  sku: string
+  lines: EditLine[]
+}
+
+// Las líneas agrupadas por producto y depósito, en el orden en que aparecen.
+// Las anteriores a TESIS-126 quedan afuera: no tienen depósito contra el cual
+// medir, y su cantidad no se puede cambiar.
+function groupsOf(lines: EditLine[]): EditLineGroup[] {
+  const groups = new Map<string, EditLineGroup>()
+
+  lines.forEach((line) => {
+    if (line.warehouseId === null) return
+
+    const key = groupKey(line.productId, line.warehouseId)
+    const group = groups.get(key) ?? {
+      key,
+      productId: line.productId,
+      warehouseId: line.warehouseId,
+      sku: line.sku,
+      lines: [],
+    }
+    group.lines.push(line)
+    groups.set(key, group)
+  })
+
+  return [...groups.values()]
 }
 
 /**

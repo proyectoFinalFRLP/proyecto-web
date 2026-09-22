@@ -7,7 +7,7 @@ import {
   isLocked,
   isQuantityValid,
   linesChanged,
-  linesOverStock,
+  stockShortfalls,
   toEditLines,
   toUpdatePayload,
 } from './edit'
@@ -82,7 +82,7 @@ describe('isQuantityValid', () => {
   })
 })
 
-describe('linesOverStock', () => {
+describe('stockShortfalls', () => {
   // 2 unidades libres del producto 12 en el depósito 3.
   const STOCKS: ProductStockByWarehouse[] = [
     { productId: 12, quantities: { 3: 2 } },
@@ -90,15 +90,17 @@ describe('linesOverStock', () => {
   ]
 
   it('lets a line grow as much as the free units of its warehouse', () => {
-    expect(linesOverStock([line({ quantity: 10 })], [], STOCKS).size).toBe(0)
+    expect(stockShortfalls([line({ quantity: 10 })], [], STOCKS)).toEqual([])
   })
 
-  it('flags a line that asks for more than its warehouse has free', () => {
-    expect(linesOverStock([line({ quantity: 11 })], [], STOCKS)).toEqual(new Set(['line-1']))
+  it('reports how many units the group is missing', () => {
+    expect(stockShortfalls([line({ quantity: 11 })], [], STOCKS)).toEqual([
+      expect.objectContaining({ sku: 'PRO-8812-A', warehouseId: 3, missing: 1, lines: 1 }),
+    ])
   })
 
-  it('never flags a line that goes down', () => {
-    expect(linesOverStock([line({ quantity: 1 })], [], []).size).toBe(0)
+  it('never reports a line that goes down', () => {
+    expect(stockShortfalls([line({ quantity: 1 })], [], [])).toEqual([])
   })
 
   // El mismo producto en el mismo depósito: lo que libera una línea lo puede
@@ -109,21 +111,36 @@ describe('linesOverStock', () => {
       line({ key: 'line-2', id: 2, quantity: 1, originalQuantity: 3 }),
     ]
 
-    expect(linesOverStock(lines, [], STOCKS).size).toBe(0)
+    expect(stockShortfalls(lines, [], STOCKS)).toEqual([])
+  })
+
+  // El grupo es el que no entra, pero la línea que bajó no tiene la culpa ni
+  // nada para corregir: marcarla mandaría a mirar la fila equivocada.
+  it('blames only the lines that went up inside a group that does not fit', () => {
+    const lines = [
+      line({ quantity: 14 }),
+      line({ key: 'line-2', id: 2, quantity: 1, originalQuantity: 3 }),
+    ]
+
+    expect(stockShortfalls(lines, [], STOCKS)).toEqual([
+      expect.objectContaining({ missing: 2, lines: 2, lineKeys: ['line-1'] }),
+    ])
   })
 
   it('counts the units of a removed line as given back', () => {
     const removed = [line({ key: 'line-2', id: 2, originalQuantity: 4 })]
 
-    expect(linesOverStock([line({ quantity: 14 })], removed, STOCKS).size).toBe(0)
+    expect(stockShortfalls([line({ quantity: 14 })], removed, STOCKS)).toEqual([])
   })
 
   it('checks a new line against the whole free stock', () => {
-    expect(linesOverStock([added({ quantity: 6 })], [], STOCKS)).toEqual(new Set(['new-40']))
+    expect(stockShortfalls([added({ quantity: 6 })], [], STOCKS)).toEqual([
+      expect.objectContaining({ sku: 'PRO-8812-A', missing: 1, lineKeys: ['new-40'] }),
+    ])
   })
 
   it('does not guess when the stock of the product has not loaded', () => {
-    expect(linesOverStock([line({ quantity: 99 })], [], []).size).toBe(0)
+    expect(stockShortfalls([line({ quantity: 99 })], [], [])).toEqual([])
   })
 })
 

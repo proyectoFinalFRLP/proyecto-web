@@ -21,7 +21,7 @@ import {
   editSubtotal,
   isQuantityValid,
   linesChanged,
-  linesOverStock,
+  stockShortfalls,
   toEditLines,
   toUpdatePayload,
 } from '../../utils/edit'
@@ -133,7 +133,7 @@ export function OrderEditForm({
   const locked = lockReason(order, shipment)
   const readOnly = locked !== null
   const removed = original.filter((line) => !lines.some((current) => current.key === line.key))
-  const overStock = linesOverStock(lines, removed, stocks.stocks)
+  const shortfalls = stockShortfalls(lines, removed, stocks.stocks)
   const changed = linesChanged(original, lines)
   const dirty = changed || contextDirty || destinationDirty
   const canSave =
@@ -143,7 +143,7 @@ export function OrderEditForm({
     destinationValid &&
     lines.length > 0 &&
     lines.every((line) => isQuantityValid(line.quantity)) &&
-    overStock.size === 0
+    shortfalls.length === 0
 
   const currentStatus = useWatch({ control: context.control, name: 'status' })
   const warehouseName = (id: number) =>
@@ -220,7 +220,7 @@ export function OrderEditForm({
           ) : null}
           <EditLinesTable
             lines={lines}
-            overStock={overStock}
+            shortfalls={shortfalls}
             warehouseName={warehouseName}
             onQuantityChange={changeQuantity}
             onRemove={(key) => setLines((current) => current.filter((line) => line.key !== key))}

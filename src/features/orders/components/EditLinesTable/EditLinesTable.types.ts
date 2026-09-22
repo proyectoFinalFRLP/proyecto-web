@@ -1,11 +1,14 @@
 import type { ReactNode } from 'react'
 
-import type { EditLine } from '../../utils/edit'
+import type { EditLine, StockShortfall } from '../../utils/edit'
 
 export interface EditLinesTableProps {
   lines: EditLine[]
-  /** Claves de las líneas que piden más de lo que su depósito tiene libre. */
-  overStock: ReadonlySet<string>
+  /**
+   * Los grupos de producto y depósito que no entran en el stock libre. El aviso
+   * es del grupo; en rojo van sólo las líneas que aumentaron (`lineKeys`).
+   */
+  shortfalls: StockShortfall[]
   /** El nombre del depósito de una línea, para la columna y el aviso de stock. */
   warehouseName: (warehouseId: number) => string
   onQuantityChange: (key: string, quantity: number) => void

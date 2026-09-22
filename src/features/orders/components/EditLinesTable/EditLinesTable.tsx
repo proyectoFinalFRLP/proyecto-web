@@ -7,7 +7,7 @@ import type { DataTableColumn } from 'shared/components'
 
 import { ordersCopy } from '../../content'
 import { isLocked, isQuantityValid } from '../../utils/edit'
-import type { EditLine } from '../../utils/edit'
+import type { EditLine, StockShortfall } from '../../utils/edit'
 import { formatMoney } from '../../utils/format'
 import { lineSubtotal } from '../../utils/payment'
 
@@ -20,17 +20,21 @@ const { lines: copy } = ordersCopy.edit
 // Un SKU o un importe partidos en dos renglones dejan de leerse como un dato.
 const NO_WRAP = { whiteSpace: 'nowrap' } as const
 
+// Las líneas que se pintan en rojo: las que aumentaron dentro de un grupo que
+// no entra. La que bajó comparte el problema pero no la culpa, y marcarla
+// mandaría al operador a la fila equivocada.
+function flaggedKeys(shortfalls: StockShortfall[]): Set<string> {
+  return new Set(shortfalls.flatMap((shortfall) => shortfall.lineKeys))
+}
+
 function warehouseLabel(line: EditLine, name: EditLinesTableProps['warehouseName']): string {
   return line.warehouseId === null ? copy.noWarehouse : name(line.warehouseId)
 }
 
-function buildColumns({
-  overStock,
-  warehouseName,
-  onQuantityChange,
-  onRemove,
-  readOnly,
-}: EditLinesTableProps): DataTableColumn<EditLine>[] {
+function buildColumns(
+  { warehouseName, onQuantityChange, onRemove, readOnly }: EditLinesTableProps,
+  flagged: ReadonlySet<string>,
+): DataTableColumn<EditLine>[] {
   return [
     {
       id: 'sku',
@@ -79,7 +83,7 @@ function buildColumns({
       render: (line) => (
         <QuantityStepper
           line={line}
-          invalid={!isQuantityValid(line.quantity) || overStock.has(line.key)}
+          invalid={!isQuantityValid(line.quantity) || flagged.has(line.key)}
           disabled={readOnly || isLocked(line)}
           onChange={(quantity) => onQuantityChange(line.key, quantity)}
         />
@@ -156,30 +160,35 @@ function RemoveCell({
  * hasta que se corrija, porque el backend lo rechazaría igual.
  */
 export function EditLinesTable(props: EditLinesTableProps) {
-  const { lines, overStock, warehouseName, toolbar } = props
-  const flagged = lines.filter((line) => overStock.has(line.key))
+  const { lines, shortfalls, warehouseName, toolbar } = props
+  const flagged = flaggedKeys(shortfalls)
 
   return (
     <Stack spacing={1.5}>
       <DataTable
         title={copy.title}
         label={copy.tableLabel}
-        columns={buildColumns(props)}
+        columns={buildColumns(props, flagged)}
         rows={lines}
         getRowId={(line) => line.key}
         density="compact"
-        rowTone={(line) => (overStock.has(line.key) ? 'critical' : 'default')}
+        rowTone={(line) => (flagged.has(line.key) ? 'critical' : 'default')}
         toolbarActions={toolbar}
         footer={lines.length === 0 ? undefined : copy.footer(lines.length)}
         emptyMessage={copy.empty}
       />
-      {flagged.length === 0 ? null : (
+      {shortfalls.length === 0 ? null : (
         <StockWarnings role="alert">
-          {flagged.map((line) => (
-            <Box key={line.key}>
+          {shortfalls.map((shortfall) => (
+            <Box key={shortfall.key}>
               <WarningAmberIcon aria-hidden />
               <Typography variant="bodyMd">
-                {copy.overStock(line.sku, warehouseLabel(line, warehouseName))}
+                {copy.overStock(
+                  shortfall.sku,
+                  warehouseName(shortfall.warehouseId),
+                  shortfall.missing,
+                  shortfall.lines,
+                )}
               </Typography>
             </Box>
           ))}

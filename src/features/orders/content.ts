@@ -352,9 +352,19 @@ export const ordersCopy = {
       locked:
         'Esta línea es anterior al registro del depósito de cada línea: su cantidad no se puede cambiar ni se puede quitar.',
       empty: 'La orden necesita al menos una línea.',
-      /** "La línea PRO-2294-K supera el stock disponible en CD Ezeiza." */
-      overStock: (sku: string, warehouse: string) =>
-        `La línea ${sku} supera el stock disponible en ${warehouse}.`,
+      /**
+       * El que no entra es el grupo —producto y depósito—, no una línea: con dos
+       * líneas del mismo SKU, lo que una baja lo puede usar la otra. Por eso el
+       * aviso nombra el faltante del grupo y no acusa a una línea, que puede ser
+       * justo la que bajó.
+       *
+       * "PRO-2294-K pide 3 unidades más de las que hay en CD Ezeiza."
+       * "Las 2 líneas de PRO-2294-K piden 3 unidades más de las que hay en CD Ezeiza."
+       */
+      overStock: (sku: string, warehouse: string, missing: number, lines: number) =>
+        `${lines === 1 ? sku : `Las ${formatCount(lines)} líneas de ${sku}`} ${
+          lines === 1 ? 'pide' : 'piden'
+        } ${formatCount(missing)} ${missing === 1 ? 'unidad más' : 'unidades más'} de las que hay en ${warehouse}.`,
       stockError:
         'No pudimos cargar el stock de los productos: la validación queda para el guardado.',
       add: {

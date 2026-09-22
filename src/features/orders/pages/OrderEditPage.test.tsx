@@ -233,8 +233,30 @@ describe('OrderEditPage', { timeout: 15_000 }, () => {
     fireEvent.change(quantity('PRO-8812-A'), { target: { value: '11' } })
 
     expect(
-      await screen.findByText('La línea PRO-8812-A supera el stock disponible en CD Ezeiza.'),
+      await screen.findByText('PRO-8812-A pide 1 unidad más de las que hay en CD Ezeiza.'),
     ).toBeInTheDocument()
+    expect(saveButton()).toBeDisabled()
+  })
+
+  // Dos líneas del mismo producto y depósito: lo que una baja lo puede usar la
+  // otra. Si aun así el grupo no entra, el faltante es del grupo, y la línea que
+  // bajó no se marca — acusarla mandaría a mirar la fila equivocada.
+  it('warns about the group and leaves the line that went down alone', async () => {
+    const twin = { ...ORDER.lines[0], id: 2, quantity: 3 }
+    mockAll({ order: { ...ORDER, lines: [ORDER.lines[0], twin] } })
+    renderPage()
+
+    const [up, down] = screen.getAllByRole('spinbutton', { name: 'Cantidad de PRO-8812-A' })
+    fireEvent.change(up, { target: { value: '14' } })
+    fireEvent.change(down, { target: { value: '1' } })
+
+    expect(
+      await screen.findByText(
+        'Las 2 líneas de PRO-8812-A piden 2 unidades más de las que hay en CD Ezeiza.',
+      ),
+    ).toBeInTheDocument()
+    expect(up).toHaveAttribute('aria-invalid', 'true')
+    expect(down).toHaveAttribute('aria-invalid', 'false')
     expect(saveButton()).toBeDisabled()
   })
 
