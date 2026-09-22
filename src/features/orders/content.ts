@@ -283,6 +283,98 @@ export const ordersCopy = {
     },
     back: 'Paso anterior',
   },
+  /** Modificación de una orden existente (S09). */
+  edit: {
+    title: (orderLabel: string) => `Modificar ${orderLabel}`,
+    breadcrumb: {
+      label: 'Ruta de navegación',
+      orders: 'Órdenes',
+      current: 'Modificar',
+    },
+    discard: 'Descartar',
+    save: 'Guardar cambios',
+    saving: 'Guardando…',
+    saved: 'Los cambios de la orden se guardaron.',
+    info: 'Al guardar, los cambios en las líneas mueven stock del depósito de cada línea y el total se recalcula.',
+    notEditable: {
+      cancelled: 'La orden está cancelada: no se puede modificar.',
+      dispatched: 'El envío de la orden ya salió: no se puede modificar.',
+    },
+    errors: {
+      stale:
+        'Otro operador modificó la orden mientras la editabas. Recargala para ver cómo quedó; tus cambios se descartan.',
+      reload: 'Recargar la orden',
+      notEditable: 'La orden ya no se puede modificar: se canceló o su envío salió.',
+      /** El mensaje del backend va aparte: dice qué rechazó (stock, datos). */
+      generic: 'No se pudieron guardar los cambios.',
+    },
+    context: {
+      title: 'Datos de la orden',
+      fields: {
+        customerName: 'Cliente o razón social',
+        customerDocument: 'DNI / CUIT',
+        status: 'Estado',
+      },
+      validation: {
+        customerNameRequired: 'Ingresá el nombre del cliente.',
+        customerDocumentRequired: 'Ingresá el DNI o CUIT.',
+      },
+    },
+    shipment: {
+      title: 'Envío',
+      fields: {
+        carrier: 'Operador logístico',
+        tracking: 'Número de seguimiento',
+      },
+      noCarrier: 'Sin asignar',
+      noTracking: 'Pendiente de despacho',
+      footnote:
+        'El operador y el número de seguimiento se asignan al despachar el envío; no se editan desde acá.',
+    },
+    lines: {
+      title: 'Líneas de la orden',
+      tableLabel: 'Líneas de la orden en edición',
+      columns: {
+        sku: 'SKU',
+        product: 'Producto',
+        warehouse: 'Depósito',
+        unitPrice: 'P. unitario',
+        quantity: 'Cantidad',
+        subtotal: 'Subtotal',
+        remove: 'Quitar',
+      },
+      decrease: (sku: string) => `Restar una unidad de ${sku}`,
+      increase: (sku: string) => `Sumar una unidad de ${sku}`,
+      quantityFor: (sku: string) => `Cantidad de ${sku}`,
+      removeFor: (sku: string) => `Quitar ${sku}`,
+      /** Una línea anterior a TESIS-126 no sabe de qué depósito salió. */
+      noWarehouse: 'Sin registrar',
+      locked:
+        'Esta línea es anterior al registro del depósito de cada línea: su cantidad no se puede cambiar ni se puede quitar.',
+      empty: 'La orden necesita al menos una línea.',
+      /** "La línea PRO-2294-K supera el stock disponible en CD Ezeiza." */
+      overStock: (sku: string, warehouse: string) =>
+        `La línea ${sku} supera el stock disponible en ${warehouse}.`,
+      stockError:
+        'No pudimos cargar el stock de los productos: la validación queda para el guardado.',
+      add: {
+        warehouse: 'Depósito de la línea nueva',
+        warehousePlaceholder: 'Elegí un depósito',
+      },
+      footer: (count: number) => `${formatCount(count)} ${count === 1 ? 'línea' : 'líneas'}`,
+    },
+    recalc: {
+      title: 'Recálculo',
+      previous: 'Subtotal anterior',
+      next: 'Subtotal nuevo',
+      shipping: 'Envío',
+      shippingPending: 'Sin cotizar',
+      total: 'Nuevo total',
+      /** "Diferencia +$188.841". */
+      difference: (amount: string) => `Diferencia ${amount}`,
+      noDifference: 'Sin diferencia',
+    },
+  },
   actions: {
     view: 'Ver',
     edit: 'Editar',
