@@ -73,7 +73,8 @@ function mockAll({
   shipment?: OrderShipment
   error?: { status?: number; message: string } | null
 } = {}) {
-  refetch = vi.fn()
+  // Como el de React Query: el reload encadena sobre la promesa.
+  refetch = vi.fn().mockResolvedValue({})
   mutate = vi.fn((_payload: UpdateOrderPayload, options?: { onSuccess?: () => void }) =>
     options?.onSuccess?.(),
   )
