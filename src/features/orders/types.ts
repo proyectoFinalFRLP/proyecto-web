@@ -164,3 +164,24 @@ export interface CatalogProduct {
   /** Unidades sumando todos los depósitos. */
   totalStock: number
 }
+
+/**
+ * Un depósito de la empresa, como lo muestra el paso 2 del alta manual. Espejo
+ * de `GET /api/v1/warehouses`, que ya viene acotado al tenant del usuario.
+ */
+export interface OriginWarehouse {
+  id: number
+  name: string
+  address: string
+  zipCode: string
+}
+
+/**
+ * Cuántas unidades de un producto hay en cada depósito, por id de depósito. Sale
+ * de `GET /api/v1/products/:id`: el listado del catálogo no trae el desglose.
+ * Un depósito que no aparece no tiene fila de stock, que es lo mismo que cero.
+ */
+export interface ProductStockByWarehouse {
+  productId: number
+  quantities: Record<number, number>
+}

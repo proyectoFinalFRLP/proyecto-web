@@ -2,7 +2,13 @@ import type { AxiosResponse } from 'axios'
 import { client } from 'shared/api/client'
 import { describe, expect, it, vi } from 'vitest'
 
-import { fetchOrder, fetchOrderShipment } from './api'
+import {
+  fetchOrder,
+  fetchOrderShipment,
+  fetchProductStocks,
+  fetchProvinces,
+  fetchWarehouses,
+} from './api'
 
 // Sólo el `data` importa: la frontera no lee headers ni status de estas respuestas.
 function respond(data: unknown): AxiosResponse {
@@ -125,5 +131,47 @@ describe('fetchOrder', () => {
         unitPrice: 120000,
       },
     ])
+  })
+})
+
+describe('fetchProductStocks', () => {
+  it('indexes the units of each warehouse by its id', async () => {
+    vi.spyOn(client, 'get').mockResolvedValueOnce(
+      respond({
+        id: 12,
+        sku: 'PX-9021-LRG',
+        stocks: [
+          { id: 1, warehouse_id: 3, quantity: 40, warehouse: { id: 3 } },
+          { id: 2, warehouse_id: 5, quantity: 0, warehouse: { id: 5 } },
+        ],
+      }),
+    )
+
+    expect(await fetchProductStocks(12)).toEqual({ productId: 12, quantities: { 3: 40, 5: 0 } })
+  })
+})
+
+describe('fetchWarehouses', () => {
+  it('unwraps the list and translates the zip code', async () => {
+    vi.spyOn(client, 'get').mockResolvedValueOnce(
+      respond({
+        data: [{ id: 3, name: 'CD Ezeiza', address: 'Ruta 205 km 45', zip_code: '1804' }],
+      }),
+    )
+
+    expect(await fetchWarehouses()).toEqual([
+      { id: 3, name: 'CD Ezeiza', address: 'Ruta 205 km 45', zipCode: '1804' },
+    ])
+  })
+})
+
+describe('fetchProvinces', () => {
+  it('reads the vocabulary from the backend as it comes', async () => {
+    const get = vi
+      .spyOn(client, 'get')
+      .mockResolvedValueOnce(respond({ data: ['Buenos Aires', 'Córdoba'] }))
+
+    expect(await fetchProvinces()).toEqual(['Buenos Aires', 'Córdoba'])
+    expect(get).toHaveBeenCalledWith('/orders/provinces')
   })
 })

@@ -10,6 +10,8 @@ import type {
   OrderShipment,
   OrderStatus,
   OrderSummary,
+  OriginWarehouse,
+  ProductStockByWarehouse,
   Shipment,
   ShipmentStatus,
 } from './types'
@@ -267,4 +269,57 @@ export async function fetchCatalogProducts(): Promise<CatalogProduct[]> {
     weight: product.weight,
     totalStock: product.total_stock,
   }))
+}
+
+interface ApiWarehouse {
+  id: number
+  name: string
+  address: string
+  zip_code: string
+}
+
+// `show` de productos devuelve el objeto pelado. Del detalle sólo interesa el
+// desglose de stock: el resto ya lo copió el borrador en el paso 1.
+interface ApiProductStocks {
+  id: number
+  stocks: { warehouse_id: number; quantity: number }[]
+}
+
+/** Los depósitos de la empresa, para elegir el origen en el paso 2. */
+export async function fetchWarehouses(): Promise<OriginWarehouse[]> {
+  const { data } = await client.get<{ data: ApiWarehouse[] }>('/warehouses')
+
+  return data.data.map((warehouse) => ({
+    id: warehouse.id,
+    name: warehouse.name,
+    address: warehouse.address,
+    zipCode: warehouse.zip_code,
+  }))
+}
+
+/**
+ * El stock de un producto en cada depósito. Es un request por producto porque
+ * el listado del catálogo no trae el desglose (`ProductListSerializer`), y el
+ * paso 2 necesita saber qué depósito cubre cada línea del borrador.
+ */
+export async function fetchProductStocks(productId: number): Promise<ProductStockByWarehouse> {
+  const { data } = await client.get<ApiProductStocks>(`/products/${productId}`)
+
+  return {
+    productId: data.id,
+    quantities: Object.fromEntries(
+      data.stocks.map((stock) => [stock.warehouse_id, stock.quantity]),
+    ),
+  }
+}
+
+/**
+ * Las provincias que acepta el alta (`Order::PROVINCES`, TESIS-128). Se leen del
+ * backend y no se escriben acá porque tienen que coincidir carácter por
+ * carácter, tildes incluidas: una provincia mal escrita es un 422 al confirmar.
+ */
+export async function fetchProvinces(): Promise<string[]> {
+  const { data } = await client.get<{ data: string[] }>('/orders/provinces')
+
+  return data.data
 }
