@@ -233,6 +233,56 @@ export const ordersCopy = {
       weightHint: 'Calculado sobre el peso unitario declarado de cada SKU.',
     },
   },
+  /** Paso 2: origen y destino (S06). */
+  shipping: {
+    origin: {
+      title: 'Depósito de origen',
+      groupLabel: 'Depósito de origen de la orden',
+      loading: 'Cargando los depósitos…',
+      error: 'No pudimos cargar los depósitos.',
+      stockError: 'No pudimos calcular el stock de los productos en cada depósito.',
+      retry: 'Reintentar',
+      empty: 'La empresa no tiene depósitos cargados.',
+      /** "CP 1804". */
+      zipCode: (zipCode: string) => `CP ${zipCode}`,
+      coverage: {
+        loading: 'Calculando stock…',
+        full: 'Stock suficiente',
+        /** "Falta stock de 1 SKU". */
+        partial: (count: number) => `Falta stock de ${formatCount(count)} SKU`,
+        none: 'Sin stock para la orden',
+      },
+      /** Por qué un depósito está deshabilitado, para el lector de pantalla. */
+      missingDetail: (skus: string[]) => `No alcanza el stock de ${skus.join(', ')}.`,
+      noneCovers:
+        'Ningún depósito tiene stock para toda la orden. Volvé al paso anterior y ajustá las cantidades.',
+    },
+    destination: {
+      title: 'Domicilio de entrega',
+      fields: {
+        address: 'Calle y número',
+        city: 'Ciudad',
+        province: 'Provincia',
+        zipCode: 'Código postal',
+      },
+      placeholders: {
+        address: 'Av. Corrientes 3247, piso 5',
+        city: 'CABA',
+        province: 'Elegí una provincia',
+        zipCode: '1193',
+      },
+      provincesLoading: 'Cargando provincias…',
+      provincesError: 'No pudimos cargar las provincias.',
+      validation: {
+        addressRequired: 'Ingresá la calle y el número.',
+        cityRequired: 'Ingresá la ciudad.',
+        provinceRequired: 'Elegí la provincia.',
+        zipCodeRequired: 'Ingresá el código postal.',
+        zipCodeFormat: 'Usá los 4 dígitos (1193) o el formato completo (C1193ABC).',
+      },
+    },
+    back: 'Paso anterior',
+  },
   actions: {
     view: 'Ver',
     edit: 'Editar',
