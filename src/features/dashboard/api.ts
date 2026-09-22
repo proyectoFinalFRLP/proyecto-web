@@ -36,18 +36,41 @@ export function fetchActiveShipmentCount(): Promise<number> {
 }
 
 /**
- * Estado de stock que cuenta como alerta de inventario (TESIS-55).
+ * Los dos estados de stock que son una alerta (TESIS-55).
  *
- * El umbral no vive acá: lo decide `Product::LOW_STOCK_THRESHOLD` en el
- * backend, y el mismo `status` alimenta la pestaña «Stock bajo» del catálogo.
- * Contarlo en el cliente con una regla propia haría que el panel y el
- * inventario mostraran números distintos del mismo hecho.
+ * Son dos y no uno porque el backend los separa: `low` es
+ * `BETWEEN 1 AND LOW_STOCK_THRESHOLD`, así que un producto **agotado** no es
+ * `low`, es `out_of_stock`. Contar sólo `low` dejaría fuera del número justo
+ * los casos más graves, que son los que ya no se pueden vender.
+ *
+ * El umbral no vive acá: lo decide `Product::LOW_STOCK_THRESHOLD`, y son los
+ * mismos estados que filtran las pestañas del catálogo. Calcularlo en el
+ * cliente con una regla propia haría que el panel y el inventario mostraran
+ * números distintos del mismo hecho.
  */
 export const LOW_STOCK_STATUS = 'low'
+export const OUT_OF_STOCK_STATUS = 'out_of_stock'
 
-/** `GET /api/v1/products?status=low&per_page=1` → `meta.total`. */
-export function fetchLowStockCount(): Promise<number> {
-  return fetchCount('/products', { status: LOW_STOCK_STATUS })
+/** Cuántos productos hay en cada estado de alerta. */
+export interface StockAlertCounts {
+  low: number
+  outOfStock: number
+}
+
+/**
+ * Los dos conteos, en paralelo.
+ *
+ * Van juntos en una sola consulta y no en dos: lo que la tarjeta muestra es la
+ * suma, y si una de las dos fallara, sumar la que llegó daría un número más
+ * bajo que el real sin que nada lo delate. O están los dos o no hay número.
+ */
+export async function fetchStockAlertCounts(): Promise<StockAlertCounts> {
+  const [low, outOfStock] = await Promise.all([
+    fetchCount('/products', { status: LOW_STOCK_STATUS }),
+    fetchCount('/products', { status: OUT_OF_STOCK_STATUS }),
+  ])
+
+  return { low, outOfStock }
 }
 
 interface ApiWarehouse {

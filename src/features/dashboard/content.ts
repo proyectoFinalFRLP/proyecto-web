@@ -28,11 +28,23 @@ export const dashboardCopy = {
     inventoryAlerts: {
       label: 'Alertas de inventario',
       tag: 'Crítico',
-      note: 'Requiere revisión inmediata',
+      // La nota dice de qué está hecho el número: agotados y por debajo del
+      // umbral no son lo mismo y se trabajan distinto, pero los dos son alerta.
+      note: (outOfStock: number, low: number) =>
+        outOfStock === 0
+          ? `${UNITS_FORMAT.format(low)} por debajo del umbral`
+          : `${UNITS_FORMAT.format(outOfStock)} sin stock · ${UNITS_FORMAT.format(low)} por debajo del umbral`,
       // Sin productos en alerta la tarjeta no grita: el borde rojo y el chip
       // «Crítico» afirmarían un problema que no existe.
-      calmNote: 'Sin productos por debajo del umbral',
-      link: 'Ver los productos con stock bajo',
+      calmNote: 'Sin productos en alerta de stock',
+      // Nombre accesible del enlace. Lleva el dato adentro: un `aria-label`
+      // reemplaza al contenido para un lector de pantalla, así que si dijera
+      // sólo «ver los productos» se perdería el número y el chip «Crítico»,
+      // que es lo único que la tarjeta existe para comunicar.
+      linkLabel: (total: string, calm: boolean) =>
+        calm
+          ? `Alertas de inventario: ${total}. Ver el catálogo`
+          : `Alertas de inventario: ${total}, crítico. Ver los productos en alerta`,
     },
   },
   // Carga de cada depósito (TESIS-55). El diseño titula esta tarjeta
