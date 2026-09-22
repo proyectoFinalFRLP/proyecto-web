@@ -18,8 +18,15 @@ export interface DraftStocks {
  *
  * Un request por producto, en paralelo: el listado del catálogo no trae el
  * desglose por depósito y no hay un endpoint que lo dé para varios productos a
- * la vez. Un borrador tiene pocas líneas, así que son pocos requests, y la
- * caché los reusa si el operador va y vuelve entre pasos.
+ * la vez. La caché los reusa si el operador va y vuelve entre pasos.
+ *
+ * Cuántos requests son depende del borrador, y nada lo acota: el paso 1 no
+ * limita cuántos SKU se agregan y el backend acepta hasta 100 ítems por orden
+ * (`Orders::CreateOrder::MAX_ITEMS`). Un borrador así dispara cien GET al
+ * entrar acá — el navegador los encola de a seis por origen, así que no se cae,
+ * pero la pantalla tarda. Que en la práctica sean pocos es un supuesto sobre el
+ * uso, no una garantía del código. Lo que lo destraba de verdad es un endpoint
+ * que devuelva el stock de varios productos, que es card aparte.
  */
 export function useDraftStocks(productIds: number[]): DraftStocks {
   return useQueries({

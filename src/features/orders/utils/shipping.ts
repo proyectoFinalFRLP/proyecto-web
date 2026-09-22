@@ -33,6 +33,12 @@ export interface WarehouseCoverage {
  *
  * Una línea sin stock cargado para el depósito cuenta como cero: es lo que hace
  * el backend cuando no encuentra la fila de `stocks`.
+ *
+ * **Precondición: una línea por producto.** Cada línea se compara por separado
+ * contra el stock de su producto, así que dos líneas del mismo SKU pasarían las
+ * dos aunque juntas no entren. El borrador lo cumple porque `addItem` reemplaza
+ * la línea del mismo `productId` en vez de agregar otra; si eso cambiara, acá
+ * habría que sumar por producto antes de comparar.
  */
 export function warehouseCoverage(
   warehouseId: number,
