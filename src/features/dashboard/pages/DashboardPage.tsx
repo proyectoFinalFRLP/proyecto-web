@@ -47,6 +47,15 @@ const CARD_LINK = {
   '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: 2 },
 }
 
+// Qué dice la tarjeta debajo del número. Sin desglose no dice nada: el dato no
+// llegó, y tanto la alerta como la calma serían una afirmación inventada.
+function noteFor(breakdown: { low: number; outOfStock: number } | undefined): string | undefined {
+  if (breakdown === undefined) return undefined
+  if (breakdown.low + breakdown.outOfStock === 0) return alertsCopy.calmNote
+
+  return alertsCopy.note(breakdown.outOfStock, breakdown.low)
+}
+
 // `StatCard` recibe el valor ya formateado: el componente del DS no decide
 // separadores ni unidades.
 const NUMBER_FORMAT = new Intl.NumberFormat('es-AR')
@@ -183,11 +192,11 @@ export function DashboardPage() {
                 tone={hasAlerts ? 'error' : 'neutral'}
                 tag={hasAlerts ? alertsCopy.tag : undefined}
                 tagTone="error"
-                note={
-                  hasAlerts && breakdown
-                    ? alertsCopy.note(breakdown.outOfStock, breakdown.low)
-                    : alertsCopy.calmNote
-                }
+                // Sin el desglose no se afirma nada: mientras el conteo viaja
+                // —o si la consulta falló— decir «sin productos en alerta»
+                // sería dar por sano un inventario que nadie miró. Es el mismo
+                // criterio que ya usa el tono para no gritar con `undefined`.
+                note={noteFor(breakdown)}
               />
             </Box>
           </Grid>
