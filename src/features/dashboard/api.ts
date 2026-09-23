@@ -1,7 +1,7 @@
 import { client } from 'shared/api/client'
 import { fetchCount } from 'shared/api/count'
 
-import type { WarehouseLoad } from './types'
+import type { RecentOrder, WarehouseLoad } from './types'
 
 // Frontera con Rails de los KPIs de órdenes y envíos (TESIS-53). Único lugar de
 // la feature que conoce los endpoints y el vocabulario de estados del backend.
@@ -93,5 +93,44 @@ export async function fetchWarehouseLoads(): Promise<WarehouseLoad[]> {
     id: warehouse.id,
     name: warehouse.name,
     storedUnits: warehouse.stored_units,
+  }))
+}
+
+/**
+ * Cuántas órdenes muestra el panel. Las del diseño (S03-Panel) y las que pide
+ * la card: las últimas cinco, no una página del listado.
+ */
+export const RECENT_ORDERS = 5
+
+interface ApiRecentOrder {
+  id: number
+  external_order_id: string | null
+  customer_address: string | null
+  customer_zip_code: string | null
+  status: RecentOrder['status']
+  total_amount: number | null
+  created_at: string
+}
+
+/**
+ * Las últimas órdenes de la empresa (`GET /api/v1/orders?page=1&per_page=5`).
+ *
+ * El backend ya las devuelve de la más nueva a la más vieja, así que la primera
+ * página *es* «las últimas cinco»: no se ordena de este lado, que sería tener
+ * dos definiciones del mismo orden.
+ */
+export async function fetchRecentOrders(): Promise<RecentOrder[]> {
+  const { data } = await client.get<{ data: ApiRecentOrder[] }>('/orders', {
+    params: { page: 1, per_page: RECENT_ORDERS },
+  })
+
+  return data.data.map((order) => ({
+    id: order.id,
+    externalOrderId: order.external_order_id,
+    customerAddress: order.customer_address,
+    customerZipCode: order.customer_zip_code,
+    status: order.status,
+    totalAmount: order.total_amount,
+    createdAt: order.created_at,
   }))
 }

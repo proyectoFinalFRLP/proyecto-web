@@ -54,3 +54,25 @@ export interface WarehouseLoad {
   /** Suma de las unidades en stock del depósito. Cero es un dato, no un faltante. */
   storedUnits: number
 }
+
+/** Los tres estados que el backend acepta (`Order::STATUSES`). */
+export type OrderStatus = 'pending' | 'paid' | 'cancelled'
+
+/**
+ * Una fila de la tabla de órdenes recientes del panel (TESIS-56). Es la fila de
+ * `GET /api/v1/orders` recortada a las cinco columnas que el diseño dibuja.
+ *
+ * Tres campos pueden llegar vacíos y la tabla tiene que tolerarlo:
+ * `externalOrderId` es null en las ventas cargadas a mano, `customerAddress` y
+ * `customerZipCode` en las órdenes viejas sin destino, y `totalAmount` en las
+ * anteriores a TESIS-114.
+ */
+export interface RecentOrder {
+  id: number
+  externalOrderId: string | null
+  customerAddress: string | null
+  customerZipCode: string | null
+  status: OrderStatus
+  totalAmount: number | null
+  createdAt: string
+}
