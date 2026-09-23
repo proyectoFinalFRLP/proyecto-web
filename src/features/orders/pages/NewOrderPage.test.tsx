@@ -30,13 +30,26 @@ const CATALOG: CatalogProduct[] = [
   },
 ]
 
-function mockCatalog(state: { data?: CatalogProduct[]; isPending?: boolean; isError?: boolean }) {
+function mockCatalog(state: {
+  data?: CatalogProduct[]
+  isPending?: boolean
+  isFetching?: boolean
+  isError?: boolean
+}) {
   vi.mocked(useCatalogProducts).mockReturnValue({
     data: state.data,
     isPending: state.isPending ?? false,
+    isFetching: state.isFetching ?? false,
     isError: state.isError ?? false,
     refetch: vi.fn(),
   } as never)
+}
+
+/** Con qué término se pidió el catálogo la última vez. */
+function lastSearch(): string {
+  const calls = vi.mocked(useCatalogProducts).mock.calls
+
+  return calls[calls.length - 1][0]
 }
 
 function renderPage() {
@@ -125,7 +138,35 @@ describe('NewOrderPage', () => {
     await waitFor(() => expect(nextButton()).toBeEnabled())
   })
 
-  it('finds a product by its name as well as by its sku', async () => {
+  // El filtro es del backend (TESIS-125): lo que la pantalla tiene que hacer es
+  // mandarle lo tipeado. Buscar en memoria dejaba fuera del buscador todo
+  // producto más allá del corte de la API, sin que se distinguiera de «no
+  // existe».
+  it('asks the backend for what was typed', async () => {
+    renderPage()
+
+    type(search(), 'sensor')
+
+    await waitFor(() => expect(lastSearch()).toBe('sensor'))
+  })
+
+  it('does not go to the backend on every keystroke', async () => {
+    renderPage()
+
+    type(search(), 's')
+    type(search(), 'se')
+    type(search(), 'sen')
+
+    // Las tres pulsaciones colapsan en una sola búsqueda.
+    await waitFor(() => expect(lastSearch()).toBe('sen'))
+    expect(
+      vi.mocked(useCatalogProducts).mock.calls.filter((call) => call[0] === 'se'),
+    ).toHaveLength(0)
+  })
+
+  // Lo que llega ya viene filtrado: la pantalla no vuelve a decidir qué mostrar.
+  it('lists what the backend returned without filtering it again', async () => {
+    mockCatalog({ data: [CATALOG[1]] })
     renderPage()
 
     type(search(), 'sensor')

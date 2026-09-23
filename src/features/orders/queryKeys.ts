@@ -31,5 +31,7 @@ export const orderKeys = {
  * otra.
  */
 export const catalogKeys = {
-  products: () => ['inventory', 'products', 'catalog'] as const,
+  // El término entra en la clave: cada búsqueda es una consulta distinta, y así
+  // volver a un término ya tipeado sale de la caché en vez de la red.
+  products: (search: string) => ['inventory', 'products', 'catalog', search] as const,
 }

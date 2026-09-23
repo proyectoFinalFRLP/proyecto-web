@@ -4,7 +4,7 @@ import { useState } from 'react'
 
 import { formatCount, ordersCopy } from '../../content'
 import type { CatalogProduct } from '../../types'
-import { filterCatalog, isDraftItemValid } from '../../utils/draft'
+import { isDraftItemValid } from '../../utils/draft'
 
 import { OptionBody, PickerForm, PriceSlot, QuantitySlot, SearchSlot } from './ProductPicker.styles'
 import type { ProductPickerProps } from './ProductPicker.types'
@@ -29,7 +29,14 @@ const MONO = { typography: 'dataMono' }
  * misma que valida las filas ya cargadas, y así vive en un solo lugar en vez
  * de repetirse en un schema.
  */
-export function ProductPicker({ products, loading = false, addedIds, onAdd }: ProductPickerProps) {
+export function ProductPicker({
+  products,
+  loading = false,
+  addedIds,
+  search,
+  onSearchChange,
+  onAdd,
+}: ProductPickerProps) {
   const [product, setProduct] = useState<CatalogProduct | null>(null)
   const [quantity, setQuantity] = useState(INITIAL_QUANTITY)
   const [unitPrice, setUnitPrice] = useState(INITIAL_PRICE)
@@ -55,6 +62,7 @@ export function ProductPicker({ products, loading = false, addedIds, onAdd }: Pr
     setProduct(null)
     setQuantity(INITIAL_QUANTITY)
     setUnitPrice(INITIAL_PRICE)
+    onSearchChange('')
   }
 
   return (
@@ -69,9 +77,13 @@ export function ProductPicker({ products, loading = false, addedIds, onAdd }: Pr
           options={products}
           value={product}
           onChange={(_event, value) => setProduct(value)}
-          // El filtro es el mismo que se prueba en `utils/draft.ts`, no el de
-          // MUI: así busca en el SKU y en el nombre con la misma regla.
-          filterOptions={(options, state) => filterCatalog(options, state.inputValue)}
+          inputValue={search}
+          onInputChange={(_event, value) => onSearchChange(value)}
+          // Las opciones se muestran tal como llegaron: ya vienen filtradas por
+          // el backend. Sin esto MUI las vuelve a filtrar por su etiqueta, y
+          // esconde coincidencias que el servidor sí encontró —por ejemplo, un
+          // producto que matchea por su descripción y no por el texto visible.
+          filterOptions={(options) => options}
           getOptionLabel={(option) => `${option.sku} · ${option.name}`}
           getOptionKey={(option) => option.id}
           isOptionEqualToValue={(option, value) => option.id === value.id}
