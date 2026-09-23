@@ -8,8 +8,6 @@ export type ServiceType = 'ecommerce' | 'courier'
 // empresa del token (`IntegrationStatusSerializer`). Por eso el identificador
 // es `service_id` y no `id`, y por eso el filtro de "nodo activo" que pide la
 // card se resuelve en el cliente con `configured && is_active`.
-//
-// Responde un array plano, sin el envoltorio `{ data }` de `ApiResponse`.
 export interface IntegrationNode {
   service_id: number
   service_name: string

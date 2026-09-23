@@ -76,7 +76,8 @@ interface ApiOrderItem {
   product: { id: number; sku: string; name: string }
 }
 
-// `show` devuelve el objeto pelado, sin el envoltorio `{ data }` del listado.
+// `show` devuelve el objeto pelado: la regla del ADR-015 del backend es que un
+// recurso solo viaja sin envoltorio y una colección viaja en `{ data }`.
 interface ApiOrderDetail {
   id: number
   external_order_id: string | null

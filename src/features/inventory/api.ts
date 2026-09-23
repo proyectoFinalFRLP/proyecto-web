@@ -14,11 +14,14 @@ import type {
 // Frontera con la API Rails. Todo lo que entra en snake_case se traduce acá y
 // sale como el dominio en camelCase; ningún componente ve la forma cruda.
 //
-// Dos detalles del backend que hay que respetar y no son obvios:
-//   · `index` envuelve en `{ data: [...] }`, pero `show` y `update` devuelven el
-//     objeto pelado (`ProductSerializer.render` sin wrapper).
-//   · `index` usa `ProductListSerializer`, que NO incluye `stocks`. El detalle
-//     por depósito sólo viene en `show`.
+// La forma de la respuesta ya no es un detalle por endpoint: es una regla, y
+// está escrita en el ADR-015 del backend. Una colección viaja en `{ data }`
+// —más `meta` si pagina— y un recurso solo viaja pelado. Acá eso es `index`
+// contra `show`/`create`/`update`.
+//
+// Lo que sí es propio de este recurso y no es obvio: `index` usa
+// `ProductListSerializer`, que NO incluye `stocks`. El detalle por depósito
+// sólo viene en `show`.
 
 interface ApiWarehouse {
   id: number
