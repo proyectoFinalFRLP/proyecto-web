@@ -6,6 +6,15 @@ import { currentTenantSlug, TENANT_CONFIG_PATH, TENANT_HEADER } from '../utils/t
 
 import type { ApiRequestError } from './types'
 
+/**
+ * Ruta de cierre de sesión.
+ *
+ * Vive acá, y no suelta en cada archivo, porque dos lugares tienen que estar de
+ * acuerdo sobre cuál es: el que la llama y el interceptor que decide no tratar
+ * su 401 como una sesión vencida.
+ */
+export const LOGOUT_PATH = '/auth/logout'
+
 const FORBIDDEN_MESSAGE = 'No tenés permisos para realizar esta acción.'
 const SESSION_EXPIRED_MESSAGE = 'Tu sesión expiró. Ingresá de nuevo.'
 const NETWORK_MESSAGE = 'No pudimos conectarnos con el servidor.'
@@ -36,13 +45,23 @@ export const client = axios.create({
 // El token se lee del store y no de localStorage para no tener dos fuentes de
 // verdad sobre la sesión.
 client.interceptors.request.use((config) => {
+  // Una credencial puesta a mano por quien llama gana sobre la del store.
+  // `revokeSession` manda el token a revocar de forma explícita, porque para
+  // cuando este interceptor corre el store ya se vació: sin esta guarda, el
+  // request saldría sin Authorization y el backend no tendría qué revocar.
+  //
+  // Es una bandera y no un `return config` anticipado: cortar acá salteaba
+  // también el header de tenant, que desde TESIS-121 viaja en TODOS los
+  // requests. El único que llega con credencial propia es el logout.
+  const hasExplicitToken = Boolean(config.headers.Authorization)
+
   // `/tenant-config` es público y describe **el portal**, no la sesión. Con un
   // JWT adjunto el backend contesta por el tenant del token (§3 del contrato),
   // que en local puede no ser el del slug: con sesión de Sur y `?tenant=norte`
   // volvía la config de Sur, y el front la guardaba bajo `norte`. La pregunta
   // sale sin firmar para que la respuesta sea siempre sobre el slug que se pide.
   const token = getAuthToken()
-  if (token && config.url !== TENANT_CONFIG_PATH) {
+  if (!hasExplicitToken && token && config.url !== TENANT_CONFIG_PATH) {
     config.headers.Authorization = `Bearer ${token}`
   }
 
@@ -76,7 +95,13 @@ client.interceptors.response.use(
     // Sólo se actúa si **había** sesión: un 401 del propio login son
     // credenciales mal tipeadas, y el formulario ya muestra su error. Avisarle
     // "tu sesión expiró" a quien nunca la tuvo sería mentirle.
-    if (status === 401 && getAuthToken()) {
+    // Un 401 del propio logout se ignora: el token ya no sirve, que es
+    // exactamente lo que se estaba pidiendo. Avisar "tu sesión expiró" a quien
+    // acaba de cerrarla a propósito sería ruido, y `logout()` ya limpia el
+    // store por su cuenta.
+    const isLogout = error.config?.url === LOGOUT_PATH
+
+    if (status === 401 && !isLogout && getAuthToken()) {
       clearSession()
       notify(SESSION_EXPIRED_MESSAGE, 'warning')
     }
