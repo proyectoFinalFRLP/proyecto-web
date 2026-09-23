@@ -6,6 +6,10 @@
 // con qué calcularlo. Nunca un 0, que se leería como un dato real.
 const UNKNOWN_VALUE = '—'
 
+// Separadores de miles del locale, para las unidades del widget de depósitos.
+// El componente del DS recibe el valor ya formateado.
+const UNITS_FORMAT = new Intl.NumberFormat('es-AR')
+
 export const dashboardCopy = {
   pageTitle: 'Panel de operación',
   pageSubtitle: 'Datos en vivo de los centros de distribución.',
@@ -18,6 +22,43 @@ export const dashboardCopy = {
     pendingOrders: {
       label: 'Órdenes pendientes',
     },
+    // Cuarta tarjeta de la fila del diseño. El chip y la nota son los del
+    // MetricCard de S03-Panel; el tono `error` es lo que le da el borde de
+    // acento que el diseño marca como `critical`.
+    inventoryAlerts: {
+      label: 'Alertas de inventario',
+      tag: 'Crítico',
+      // La nota dice de qué está hecho el número: agotados y por debajo del
+      // umbral no son lo mismo y se trabajan distinto, pero los dos son alerta.
+      note: (outOfStock: number, low: number) =>
+        outOfStock === 0
+          ? `${UNITS_FORMAT.format(low)} por debajo del umbral`
+          : `${UNITS_FORMAT.format(outOfStock)} sin stock · ${UNITS_FORMAT.format(low)} por debajo del umbral`,
+      // Sin productos en alerta la tarjeta no grita: el borde rojo y el chip
+      // «Crítico» afirmarían un problema que no existe.
+      calmNote: 'Sin productos en alerta de stock',
+      // Nombre accesible del enlace. Lleva el dato adentro: un `aria-label`
+      // reemplaza al contenido para un lector de pantalla, así que si dijera
+      // sólo «ver los productos» se perdería el número y el chip «Crítico»,
+      // que es lo único que la tarjeta existe para comunicar.
+      linkLabel: (total: string, calm: boolean) =>
+        calm
+          ? `Alertas de inventario: ${total}. Ver el catálogo`
+          : `Alertas de inventario: ${total}, crítico. Ver los productos en alerta`,
+    },
+  },
+  // Carga de cada depósito (TESIS-55). El diseño titula esta tarjeta
+  // «Capacidad por depósito» y dibuja un porcentaje de ocupación; acá dice
+  // «Carga» porque no hay capacidad máxima en el modelo de datos y llamarle
+  // capacidad a una comparación entre depósitos sería describir mal el número.
+  warehouses: {
+    title: 'Carga por depósito',
+    caption: (units: number) =>
+      `${UNITS_FORMAT.format(units)} ${units === 1 ? 'unidad guardada' : 'unidades guardadas'} · la barra compara contra el depósito más cargado`,
+    units: (units: number) => `${UNITS_FORMAT.format(units)} u`,
+    barLabel: (name: string, units: number) =>
+      `${name}: ${UNITS_FORMAT.format(units)} ${units === 1 ? 'unidad' : 'unidades'}`,
+    empty: 'La empresa no tiene depósitos cargados.',
   },
   infra: {
     health: {
