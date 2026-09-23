@@ -150,6 +150,32 @@ describe('DashboardPage · inventory alerts', () => {
 
     expect(within(alertCard()).queryByText('Crítico')).not.toBeInTheDocument()
   })
+
+  // Y tampoco declara sano un inventario que nadie pudo mirar.
+  it('says nothing under the number while the breakdown has not arrived', () => {
+    mockInventory({
+      alerts: { value: undefined, isLoading: true, isError: false },
+      breakdown: undefined,
+    })
+    renderPage()
+
+    expect(
+      within(alertCard()).queryByText('Sin productos en alerta de stock'),
+    ).not.toBeInTheDocument()
+  })
+
+  it('says nothing under the number when the count failed', () => {
+    mockInventory({
+      alerts: { value: undefined, isLoading: false, isError: true },
+      breakdown: undefined,
+      isError: true,
+    })
+    renderPage()
+
+    expect(
+      within(alertCard()).queryByText('Sin productos en alerta de stock'),
+    ).not.toBeInTheDocument()
+  })
 })
 
 describe('DashboardPage · warehouse load', () => {
