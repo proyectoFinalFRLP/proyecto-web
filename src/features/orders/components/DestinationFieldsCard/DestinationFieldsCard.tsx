@@ -27,6 +27,8 @@ function provincePlaceholder(loading: boolean, failed: boolean): string {
  * El diseño muestra además destinatario y teléfono, que la orden no guarda: no
  * se piden, igual que el email y el teléfono del paso 1.
  *
+ * Lo usan el paso 2 del alta y la modificación de una orden (S09).
+ *
  * Presentacional: la página es dueña del formulario (React Hook Form).
  */
 export function DestinationFieldsCard({
@@ -36,6 +38,7 @@ export function DestinationFieldsCard({
   provinces,
   provincesLoading,
   provincesError,
+  readOnly = false,
 }: DestinationFieldsCardProps) {
   return (
     <FormSection icon={<LocationOnOutlinedIcon aria-hidden />} title={copy.title}>
@@ -45,6 +48,7 @@ export function DestinationFieldsCard({
           placeholder={copy.placeholders.address}
           error={errors.address !== undefined}
           autoComplete="street-address"
+          disabled={readOnly}
           fullWidth
         />
       </LabeledField>
@@ -56,6 +60,7 @@ export function DestinationFieldsCard({
             placeholder={copy.placeholders.city}
             error={errors.city !== undefined}
             autoComplete="address-level2"
+            disabled={readOnly}
             fullWidth
           />
         </LabeledField>
@@ -69,7 +74,7 @@ export function DestinationFieldsCard({
                 {...field}
                 select
                 error={errors.province !== undefined}
-                disabled={provincesLoading || provincesError}
+                disabled={readOnly || provincesLoading || provincesError}
                 fullWidth
                 slotProps={{
                   select: {
@@ -102,6 +107,7 @@ export function DestinationFieldsCard({
             placeholder={copy.placeholders.zipCode}
             error={errors.zipCode !== undefined}
             autoComplete="postal-code"
+            disabled={readOnly}
             slotProps={MONO_INPUT}
             fullWidth
           />

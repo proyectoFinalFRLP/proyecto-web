@@ -11,4 +11,6 @@ export interface DestinationFieldsCardProps {
   provinces: string[]
   provincesLoading: boolean
   provincesError: boolean
+  /** Todos los campos de sólo lectura: la modificación de una orden que ya no se puede editar. */
+  readOnly?: boolean
 }

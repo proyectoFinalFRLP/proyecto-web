@@ -5,15 +5,15 @@ import type { OrderDraftItem } from 'shared/store'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { renderWithTheme } from '../../../test/renderWithTheme'
-import { useDraftStocks } from '../hooks/useDraftStocks'
 import { useOriginWarehouses } from '../hooks/useOriginWarehouses'
+import { useProductStocks } from '../hooks/useProductStocks'
 import { useProvinces } from '../hooks/useProvinces'
 import type { OriginWarehouse, ProductStockByWarehouse } from '../types'
 
 import { ShippingStepPage } from './ShippingStepPage'
 
 vi.mock('../hooks/useOriginWarehouses', () => ({ useOriginWarehouses: vi.fn() }))
-vi.mock('../hooks/useDraftStocks', () => ({ useDraftStocks: vi.fn() }))
+vi.mock('../hooks/useProductStocks', () => ({ useProductStocks: vi.fn() }))
 vi.mock('../hooks/useProvinces', () => ({ useProvinces: vi.fn() }))
 
 const WAREHOUSES: OriginWarehouse[] = [
@@ -46,7 +46,7 @@ function mockData({
     isError: false,
     refetch: vi.fn(),
   } as never)
-  vi.mocked(useDraftStocks).mockReturnValue({
+  vi.mocked(useProductStocks).mockReturnValue({
     stocks,
     isPending: false,
     isError: false,

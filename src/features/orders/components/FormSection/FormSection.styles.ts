@@ -22,3 +22,13 @@ export const SectionHeading = styled(Box)(({ theme }) => ({
   gap: theme.spacing(1),
   '& > svg': { color: theme.palette.primary.main, fontSize: 20 },
 }))
+
+// Dos columnas de campos en el diseño; una sola cuando no entran. La usan las
+// secciones de formulario del alta (cliente) y de la modificación (datos de la
+// orden).
+export const FormFieldsGrid = styled(Box)(({ theme }) => ({
+  display: 'grid',
+  gridTemplateColumns: '1fr 1fr',
+  gap: theme.spacing(2),
+  [theme.breakpoints.down('sm')]: { gridTemplateColumns: '1fr' },
+}))

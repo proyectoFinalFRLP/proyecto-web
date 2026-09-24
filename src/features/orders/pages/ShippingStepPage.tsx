@@ -15,8 +15,8 @@ import { FormSection } from '../components/FormSection'
 import { OrderWizardHeader } from '../components/OrderWizardHeader'
 import { OriginWarehousePicker } from '../components/OriginWarehousePicker'
 import { ordersCopy } from '../content'
-import { useDraftStocks } from '../hooks/useDraftStocks'
 import { useOriginWarehouses } from '../hooks/useOriginWarehouses'
+import { useProductStocks } from '../hooks/useProductStocks'
 import { useProvinces } from '../hooks/useProvinces'
 import { warehouseCoverage } from '../utils/shipping'
 import type { WarehouseCoverage } from '../utils/shipping'
@@ -59,7 +59,7 @@ export function ShippingStepPage() {
   const setDestination = useOrderDraftStore((state) => state.setDestination)
 
   const warehouses = useOriginWarehouses()
-  const stocks = useDraftStocks(items.map((item) => item.productId))
+  const stocks = useProductStocks(items.map((item) => item.productId))
   const provinces = useProvinces()
 
   const {
@@ -173,7 +173,7 @@ export function ShippingStepPage() {
 
 interface OriginContentProps {
   warehouses: ReturnType<typeof useOriginWarehouses>
-  stocks: ReturnType<typeof useDraftStocks>
+  stocks: ReturnType<typeof useProductStocks>
   coverage: Map<number, WarehouseCoverage> | null
   selectedId: number | null
   noneCovers: boolean
