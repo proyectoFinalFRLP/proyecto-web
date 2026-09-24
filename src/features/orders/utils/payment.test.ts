@@ -12,6 +12,7 @@ function line(unitPrice: number, quantity: number): OrderLine {
     productName: 'Producto',
     quantity,
     unitPrice,
+    warehouseId: 1,
   }
 }
 
@@ -23,7 +24,10 @@ function order(overrides: Partial<OrderDetail> = {}): OrderDetail {
     customerDocument: null,
     customerAddress: null,
     customerZipCode: null,
+    customerCity: null,
+    customerProvince: null,
     status: 'paid',
+    version: null,
     totalAmount: 1420000,
     lines: [line(120000, 8), line(150000, 2), line(3313, 57)],
     createdAt: '2026-08-12T12:42:00Z',

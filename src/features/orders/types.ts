@@ -54,6 +54,12 @@ export interface OrderLine {
   quantity: number
   /** Precio facturado en la línea, no el precio actual del producto. */
   unitPrice: number
+  /**
+   * Depósito del que salió la línea (TESIS-126). `null` en las líneas anteriores
+   * a esa card: el backend no sabe a dónde devolver sus unidades, así que su
+   * cantidad no se puede cambiar ni se puede quitar.
+   */
+  warehouseId: number | null
 }
 
 /**
@@ -67,7 +73,16 @@ export interface OrderDetail {
   customerDocument: string | null
   customerAddress: string | null
   customerZipCode: string | null
+  /** Ciudad y provincia del destino (TESIS-128). `null` en las órdenes anteriores y las de webhook. */
+  customerCity: string | null
+  customerProvince: string | null
   status: OrderStatus
+  /**
+   * La versión de la orden, tal como vino en el `ETag` del detalle (TESIS-126).
+   * Viaja de vuelta en `If-Match` al guardar la modificación. `null` si el
+   * header no llegó: el guardado sale igual, sin precondición.
+   */
+  version: string | null
   /** Lo que suman las líneas, persistido al crear la orden (TESIS-114). */
   totalAmount: number | null
   lines: OrderLine[]
@@ -163,4 +178,50 @@ export interface CatalogProduct {
   weight: number
   /** Unidades sumando todos los depósitos. */
   totalStock: number
+}
+
+/**
+ * Un depósito de la empresa, como lo muestra el paso 2 del alta manual. Espejo
+ * de `GET /api/v1/warehouses`, que ya viene acotado al tenant del usuario.
+ */
+export interface OriginWarehouse {
+  id: number
+  name: string
+  address: string
+  zipCode: string
+}
+
+/**
+ * Cuántas unidades de un producto hay en cada depósito, por id de depósito. Sale
+ * de `GET /api/v1/products/:id`: el listado del catálogo no trae el desglose.
+ * Un depósito que no aparece no tiene fila de stock, que es lo mismo que cero.
+ */
+export interface ProductStockByWarehouse {
+  productId: number
+  quantities: Record<number, number>
+}
+
+/** Estados a los que la modificación puede llevar una orden: la cancelación no es una edición. */
+export type EditableOrderStatus = Extract<OrderStatus, 'pending' | 'paid'>
+
+/**
+ * Lo que manda `PUT /api/v1/orders/:id`. Las líneas son opcionales: sin ellas
+ * el backend no toca las líneas ni el stock. Cuando van, van completas —la
+ * orden como tiene que quedar—: una línea con `id` ya existe y sólo cambia su
+ * cantidad; una sin `id` es nueva.
+ */
+export interface UpdateOrderPayload {
+  order: {
+    customer_name: string
+    customer_document: string
+    customer_address: string
+    customer_city: string
+    customer_province: string
+    customer_zip_code: string
+    status: EditableOrderStatus
+    items?: (
+      | { id: number; quantity: number }
+      | { product_id: number; quantity: number; unit_price: number; warehouse_id: number }
+    )[]
+  }
 }

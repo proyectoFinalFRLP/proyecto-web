@@ -14,7 +14,8 @@ export const SectionCard = styled(Card)<AsProp>(({ theme }) => ({
   gap: theme.spacing(2),
 }))
 
-// Ícono en el color de acción y título `h3`, como el encabezado de sección de S05.
+// Ícono en el color de acción y título `h3`, como los encabezados de sección de
+// S05 y S06.
 export const SectionHeading = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
@@ -22,8 +23,10 @@ export const SectionHeading = styled(Box)(({ theme }) => ({
   '& > svg': { color: theme.palette.primary.main, fontSize: 20 },
 }))
 
-// Dos columnas en el diseño; una sola cuando no entran.
-export const FieldsGrid = styled(Box)(({ theme }) => ({
+// Dos columnas de campos en el diseño; una sola cuando no entran. La usan las
+// secciones de formulario del alta (cliente) y de la modificación (datos de la
+// orden).
+export const FormFieldsGrid = styled(Box)(({ theme }) => ({
   display: 'grid',
   gridTemplateColumns: '1fr 1fr',
   gap: theme.spacing(2),

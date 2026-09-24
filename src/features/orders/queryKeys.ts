@@ -34,4 +34,18 @@ export const catalogKeys = {
   // El término entra en la clave: cada búsqueda es una consulta distinta, y así
   // volver a un término ya tipeado sale de la caché en vez de la red.
   products: (search: string) => ['inventory', 'products', 'catalog', search] as const,
+  // Las dos siguientes cuelgan de las claves de `inventoryKeys.product(id)` y
+  // `inventoryKeys.warehouses()`, así un ajuste de stock o un depósito nuevo
+  // también refrescan el paso 2. Llevan un segmento más y no son la misma
+  // clave: el inventario guarda ahí otra forma de dato (el `Product` entero, el
+  // depósito sin código postal), y dos queries con la misma clave se pisarían
+  // la caché.
+  productStocks: (productId: number) =>
+    ['inventory', 'products', 'detail', productId, 'stocks'] as const,
+  warehouses: () => ['inventory', 'warehouses', 'origin'] as const,
+}
+
+/** El vocabulario de provincias. No cambia durante la sesión. */
+export const provinceKeys = {
+  all: () => [...orderKeys.all, 'provinces'] as const,
 }

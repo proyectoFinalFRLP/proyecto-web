@@ -20,7 +20,10 @@ const ORDER: OrderDetail = {
   customerDocument: '30-71234567-8',
   customerAddress: 'Av. Corrientes 3247',
   customerZipCode: 'C1193',
+  customerCity: null,
+  customerProvince: null,
   status: 'paid',
+  version: null,
   totalAmount: 1420000,
   lines: [
     {
@@ -30,6 +33,7 @@ const ORDER: OrderDetail = {
       productName: 'Nodo sensor industrial v3',
       quantity: 8,
       unitPrice: 120000,
+      warehouseId: 1,
     },
     {
       id: 2,
@@ -38,6 +42,7 @@ const ORDER: OrderDetail = {
       productName: 'Controlador Gateway Hub',
       quantity: 2,
       unitPrice: 150000,
+      warehouseId: 1,
     },
   ],
   createdAt: '2026-08-12T12:42:00Z',

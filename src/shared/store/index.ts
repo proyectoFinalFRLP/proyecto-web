@@ -5,4 +5,9 @@ export { setTenantConfig, useTenantFeature, useTenantName, useTenantStore } from
 export { notify, useNotificationStore } from './notificationStore'
 export type { Notification, NotificationSeverity } from './notificationStore'
 export { useOrderDraftStore } from './orderDraftStore'
-export type { OrderDraftCustomer, OrderDraftItem } from './orderDraftStore'
+export type {
+  OrderDraftCustomer,
+  OrderDraftDestination,
+  OrderDraftItem,
+  OrderDraftOrigin,
+} from './orderDraftStore'

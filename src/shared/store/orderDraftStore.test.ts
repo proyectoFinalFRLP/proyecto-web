@@ -74,7 +74,57 @@ describe('removeItem', () => {
   })
 })
 
+const DESTINATION = {
+  address: 'Av. Corrientes 3247, piso 5',
+  city: 'CABA',
+  province: 'Ciudad Autónoma de Buenos Aires',
+  zipCode: '1193',
+}
+
+describe('origin and destination', () => {
+  it('keeps the warehouse and the delivery address chosen in step 2', () => {
+    const { setOrigin, setDestination } = useOrderDraftStore.getState()
+
+    setOrigin({ warehouseId: 3, name: 'CD Ezeiza' })
+    setDestination(DESTINATION)
+
+    expect(useOrderDraftStore.getState()).toMatchObject({
+      origin: { warehouseId: 3, name: 'CD Ezeiza' },
+      destination: DESTINATION,
+    })
+  })
+
+  // Si el paso 1 cambia las líneas, el depósito elegido puede dejar de cubrirlas:
+  // el paso 2 lo descarta con `setOrigin(null)` en vez de arrastrarlo.
+  it('lets step 2 forget the warehouse', () => {
+    const { setOrigin } = useOrderDraftStore.getState()
+    setOrigin({ warehouseId: 3, name: 'CD Ezeiza' })
+
+    setOrigin(null)
+
+    expect(useOrderDraftStore.getState().origin).toBeNull()
+  })
+
+  it('survives a reload between steps', () => {
+    useOrderDraftStore.getState().setDestination(DESTINATION)
+
+    const stored = JSON.parse(sessionStorage.getItem('order-draft-store') ?? '{}')
+
+    expect(stored.state.destination).toEqual(DESTINATION)
+  })
+})
+
 describe('clearDraft', () => {
+  it('forgets origin and destination too', () => {
+    const { setOrigin, setDestination, clearDraft } = useOrderDraftStore.getState()
+    setOrigin({ warehouseId: 3, name: 'CD Ezeiza' })
+    setDestination(DESTINATION)
+
+    clearDraft()
+
+    expect(useOrderDraftStore.getState()).toMatchObject({ origin: null, destination: null })
+  })
+
   it('forgets the customer and the lines', () => {
     const { addItem, setCustomer, clearDraft } = useOrderDraftStore.getState()
     setCustomer({ firstName: 'Marina', lastName: 'Rodríguez', document: '20-31298744-9' })

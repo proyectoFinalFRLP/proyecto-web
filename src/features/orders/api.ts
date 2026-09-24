@@ -10,8 +10,11 @@ import type {
   OrderShipment,
   OrderStatus,
   OrderSummary,
+  OriginWarehouse,
+  ProductStockByWarehouse,
   Shipment,
   ShipmentStatus,
+  UpdateOrderPayload,
 } from './types'
 
 // Frontera con la API Rails. Lo que entra en snake_case se traduce acá y sale
@@ -73,6 +76,7 @@ interface ApiOrderItem {
   product_id: number
   quantity: number
   unit_price: number
+  warehouse_id: number | null
   product: { id: number; sku: string; name: string }
 }
 
@@ -84,6 +88,8 @@ interface ApiOrderDetail {
   customer_document: string | null
   customer_address: string | null
   customer_zip_code: string | null
+  customer_city: string | null
+  customer_province: string | null
   status: OrderStatus
   total_amount: number | null
   order_items: ApiOrderItem[]
@@ -162,9 +168,7 @@ export async function fetchOrderPage(filters: OrderFilters): Promise<OrderPage> 
   }
 }
 
-export async function fetchOrder(id: number): Promise<OrderDetail> {
-  const { data } = await client.get<ApiOrderDetail>(`/orders/${id}`)
-
+function toOrderDetail(data: ApiOrderDetail, version: string | null): OrderDetail {
   return {
     id: data.id,
     externalOrderId: data.external_order_id,
@@ -172,7 +176,10 @@ export async function fetchOrder(id: number): Promise<OrderDetail> {
     customerDocument: data.customer_document,
     customerAddress: data.customer_address,
     customerZipCode: data.customer_zip_code,
+    customerCity: data.customer_city,
+    customerProvince: data.customer_province,
     status: data.status,
+    version,
     totalAmount: data.total_amount,
     lines: data.order_items.map((item) => ({
       id: item.id,
@@ -181,9 +188,44 @@ export async function fetchOrder(id: number): Promise<OrderDetail> {
       productName: item.product.name,
       quantity: item.quantity,
       unitPrice: item.unit_price,
+      warehouseId: item.warehouse_id,
     })),
     createdAt: data.created_at,
   }
+}
+
+// El ETag viene entrecomillado y puede traer el prefijo débil `W/`. Se guarda
+// tal cual llegó —es opaco para el front— y se devuelve sin tocar en `If-Match`.
+// Mismo criterio que `features/inventory/api.ts`.
+function readVersion(etag: unknown): string | null {
+  return typeof etag === 'string' && etag.length > 0 ? etag : null
+}
+
+export async function fetchOrder(id: number): Promise<OrderDetail> {
+  const response = await client.get<ApiOrderDetail>(`/orders/${id}`)
+
+  return toOrderDetail(response.data, readVersion(response.headers.etag))
+}
+
+/**
+ * Guarda la modificación de una orden (TESIS-126).
+ *
+ * Con versión viaja `If-Match`, y el backend responde 412 si otro operador
+ * cambió la orden desde que se leyó. La respuesta trae la orden como quedó, con
+ * su versión nueva.
+ */
+export async function updateOrder(
+  id: number,
+  payload: UpdateOrderPayload,
+  version: string | null,
+): Promise<OrderDetail> {
+  const response = await client.put<ApiOrderDetail>(`/orders/${id}`, payload, {
+    // Sin versión no se manda el header: `If-Match` ausente significa "sin
+    // precondición", no "versión vacía".
+    headers: version === null ? undefined : { 'If-Match': version },
+  })
+
+  return toOrderDetail(response.data, readVersion(response.headers.etag))
 }
 
 function toShipment(shipment: ApiShipment): Shipment {
@@ -274,4 +316,57 @@ export async function fetchCatalogProducts(search: string): Promise<CatalogProdu
     weight: product.weight,
     totalStock: product.total_stock,
   }))
+}
+
+interface ApiWarehouse {
+  id: number
+  name: string
+  address: string
+  zip_code: string
+}
+
+// `show` de productos devuelve el objeto pelado. Del detalle sólo interesa el
+// desglose de stock: el resto ya lo copió el borrador en el paso 1.
+interface ApiProductStocks {
+  id: number
+  stocks: { warehouse_id: number; quantity: number }[]
+}
+
+/** Los depósitos de la empresa, para elegir el origen en el paso 2. */
+export async function fetchWarehouses(): Promise<OriginWarehouse[]> {
+  const { data } = await client.get<{ data: ApiWarehouse[] }>('/warehouses')
+
+  return data.data.map((warehouse) => ({
+    id: warehouse.id,
+    name: warehouse.name,
+    address: warehouse.address,
+    zipCode: warehouse.zip_code,
+  }))
+}
+
+/**
+ * El stock de un producto en cada depósito. Es un request por producto porque
+ * el listado del catálogo no trae el desglose (`ProductListSerializer`), y el
+ * paso 2 necesita saber qué depósito cubre cada línea del borrador.
+ */
+export async function fetchProductStocks(productId: number): Promise<ProductStockByWarehouse> {
+  const { data } = await client.get<ApiProductStocks>(`/products/${productId}`)
+
+  return {
+    productId: data.id,
+    quantities: Object.fromEntries(
+      data.stocks.map((stock) => [stock.warehouse_id, stock.quantity]),
+    ),
+  }
+}
+
+/**
+ * Las provincias que acepta el alta (`Order::PROVINCES`, TESIS-128). Se leen del
+ * backend y no se escriben acá porque tienen que coincidir carácter por
+ * carácter, tildes incluidas: una provincia mal escrita es un 422 al confirmar.
+ */
+export async function fetchProvinces(): Promise<string[]> {
+  const { data } = await client.get<{ data: string[] }>('/orders/provinces')
+
+  return data.data
 }
