@@ -1,11 +1,11 @@
 import BadgeOutlinedIcon from '@mui/icons-material/BadgeOutlined'
-import { TextField, Typography } from '@mui/material'
-import { useId } from 'react'
+import { TextField } from '@mui/material'
 import { LabeledField } from 'shared/components'
 
 import { ordersCopy } from '../../content'
+import { FormSection } from '../FormSection'
 
-import { FieldsGrid, SectionCard, SectionHeading } from './CustomerFieldsCard.styles'
+import { FieldsGrid } from './CustomerFieldsCard.styles'
 import type { CustomerFieldsCardProps } from './CustomerFieldsCard.types'
 
 const { customer: copy } = ordersCopy.draft
@@ -21,17 +21,8 @@ const MONO_INPUT = { input: { sx: { typography: 'dataMono' } } }
  * pasa `register` y `errors`; acá sólo se decide cómo se ven los campos.
  */
 export function CustomerFieldsCard({ register, errors }: CustomerFieldsCardProps) {
-  const titleId = useId()
-
   return (
-    <SectionCard component="section" aria-labelledby={titleId}>
-      <SectionHeading>
-        <BadgeOutlinedIcon aria-hidden />
-        <Typography id={titleId} variant="h3" component="h2">
-          {copy.title}
-        </Typography>
-      </SectionHeading>
-
+    <FormSection icon={<BadgeOutlinedIcon aria-hidden />} title={copy.title}>
       <FieldsGrid>
         <LabeledField label={copy.fields.firstName} error={errors.firstName?.message}>
           <TextField
@@ -63,6 +54,6 @@ export function CustomerFieldsCard({ register, errors }: CustomerFieldsCardProps
           />
         </LabeledField>
       </FieldsGrid>
-    </SectionCard>
+    </FormSection>
   )
 }

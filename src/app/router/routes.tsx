@@ -24,6 +24,9 @@ const OrdersPage = lazy(() => import('features/orders').then((m) => ({ default: 
 const NewOrderPage = lazy(() =>
   import('features/orders').then((m) => ({ default: m.NewOrderPage })),
 )
+const ShippingStepPage = lazy(() =>
+  import('features/orders').then((m) => ({ default: m.ShippingStepPage })),
+)
 const OrderDetailPage = lazy(() =>
   import('features/orders').then((m) => ({ default: m.OrderDetailPage })),
 )
@@ -94,6 +97,11 @@ export const appRoutes: AppRoute[] = [
     element: <NewOrderPage />,
     // Sin `nav`: se llega desde «Crear orden» del listado. Paso 1 del alta
     // manual; los pasos 2 y 3 (TESIS-58, TESIS-59) cuelgan de esta ruta.
+  },
+  {
+    path: '/orders/new/shipping',
+    element: <ShippingStepPage />,
+    // Paso 2 del alta manual: origen y destino. Se llega desde el paso 1.
   },
   {
     path: '/orders/:orderId',
