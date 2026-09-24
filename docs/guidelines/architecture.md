@@ -188,7 +188,7 @@ index.html → src/main.tsx → <Providers><App /></Providers>
 - `baseURL`: `import.meta.env.VITE_API_URL`
 - Request interceptor: inyecta `Authorization: Bearer <token>` leyendo el token del `authStore` (no de `localStorage`, para no tener dos fuentes de verdad sobre la sesión), y `X-Tenant-Slug` con el slug del tenant activo en **todos** los requests — el backend lo ignora donde manda el JWT (§1 del contrato de tenant)
 - Response interceptor: normaliza errores a `ApiRequestError`, que **conserva el `status`** para que cada feature elija su mensaje en vez de mostrar el texto crudo de la API
-- **401**: limpia la sesión completa; el redirect lo hace el guard, así el interceptor no conoce el router
+- **401**: limpia la sesión completa; el redirect lo hace el guard, así el interceptor no conoce el router. Sólo si el request salió con el token de la sesión abierta ahora: el 401 de un request que salió con otro token (una sesión que ya se cerró, en esta pestaña o en otra) no cierra la actual
 - **403**: no desloguea — notifica "sin permisos" vía `notify()`
 
 **Tipos de API** (`shared/api/types.ts`):
@@ -257,7 +257,7 @@ const { slug, config, setConfig } = useTenantStore()
 ```
 
 - `uiStore` — `themeMode` persiste en `localStorage` (clave `'ui-store'`); `sidebarOpen` no persiste.
-- `authStore` — persiste **sólo** token y email (clave `'auth-store'`). `user` (id + `companyId`) se **deriva del JWT** al rehidratar, así no puede quedar desincronizado, y un token vencido o corrupto se descarta antes de arrancar. Expone `getAuthToken()` y `clearSession()` para consumidores fuera de React, como el interceptor HTTP.
+- `authStore` — persiste **sólo** el token (clave `'auth-store'`); un token vencido o corrupto se descarta antes de arrancar. `user` es la identidad que devuelve `GET /me` (ver ADR-002) y no se persiste. El logout vacía también lo del usuario que se va: la cache de React Query y el borrador de la orden. `followSessionAcrossTabs()`, registrado en `main.tsx`, mantiene de acuerdo a las pestañas: si otra cierra sesión o entra con otra cuenta, ésta relee la sesión guardada y vacía lo del usuario anterior. Expone `getAuthToken()` y `clearSession()` para consumidores fuera de React, como el interceptor HTTP.
 - `tenantStore` — `slug` (resuelto del host, no lo cambia la app) y `config` del tenant (clave `'tenant-store'`). La config persistida se restaura **sólo** si es del mismo slug, y se valida con el mismo schema que la respuesta del backend. Expone `useTenantName()` y `useTenantFeature(feature)` como selectores, y `setTenantConfig()` para escribirla desde afuera de React.
 - `notificationStore` — cola de notificaciones con `notify(mensaje, severidad)`, también invocable fuera de React. La renderiza `NotificationHost`, montado una vez en los providers.
 - `orderDraftStore` — borrador del alta manual de una orden (cliente, líneas, depósito de origen y domicilio de entrega), compartido por los tres pasos del asistente (`/orders/new`, S05 → S07). Persiste en **`sessionStorage`** (clave `'order-draft-store'`): un reload entre pasos no pierde lo cargado, pero un borrador a medias no reaparece días después en otra pestaña. `clearDraft()` al cancelar, al confirmar y al cerrar sesión (el logout lo vacía junto con la cache de React Query).

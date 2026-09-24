@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest'
 
 import { sessionToken, tokenWith } from '../../test/tokens'
 
@@ -6,14 +6,17 @@ import { sessionToken, tokenWith } from '../../test/tokens'
 // cada caso tiene que sembrar el storage y recién después importar el módulo.
 async function loadStore() {
   vi.resetModules()
-  const [{ useAuthStore, getAuthToken }, { queryClient }, { useOrderDraftStore }] =
-    await Promise.all([
-      import('./authStore'),
-      import('../api/queryClient'),
-      import('./orderDraftStore'),
-    ])
+  const [
+    { useAuthStore, getAuthToken, followSessionAcrossTabs },
+    { queryClient },
+    { useOrderDraftStore },
+  ] = await Promise.all([
+    import('./authStore'),
+    import('../api/queryClient'),
+    import('./orderDraftStore'),
+  ])
 
-  return { useAuthStore, getAuthToken, queryClient, useOrderDraftStore }
+  return { useAuthStore, getAuthToken, followSessionAcrossTabs, queryClient, useOrderDraftStore }
 }
 
 /**
@@ -239,6 +242,89 @@ describe('rehydration from localStorage', () => {
     const { useAuthStore } = await loadStore()
 
     expect(useAuthStore.getState().isAuthenticated).toBe(false)
+  })
+})
+
+// Las pestañas comparten localStorage, pero cada una tiene su store en memoria.
+// El evento `storage` sólo llega a las otras pestañas: acá se simula lo que ve
+// esta pestaña cuando otra escribe la sesión.
+describe('another tab', () => {
+  function otherTabSaves(state: unknown) {
+    persist(state)
+    window.dispatchEvent(new StorageEvent('storage', { key: 'auth-store' }))
+  }
+
+  async function loadFollowingTabs() {
+    const loaded = await loadStore()
+    onTestFinished(loaded.followSessionAcrossTabs())
+    return loaded
+  }
+
+  // QA de TESIS-82: sin esto la otra pestaña seguía mostrando datos con un
+  // token revocado.
+  it('closes this session when the other tab logs out', async () => {
+    const { useAuthStore } = await loadFollowingTabs()
+    useAuthStore.getState().login(sessionToken())
+
+    otherTabSaves({ token: null })
+
+    expect(useAuthStore.getState().isAuthenticated).toBe(false)
+  })
+
+  it('takes the session that the other tab opened', async () => {
+    const { useAuthStore } = await loadFollowingTabs()
+    const token = sessionToken({ userId: 8 })
+
+    otherTabSaves({ token })
+
+    expect(useAuthStore.getState()).toMatchObject({ token, isAuthenticated: true })
+  })
+
+  it('drops the data of the previous user when the session changes hands', async () => {
+    const { useAuthStore, queryClient, useOrderDraftStore } = await loadFollowingTabs()
+    useAuthStore.getState().login(sessionToken({ userId: 7 }))
+    queryClient.setQueryData(['products'], [{ id: 1, name: 'Cable UTP Cat6' }])
+    useOrderDraftStore
+      .getState()
+      .setCustomer({ firstName: 'Ana', lastName: 'Pérez', document: '30111222' })
+
+    otherTabSaves({ token: sessionToken({ userId: 8 }) })
+
+    expect(queryClient.getQueryData(['products'])).toBeUndefined()
+    expect(useOrderDraftStore.getState().customer).toBeNull()
+  })
+
+  it('keeps the data when the session did not change', async () => {
+    const { useAuthStore, queryClient } = await loadFollowingTabs()
+    const token = sessionToken()
+    useAuthStore.getState().login(token)
+    queryClient.setQueryData(['products'], [{ id: 1, name: 'Cable UTP Cat6' }])
+
+    otherTabSaves({ token })
+
+    expect(queryClient.getQueryData(['products'])).toHaveLength(1)
+  })
+
+  it('closes this session when the other tab clears the storage', async () => {
+    const { useAuthStore } = await loadFollowingTabs()
+    useAuthStore.getState().login(sessionToken())
+
+    localStorage.clear()
+    window.dispatchEvent(new StorageEvent('storage', { key: null }))
+
+    expect(useAuthStore.getState().isAuthenticated).toBe(false)
+  })
+
+  // Sin la sesión guardada, releerla por una clave ajena la cerraría: tiene
+  // que ignorarse.
+  it('ignores the changes to other keys', async () => {
+    const { useAuthStore } = await loadFollowingTabs()
+    useAuthStore.getState().login(sessionToken())
+    localStorage.removeItem('auth-store')
+
+    window.dispatchEvent(new StorageEvent('storage', { key: 'ui-store' }))
+
+    expect(useAuthStore.getState().isAuthenticated).toBe(true)
   })
 })
 
