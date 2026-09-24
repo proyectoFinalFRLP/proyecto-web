@@ -14,30 +14,55 @@ async function loadStore() {
   return { useAuthStore, getAuthToken, queryClient }
 }
 
+/**
+ * Igual que `loadStore`, pero con la revocación contra el backend reemplazada
+ * por un doble. El store la dispara sin esperarla, así que sin el doble los
+ * casos de logout saldrían a la red.
+ */
+async function loadStoreWithRevokeStub(revoke = vi.fn().mockResolvedValue(undefined)) {
+  vi.resetModules()
+  vi.doMock('../api/session', () => ({ revokeSession: revoke }))
+
+  const { useAuthStore } = await import('./authStore')
+
+  return { useAuthStore, revoke }
+}
+
 function persist(state: unknown, version = 1) {
   localStorage.setItem('auth-store', JSON.stringify({ state, version }))
 }
 
 beforeEach(() => {
   localStorage.clear()
+  vi.doUnmock('../api/session')
 })
 
 describe('login', () => {
-  it('opens the session with the identity that travels in the token', async () => {
+  it('opens the session with a live token', async () => {
     const { useAuthStore } = await loadStore()
 
-    const ok = useAuthStore.getState().login(sessionToken({ userId: 7, companyId: 3 }), 'a@b.com')
+    const ok = useAuthStore.getState().login(sessionToken({ userId: 7, companyId: 3 }))
 
     expect(ok).toBe(true)
-    expect(useAuthStore.getState().user).toEqual({ id: 7, companyId: 3, email: 'a@b.com' })
     expect(useAuthStore.getState().isAuthenticated).toBe(true)
+  })
+
+  // TESIS-117: quién es el usuario lo contesta `GET /me`, no el token. Hasta
+  // que esa respuesta llega el store no tiene identidad, y no la inventa con
+  // el correo que se tipeó en el formulario.
+  it('does not claim an identity the backend has not confirmed', async () => {
+    const { useAuthStore } = await loadStore()
+
+    useAuthStore.getState().login(sessionToken({ userId: 7, companyId: 3 }))
+
+    expect(useAuthStore.getState().user).toBeNull()
   })
 
   // Devuelve false en vez de lanzar para que la pantalla de login pueda avisar.
   it('refuses an already expired token', async () => {
     const { useAuthStore } = await loadStore()
 
-    const ok = useAuthStore.getState().login(sessionToken({ expiresInMs: -1000 }), 'a@b.com')
+    const ok = useAuthStore.getState().login(sessionToken({ expiresInMs: -1000 }))
 
     expect(ok).toBe(false)
     expect(useAuthStore.getState()).toMatchObject({ token: null, user: null })
@@ -46,7 +71,7 @@ describe('login', () => {
   it('refuses a token that is not a JWT', async () => {
     const { useAuthStore } = await loadStore()
 
-    expect(useAuthStore.getState().login('garbage', 'a@b.com')).toBe(false)
+    expect(useAuthStore.getState().login('garbage')).toBe(false)
     expect(useAuthStore.getState().isAuthenticated).toBe(false)
   })
 })
@@ -54,7 +79,7 @@ describe('login', () => {
 describe('logout', () => {
   it('empties the session', async () => {
     const { useAuthStore } = await loadStore()
-    useAuthStore.getState().login(sessionToken(), 'a@b.com')
+    useAuthStore.getState().login(sessionToken())
 
     useAuthStore.getState().logout()
 
@@ -70,22 +95,71 @@ describe('logout', () => {
   // anterior hasta el primer refetch.
   it('drops the cached data of the tenant that is leaving', async () => {
     const { useAuthStore, queryClient } = await loadStore()
-    useAuthStore.getState().login(sessionToken(), 'a@b.com')
+    useAuthStore.getState().login(sessionToken())
     queryClient.setQueryData(['products'], [{ id: 1, name: 'Cable UTP Cat6' }])
 
     useAuthStore.getState().logout()
 
     expect(queryClient.getQueryData(['products'])).toBeUndefined()
   })
+
+  // Hasta TESIS-116 el logout sólo limpiaba el navegador: el token seguía
+  // siendo válido contra la API hasta que vencía.
+  it('revokes the token against the backend', async () => {
+    const { useAuthStore, revoke } = await loadStoreWithRevokeStub()
+    const token = sessionToken()
+    useAuthStore.getState().login(token)
+
+    useAuthStore.getState().logout()
+
+    expect(revoke).toHaveBeenCalledWith(token)
+  })
+
+  // El token a revocar es el que está en el store en ese momento, así que la
+  // llamada se dispara ANTES de vaciarlo.
+  it('revokes before emptying the session', async () => {
+    let tokenAlLlamar: string | null = null
+    const { useAuthStore } = await loadStoreWithRevokeStub(
+      vi.fn((received: string) => {
+        tokenAlLlamar = received
+        return Promise.resolve()
+      }),
+    )
+    useAuthStore.getState().login(sessionToken())
+
+    useAuthStore.getState().logout()
+
+    expect(tokenAlLlamar).not.toBeNull()
+  })
+
+  // Dejar al usuario adentro porque se cayó la red sería peor que no revocar:
+  // la revocación es del servidor y el token ya está en el aire igual.
+  it('empties the session even if the revocation fails', async () => {
+    const { useAuthStore } = await loadStoreWithRevokeStub(
+      vi.fn().mockRejectedValue(new Error('sin red')),
+    )
+    useAuthStore.getState().login(sessionToken())
+
+    useAuthStore.getState().logout()
+
+    expect(useAuthStore.getState().isAuthenticated).toBe(false)
+  })
+
+  it('does not call the backend when there is no session to revoke', async () => {
+    const { useAuthStore, revoke } = await loadStoreWithRevokeStub()
+
+    useAuthStore.getState().logout()
+
+    expect(revoke).not.toHaveBeenCalled()
+  })
 })
 
 describe('rehydration from localStorage', () => {
   it('restores the session from a live token', async () => {
-    persist({ token: sessionToken({ userId: 7, companyId: 3 }), email: 'a@b.com' })
+    persist({ token: sessionToken({ userId: 7, companyId: 3 }) })
 
     const { useAuthStore } = await loadStore()
 
-    expect(useAuthStore.getState().user).toEqual({ id: 7, companyId: 3, email: 'a@b.com' })
     expect(useAuthStore.getState().isAuthenticated).toBe(true)
   })
 
@@ -113,18 +187,36 @@ describe('rehydration from localStorage', () => {
     expect(useAuthStore.getState().isAuthenticated).toBe(false)
   })
 
-  // Forma vieja: se persistía sólo el token. Vale como sesión — el email es lo
-  // único que se pierde, y es lo único que no viaja en el JWT.
-  it('restores a session persisted without the email', async () => {
-    persist({ token: sessionToken({ userId: 7, companyId: 3 }) })
+  // Forma vieja: se persistía el token junto al correo tipeado. El token sigue
+  // sirviendo; el correo se ignora, porque ahora la identidad la trae `/me`.
+  it('ignores the email left over by an older version of the app', async () => {
+    persist({ token: sessionToken({ userId: 7, companyId: 3 }), email: 'viejo@b.com' })
 
     const { useAuthStore } = await loadStore()
 
-    expect(useAuthStore.getState().user).toEqual({ id: 7, companyId: 3, email: '' })
+    expect(useAuthStore.getState().isAuthenticated).toBe(true)
+    expect(useAuthStore.getState().user).toBeNull()
+  })
+
+  // La identidad no se guarda: si se guardara, una recarga podría mostrar el
+  // correo o la empresa de antes de un cambio hecho del lado del servidor.
+  it('does not persist the identity it received from the backend', async () => {
+    const { useAuthStore } = await loadStore()
+    useAuthStore.getState().login(sessionToken())
+
+    useAuthStore.getState().setUser({
+      id: 7,
+      companyId: 3,
+      email: 'confirmado@b.com',
+      companyName: 'Acme',
+    })
+
+    const stored: unknown = JSON.parse(localStorage.getItem('auth-store') ?? '{}')
+    expect(JSON.stringify(stored)).not.toContain('confirmado@b.com')
   })
 
   it('ignores a token whose payload is missing the claims the UI needs', async () => {
-    persist({ token: tokenWith({ user_id: 7 }), email: 'a@b.com' })
+    persist({ token: tokenWith({ user_id: 7 }) })
 
     const { useAuthStore } = await loadStore()
 
@@ -141,7 +233,7 @@ describe('getAuthToken', () => {
 
     expect(getAuthToken()).toBeNull()
 
-    useAuthStore.getState().login(token, 'a@b.com')
+    useAuthStore.getState().login(token)
     expect(getAuthToken()).toBe(token)
 
     useAuthStore.getState().logout()

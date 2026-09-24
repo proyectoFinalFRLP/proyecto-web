@@ -3,7 +3,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 import WarehouseOutlinedIcon from '@mui/icons-material/WarehouseOutlined'
 import { Alert, Button, Stack, Typography } from '@mui/material'
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { LoadingSpinner, PageWrapper } from 'shared/components'
@@ -93,6 +93,20 @@ export function ShippingStepPage() {
     origin !== null && coverage?.get(origin.warehouseId)?.level === 'full'
       ? origin.warehouseId
       : null
+
+  // Y además se borra del borrador, no alcanza con dejar de resaltarlo: el paso
+  // 3 lee `origin` del store, no de esta pantalla. Si quedara guardado un
+  // depósito que ya no cubre, entrar directo a la cotización —por el historial,
+  // recargando o con el link— armaría el alta con él y el backend contestaría
+  // justo el 422 que esta pantalla existe para prevenir.
+  //
+  // `coverage !== null` es lo que evita borrarlo mientras los datos viajan: ahí
+  // todavía no se sabe si cubre.
+  const savedOriginFellShort = origin !== null && coverage !== null && selectedId === null
+
+  useEffect(() => {
+    if (savedOriginFellShort) setOrigin(null)
+  }, [savedOriginFellShort, setOrigin])
   const noneCovers =
     coverage !== null && [...coverage.values()].every((entry) => entry.level !== 'full')
 

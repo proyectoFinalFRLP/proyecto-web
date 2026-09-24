@@ -226,6 +226,24 @@ describe('ShippingStepPage', () => {
     expect(option(/CD Córdoba/)).toHaveAttribute('aria-checked', 'false')
   })
 
+  // Dejar de resaltarlo no alcanza: el paso 3 lee el depósito del borrador, y
+  // con uno que ya no cubre armaría un alta que el backend rechaza con 422.
+  it('erases it from the draft, not only from the screen', async () => {
+    useOrderDraftStore.getState().setOrigin({ warehouseId: 2, name: 'CD Córdoba' })
+    renderPage()
+
+    await waitFor(() => expect(useOrderDraftStore.getState().origin).toBeNull())
+  })
+
+  // Y el que sí cubre no se toca: el borrador tiene que sobrevivir a volver y
+  // entrar de nuevo al paso.
+  it('keeps a stored warehouse that still covers the draft', () => {
+    useOrderDraftStore.getState().setOrigin({ warehouseId: 1, name: 'CD Ezeiza' })
+    renderPage()
+
+    expect(useOrderDraftStore.getState().origin).toEqual({ warehouseId: 1, name: 'CD Ezeiza' })
+  })
+
   it('sends back to step 1 when there is no draft to ship', async () => {
     useOrderDraftStore.getState().clearDraft()
     renderPage()

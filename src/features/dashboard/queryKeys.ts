@@ -15,9 +15,22 @@ export const integrationKeys = {
 export const orderKeys = {
   all: ['orders'] as const,
   kpi: (status: string) => [...orderKeys.all, 'kpi', status] as const,
+  // Cuelga de `orders` por lo mismo que el KPI: un alta o una edición de orden
+  // invalida ese dominio y refresca también la tabla del panel.
+  recent: (size: number) => [...orderKeys.all, 'recent', size] as const,
 }
 
 export const shipmentKeys = {
   all: ['shipments'] as const,
   kpi: (status: string) => [...shipmentKeys.all, 'kpi', status] as const,
+}
+
+// Misma regla que los KPIs de órdenes y envíos: la key cuelga de la raíz del
+// recurso que lee —`['inventory']`, la que usa `features/inventory`— para que
+// un alta o una edición de producto refresque también el contador del panel.
+// Se escribe como literal porque una feature no importa la factory de otra.
+export const inventoryKpiKeys = {
+  all: ['inventory'] as const,
+  alerts: (status: string) => ['inventory', 'kpi', status] as const,
+  warehouseLoads: () => ['inventory', 'warehouses', 'loads'] as const,
 }

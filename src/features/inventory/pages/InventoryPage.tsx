@@ -2,7 +2,7 @@ import AddIcon from '@mui/icons-material/Add'
 import SearchIcon from '@mui/icons-material/Search'
 import { Box, Button, InputAdornment, Snackbar, Stack, TextField, Typography } from '@mui/material'
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { ErrorFallback, LoadingSpinner, PageWrapper } from 'shared/components'
 import type { DataTableTab } from 'shared/components'
 import { useDebouncedValue } from 'shared/hooks/useDebouncedValue'
@@ -27,6 +27,18 @@ const { page, createModal, tabs: tabCopy, pagination } = inventoryCopy
 
 const PER_PAGE = 20
 
+// La pestaña vive en la query string y no sólo en el estado del componente: el
+// panel de operación enlaza acá con `?tab=low` desde su tarjeta de alertas
+// (TESIS-55), y un estado local no se podría enlazar ni compartir.
+const TAB_PARAM = 'tab'
+
+/** La pestaña que pide la URL, o `all` si no pide ninguna válida. */
+function tabFromParams(params: URLSearchParams): CatalogTabId {
+  const requested = params.get(TAB_PARAM)
+
+  return CATALOG_TABS.some((tab) => tab.id === requested) ? (requested as CatalogTabId) : 'all'
+}
+
 /** El copy de cada pestaña, por su id. El orden vive en `CATALOG_TABS`. */
 const TAB_LABELS: Record<CatalogTabId, string> = {
   all: tabCopy.all,
@@ -48,7 +60,8 @@ const TAB_LABELS: Record<CatalogTabId, string> = {
  */
 export function InventoryPage() {
   const navigate = useNavigate()
-  const [tabId, setTabId] = useState<CatalogTabId>('all')
+  const [searchParams, setSearchParams] = useSearchParams()
+  const tabId = tabFromParams(searchParams)
   const [pageNumber, setPageNumber] = useState(1)
   const [search, setSearch] = useState('')
   const [creating, setCreating] = useState(false)
@@ -74,7 +87,18 @@ export function InventoryPage() {
   // Cambiar de pestaña o de búsqueda vuelve a la primera página: quedarse en la
   // 7 de un filtro que ahora tiene 2 deja la tabla vacía sin motivo visible.
   function changeTab(nextTabId: string) {
-    setTabId(nextTabId as CatalogTabId)
+    // `replace`: moverse entre pestañas no es navegación que merezca una
+    // entrada en el historial, y con `push` el botón Atrás recorrería una por
+    // una todas las que el usuario haya mirado antes de volver al panel.
+    setSearchParams(
+      (current) => {
+        const next = new URLSearchParams(current)
+        if (nextTabId === 'all') next.delete(TAB_PARAM)
+        else next.set(TAB_PARAM, nextTabId)
+        return next
+      },
+      { replace: true },
+    )
     setPageNumber(1)
   }
 
