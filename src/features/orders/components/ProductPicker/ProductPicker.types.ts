@@ -10,10 +10,11 @@ export interface ProductPickerProps {
   /** Productos que ya tienen fila: se ven pero no se pueden volver a elegir. */
   addedIds: ReadonlySet<number>
   /**
-   * Lo tipeado en el buscador. Controlado desde afuera porque de eso sale la
-   * consulta: el componente no decide cuándo se busca ni con qué demora.
+   * Lo que se tipeó, hacia afuera: de eso sale la consulta, y el componente no
+   * decide cuándo se busca ni con qué demora. El texto del campo lo maneja MUI
+   * —controlarlo desde afuera hacía que la etiqueta de la opción elegida se
+   * mandara como término—.
    */
-  search: string
   onSearchChange: (search: string) => void
   /** La línea armada con producto, cantidad y precio unitario. */
   onAdd: (item: OrderDraftItem) => void

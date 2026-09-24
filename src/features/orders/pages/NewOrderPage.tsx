@@ -117,7 +117,6 @@ export function NewOrderPage() {
               products={catalog.data ?? []}
               loading={catalog.isPending || catalog.isFetching}
               addedIds={addedIds}
-              search={search}
               onSearchChange={setSearch}
               onAdd={addItem}
             />

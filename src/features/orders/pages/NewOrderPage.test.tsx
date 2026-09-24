@@ -1,4 +1,4 @@
-import { fireEvent, screen, waitFor, within } from '@testing-library/react'
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { useOrderDraftStore } from 'shared/store'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -50,6 +50,20 @@ function lastSearch(): string {
   const calls = vi.mocked(useCatalogProducts).mock.calls
 
   return calls[calls.length - 1][0]
+}
+
+/** Todos los términos con los que se pidió el catálogo. */
+function searchedTerms(): string[] {
+  return vi.mocked(useCatalogProducts).mock.calls.map((call) => call[0])
+}
+
+// Lo tipeado viaja con un debounce de 300 ms (`useDebouncedValue`). Cuando lo
+// que se quiere afirmar es que algo NO se buscó, hay que dejarlo vencer: si no,
+// el ejemplo pasa por llegar antes y no por el comportamiento.
+const SETTLE_MS = 400
+
+function settle() {
+  return act(() => new Promise((resolve) => setTimeout(resolve, SETTLE_MS)))
 }
 
 function renderPage() {
@@ -165,14 +179,55 @@ describe('NewOrderPage', () => {
   })
 
   // Lo que llega ya viene filtrado: la pantalla no vuelve a decidir qué mostrar.
+  //
+  // El término no aparece en ninguna etiqueta a propósito: con uno que sí
+  // apareciera —«sensor»— la opción se vería igual con el filtro que MUI trae
+  // de fábrica, y el ejemplo pasaría aunque se quitara `filterOptions`.
   it('lists what the backend returned without filtering it again', async () => {
     mockCatalog({ data: [CATALOG[1]] })
     renderPage()
 
-    type(search(), 'sensor')
+    type(search(), 'zzz')
 
     expect(await screen.findByRole('option', { name: /PX-1185-MED/ })).toBeInTheDocument()
     expect(screen.queryByRole('option', { name: /PX-9021-LRG/ })).not.toBeInTheDocument()
+  })
+
+  // Al elegir una opción, MUI escribe su etiqueta en el campo. Eso no es una
+  // búsqueda: mandarla al backend pedía el catálogo por «PX-9021-LRG · Router
+  // industrial…», que no matchea ni por SKU ni por nombre, y dejaba la lista
+  // vacía para la próxima vez que se abriera el buscador.
+  //
+  // El `settle()` no es decorativo: lo que viaja pasa por un debounce, así que
+  // sin esperar a que venza el ejemplo pasa aunque la etiqueta sí se mande.
+  it('does not search for the label of the option that was picked', async () => {
+    renderPage()
+
+    type(search(), 'PX-9021')
+    await waitFor(() => expect(lastSearch()).toBe('PX-9021'))
+    fireEvent.click(await screen.findByRole('option', { name: /PX-9021/i }))
+    await settle()
+
+    expect(searchedTerms().some((term) => term.includes('Router industrial'))).toBe(false)
+  })
+
+  it('keeps searching for what was typed after picking an option', async () => {
+    renderPage()
+
+    type(search(), 'PX-9021')
+    await waitFor(() => expect(lastSearch()).toBe('PX-9021'))
+    fireEvent.click(await screen.findByRole('option', { name: /PX-9021/i }))
+    await settle()
+
+    expect(lastSearch()).toBe('PX-9021')
+  })
+
+  it('empties the search once the line is added', async () => {
+    renderPage()
+
+    await addProduct('PX-9021', '2', '1000')
+
+    await waitFor(() => expect(lastSearch()).toBe(''))
   })
 
   it('will not add a line until quantity and price are valid', async () => {

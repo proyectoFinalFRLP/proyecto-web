@@ -17,9 +17,14 @@ import type { CatalogProduct } from '../types'
  * coincidencias de la anterior.
  */
 export function useCatalogProducts(search: string) {
+  // Recortado acá y no sólo al armar el request: la clave de caché se arma con
+  // el mismo término que viaja, así que «cab» y «cab » son una sola entrada y
+  // un solo pedido, en vez de dos que devuelven lo mismo.
+  const term = search.trim()
+
   return useQuery<CatalogProduct[]>({
-    queryKey: catalogKeys.products(search),
-    queryFn: () => fetchCatalogProducts(search),
+    queryKey: catalogKeys.products(term),
+    queryFn: () => fetchCatalogProducts(term),
     placeholderData: keepPreviousData,
   })
 }
