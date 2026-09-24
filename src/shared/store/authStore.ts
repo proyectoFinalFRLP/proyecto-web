@@ -5,6 +5,8 @@ import { queryClient } from '../api/queryClient'
 import { revokeSession } from '../api/session'
 import { decodeJwt, isExpired } from '../utils/jwt'
 
+import { useOrderDraftStore } from './orderDraftStore'
+
 /** La identidad de la sesión, tal como la confirma `GET /me` (TESIS-117). */
 export interface SessionUser {
   id: number
@@ -65,6 +67,20 @@ function sessionFromToken(token: string): Session {
   return { token, user: null, isAuthenticated: true }
 }
 
+// Lo que pertenece al usuario de la sesión, aparte de la sesión misma. Se vacía
+// cuando la sesión termina, porque dejarlo vivo le mostraría al próximo usuario
+// lo del anterior:
+//
+// - La cache de React Query es por tenant: el JWT lleva `company_id`, y la
+//   empresa del próximo usuario puede ser otra.
+// - El borrador de la orden manual vive en sessionStorage y sobrevivía al
+//   logout: quien entraba después en la misma pestaña veía en el alta el
+//   cliente, el documento y las líneas del anterior (QA de TESIS-82).
+function clearUserData(): void {
+  queryClient.clear()
+  useOrderDraftStore.getState().clearDraft()
+}
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
@@ -84,10 +100,7 @@ export const useAuthStore = create<AuthState>()(
         if (token) void revokeSession(token)
 
         set(EMPTY_SESSION)
-        // La cache de React Query es por tenant: el JWT lleva `company_id`, así
-        // que dejarla viva le mostraría al próximo usuario los datos de la
-        // empresa anterior hasta el primer refetch.
-        queryClient.clear()
+        clearUserData()
       },
     }),
     {

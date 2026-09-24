@@ -6,12 +6,14 @@ import { sessionToken, tokenWith } from '../../test/tokens'
 // cada caso tiene que sembrar el storage y recién después importar el módulo.
 async function loadStore() {
   vi.resetModules()
-  const [{ useAuthStore, getAuthToken }, { queryClient }] = await Promise.all([
-    import('./authStore'),
-    import('../api/queryClient'),
-  ])
+  const [{ useAuthStore, getAuthToken }, { queryClient }, { useOrderDraftStore }] =
+    await Promise.all([
+      import('./authStore'),
+      import('../api/queryClient'),
+      import('./orderDraftStore'),
+    ])
 
-  return { useAuthStore, getAuthToken, queryClient }
+  return { useAuthStore, getAuthToken, queryClient, useOrderDraftStore }
 }
 
 /**
@@ -34,6 +36,7 @@ function persist(state: unknown, version = 1) {
 
 beforeEach(() => {
   localStorage.clear()
+  sessionStorage.clear()
   vi.doUnmock('../api/session')
 })
 
@@ -101,6 +104,21 @@ describe('logout', () => {
     useAuthStore.getState().logout()
 
     expect(queryClient.getQueryData(['products'])).toBeUndefined()
+  })
+
+  // QA de TESIS-82: el borrador vive en sessionStorage y sobrevivía al logout.
+  // Quien entraba después en la misma pestaña veía en el alta el cliente, el
+  // documento y las líneas del anterior.
+  it('drops the order draft of the user that is leaving', async () => {
+    const { useAuthStore, useOrderDraftStore } = await loadStore()
+    useAuthStore.getState().login(sessionToken())
+    useOrderDraftStore
+      .getState()
+      .setCustomer({ firstName: 'Ana', lastName: 'Pérez', document: '30111222' })
+
+    useAuthStore.getState().logout()
+
+    expect(useOrderDraftStore.getState().customer).toBeNull()
   })
 
   // Hasta TESIS-116 el logout sólo limpiaba el navegador: el token seguía
