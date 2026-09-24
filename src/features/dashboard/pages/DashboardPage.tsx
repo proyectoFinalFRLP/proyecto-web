@@ -1,16 +1,60 @@
 import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined'
 import MonitorHeartOutlinedIcon from '@mui/icons-material/MonitorHeartOutlined'
 import ScheduleOutlinedIcon from '@mui/icons-material/ScheduleOutlined'
+import WarningAmberOutlinedIcon from '@mui/icons-material/WarningAmberOutlined'
 import { Alert, Box, Button, Grid, Stack, Typography } from '@mui/material'
+import { Link as RouterLink } from 'react-router-dom'
 import { PageWrapper, StatCard } from 'shared/components'
 
 import { IntegrationNodeList } from '../components/IntegrationNodeList'
+import { RecentOrdersTable } from '../components/RecentOrdersTable'
+import { WarehouseLoadCard } from '../components/WarehouseLoadCard'
 import { dashboardCopy } from '../content'
 import { useInfraHealth } from '../hooks/useInfraHealth'
+import { useInventoryAlerts } from '../hooks/useInventoryAlerts'
 import { useLogisticsKpis } from '../hooks/useLogisticsKpis'
+import { useRecentOrders } from '../hooks/useRecentOrders'
 
 const { metrics, infra, error: errorCopy } = dashboardCopy
 const healthCopy = infra.health
+const alertsCopy = metrics.inventoryAlerts
+
+// Destino del click en la tarjeta de alertas. Las rutas se registran en
+// `app/router/routes.tsx`, capa que una feature no puede importar
+// (architecture.md §3.2), así que el destino se declara acá.
+//
+// El catálogo no tiene una pestaña que junte los dos estados de alerta, así
+// que la tarjeta lleva a la que hay que trabajar primero: si hay productos
+// agotados, a ésos —ya no se pueden vender—; si no, a los que están por
+// debajo del umbral. Con el inventario sano, al catálogo entero.
+const CATALOG_PATH = '/inventory'
+
+function alertsPath(outOfStock: number, low: number): string {
+  if (outOfStock > 0) return `${CATALOG_PATH}?tab=out_of_stock`
+  if (low > 0) return `${CATALOG_PATH}?tab=low`
+
+  return CATALOG_PATH
+}
+
+// La tarjeta entera es el enlace: un ancla y no un onClick, así el foco, el
+// Enter y el "abrir en pestaña nueva" salen del navegador y no hay que
+// reimplementarlos.
+const CARD_LINK = {
+  display: 'block',
+  height: '100%',
+  textDecoration: 'none',
+  borderRadius: 3,
+  '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: 2 },
+}
+
+// Qué dice la tarjeta debajo del número. Sin desglose no dice nada: el dato no
+// llegó, y tanto la alerta como la calma serían una afirmación inventada.
+function noteFor(breakdown: { low: number; outOfStock: number } | undefined): string | undefined {
+  if (breakdown === undefined) return undefined
+  if (breakdown.low + breakdown.outOfStock === 0) return alertsCopy.calmNote
+
+  return alertsCopy.note(breakdown.outOfStock, breakdown.low)
+}
 
 // `StatCard` recibe el valor ya formateado: el componente del DS no decide
 // separadores ni unidades.
@@ -41,12 +85,38 @@ export function DashboardPage() {
     refetch: refetchInfra,
   } = useInfraHealth()
 
-  const isError = isKpisError || isInfraError
+  const {
+    alerts,
+    breakdown,
+    warehouses,
+    storedUnits,
+    warehousesLoading,
+    isError: isInventoryError,
+    refetch: refetchInventory,
+  } = useInventoryAlerts()
+
+  const {
+    orders,
+    isLoading: ordersLoading,
+    isError: isOrdersError,
+    refetch: refetchOrders,
+  } = useRecentOrders()
+
+  const isError = isKpisError || isInfraError || isInventoryError || isOrdersError
 
   const retry = () => {
     refetchKpis()
     refetchInfra()
+    refetchInventory()
+    refetchOrders()
   }
+
+  // El tono de alerta se enciende sólo si hay algo que alertar: con cero
+  // productos por debajo del umbral, el borde rojo y el chip «Crítico»
+  // afirmarían un problema inexistente. Mientras el número viaja tampoco se
+  // enciende: `undefined` no es cero.
+  const hasAlerts = alerts.value !== undefined && alerts.value > 0
+  const alertsValue = formatCount(alerts.value)
 
   // Sin nodos reportando sync, el KPI no tiene numerador ni denominador reales:
   // se muestra "—" en vez de un 0% que se leería como caída total de la
@@ -81,8 +151,7 @@ export function DashboardPage() {
         ) : null}
 
         {/* Fila de métricas de S03-Panel, en su orden y con su grilla de cuatro
-            columnas. El cuarto lugar del diseño, "Alertas de inventario", no
-            entra en esta card. */}
+            columnas. */}
         <Grid container spacing={2}>
           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <StatCard
@@ -108,19 +177,52 @@ export function DashboardPage() {
               tone={healthTone}
             />
           </Grid>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Box
+              component={RouterLink}
+              to={alertsPath(breakdown?.outOfStock ?? 0, breakdown?.low ?? 0)}
+              aria-label={alertsCopy.linkLabel(alertsValue, !hasAlerts)}
+              sx={CARD_LINK}
+            >
+              <StatCard
+                label={alertsCopy.label}
+                value={alertsValue}
+                loading={alerts.isLoading}
+                icon={<WarningAmberOutlinedIcon />}
+                tone={hasAlerts ? 'error' : 'neutral'}
+                tag={hasAlerts ? alertsCopy.tag : undefined}
+                tagTone="error"
+                // Sin el desglose no se afirma nada: mientras el conteo viaja
+                // —o si la consulta falló— decir «sin productos en alerta»
+                // sería dar por sano un inventario que nadie miró. Es el mismo
+                // criterio que ya usa el tono para no gritar con `undefined`.
+                note={noteFor(breakdown)}
+              />
+            </Box>
+          </Grid>
         </Grid>
 
-        {/* El diseño lo ubica en la columna lateral de 280px, al lado de la
-            tabla de órdenes recientes, que tampoco entra en esta card. Hasta
-            que exista, ocupa su tercio y el resto queda libre. */}
+        {/* La fila inferior del diseño: la tabla de órdenes recientes y, a su
+            derecha, la columna de 280px con integraciones y carga de depósitos.
+            En pantallas angostas la columna baja debajo de la tabla. */}
         <Grid container spacing={2}>
+          <Grid size={{ xs: 12, md: 8 }}>
+            <RecentOrdersTable orders={orders} loading={ordersLoading} />
+          </Grid>
           <Grid size={{ xs: 12, md: 4 }}>
-            <IntegrationNodeList
-              nodes={nodes}
-              reportingNodes={reportingNodes}
-              onlineNodes={onlineNodes}
-              loading={isInfraLoading}
-            />
+            <Stack spacing={3}>
+              <IntegrationNodeList
+                nodes={nodes}
+                reportingNodes={reportingNodes}
+                onlineNodes={onlineNodes}
+                loading={isInfraLoading}
+              />
+              <WarehouseLoadCard
+                warehouses={warehouses}
+                storedUnits={storedUnits}
+                loading={warehousesLoading}
+              />
+            </Stack>
           </Grid>
         </Grid>
       </Stack>

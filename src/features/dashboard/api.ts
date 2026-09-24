@@ -1,4 +1,7 @@
+import { client } from 'shared/api/client'
 import { fetchCount } from 'shared/api/count'
+
+import type { RecentOrder, WarehouseLoad } from './types'
 
 // Frontera con Rails de los KPIs de órdenes y envíos (TESIS-53). Único lugar de
 // la feature que conoce los endpoints y el vocabulario de estados del backend.
@@ -30,4 +33,104 @@ export function fetchPendingOrderCount(): Promise<number> {
  */
 export function fetchActiveShipmentCount(): Promise<number> {
   return fetchCount('/shipments', { status: ACTIVE_SHIPMENT_STATUS })
+}
+
+/**
+ * Los dos estados de stock que son una alerta (TESIS-55).
+ *
+ * Son dos y no uno porque el backend los separa: `low` es
+ * `BETWEEN 1 AND LOW_STOCK_THRESHOLD`, así que un producto **agotado** no es
+ * `low`, es `out_of_stock`. Contar sólo `low` dejaría fuera del número justo
+ * los casos más graves, que son los que ya no se pueden vender.
+ *
+ * El umbral no vive acá: lo decide `Product::LOW_STOCK_THRESHOLD`, y son los
+ * mismos estados que filtran las pestañas del catálogo. Calcularlo en el
+ * cliente con una regla propia haría que el panel y el inventario mostraran
+ * números distintos del mismo hecho.
+ */
+export const LOW_STOCK_STATUS = 'low'
+export const OUT_OF_STOCK_STATUS = 'out_of_stock'
+
+/** Cuántos productos hay en cada estado de alerta. */
+export interface StockAlertCounts {
+  low: number
+  outOfStock: number
+}
+
+/**
+ * Los dos conteos, en paralelo.
+ *
+ * Van juntos en una sola consulta y no en dos: lo que la tarjeta muestra es la
+ * suma, y si una de las dos fallara, sumar la que llegó daría un número más
+ * bajo que el real sin que nada lo delate. O están los dos o no hay número.
+ */
+export async function fetchStockAlertCounts(): Promise<StockAlertCounts> {
+  const [low, outOfStock] = await Promise.all([
+    fetchCount('/products', { status: LOW_STOCK_STATUS }),
+    fetchCount('/products', { status: OUT_OF_STOCK_STATUS }),
+  ])
+
+  return { low, outOfStock }
+}
+
+interface ApiWarehouse {
+  id: number
+  name: string
+  stored_units: number
+}
+
+/**
+ * Cuántas unidades guarda cada depósito (`GET /api/v1/warehouses`).
+ *
+ * El listado no pagina, así que vienen todos. `stored_units` lo agrega la API
+ * (TESIS-127): sumarlo acá obligaría a recorrer el catálogo entero, que corta
+ * en 100 filas por página y dejaría el panel contando de menos sin avisar.
+ */
+export async function fetchWarehouseLoads(): Promise<WarehouseLoad[]> {
+  const { data } = await client.get<{ data: ApiWarehouse[] }>('/warehouses')
+
+  return data.data.map((warehouse) => ({
+    id: warehouse.id,
+    name: warehouse.name,
+    storedUnits: warehouse.stored_units,
+  }))
+}
+
+/**
+ * Cuántas órdenes muestra el panel. Las del diseño (S03-Panel) y las que pide
+ * la card: las últimas cinco, no una página del listado.
+ */
+export const RECENT_ORDERS = 5
+
+interface ApiRecentOrder {
+  id: number
+  external_order_id: string | null
+  customer_address: string | null
+  customer_zip_code: string | null
+  status: RecentOrder['status']
+  total_amount: number | null
+  created_at: string
+}
+
+/**
+ * Las últimas órdenes de la empresa (`GET /api/v1/orders?page=1&per_page=5`).
+ *
+ * El backend ya las devuelve de la más nueva a la más vieja, así que la primera
+ * página *es* «las últimas cinco»: no se ordena de este lado, que sería tener
+ * dos definiciones del mismo orden.
+ */
+export async function fetchRecentOrders(): Promise<RecentOrder[]> {
+  const { data } = await client.get<{ data: ApiRecentOrder[] }>('/orders', {
+    params: { page: 1, per_page: RECENT_ORDERS },
+  })
+
+  return data.data.map((order) => ({
+    id: order.id,
+    externalOrderId: order.external_order_id,
+    customerAddress: order.customer_address,
+    customerZipCode: order.customer_zip_code,
+    status: order.status,
+    totalAmount: order.total_amount,
+    createdAt: order.created_at,
+  }))
 }
