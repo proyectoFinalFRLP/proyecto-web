@@ -57,7 +57,7 @@ src/
 │   │   ├── AppRouter.tsx       # Árbol de rutas con Suspense + AppLayout
 │   │   └── routes.tsx          # Lazy imports de páginas
 │   └── theme/                  # Tema MUI
-│       └── theme.ts            # createAppTheme(mode, branding?): 'light' | 'dark' + marca del tenant
+│       └── theme.ts            # createAppTheme(branding): los dos esquemas (claro/oscuro) + marca del tenant
 │
 ├── features/                   # Módulos de negocio (uno por feature)
 │   └── [feature]/
@@ -169,9 +169,10 @@ index.html → src/main.tsx → <Providers><App /></Providers>
 - `Header.tsx`: único punto de cableado del `TopNavBar` (`shared/components`) — lee `themeMode`/`toggleTheme`/`toggleSidebar` de `useUiStore` y el email + `logout` de `useAuthStore`, todo con selectores individuales, y se los pasa por props. El componente en sí es presentacional — sin datos ni `uiStore`; su único acople es el `Link` de react-router (brand y engranaje), correcto para esta app (ver tabla de `shared/` más abajo). El logout no navega: limpia la sesión y el guard hace el redirect.
 - `Sidebar.tsx`: Drawer persistente. Los ítems salen de `navRoutesFor(features)` con los feature flags del tenant activo. Usa `NavLink` con clase `active` que resalta en `primary.main`.
 
-**Tema** (`createAppTheme(mode, branding?)`):
+**Tema** (`createAppTheme(branding)`):
 
-- `branding` es el del tenant activo: `primary_color` y `accent_color` pisan el primario y el acento de la paleta (y el acento llega también al anillo de foco y al input enfocado). El resto de los tokens del DS no se toca. El texto sobre esos colores se calcula por contraste, no se fija por modo.
+- Un solo tema con los dos esquemas de color (`colorSchemes: { light, dark }`), armado por tenant y no por modo. `ThemeWrapper` lleva el modo de `uiStore` a MUI con `useColorScheme`, que cambia el atributo `data-light`/`data-dark` del `<html>`: el navegador repinta desde las variables CSS sin volver a generar estilos. Los estilos leen `theme.vars` y lo que cambia de forma entre modos va en `theme.applyStyles` (ADR-007, actualización de TESIS-104).
+- `branding` trae el branding de cada esquema (el provisorio del slug cambia de tono por modo). El del tenant activo: `primary_color` y `accent_color` pisan el primario y el acento de la paleta (y el acento llega también al anillo de foco y al input enfocado). El resto de los tokens del DS no se toca. El texto sobre esos colores se calcula por contraste, no se fija por modo.
 - Fuente: Inter con fallbacks al sistema
 - `borderRadius`: 8px global
 - Overrides: `MuiButton` sin elevation · `MuiCard` sin elevation, borde `1px solid`
