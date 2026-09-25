@@ -28,7 +28,7 @@ export const StockWarnings = styled(Box)(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',
   gap: theme.spacing(0.5),
-  color: theme.palette.warning.main,
+  color: theme.vars.palette.warning.main,
   '& > div': { display: 'flex', alignItems: 'center', gap: theme.spacing(1) },
   '& svg': { fontSize: 18 },
 }))

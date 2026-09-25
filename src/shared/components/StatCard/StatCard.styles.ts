@@ -27,7 +27,7 @@ interface ToneProps {
 // Tinte del tono sobre la superficie. En dark el contenido va en `main` (más
 // luminoso) y en light en `onContainer`, igual que StatusBadge.
 function toneSurface(theme: Theme, tone: StatTone) {
-  const color = theme.palette[tone]
+  const color = theme.vars.palette[tone]
   return {
     backgroundColor: color.container,
     color: theme.palette.mode === 'dark' ? color.main : color.onContainer,
@@ -47,10 +47,10 @@ export const CardRoot = styled(Box, { shouldForwardProp: notForwarded })<{
   height: '100%',
   padding: theme.spacing(3),
   borderRadius: CARD_RADIUS,
-  backgroundColor: theme.palette.background.paper,
+  backgroundColor: theme.vars.palette.background.paper,
   boxShadow: theme.elevation[1].boxShadow,
   border: accent
-    ? `1px solid color-mix(in srgb, ${theme.palette[accent].main} 30%, transparent)`
+    ? `1px solid color-mix(in srgb, ${theme.vars.palette[accent].main} 30%, transparent)`
     : theme.elevation[1].border,
 }))
 
@@ -87,7 +87,7 @@ export const MetaChip = styled(Box, { shouldForwardProp: notForwarded })<TonePro
     paddingInline: 8,
     borderRadius: 4,
     ...toneSurface(theme, tone),
-    border: `1px solid color-mix(in srgb, ${theme.palette[tone].main} 25%, transparent)`,
+    border: `1px solid color-mix(in srgb, ${theme.vars.palette[tone].main} 25%, transparent)`,
     fontFamily: theme.typography.fontFamily,
     fontSize: 12,
     fontWeight: 600,
@@ -107,7 +107,7 @@ export const CornerGlow = styled(Box, { shouldForwardProp: notForwarded })<ToneP
     width: GLOW_SIZE,
     height: GLOW_SIZE,
     borderBottomLeftRadius: 9999,
-    backgroundColor: `color-mix(in srgb, ${theme.palette[tone].main} 12%, transparent)`,
+    backgroundColor: `color-mix(in srgb, ${theme.vars.palette[tone].main} 12%, transparent)`,
     pointerEvents: 'none',
   }),
 )
@@ -125,7 +125,7 @@ export const ComparisonFooter = styled(Box)(({ theme }) => ({
   gap: theme.spacing(2),
   marginTop: theme.spacing(3),
   paddingTop: theme.spacing(3),
-  borderTop: `1px solid ${theme.palette.divider}`,
+  borderTop: `1px solid ${theme.vars.palette.divider}`,
 }))
 
 export const ComparisonSlot = styled(Box)({
@@ -140,7 +140,7 @@ export const ComparisonDivider = styled(Box)(({ theme }) => ({
   width: 1,
   height: 32,
   flexShrink: 0,
-  backgroundColor: theme.palette.divider,
+  backgroundColor: theme.vars.palette.divider,
 }))
 
 // Variante condensada: ícono + label/valor en una sola fila.
@@ -151,7 +151,7 @@ export const CompactRoot = styled(Box)(({ theme }) => ({
   gap: theme.spacing(1.5),
   padding: theme.spacing(2),
   borderRadius: CARD_RADIUS,
-  backgroundColor: theme.palette.background.paper,
+  backgroundColor: theme.vars.palette.background.paper,
   border: theme.elevation[1].border,
   boxShadow: theme.elevation[1].boxShadow,
 }))

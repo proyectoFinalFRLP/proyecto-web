@@ -27,6 +27,6 @@ export const StatusRoot = styled(Box, {
 })<StatusRootProps>(({ theme, tone }) => ({
   display: 'inline-flex',
   flexShrink: 0,
-  color: theme.palette[tone].main,
+  color: theme.vars.palette[tone].main,
   '& svg': { display: 'block', fontSize: ICON_SIZE },
 }))

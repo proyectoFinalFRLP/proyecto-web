@@ -35,12 +35,14 @@ export const Option = styled(ButtonBase, {
   padding: theme.spacing(2),
   textAlign: 'left',
   borderRadius: OPTION_RADIUS,
-  border: `1px solid ${selected ? theme.palette.primary.main : theme.palette.divider}`,
-  backgroundColor: selected ? theme.palette.primary.container : theme.palette.background.default,
+  border: `1px solid ${selected ? theme.vars.palette.primary.main : theme.vars.palette.divider}`,
+  backgroundColor: selected
+    ? theme.vars.palette.primary.container
+    : theme.vars.palette.background.default,
   transition: theme.transitions.create(['border-color', 'background-color'], {
     duration: theme.transitions.duration.shorter,
   }),
-  '&:hover:not(.Mui-disabled)': { borderColor: theme.palette.primary.main },
+  '&:hover:not(.Mui-disabled)': { borderColor: theme.vars.palette.primary.main },
   '&.Mui-disabled': { opacity: 0.6 },
 }))
 

@@ -8,7 +8,7 @@ import {
   tableCellClasses,
   tableRowClasses,
 } from '@mui/material'
-import { alpha, styled } from '@mui/material/styles'
+import { styled } from '@mui/material/styles'
 import type { ElementType } from 'react'
 
 import type { DataTableDensity, DataTableRowTone } from './DataTable.types'
@@ -35,7 +35,7 @@ export const TableCard = styled(Box)(({ theme }) => ({
   // La tarjeta nunca es más ancha que su hueco: el desborde lo absorbe el
   // Scroller de adentro. Sin esto la tabla empuja el layout hacia afuera.
   maxWidth: '100%',
-  backgroundColor: theme.palette.background.paper,
+  backgroundColor: theme.vars.palette.background.paper,
   border: theme.elevation[1].border,
   boxShadow: theme.elevation[1].boxShadow,
 }))
@@ -49,8 +49,8 @@ export const Toolbar = styled(Box)(({ theme }) => ({
   flexWrap: 'wrap',
   gap: theme.spacing(2),
   paddingInline: theme.spacing(3),
-  backgroundColor: theme.palette.background.default,
-  borderBottom: `1px solid ${theme.palette.divider}`,
+  backgroundColor: theme.vars.palette.background.default,
+  borderBottom: `1px solid ${theme.vars.palette.divider}`,
   [theme.breakpoints.down('sm')]: {
     flexDirection: 'column',
     alignItems: 'stretch',
@@ -93,8 +93,8 @@ export const FilterTab = styled(Tab)(({ theme }) => ({
   fontWeight: 600,
   letterSpacing: '0.05em',
   textTransform: 'uppercase',
-  color: theme.palette.text.secondary,
-  '&.Mui-selected': { color: theme.palette.primary.main },
+  color: theme.vars.palette.text.secondary,
+  '&.Mui-selected': { color: theme.vars.palette.primary.main },
 }))
 
 // El scroll horizontal es la salida en pantallas angostas: una tabla de 7
@@ -122,9 +122,9 @@ export const Scroller = styled(TableContainer, {
 export const HeadCell = styled(TableCell)(({ theme }) => ({
   paddingBlock: theme.spacing(1.5),
   paddingInline: theme.spacing(3),
-  backgroundColor: theme.palette.background.default,
-  borderBottom: `1px solid ${theme.palette.divider}`,
-  color: theme.palette.text.secondary,
+  backgroundColor: theme.vars.palette.background.default,
+  borderBottom: `1px solid ${theme.vars.palette.divider}`,
+  color: theme.vars.palette.text.secondary,
   fontSize: 12,
   fontWeight: 500,
   letterSpacing: '0.05em',
@@ -141,12 +141,12 @@ export const BodyRow = styled(TableRow, {
 })<BodyRowProps>(({ theme, tone }) => ({
   height: ROW_HEIGHT,
   transition: theme.transitions.create('background-color'),
-  '&:hover': { backgroundColor: theme.palette.background.containerHighest },
+  '&:hover': { backgroundColor: theme.vars.palette.background.containerHighest },
   // El tinte de la fila crítica tiene que sobrevivir al hover, si no la fila
   // pierde su marca justo cuando el usuario la está por tocar.
   ...(tone === 'critical' && {
-    backgroundColor: alpha(theme.palette.error.main, 0.1),
-    '&:hover': { backgroundColor: alpha(theme.palette.error.main, 0.16) },
+    backgroundColor: theme.alpha(theme.vars.palette.error.main, 0.1),
+    '&:hover': { backgroundColor: theme.alpha(theme.vars.palette.error.main, 0.16) },
   }),
   ...(tone === 'muted' && { opacity: 0.8 }),
 }))
@@ -154,8 +154,8 @@ export const BodyRow = styled(TableRow, {
 export const BodyCell = styled(TableCell)(({ theme }) => ({
   paddingBlock: theme.spacing(2),
   paddingInline: theme.spacing(3),
-  borderBottom: `1px solid ${theme.palette.divider}`,
-  color: theme.palette.text.primary,
+  borderBottom: `1px solid ${theme.vars.palette.divider}`,
+  color: theme.vars.palette.text.primary,
   fontSize: 14,
 }))
 
@@ -172,8 +172,8 @@ export const PaginationBar = styled(Box)(({ theme }) => ({
   justifyContent: 'space-between',
   gap: theme.spacing(2),
   padding: theme.spacing(2, 3),
-  backgroundColor: theme.palette.background.default,
-  borderTop: `1px solid ${theme.palette.divider}`,
+  backgroundColor: theme.vars.palette.background.default,
+  borderTop: `1px solid ${theme.vars.palette.divider}`,
   [theme.breakpoints.down('sm')]: {
     flexDirection: 'column',
     alignItems: 'stretch',
@@ -183,8 +183,8 @@ export const PaginationBar = styled(Box)(({ theme }) => ({
 // Pie sin paginador: la misma banda hundida que el paginador, con sólo el texto.
 export const FooterBar = styled(Box)(({ theme }) => ({
   padding: theme.spacing(2, 3),
-  backgroundColor: theme.palette.background.default,
-  borderTop: `1px solid ${theme.palette.divider}`,
+  backgroundColor: theme.vars.palette.background.default,
+  borderTop: `1px solid ${theme.vars.palette.divider}`,
 }))
 
 export const PageButtons = styled(Box)(({ theme }) => ({
@@ -197,5 +197,5 @@ export const PageButtons = styled(Box)(({ theme }) => ({
 export const EmptyState = styled(Box)(({ theme }) => ({
   padding: theme.spacing(6, 3),
   textAlign: 'center',
-  color: theme.palette.text.secondary,
+  color: theme.vars.palette.text.secondary,
 }))

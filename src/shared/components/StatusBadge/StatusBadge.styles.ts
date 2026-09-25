@@ -30,7 +30,7 @@ export const BadgeRoot = styled(Box, {
   shouldForwardProp: (prop) => !TRANSIENT_PROPS.has(prop as string),
 })<BadgeRootProps>(({ theme, statusColor, badgeSize, interactive }) => {
   const size = BADGE_SIZES[badgeSize]
-  const color = theme.palette[statusColor]
+  const color = theme.vars.palette[statusColor]
   const isDark = theme.palette.mode === 'dark'
 
   return {

@@ -40,7 +40,7 @@ export const ModalHeader = styled(Box)(({ theme }) => ({
   justifyContent: 'space-between',
   gap: theme.spacing(2),
   padding: theme.spacing(3),
-  borderBottom: `1px solid ${theme.palette.divider}`,
+  borderBottom: `1px solid ${theme.vars.palette.divider}`,
   flexShrink: 0,
 }))
 
@@ -62,8 +62,8 @@ export const ModalFooter = styled(Box)(({ theme }) => ({
   justifyContent: 'space-between',
   gap: theme.spacing(2),
   padding: theme.spacing(3),
-  borderTop: `1px solid ${theme.palette.divider}`,
-  backgroundColor: theme.palette.background.default,
+  borderTop: `1px solid ${theme.vars.palette.divider}`,
+  backgroundColor: theme.vars.palette.background.default,
   flexShrink: 0,
   // En pantallas chicas el pie apila la leyenda sobre los botones.
   [theme.breakpoints.down('sm')]: {

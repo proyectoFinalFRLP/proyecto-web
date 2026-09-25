@@ -314,7 +314,7 @@ export function DesignSystemPage() {
               transform: 'translateZ(0)',
               overflow: 'hidden',
               borderRadius: 2,
-              border: `1px solid ${theme.palette.divider}`,
+              border: `1px solid ${theme.vars.palette.divider}`,
             })}
           >
             <TopNavBar
@@ -376,7 +376,7 @@ export function DesignSystemPage() {
                     display: 'inline-flex',
                     borderRadius: 3,
                     bgcolor: 'background.default',
-                    border: (theme) => `1px solid ${theme.palette.divider}`,
+                    border: (theme) => `1px solid ${theme.vars.palette.divider}`,
                   }}
                 >
                   <Logo brand={logoSpec.brand} tagline={logoSpec.tagline} />
@@ -465,7 +465,7 @@ export function DesignSystemPage() {
                   gap: 2,
                   p: 2,
                   borderRadius: 2,
-                  bgcolor: theme.palette.background.layer[key],
+                  bgcolor: theme.vars.palette.background.layer[key],
                   border: theme.elevation[elevation].border,
                   boxShadow: theme.elevation[elevation].boxShadow,
                 })}

@@ -46,6 +46,13 @@ declare module '@mui/material/styles' {
     layer: { floor: string; deck: string; modal: string }
   }
 
+  // El tema usa variables CSS (`cssVariables: true`): con esto `theme.vars`
+  // deja de ser opcional en los tipos, que es lo que ya pasa en tiempo de
+  // ejecución.
+  interface CssThemeVariables {
+    enabled: true
+  }
+
   // Tratamiento de elevación (borde + sombra + halo). Índice 0-3:
   // base/card/dropdown/modal. El relleno de cada plano vive en `background.layer`.
   interface Theme {

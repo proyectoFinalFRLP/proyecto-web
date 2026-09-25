@@ -12,7 +12,7 @@ export const ShellRoot = styled(Box)(({ theme }) => ({
   minHeight: '100vh',
   display: 'flex',
   flexDirection: 'column',
-  backgroundColor: theme.palette.background.default,
+  backgroundColor: theme.vars.palette.background.default,
 }))
 
 export const TopBar = styled(Box)(({ theme }) => ({
@@ -24,8 +24,8 @@ export const TopBar = styled(Box)(({ theme }) => ({
   gap: theme.spacing(2),
   minHeight: TOP_BAR_HEIGHT,
   paddingInline: theme.spacing(3),
-  backgroundColor: theme.palette.background.paper,
-  borderBottom: `1px solid ${theme.palette.divider}`,
+  backgroundColor: theme.vars.palette.background.paper,
+  borderBottom: `1px solid ${theme.vars.palette.divider}`,
 }))
 
 export const ShellMain = styled(Box)(({ theme }) => ({
@@ -45,7 +45,7 @@ export const ShellFooter = styled(Box)(({ theme }) => ({
   alignItems: 'center',
   justifyContent: 'center',
   padding: theme.spacing(3),
-  borderTop: `1px solid ${theme.palette.divider}`,
+  borderTop: `1px solid ${theme.vars.palette.divider}`,
 }))
 
 // Halos decorativos del fondo, como en el diseño. Puramente ornamentales, así
@@ -59,7 +59,7 @@ export const BackgroundGlow = styled(Box, {
   borderRadius: '50%',
   filter: 'blur(80px)',
   pointerEvents: 'none',
-  backgroundColor: `color-mix(in srgb, ${theme.palette.primary.main} 12%, transparent)`,
+  backgroundColor: `color-mix(in srgb, ${theme.vars.palette.primary.main} 12%, transparent)`,
   ...(placement === 'top'
     ? { top: -GLOW_SIZE / 2, right: -GLOW_SIZE / 4 }
     : { bottom: -GLOW_SIZE / 2, left: -GLOW_SIZE / 4 }),
@@ -71,7 +71,7 @@ export const AuthCard = styled(Box)(({ theme }) => ({
   maxWidth: CARD_WIDTH,
   padding: theme.spacing(4),
   borderRadius: CARD_RADIUS,
-  backgroundColor: theme.palette.background.paper,
+  backgroundColor: theme.vars.palette.background.paper,
   border: theme.elevation[1].border,
   boxShadow: theme.elevation[2].boxShadow,
 }))
@@ -83,7 +83,7 @@ export const BrandMark = styled(Box)(({ theme }) => ({
   alignItems: 'center',
   justifyContent: 'center',
   borderRadius: 8,
-  backgroundColor: `color-mix(in srgb, ${theme.palette.primary.main} 12%, transparent)`,
-  color: theme.palette.primary.main,
+  backgroundColor: `color-mix(in srgb, ${theme.vars.palette.primary.main} 12%, transparent)`,
+  color: theme.vars.palette.primary.main,
   '& svg': { display: 'block', fontSize: 24 },
 }))

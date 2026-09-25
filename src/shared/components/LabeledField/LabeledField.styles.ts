@@ -9,7 +9,7 @@ export const FieldRoot = styled(Box)({
 
 // El DS pone el label arriba del input, no flotando en el notch de MUI.
 export const FieldLabel = styled(Typography)(({ theme }) => ({
-  color: theme.palette.text.secondary,
+  color: theme.vars.palette.text.secondary,
   marginBottom: theme.spacing(0.5),
   fontWeight: 700,
   textTransform: 'uppercase',
