@@ -67,3 +67,22 @@ Zustand.** Se puede espejar ahí cuando una sola lectura de React Query es su
 origen y el store es sólo el punto desde donde el resto lo consume. Por eso la
 identidad tampoco se persiste —sólo el token—: una copia vieja en `localStorage`
 no puede contradecir lo que la API dice hoy.
+
+### La sesión entre pestañas (TESIS-82)
+
+`persist` guarda el store en `localStorage`, que las pestañas comparten, pero
+cada pestaña tiene su propia copia en memoria y `persist` no la actualiza cuando
+otra escribe. Con la sesión eso era un problema: la QA de TESIS-82 encontró que
+cerrar sesión en una pestaña dejaba a la otra mostrando datos con un token
+revocado, y que cuando esa otra recibía el 401, escribía la sesión vacía y le
+borraba la sesión guardada a quien había entrado mientras tanto.
+
+`followSessionAcrossTabs()` (en `authStore`) escucha el evento `storage`, que
+el navegador entrega sólo a las otras pestañas, y rehidrata el store desde
+`localStorage`. Si el token cambió, vacía lo que era del usuario anterior (la
+cache de React Query y el borrador de la orden), igual que el logout. Se
+registra una vez en `main.tsx`.
+
+Es la única sincronización entre pestañas: los demás stores persistidos
+(`uiStore`, `tenantStore`) guardan preferencias o datos del portal, que no
+cambian de dueño.

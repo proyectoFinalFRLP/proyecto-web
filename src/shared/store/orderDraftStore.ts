@@ -75,7 +75,7 @@ interface OrderDraftState {
     patch: Partial<Pick<OrderDraftItem, 'quantity' | 'unitPrice'>>,
   ) => void
   removeItem: (productId: number) => void
-  /** Cancelar la orden o confirmarla: el borrador vuelve a cero. */
+  /** Cancelar la orden, confirmarla o cerrar sesión: el borrador vuelve a cero. */
   clearDraft: () => void
 }
 
