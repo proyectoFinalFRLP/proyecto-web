@@ -12,7 +12,7 @@ interface AsProp {
 // Breadcrumb de S08: versalitas en `labelCaps` y el chevron atenuado.
 export const Crumbs = styled(Breadcrumbs)(({ theme }) => ({
   ...theme.typography.labelCaps,
-  color: theme.palette.text.secondary,
+  color: theme.vars.palette.text.secondary,
   '& .MuiBreadcrumbs-separator': { marginInline: theme.spacing(0.5) },
   '& .MuiBreadcrumbs-li': { display: 'flex' },
   // El tramo navegable es texto plano hasta el hover, como en el diseño.
@@ -27,7 +27,7 @@ export const Crumbs = styled(Breadcrumbs)(({ theme }) => ({
 export const CurrentCrumb = styled(Typography)(({ theme }) => ({
   ...theme.typography.labelCaps,
   fontFamily: theme.typography.dataMono.fontFamily,
-  color: theme.palette.primary.main,
+  color: theme.vars.palette.primary.main,
 }))
 
 // `wrap` para que en pantallas angostas las acciones caigan abajo en vez de

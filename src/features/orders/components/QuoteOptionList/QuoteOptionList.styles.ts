@@ -29,7 +29,7 @@ export const CarrierMark = styled(Box)(({ theme }) => ({
   justifyContent: 'center',
   padding: theme.spacing(0, 1),
   borderRadius: 8,
-  backgroundColor: theme.palette.action.hover,
+  backgroundColor: theme.vars.palette.action.hover,
   textAlign: 'center',
 }))
 

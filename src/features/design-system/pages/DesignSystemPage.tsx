@@ -47,6 +47,7 @@ import {
   type StatusVariant,
   type TopNavThemeMode,
 } from 'shared/components'
+import { useThemeMode } from 'shared/store/uiStore'
 
 import { FulfillmentPanel } from '../components/FulfillmentPanel'
 import { OperationalStatusCard } from '../components/OperationalStatusCard'
@@ -287,7 +288,14 @@ export function DesignSystemPage() {
 
   // Los hex de las capas se leen del tema, que es su único origen: el catálogo
   // no puede importar de `app/` y duplicarlos acá los dejaría desincronizados.
-  const { layer } = useTheme().palette.background
+  //
+  // Es la única lectura del tema que no pasa por `theme.vars`, y a propósito:
+  // acá el color se muestra como texto, así que hace falta el valor y no la
+  // variable CSS. Sale del esquema activo, no de `theme.palette`, que con los
+  // dos esquemas en el tema es siempre el oscuro (el por defecto).
+  const theme = useTheme()
+  const themeMode = useThemeMode()
+  const { layer } = (theme.colorSchemes[themeMode] ?? theme).palette.background
 
   return (
     <PageWrapper>
@@ -314,7 +322,7 @@ export function DesignSystemPage() {
               transform: 'translateZ(0)',
               overflow: 'hidden',
               borderRadius: 2,
-              border: `1px solid ${theme.palette.divider}`,
+              border: `1px solid ${theme.vars.palette.divider}`,
             })}
           >
             <TopNavBar
@@ -376,7 +384,7 @@ export function DesignSystemPage() {
                     display: 'inline-flex',
                     borderRadius: 3,
                     bgcolor: 'background.default',
-                    border: (theme) => `1px solid ${theme.palette.divider}`,
+                    border: (theme) => `1px solid ${theme.vars.palette.divider}`,
                   }}
                 >
                   <Logo brand={logoSpec.brand} tagline={logoSpec.tagline} />
@@ -439,8 +447,8 @@ export function DesignSystemPage() {
                   alignItems: 'center',
                   justifyContent: 'center',
                   bgcolor: 'background.paper',
-                  border: theme.elevation[level].border,
-                  boxShadow: theme.elevation[level].boxShadow,
+                  border: theme.vars.elevation[level].border,
+                  boxShadow: theme.vars.elevation[level].boxShadow,
                 })}
               >
                 <Typography variant="labelMd" color="text.secondary">
@@ -465,9 +473,9 @@ export function DesignSystemPage() {
                   gap: 2,
                   p: 2,
                   borderRadius: 2,
-                  bgcolor: theme.palette.background.layer[key],
-                  border: theme.elevation[elevation].border,
-                  boxShadow: theme.elevation[elevation].boxShadow,
+                  bgcolor: theme.vars.palette.background.layer[key],
+                  border: theme.vars.elevation[elevation].border,
+                  boxShadow: theme.vars.elevation[elevation].boxShadow,
                 })}
               >
                 <Typography variant="bodyLg" color="text.secondary">

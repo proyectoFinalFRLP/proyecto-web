@@ -26,6 +26,6 @@ export const SummaryLine = styled(Box)(({ theme }) => ({
 export const TotalValue = styled(Typography)(({ theme }) => ({
   ...theme.typography.displaySm,
   fontFamily: theme.typography.dataMono.fontFamily,
-  color: theme.palette.primary.main,
+  color: theme.vars.palette.primary.main,
   whiteSpace: 'nowrap',
 }))
