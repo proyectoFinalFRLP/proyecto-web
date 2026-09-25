@@ -1,3 +1,5 @@
+import { useTheme } from '@mui/material'
+import type { Theme } from '@mui/material'
 import { act, render, screen } from '@testing-library/react'
 import { ProgressIndicator } from 'shared/components'
 import { useTenantStore } from 'shared/store'
@@ -15,9 +17,17 @@ import { ThemeWrapper } from './ThemeWrapper'
 // componente. Ahora los estilos leen la variable CSS y el modo es un atributo
 // del `<html>`.
 
+// Registra cada tema que ve un consumidor, en el orden en que lo ve.
+const seenThemes: Theme[] = []
+function ThemeProbe() {
+  seenThemes.push(useTheme())
+  return null
+}
+
 function renderPrimaryFill() {
   render(
     <ThemeWrapper>
+      <ThemeProbe />
       <ProgressIndicator value={50} tone="primary" ariaLabel="Avance" />
     </ThemeWrapper>,
   )
@@ -45,6 +55,7 @@ function setMode(mode: 'light' | 'dark') {
 }
 
 beforeEach(() => {
+  seenThemes.length = 0
   localStorage.clear()
   useUiStore.setState({ themeChoice: 'dark' })
   // Sin tenant: el tema es el del DS tal cual, y `primary.main` es el de los
@@ -82,9 +93,25 @@ describe('ThemeWrapper', () => {
     expect(css).toContain(`--mui-palette-primary-main:${roleColors.light.primary}`)
   })
 
-  // La medición de la card: antes, el primer toggle agregaba cientos de
-  // `<style>` (470 en /design-system), uno por cada componente que se volvía a
-  // serializar con los colores del otro modo. Ahora alternar no genera nada.
+  // La causa: el tema se arma por tenant, no por modo. Si volviera a depender
+  // del modo, este ejemplo cae aunque los estilos sigan leyendo variables.
+  it('keeps the same theme object when the mode changes', () => {
+    renderPrimaryFill()
+    const initial = seenThemes.at(-1)
+
+    setMode('light')
+    setMode('dark')
+
+    expect(new Set(seenThemes).size).toBe(1)
+    expect(seenThemes.at(-1)).toBe(initial)
+  })
+
+  // El efecto, que es la medición de la card: antes, el primer toggle agregaba
+  // cientos de `<style>` (470 en /design-system), uno por cada componente que
+  // se volvía a serializar con los colores del otro modo. Ahora alternar no
+  // genera nada. Ojo: con todos los estilos leyendo variables, rearmar el tema
+  // ya no genera clases nuevas, así que este ejemplo no detecta que el tema se
+  // rearme. Eso lo cubre el anterior.
   it('does not generate new styles when the mode changes', async () => {
     renderPrimaryFill()
     await nextTick()
