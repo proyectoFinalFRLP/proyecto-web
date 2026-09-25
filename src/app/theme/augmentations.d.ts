@@ -46,30 +46,39 @@ declare module '@mui/material/styles' {
     layer: { floor: string; deck: string; modal: string }
   }
 
-  // El tema usa variables CSS (`cssVariables: true`): con esto `theme.vars`
-  // deja de ser opcional en los tipos, que es lo que ya pasa en tiempo de
-  // ejecución.
+  // El tema usa variables CSS con los dos esquemas de color (TESIS-104): con
+  // esto `theme.vars` deja de ser opcional en los tipos, que es lo que ya pasa
+  // en tiempo de ejecución.
   interface CssThemeVariables {
     enabled: true
   }
 
   // Tratamiento de elevación (borde + sombra + halo). Índice 0-3:
   // base/card/dropdown/modal. El relleno de cada plano vive en `background.layer`.
-  interface Theme {
-    elevation: { boxShadow: string; border: string }[]
-  }
-
-  interface ThemeOptions {
+  // Cambia por esquema, así que vive en cada `colorSchemes[modo]` y se lee de
+  // `theme.vars.elevation`, que devuelve las variables CSS.
+  interface ColorSystemOptions {
     elevation?: { boxShadow: string; border: string }[]
   }
 
-  // `neutral` no existe en la paleta por defecto de MUI.
+  interface ColorSystem {
+    elevation: { boxShadow: string; border: string }[]
+  }
+
+  interface ThemeVars {
+    elevation: { boxShadow: string; border: string }[]
+  }
+
+  // `neutral` no existe en la paleta por defecto de MUI. `input` son los
+  // rellenos de los campos, que cambian por esquema (ver `buildPalette`).
   interface Palette {
     neutral: PaletteColor
+    input: { fill: string; fillDisabled: string; textDisabled: string }
   }
 
   interface PaletteOptions {
     neutral?: PaletteColorOptions
+    input?: { fill: string; fillDisabled: string; textDisabled: string }
   }
 }
 

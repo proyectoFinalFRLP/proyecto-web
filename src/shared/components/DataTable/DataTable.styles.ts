@@ -36,8 +36,8 @@ export const TableCard = styled(Box)(({ theme }) => ({
   // Scroller de adentro. Sin esto la tabla empuja el layout hacia afuera.
   maxWidth: '100%',
   backgroundColor: theme.vars.palette.background.paper,
-  border: theme.elevation[1].border,
-  boxShadow: theme.elevation[1].boxShadow,
+  border: theme.vars.elevation[1].border,
+  boxShadow: theme.vars.elevation[1].boxShadow,
 }))
 
 export const Toolbar = styled(Box)(({ theme }) => ({

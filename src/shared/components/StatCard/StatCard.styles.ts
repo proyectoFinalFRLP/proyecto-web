@@ -30,7 +30,8 @@ function toneSurface(theme: Theme, tone: StatTone) {
   const color = theme.vars.palette[tone]
   return {
     backgroundColor: color.container,
-    color: theme.palette.mode === 'dark' ? color.main : color.onContainer,
+    color: color.onContainer,
+    ...theme.applyStyles('dark', { color: color.main }),
   }
 }
 
@@ -48,10 +49,10 @@ export const CardRoot = styled(Box, { shouldForwardProp: notForwarded })<{
   padding: theme.spacing(3),
   borderRadius: CARD_RADIUS,
   backgroundColor: theme.vars.palette.background.paper,
-  boxShadow: theme.elevation[1].boxShadow,
+  boxShadow: theme.vars.elevation[1].boxShadow,
   border: accent
     ? `1px solid color-mix(in srgb, ${theme.vars.palette[accent].main} 30%, transparent)`
-    : theme.elevation[1].border,
+    : theme.vars.elevation[1].border,
 }))
 
 // Fila superior: ícono a la izquierda, chip a la derecha.
@@ -152,8 +153,8 @@ export const CompactRoot = styled(Box)(({ theme }) => ({
   padding: theme.spacing(2),
   borderRadius: CARD_RADIUS,
   backgroundColor: theme.vars.palette.background.paper,
-  border: theme.elevation[1].border,
-  boxShadow: theme.elevation[1].boxShadow,
+  border: theme.vars.elevation[1].border,
+  boxShadow: theme.vars.elevation[1].boxShadow,
 }))
 
 export const CompactIconBox = styled(Box, { shouldForwardProp: notForwarded })<ToneProps>(

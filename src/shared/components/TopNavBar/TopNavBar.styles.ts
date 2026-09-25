@@ -72,5 +72,5 @@ export const userMenuPaperSx = (theme: Theme) => ({
   border: `1px solid ${theme.vars.palette.divider}`,
   backgroundColor: theme.vars.palette.background.paper,
   backgroundImage: 'none',
-  boxShadow: theme.elevation[2].boxShadow,
+  boxShadow: theme.vars.elevation[2].boxShadow,
 })

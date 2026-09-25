@@ -14,8 +14,8 @@ export function muiDialog(): Components<Theme>['MuiDialog'] {
         // Sin el gradiente que MUI pinta por elevación en dark: el DS resuelve
         // la profundidad con borde + sombra, no aclarando la superficie.
         backgroundImage: 'none',
-        border: theme.elevation[3].border,
-        boxShadow: theme.elevation[3].boxShadow,
+        border: theme.vars.elevation[3].border,
+        boxShadow: theme.vars.elevation[3].boxShadow,
       }),
     },
   }
@@ -33,10 +33,11 @@ export function muiBackdrop(): Components<Theme>['MuiBackdrop'] {
   return {
     styleOverrides: {
       root: ({ theme }) => ({
-        backgroundColor: alpha(
-          theme.palette.common.black,
-          theme.palette.mode === 'dark' ? 0.6 : 0.4,
-        ),
+        // Negro en los dos esquemas: `alpha` sobre el valor y no `theme.alpha`
+        // sobre la variable, porque el negro no cambia con el modo. Lo que
+        // cambia es cuánto oscurece, y eso lo dice `applyStyles`.
+        backgroundColor: alpha(theme.palette.common.black, 0.4),
+        ...theme.applyStyles('dark', { backgroundColor: alpha(theme.palette.common.black, 0.6) }),
         backdropFilter: 'blur(2px)',
         '&.MuiBackdrop-invisible': {
           backgroundColor: 'transparent',

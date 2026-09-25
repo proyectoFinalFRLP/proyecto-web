@@ -15,10 +15,8 @@ export const menuPaperSx = (theme: Theme) => ({
   border: `1px solid ${theme.vars.palette.divider}`,
   backgroundColor: theme.vars.palette.background.paper,
   backgroundImage: 'none',
-  boxShadow:
-    theme.palette.mode === 'dark'
-      ? '0 12px 32px rgba(0,0,0,0.5)'
-      : '0 12px 32px rgba(16,24,40,0.12)',
+  boxShadow: '0 12px 32px rgba(16,24,40,0.12)',
+  ...theme.applyStyles('dark', { boxShadow: '0 12px 32px rgba(0,0,0,0.5)' }),
   '& .MuiList-root': {
     padding: '6px',
     display: 'flex',

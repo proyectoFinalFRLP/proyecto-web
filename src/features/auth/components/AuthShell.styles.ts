@@ -72,8 +72,8 @@ export const AuthCard = styled(Box)(({ theme }) => ({
   padding: theme.spacing(4),
   borderRadius: CARD_RADIUS,
   backgroundColor: theme.vars.palette.background.paper,
-  border: theme.elevation[1].border,
-  boxShadow: theme.elevation[2].boxShadow,
+  border: theme.vars.elevation[1].border,
+  boxShadow: theme.vars.elevation[2].boxShadow,
 }))
 
 export const BrandMark = styled(Box)(({ theme }) => ({

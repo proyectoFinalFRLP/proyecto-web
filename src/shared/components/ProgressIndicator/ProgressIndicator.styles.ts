@@ -1,5 +1,5 @@
 import { Box } from '@mui/material'
-import { alpha, styled } from '@mui/material/styles'
+import { styled } from '@mui/material/styles'
 import type { Theme } from '@mui/material/styles'
 
 import type { ProgressSize, ProgressTone, ProgressTrack } from './ProgressIndicator.types'
@@ -29,9 +29,9 @@ const notForwarded = (prop: string | number | symbol) => !TRANSIENT_PROPS.has(pr
 // fila a fila y las barras dejarían de compararse entre sí.
 function trackColor(theme: Theme, tone: ProgressTone, fill: ProgressTrack) {
   if (fill === 'neutral') {
-    const base =
-      theme.palette.mode === 'dark' ? theme.palette.common.white : theme.palette.common.black
-    return alpha(base, NEUTRAL_TRACK_ALPHA)
+    // `onBackground` es negro en claro y blanco en oscuro: el acromático de cada
+    // esquema, como variable CSS, en vez de elegirlo con un `if` sobre el modo.
+    return theme.alpha(theme.vars.palette.common.onBackground, NEUTRAL_TRACK_ALPHA)
   }
   return `color-mix(in srgb, ${theme.vars.palette[tone].main} 16%, transparent)`
 }

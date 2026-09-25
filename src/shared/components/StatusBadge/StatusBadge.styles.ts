@@ -31,7 +31,6 @@ export const BadgeRoot = styled(Box, {
 })<BadgeRootProps>(({ theme, statusColor, badgeSize, interactive }) => {
   const size = BADGE_SIZES[badgeSize]
   const color = theme.vars.palette[statusColor]
-  const isDark = theme.palette.mode === 'dark'
 
   return {
     boxSizing: 'border-box',
@@ -43,10 +42,15 @@ export const BadgeRoot = styled(Box, {
     paddingInline: `${size.paddingInline}px`,
     borderRadius: 9999,
     backgroundColor: color.container,
-    color: isDark ? color.main : color.onContainer,
-    border: isDark
-      ? `1px solid color-mix(in srgb, ${color.main} 25%, transparent)`
-      : '1px solid transparent',
+    color: color.onContainer,
+    border: '1px solid transparent',
+    // En dark el texto va en `main` (más luminoso) y el borde se tiñe. Va en
+    // `applyStyles` y no en un `if` sobre el modo: el mismo estilo sirve para
+    // los dos esquemas y el navegador aplica esta parte cuando está en oscuro.
+    ...theme.applyStyles('dark', {
+      color: color.main,
+      border: `1px solid color-mix(in srgb, ${color.main} 25%, transparent)`,
+    }),
     fontFamily: theme.typography.fontFamily,
     fontSize: size.fontSize,
     fontWeight: 700,
