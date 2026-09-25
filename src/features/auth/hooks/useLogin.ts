@@ -8,17 +8,19 @@ import { authContent } from '../content'
 import type { LoginCredentials, LoginResponse } from '../types'
 
 const UNAUTHORIZED = 401
+const TOO_MANY_REQUESTS = 429
 
 /**
- * Traduce el fallo al idioma de la app y distingue el caso esperado (credenciales
- * incorrectas) de cualquier otro, para no mostrar un error de red como si el
- * usuario hubiera tipeado mal la contraseña.
+ * Traduce el fallo al idioma de la app y distingue los casos esperados
+ * (credenciales incorrectas, demasiados intentos) de cualquier otro, para no
+ * mostrar un error de red como si el usuario hubiera tipeado mal la contraseña.
  */
 export function loginErrorMessage(error: ApiRequestError | null): string | null {
   if (!error) return null
-  return error.status === UNAUTHORIZED
-    ? authContent.errors.invalidCredentials
-    : authContent.errors.unexpected
+  if (error.status === UNAUTHORIZED) return authContent.errors.invalidCredentials
+  // El freno dura minutos: «probá de nuevo en unos segundos» sería mentirle.
+  if (error.status === TOO_MANY_REQUESTS) return authContent.errors.tooManyAttempts
+  return authContent.errors.unexpected
 }
 
 export function useLogin() {

@@ -1,4 +1,5 @@
 import axios from 'axios'
+import type { InternalAxiosRequestConfig } from 'axios'
 
 import { clearSession, getAuthToken } from '../store/authStore'
 import { notify } from '../store/notificationStore'
@@ -32,6 +33,19 @@ function toRequestError(message: string, status?: number): ApiRequestError {
   const error: ApiRequestError = new Error(message)
   error.status = status
   return error
+}
+
+// Si el request salió con el token de la sesión que está abierta ahora.
+//
+// Un 401 habla de la credencial con la que salió el request, no de la sesión
+// de ahora. Si en el medio la sesión cambió (se cerró y entró otra persona, en
+// esta pestaña o en otra), ese 401 no dice nada de la sesión actual, y tratarlo
+// como vencida la cerraba (QA de TESIS-82). Sin token, además, no había sesión
+// que cerrar: un 401 del propio login son credenciales mal tipeadas, y el
+// formulario ya muestra su error.
+function sentWithCurrentSession(config: InternalAxiosRequestConfig | undefined): boolean {
+  const token = getAuthToken()
+  return token !== null && config?.headers.get('Authorization') === `Bearer ${token}`
 }
 
 export const client = axios.create({
@@ -92,16 +106,16 @@ client.interceptors.response.use(
     // limpia la sesión y el guard de rutas se encarga del redirect, así el
     // interceptor no necesita conocer el router.
     //
-    // Sólo se actúa si **había** sesión: un 401 del propio login son
-    // credenciales mal tipeadas, y el formulario ya muestra su error. Avisarle
-    // "tu sesión expiró" a quien nunca la tuvo sería mentirle.
+    // Sólo se actúa si el request salió con la sesión que está abierta ahora
+    // (ver `sentWithCurrentSession`). Avisarle "tu sesión expiró" a quien nunca
+    // la tuvo, o a quien acaba de abrir otra, sería mentirle.
     // Un 401 del propio logout se ignora: el token ya no sirve, que es
     // exactamente lo que se estaba pidiendo. Avisar "tu sesión expiró" a quien
     // acaba de cerrarla a propósito sería ruido, y `logout()` ya limpia el
     // store por su cuenta.
     const isLogout = error.config?.url === LOGOUT_PATH
 
-    if (status === 401 && !isLogout && getAuthToken()) {
+    if (status === 401 && !isLogout && sentWithCurrentSession(error.config)) {
       clearSession()
       notify(SESSION_EXPIRED_MESSAGE, 'warning')
     }
