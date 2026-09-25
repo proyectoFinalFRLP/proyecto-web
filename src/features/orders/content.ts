@@ -283,6 +283,53 @@ export const ordersCopy = {
     },
     back: 'Paso anterior',
   },
+  /** Paso 3: cotización y confirmación (S07). */
+  carrier: {
+    options: {
+      groupLabel: 'Operadores logísticos cotizados',
+      loading: 'Consultando a los operadores logísticos…',
+      /** La lista llega ordenada por precio: la primera es la más barata. */
+      cheapest: 'Más económico',
+      priceCaption: 'Tarifa',
+      /** "Entrega en 3 días" · "Entrega en 1 día". */
+      eta: (days: number) => `Entrega en ${formatCount(days)} ${days === 1 ? 'día' : 'días'}`,
+      noEta: 'Plazo no informado',
+      error: 'No pudimos cotizar el envío.',
+      empty:
+        'Ningún operador logístico pudo cotizar este envío. Probá de nuevo o revisá el depósito de origen y el domicilio.',
+      retry: 'Volver a cotizar',
+      review: 'Revisar origen y destino',
+    },
+    summary: {
+      title: 'Resumen de la orden',
+      products: 'Productos',
+      shipping: 'Envío',
+      /** Todavía no se eligió operador: el envío no cuesta 0, falta elegirlo. */
+      shippingPending: 'Elegí un operador',
+      weight: 'Peso estimado',
+      origin: 'Sale de',
+      destination: 'Va a',
+      /** "CABA, Ciudad Autónoma de Buenos Aires · CP 1193". */
+      place: (city: string, province: string, zipCode: string) =>
+        `${city}, ${province} · CP ${zipCode}`,
+      total: 'Total final',
+      currency: 'ARS',
+      confirm: 'Confirmar orden',
+      confirming: 'Confirmando…',
+      notice: 'Al confirmar se crea la orden y se emite el despacho con el operador elegido.',
+    },
+    /** "Orden #8829 creada y despachada con Andreani." */
+    confirmed: (orderLabel: string, carrier: string) =>
+      `Orden ${orderLabel} creada y despachada con ${carrier}.`,
+    errors: {
+      order: 'No pudimos crear la orden.',
+      /** La orden ya existe: lo que falló es el envío o el despacho. */
+      dispatch: (orderLabel: string) =>
+        `La orden ${orderLabel} se creó, pero no pudimos emitir el despacho.`,
+      retryDispatch: 'Reintentar el despacho',
+      viewOrder: 'Ver la orden',
+    },
+  },
   /** Modificación de una orden existente (S09). */
   edit: {
     title: (orderLabel: string) => `Modificar ${orderLabel}`,
