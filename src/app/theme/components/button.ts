@@ -1,7 +1,6 @@
 import type { Components, Theme } from '@mui/material/styles'
 
 import { radius } from '../tokens'
-import type { ThemeMode } from '../tokens'
 import { rem } from '../utils'
 
 // Intenciones sobre las que se genera la variante glass. Son las mismas keys de
@@ -14,6 +13,8 @@ const GLASS_FILL_HOVER = 16
 const GLASS_BORDER = 30
 
 // Light: el botón sólido usa el tono `strong` de su intención (regla del DS).
+// Sólo en el esquema claro, y por eso va en `applyStyles`: el mismo estilo sirve
+// para los dos esquemas y el navegador aplica esta parte cuando corresponde.
 function solidStrongBackground({
   ownerState,
   theme,
@@ -23,12 +24,12 @@ function solidStrongBackground({
 }) {
   const color = ownerState.color
   if (!color || color === 'inherit') return {}
-  const paletteColor = (theme.palette as unknown as Record<string, { strong?: string }>)[color]
+  const paletteColor = (theme.vars.palette as unknown as Record<string, { strong?: string }>)[color]
   if (!paletteColor?.strong) return {}
-  return {
+  return theme.applyStyles('light', {
     backgroundColor: paletteColor.strong,
     '&:hover': { backgroundColor: paletteColor.strong },
-  }
+  })
 }
 
 /**
@@ -42,7 +43,7 @@ function solidStrongBackground({
 const glassVariants = INTENTS.map((intent) => ({
   props: { variant: 'glass' as const, color: intent },
   style: ({ theme }: { theme: Theme }) => {
-    const { main } = theme.palette[intent]
+    const { main } = theme.vars.palette[intent]
     const tint = (percent: number) => `color-mix(in srgb, ${main} ${percent}%, transparent)`
 
     return {
@@ -52,15 +53,15 @@ const glassVariants = INTENTS.map((intent) => ({
       transition: theme.transitions.create(['background-color', 'border-color']),
       '&:hover': { backgroundColor: tint(GLASS_FILL_HOVER) },
       '&.Mui-disabled': {
-        color: theme.palette.text.disabled,
+        color: theme.vars.palette.text.disabled,
         backgroundColor: 'transparent',
-        borderColor: theme.palette.divider,
+        borderColor: theme.vars.palette.divider,
       },
     }
   },
 }))
 
-export function muiButton(mode: ThemeMode): Components<Theme>['MuiButton'] {
+export function muiButton(): Components<Theme>['MuiButton'] {
   return {
     defaultProps: { disableElevation: true },
     styleOverrides: {
@@ -74,7 +75,7 @@ export function muiButton(mode: ThemeMode): Components<Theme>['MuiButton'] {
       sizeSmall: { minHeight: 32, paddingLeft: 12, paddingRight: 12, fontSize: rem(13) },
       sizeMedium: { minHeight: 40, paddingLeft: 16, paddingRight: 16, fontSize: rem(14) },
       sizeLarge: { minHeight: 48, paddingLeft: 20, paddingRight: 20, fontSize: rem(15) },
-      ...(mode === 'light' ? { contained: solidStrongBackground } : {}),
+      contained: solidStrongBackground,
     },
     variants: glassVariants,
   }

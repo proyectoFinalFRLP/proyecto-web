@@ -20,7 +20,7 @@ export const SectionHeading = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
   gap: theme.spacing(1),
-  '& > svg': { color: theme.palette.primary.main, fontSize: 20 },
+  '& > svg': { color: theme.vars.palette.primary.main, fontSize: 20 },
 }))
 
 // Dos columnas de campos en el diseño; una sola cuando no entran. La usan las

@@ -1,5 +1,5 @@
 import { Box } from '@mui/material'
-import { alpha, styled } from '@mui/material/styles'
+import { styled } from '@mui/material/styles'
 import type { Theme } from '@mui/material/styles'
 
 import type { ProgressSize, ProgressTone, ProgressTrack } from './ProgressIndicator.types'
@@ -29,11 +29,11 @@ const notForwarded = (prop: string | number | symbol) => !TRANSIENT_PROPS.has(pr
 // fila a fila y las barras dejarían de compararse entre sí.
 function trackColor(theme: Theme, tone: ProgressTone, fill: ProgressTrack) {
   if (fill === 'neutral') {
-    const base =
-      theme.palette.mode === 'dark' ? theme.palette.common.white : theme.palette.common.black
-    return alpha(base, NEUTRAL_TRACK_ALPHA)
+    // `onBackground` es negro en claro y blanco en oscuro: el acromático de cada
+    // esquema, como variable CSS, en vez de elegirlo con un `if` sobre el modo.
+    return theme.alpha(theme.vars.palette.common.onBackground, NEUTRAL_TRACK_ALPHA)
   }
-  return `color-mix(in srgb, ${theme.palette[tone].main} 16%, transparent)`
+  return `color-mix(in srgb, ${theme.vars.palette[tone].main} 16%, transparent)`
 }
 
 export const Root = styled(Box)({
@@ -75,15 +75,15 @@ export const Track = styled(Box, { shouldForwardProp: notForwarded })<{
   borderRadius: 9999,
   overflow: 'hidden',
   backgroundColor: trackColor(theme, tone, trackFill),
-  border: barSize === 'large' ? `1px solid ${theme.palette.divider}` : undefined,
+  border: barSize === 'large' ? `1px solid ${theme.vars.palette.divider}` : undefined,
 }))
 
 export const Fill = styled(Box, { shouldForwardProp: notForwarded })<{ tone: ProgressTone }>(
   ({ theme, tone }) => ({
     height: '100%',
     borderRadius: 9999,
-    backgroundColor: theme.palette[tone].main,
-    boxShadow: `0 0 12px color-mix(in srgb, ${theme.palette[tone].main} 30%, transparent)`,
+    backgroundColor: theme.vars.palette[tone].main,
+    boxShadow: `0 0 12px color-mix(in srgb, ${theme.vars.palette[tone].main} 30%, transparent)`,
     transition: theme.transitions.create('width'),
   }),
 )
@@ -99,7 +99,7 @@ export const IndeterminateFill = styled(Box, { shouldForwardProp: notForwarded }
   left: 0,
   width: INDETERMINATE_WIDTH,
   borderRadius: 9999,
-  backgroundColor: theme.palette[tone].main,
+  backgroundColor: theme.vars.palette[tone].main,
   '@keyframes dsProgressSlide': {
     '0%': { transform: 'translateX(-100%)' },
     '100%': { transform: 'translateX(250%)' },
@@ -126,7 +126,7 @@ export const Step = styled(Box, { shouldForwardProp: notForwarded })<{
   minWidth: 0,
   height: STEP_HEIGHT,
   borderRadius: 9999,
-  backgroundColor: filled ? theme.palette[tone].main : trackColor(theme, tone, 'tonal'),
+  backgroundColor: filled ? theme.vars.palette[tone].main : trackColor(theme, tone, 'tonal'),
   transition: theme.transitions.create('background-color'),
 }))
 

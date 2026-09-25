@@ -22,10 +22,17 @@ export function renderWithTheme(
   ui: ReactElement,
   { mode = 'dark', ...options }: RenderOptions & { mode?: ThemeMode } = {},
 ): RenderResult {
-  const theme = createAppTheme(mode)
+  const theme = createAppTheme()
 
+  // El tema trae los dos esquemas: el modo pedido entra como esquema activo,
+  // igual que lo hace `ThemeWrapper` en la app. Sin persistencia, para que un
+  // test no le deje el modo al siguiente.
   return render(ui, {
-    wrapper: ({ children }) => <ThemeProvider theme={theme}>{children}</ThemeProvider>,
+    wrapper: ({ children }) => (
+      <ThemeProvider theme={theme} defaultMode={mode} storageManager={null}>
+        {children}
+      </ThemeProvider>
+    ),
     ...options,
   })
 }
