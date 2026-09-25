@@ -97,6 +97,14 @@ function renderPage() {
 
 const option = (name: RegExp) => screen.getByRole('radio', { name })
 const confirmButton = () => screen.getByRole('button', { name: /Confirmar orden/ })
+
+// Lo que hace el navegador al recargar: si algún listener cancela el evento,
+// pregunta antes de salir.
+function leaveIsBlocked() {
+  const event = new Event('beforeunload', { cancelable: true })
+  window.dispatchEvent(event)
+  return event.defaultPrevented
+}
 const total = () => screen.getByLabelText('Total final')
 
 function stubConfirmation() {
@@ -307,6 +315,32 @@ describe('CarrierStepPage', () => {
         await screen.findByRole('heading', { name: 'Listado' })
         expect(calls.createOrder).toHaveBeenCalledTimes(1)
         expect(calls.dispatch).toHaveBeenCalledTimes(2)
+      })
+
+      // Recargar deja la orden sin despacho y sin pantalla desde la que
+      // despacharla (lo encontró la review de TESIS-59).
+      it('says what happens if the screen is left', async () => {
+        failDispatchOnce()
+        renderPage()
+
+        fireEvent.click(option(/Andreani/))
+        fireEvent.click(confirmButton())
+
+        expect(
+          await screen.findByText(/si dejás esta pantalla su envío queda sin despachar/),
+        ).toBeInTheDocument()
+      })
+
+      it('asks before reloading or closing the tab', async () => {
+        failDispatchOnce()
+        renderPage()
+        expect(leaveIsBlocked()).toBe(false)
+
+        fireEvent.click(option(/Andreani/))
+        fireEvent.click(confirmButton())
+        await screen.findByText(/se creó, pero/)
+
+        expect(leaveIsBlocked()).toBe(true)
       })
 
       it('no longer offers going back to a draft that is already an order', async () => {

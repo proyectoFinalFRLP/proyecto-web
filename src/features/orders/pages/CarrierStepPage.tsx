@@ -1,6 +1,6 @@
 import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined'
 import { Alert, Box, Button, Stack, Typography } from '@mui/material'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { LoadingSpinner, PageWrapper } from 'shared/components'
 import { notify, useOrderDraftStore } from 'shared/store'
@@ -54,6 +54,11 @@ interface ConfirmedDraft {
  * pantalla se recarga, lo que hay que evitar es poder crear la misma venta dos
  * veces. Por eso lo que se muestra durante y después de confirmar sale de una
  * copia del borrador tomada al apretar el botón, no del store.
+ *
+ * La contracara: una vez creada la orden, esta pantalla es el único lugar desde
+ * el que se puede despachar su envío (el detalle todavía no lo ofrece). Mientras
+ * el despacho no salga, el navegador pregunta antes de recargar o cerrar la
+ * pestaña, y el error lo dice.
  */
 export function CarrierStepPage() {
   const navigate = useNavigate()
@@ -83,6 +88,8 @@ export function CarrierStepPage() {
   )
   const quotes = useDraftQuotes(payload)
   const confirm = useConfirmDraftOrder({ onOrderCreated: clearDraft })
+  const dispatchPending = confirm.createdOrderId !== null && !confirm.isSuccess
+  useLeaveWarning(dispatchPending)
 
   // Sin cliente o sin líneas no hay orden que cotizar; sin origen o destino hay
   // que volver al paso 2. Se llegó por URL, recargando, o se canceló el
@@ -125,6 +132,7 @@ export function CarrierStepPage() {
           {createdOrderId === null ? carrier.errors.order : carrier.errors.dispatch(orderLabel)}{' '}
           {confirm.error.message}
         </span>
+        {createdOrderId === null ? null : <span>{carrier.errors.dispatchPending}</span>}
         {createdOrderId === null ? null : (
           <Button
             color="inherit"
@@ -248,4 +256,20 @@ function QuotesContent({ quotes, selectedId, disabled, onSelect, onReview }: Quo
       disabled={disabled}
     />
   )
+}
+
+/**
+ * Pide confirmación al recargar o cerrar la pestaña mientras `active`. Es lo que
+ * el navegador permite: el texto del diálogo es el suyo, no uno propio.
+ */
+function useLeaveWarning(active: boolean) {
+  useEffect(() => {
+    if (!active) return undefined
+
+    const warn = (event: BeforeUnloadEvent) => {
+      event.preventDefault()
+    }
+    window.addEventListener('beforeunload', warn)
+    return () => window.removeEventListener('beforeunload', warn)
+  }, [active])
 }
