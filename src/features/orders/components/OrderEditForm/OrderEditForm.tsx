@@ -233,7 +233,11 @@ export function OrderEditForm({
             toolbar={
               <NewLineToolbar
                 products={catalog.data ?? []}
-                productsLoading={catalog.isPending}
+                // `isFetching` además de `isPending`, igual que el paso 1: con
+                // `keepPreviousData`, una búsqueda que no trajo nada deja la
+                // lista vacía, y sin esto la pantalla diría «Ningún producto
+                // coincide.» mientras la búsqueda nueva todavía viaja.
+                productsLoading={catalog.isPending || catalog.isFetching}
                 addedIds={new Set(lines.map((line) => line.productId))}
                 warehouses={warehouses.data ?? []}
                 warehouseId={newLineWarehouse}
