@@ -1,9 +1,8 @@
 import { Box, Button, Typography } from '@mui/material'
 import { styled } from '@mui/material/styles'
 
-// El shell del modal (root, header, form, body, footer y campos) vive en
-// `ProductModalShell`, compartido con el alta. Acá quedan sólo las piezas
-// propias de la edición.
+// El marco (cabecera, form, cuerpo y pie) es el `ModalFrame` de
+// `shared/components`. Acá quedan sólo las piezas propias de la edición.
 
 // Radios (px). No se leen del tema ni de `tokens.ts`: `shape.borderRadius` es
 // el radio base (8) de los controles, y las reglas de capa prohíben que una
