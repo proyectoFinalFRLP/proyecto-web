@@ -5,11 +5,12 @@ import type {
   OrderDraftOrigin,
 } from 'shared/store'
 
-import type { ProductStockByWarehouse } from '../types'
+import type { ProductStockByWarehouse, ShippingQuote } from '../types'
 
-// Las reglas del paso 2 del alta manual (S06), fuera de los componentes para
-// probarlas sin montar la pantalla: qué depósito cubre el borrador y cómo se
-// arman los dos requests que va a hacer el paso 3 con lo que se eligió acá.
+// Las reglas del envío en el alta manual, fuera de los componentes para
+// probarlas sin montar las pantallas: qué depósito cubre el borrador (paso 2,
+// S06) y cómo se arman los requests del paso 3 (S07): cotizar el borrador,
+// crear la orden y despachar la opción elegida.
 
 /** Cómo cubre un depósito las líneas del borrador. */
 export type CoverageLevel = 'full' | 'partial' | 'none'
@@ -106,11 +107,69 @@ export function toCreateOrderPayload(
   }
 }
 
+/** Lo que el paso 3 manda a `POST /api/v1/quotes` para cotizar el borrador. */
+export interface DraftQuotePayload {
+  quote: {
+    origin_warehouse_id: number
+    destination_zip_code: string
+    destination_address: string
+    items: { product_id: number; quantity: number }[]
+  }
+}
+
 /**
- * Lo que el paso 3 manda a `POST /api/v1/orders/:id/quotes`, una vez creada la
- * orden. El destino no viaja: la cotización lo lee de la orden (código postal y
- * dirección), así que lo único que falta decirle es de dónde sale el paquete.
+ * La cotización del borrador, antes de que la orden exista (TESIS-131).
+ *
+ * Viaja qué lleva el paquete y no cuánto pesa: el peso lo calcula el backend con
+ * el de cada producto, que es su dato. Así cotizar no crea la orden ni descuenta
+ * stock; eso pasa una sola vez, cuando el operador confirma.
  */
-export function toQuotePayload(origin: OrderDraftOrigin) {
-  return { quote: { origin_warehouse_id: origin.warehouseId } }
+export function toDraftQuotePayload(
+  items: OrderDraftItem[],
+  origin: OrderDraftOrigin,
+  destination: OrderDraftDestination,
+): DraftQuotePayload {
+  return {
+    quote: {
+      origin_warehouse_id: origin.warehouseId,
+      destination_zip_code: destination.zipCode.trim(),
+      destination_address: destination.address.trim(),
+      items: items.map((item) => ({ product_id: item.productId, quantity: item.quantity })),
+    },
+  }
+}
+
+/** Lo que el paso 3 manda a `POST /api/v1/shipments/:id/dispatch`. */
+export interface DispatchPayload {
+  dispatch: {
+    company_integration_id: number
+    origin_warehouse_id: number
+    shipping_cost: number
+  }
+}
+
+/**
+ * El despacho de la opción elegida. La integración es la que **despacha**
+ * (`dispatchIntegrationId`), no la que contestó la tarifa: son dos plantillas
+ * del mismo courier, y el despacho rechaza la de cotización. El costo viaja
+ * para que quede en el envío, que es de donde lo lee el detalle de la orden.
+ */
+export function toDispatchPayload(quote: ShippingQuote, origin: OrderDraftOrigin): DispatchPayload {
+  return {
+    dispatch: {
+      company_integration_id: quote.dispatchIntegrationId,
+      origin_warehouse_id: origin.warehouseId,
+      shipping_cost: quote.shippingCost,
+    },
+  }
+}
+
+/**
+ * El total final del paso 3: productos más el envío elegido. En centavos, como
+ * el resto de las cuentas de la feature. Sin envío elegido todavía, el total es
+ * lo que se sabe: los productos.
+ */
+export function totalWithShipping(subtotal: number, shippingCost: number | null): number {
+  const shippingCents = shippingCost === null ? 0 : Math.round(shippingCost * 100)
+  return (Math.round(subtotal * 100) + shippingCents) / 100
 }
