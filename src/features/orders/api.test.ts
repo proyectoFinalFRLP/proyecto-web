@@ -292,6 +292,45 @@ describe('quoteDraft', () => {
   })
 })
 
+// Lo que elige el operador viaja al despacho y queda en `decimal(10,2)`: la
+// pantalla tiene que mostrar lo mismo que después guarda el envío.
+describe('the cost of a quote with more than two decimals', () => {
+  async function quotedCost(cost: string | number) {
+    vi.spyOn(client, 'post').mockResolvedValueOnce(
+      respond({
+        data: [
+          {
+            company_integration_id: 7,
+            dispatch_integration_id: 4,
+            provider_name: 'Andreani',
+            shipping_cost: cost,
+            estimated_days: null,
+          },
+        ],
+      }),
+    )
+    const [quote] = await quoteDraft({
+      quote: {
+        origin_warehouse_id: 3,
+        destination_zip_code: '1193',
+        destination_address: 'Av. Corrientes 3247',
+        items: [{ product_id: 12, quantity: 1 }],
+      },
+    })
+    return quote?.shippingCost
+  }
+
+  it.each([
+    ['1.005', 1.01],
+    ['41200.555', 41200.56],
+    ['41200.5', 41200.5],
+    ['99.994', 99.99],
+    [2500.125, 2500.13],
+  ])('rounds %s to the cents the shipment keeps', async (cost, expected) => {
+    expect(await quotedCost(cost)).toBe(expected)
+  })
+})
+
 describe('the confirmation of a manual order', () => {
   it('creates the order with the payload of the wizard', async () => {
     const post = vi

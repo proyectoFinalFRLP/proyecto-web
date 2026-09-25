@@ -376,12 +376,25 @@ export async function fetchProvinces(): Promise<string[]> {
   return data.data
 }
 
+/**
+ * El costo cotizado, redondeado a centavos como lo va a guardar el envío
+ * (`decimal(10,2)`, que redondea la mitad hacia arriba). Un courier puede
+ * contestar con más decimales, y el costo elegido viaja al despacho: sin esto
+ * la pantalla mostraba un total y el detalle de la orden otro. Con
+ * `"1.005"`, `Math.round(1.005 * 100)` da 100 —el float es 1.00499…— y el
+ * backend guarda 1.01. Correr la coma en el texto (`"1.005e2"` es 100.5
+ * exacto) redondea el decimal que mandó el backend, no su aproximación binaria.
+ */
+function toCostInCents(cost: string | number): number {
+  return Math.round(Number(`${cost}e2`)) / 100
+}
+
 function toShippingQuote(quote: ApiShippingQuote): ShippingQuote {
   return {
     quoteIntegrationId: quote.company_integration_id,
     dispatchIntegrationId: quote.dispatch_integration_id,
     providerName: quote.provider_name,
-    shippingCost: Number(quote.shipping_cost),
+    shippingCost: toCostInCents(quote.shipping_cost),
     estimatedDays: quote.estimated_days,
   }
 }
