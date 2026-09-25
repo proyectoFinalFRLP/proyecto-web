@@ -4,6 +4,7 @@ import { Alert, Box, Button, Stack } from '@mui/material'
 import { useMemo, useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
+import { useDebouncedValue } from 'shared/hooks/useDebouncedValue'
 import { notify } from 'shared/store'
 import type { OrderDraftItem } from 'shared/store'
 
@@ -92,7 +93,11 @@ export function OrderEditForm({
   const [newLineWarehouse, setNewLineWarehouse] = useState(() => mostUsedWarehouse(original))
 
   const warehouses = useOriginWarehouses()
-  const catalog = useCatalogProducts()
+  // El catálogo lo filtra el backend (TESIS-125), igual que en el paso 1 del
+  // alta: lo tipeado actualiza el campo en el acto y viaja recién cuando la
+  // persona deja de escribir.
+  const [productSearch, setProductSearch] = useState('')
+  const catalog = useCatalogProducts(useDebouncedValue(productSearch))
   const provinces = useProvinces()
   const stocks = useProductStocks([
     ...new Set([...original, ...lines].map((line) => line.productId)),
@@ -228,12 +233,17 @@ export function OrderEditForm({
             toolbar={
               <NewLineToolbar
                 products={catalog.data ?? []}
-                productsLoading={catalog.isPending}
+                // `isFetching` además de `isPending`, igual que el paso 1: con
+                // `keepPreviousData`, una búsqueda que no trajo nada deja la
+                // lista vacía, y sin esto la pantalla diría «Ningún producto
+                // coincide.» mientras la búsqueda nueva todavía viaja.
+                productsLoading={catalog.isPending || catalog.isFetching}
                 addedIds={new Set(lines.map((line) => line.productId))}
                 warehouses={warehouses.data ?? []}
                 warehouseId={newLineWarehouse}
                 onWarehouseChange={setNewLineWarehouse}
                 onAdd={addLine}
+                onSearchChange={setProductSearch}
                 disabled={readOnly}
               />
             }

@@ -284,21 +284,28 @@ export function fetchOrderCount(status?: OrderStatus, search?: string): Promise<
 }
 
 /**
- * Cuántos productos trae el buscador del alta manual. Es el máximo que la API
- * permite por página (`per_page.clamp(1, 100)`).
+ * Cuántas coincidencias muestra el buscador del alta manual.
  *
- * `GET /products` no tiene parámetro de búsqueda —el index sólo pagina—, así
- * que el filtro por SKU o nombre corre del lado del cliente sobre esta página.
- * Un catálogo de más de cien productos deja los últimos fuera del buscador;
- * cuando eso pase, la salida es un `search` en el backend, no una segunda
- * página acá.
+ * Ya no es «el catálogo entero»: desde TESIS-62 el backend filtra, así que lo
+ * que llega son los productos que matchean lo tipeado, y veinte alcanzan de
+ * sobra para elegir uno. Antes se pedían cien y se filtraba en memoria, y un
+ * catálogo más grande dejaba productos que el buscador no encontraba nunca,
+ * sin que el operador pudiera distinguirlo de «no existe».
  */
-export const CATALOG_PAGE_SIZE = 100
+export const CATALOG_MATCHES = 20
 
-/** El catálogo de la empresa, para el buscador del paso 1 del alta manual. */
-export async function fetchCatalogProducts(): Promise<CatalogProduct[]> {
+/**
+ * Los productos que matchean el término, para el buscador del alta manual.
+ *
+ * Con el término vacío devuelve la primera página: el buscador recién abierto
+ * muestra algo en vez de nada, y el operador acota tipeando.
+ */
+export async function fetchCatalogProducts(search: string): Promise<CatalogProduct[]> {
+  const term = search.trim()
   const { data } = await client.get<{ data: ApiCatalogProduct[]; meta: ApiListMeta }>('/products', {
-    params: { page: 1, per_page: CATALOG_PAGE_SIZE },
+    // Un `search` vacío no viaja: el backend lo trataría como un filtro por
+    // cadena vacía. Mismo criterio que `toFilters` del listado de órdenes.
+    params: { page: 1, per_page: CATALOG_MATCHES, ...(term === '' ? {} : { search: term }) },
   })
 
   return data.data.map((product) => ({

@@ -3,6 +3,8 @@ import { client } from 'shared/api/client'
 import { describe, expect, it, vi } from 'vitest'
 
 import {
+  CATALOG_MATCHES,
+  fetchCatalogProducts,
   fetchOrder,
   fetchOrderShipment,
   fetchProductStocks,
@@ -239,5 +241,44 @@ describe('fetchProvinces', () => {
 
     expect(await fetchProvinces()).toEqual(['Buenos Aires', 'Córdoba'])
     expect(get).toHaveBeenCalledWith('/orders/provinces')
+  })
+})
+
+describe('fetchCatalogProducts', () => {
+  function capture() {
+    const sent: { params?: Record<string, unknown> }[] = []
+    vi.spyOn(client, 'get').mockImplementation((_url: string, config?: unknown) => {
+      sent.push(config as { params?: Record<string, unknown> })
+      return Promise.resolve(respond({ data: [], meta: { page: 1, per_page: 20, total: 0 } }))
+    })
+
+    return sent
+  }
+
+  // El filtro lo hace el backend desde TESIS-125: lo que esta capa tiene que
+  // garantizar es que el término llegue.
+  it('sends the term as the search parameter', async () => {
+    const sent = capture()
+
+    await fetchCatalogProducts('cable')
+
+    expect(sent[0].params).toEqual({ page: 1, per_page: CATALOG_MATCHES, search: 'cable' })
+  })
+
+  it('trims the term before sending it', async () => {
+    const sent = capture()
+
+    await fetchCatalogProducts('  cable  ')
+
+    expect(sent[0].params).toMatchObject({ search: 'cable' })
+  })
+
+  // Un `search` vacío haría que el backend filtre por cadena vacía: no viaja.
+  it('omits the parameter when nothing was typed', async () => {
+    const sent = capture()
+
+    await fetchCatalogProducts('   ')
+
+    expect(sent[0].params).toEqual({ page: 1, per_page: CATALOG_MATCHES })
   })
 })

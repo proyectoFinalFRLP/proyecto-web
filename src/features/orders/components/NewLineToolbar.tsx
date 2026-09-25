@@ -17,6 +17,8 @@ export interface NewLineToolbarProps {
   warehouseId: number | null
   onWarehouseChange: (warehouseId: number) => void
   onAdd: (item: OrderDraftItem) => void
+  /** Lo que se tipeó en el buscador: de eso sale la consulta al catálogo. */
+  onSearchChange: (search: string) => void
   disabled: boolean
 }
 
@@ -37,6 +39,7 @@ export function NewLineToolbar({
   warehouseId,
   onWarehouseChange,
   onAdd,
+  onSearchChange,
   disabled,
 }: NewLineToolbarProps) {
   if (disabled) return null
@@ -74,6 +77,7 @@ export function NewLineToolbar({
           products={products}
           loading={productsLoading}
           addedIds={addedIds}
+          onSearchChange={onSearchChange}
           onAdd={onAdd}
         />
       )}
