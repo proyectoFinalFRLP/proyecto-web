@@ -47,6 +47,8 @@ export type {
 } from './DataTable'
 export { FieldLabel, FieldRoot, FullRow, LabeledField } from './LabeledField'
 export type { LabeledFieldProps } from './LabeledField'
+export { ConfirmDialog } from './ConfirmDialog'
+export type { ConfirmDialogProps, ConfirmDialogTone } from './ConfirmDialog'
 export {
   ModalBody,
   ModalFooter,

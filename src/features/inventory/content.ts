@@ -58,6 +58,7 @@ export const inventoryCopy = {
       'Borrarlo haría desaparecer esos registros.',
     cancel: 'Cancelar',
     confirm: 'Eliminar',
+    close: 'Cerrar',
   },
   pagination: {
     previous: 'Página anterior',
