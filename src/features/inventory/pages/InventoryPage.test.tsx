@@ -1,6 +1,7 @@
-import { fireEvent, screen } from '@testing-library/react'
+import { act, fireEvent, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { useNotificationStore } from 'shared/store'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { renderWithTheme } from '../../../test/renderWithTheme'
 import type * as inventoryHooks from '../hooks/useInventory'
@@ -11,6 +12,7 @@ import {
   useProductPage,
   useWarehouses,
 } from '../hooks/useInventory'
+import type { ProductSummary } from '../types'
 
 import { InventoryPage } from './InventoryPage'
 
@@ -102,5 +104,49 @@ describe('InventoryPage · the tab in the URL', () => {
     fireEvent.click(tab('Todos'))
 
     expect(lastRequestedStatus()).toBeUndefined()
+  })
+})
+
+describe('InventoryPage · the delete notice', () => {
+  const PRODUCT: ProductSummary = {
+    id: 8842,
+    sku: 'SKU-8842-PL',
+    name: 'Arreglo de sensores serie G',
+    category: 'Electronics',
+    totalStock: 2710,
+    stockStatus: 'available',
+    inTransitQuantity: 0,
+    primaryWarehouse: { id: 1, name: 'CD Ezeiza', quantity: 2710 },
+    warehouseCount: 1,
+  }
+
+  afterEach(() => {
+    act(() => useNotificationStore.setState({ notifications: [] }))
+  })
+
+  // El aviso sale por el `NotificationHost` como el del resto de la app, no por
+  // un Snackbar propio de la pantalla con otro aspecto y otra duración.
+  it('announces the deletion through the app notifications', () => {
+    vi.mocked(useProductPage).mockReturnValue({
+      data: { products: [PRODUCT], total: 1 },
+      isPending: false,
+      isError: false,
+    } as never)
+    vi.mocked(useDeleteProduct).mockReturnValue({
+      ...IDLE_MUTATION,
+      mutate: vi.fn((_id: number, options: { onSuccess: () => void }) => options.onSuccess()),
+    } as never)
+    renderCatalog('/inventory')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Acciones del producto SKU-8842-PL' }))
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Eliminar' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Eliminar' }))
+
+    expect(useNotificationStore.getState().notifications).toEqual([
+      expect.objectContaining({
+        message: 'Arreglo de sensores serie G eliminado.',
+        severity: 'success',
+      }),
+    ])
   })
 })

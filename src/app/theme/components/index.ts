@@ -2,6 +2,7 @@ import type { ThemeOptions } from '@mui/material/styles'
 
 import type { ThemeMode } from '../tokens'
 
+import { muiAlert } from './alert'
 import { muiAppBar } from './appBar'
 import { muiButton } from './button'
 import { muiCard } from './card'
@@ -27,6 +28,7 @@ export function buildComponents(mode: ThemeMode, accent?: string): ThemeOptions[
     MuiOutlinedInput: muiOutlinedInput(mode, accent),
     MuiTextField: muiTextField(),
     MuiCard: muiCard(),
+    MuiAlert: muiAlert(),
     MuiDialog: muiDialog(),
     MuiBackdrop: muiBackdrop(),
     MuiTypography: muiTypography(),

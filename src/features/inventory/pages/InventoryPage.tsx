@@ -1,11 +1,12 @@
 import AddIcon from '@mui/icons-material/Add'
 import SearchIcon from '@mui/icons-material/Search'
-import { Box, Button, InputAdornment, Snackbar, Stack, TextField, Typography } from '@mui/material'
+import { Box, Button, InputAdornment, Stack, TextField, Typography } from '@mui/material'
 import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { ErrorFallback, LoadingSpinner, PageWrapper } from 'shared/components'
 import type { DataTableTab } from 'shared/components'
 import { useDebouncedValue } from 'shared/hooks/useDebouncedValue'
+import { notify } from 'shared/store'
 
 import { CreateProductModal } from '../components/CreateProductModal'
 import { DeleteProductDialog } from '../components/DeleteProductDialog'
@@ -66,7 +67,6 @@ export function InventoryPage() {
   const [search, setSearch] = useState('')
   const [creating, setCreating] = useState(false)
   const [removing, setRemoving] = useState<ProductSummary | undefined>(undefined)
-  const [notice, setNotice] = useState<string | null>(null)
 
   // Lo que se tipea actualiza el campo en el acto; lo que viaja a la API espera
   // a que la persona deje de escribir.
@@ -128,7 +128,7 @@ export function InventoryPage() {
 
     deleteMutation.mutate(removing.id, {
       onSuccess: () => {
-        setNotice(page.deleted(name))
+        notify(page.deleted(name), 'success')
         setRemoving(undefined)
         if (eraLaUltimaDeLaPagina) setPageNumber((current) => Math.max(current - 1, 1))
       },
@@ -237,7 +237,7 @@ export function InventoryPage() {
         onSubmit={(payload) => {
           createMutation.mutate(payload, {
             onSuccess: (created) => {
-              setNotice(page.saved(created.name))
+              notify(page.saved(created.name), 'success')
               setCreating(false)
             },
           })
@@ -250,13 +250,6 @@ export function InventoryPage() {
         blocked={deleteMutation.error?.status === RESTRICTED_STATUS}
         onConfirm={confirmRemove}
         onClose={() => setRemoving(undefined)}
-      />
-
-      <Snackbar
-        open={notice !== null}
-        autoHideDuration={4000}
-        onClose={() => setNotice(null)}
-        message={notice ?? undefined}
       />
     </PageWrapper>
   )
