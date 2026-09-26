@@ -14,8 +14,10 @@ import type {
   ProductStockByWarehouse,
   Shipment,
   ShipmentStatus,
+  ShippingQuote,
   UpdateOrderPayload,
 } from './types'
+import type { CreateOrderPayload, DispatchPayload, DraftQuotePayload } from './utils/shipping'
 
 // Frontera con la API Rails. Lo que entra en snake_case se traduce acá y sale
 // como el dominio en camelCase.
@@ -113,6 +115,16 @@ interface ApiShipment {
   shipping_cost: number | null
   courier: ApiCourier | null
   events: ApiShipmentEvent[]
+}
+
+// Una opción de la cotización. `shipping_cost` es un BigDecimal del lado de
+// Rails, que el JSON serializa como string ("2500.0"): se convierte acá.
+interface ApiShippingQuote {
+  company_integration_id: number
+  dispatch_integration_id: number
+  provider_name: string
+  shipping_cost: string | number
+  estimated_days: number | null
 }
 
 // La fila del listado de envíos: sólo se lee para saber cuántos hay y cuál es.
@@ -363,4 +375,62 @@ export async function fetchProvinces(): Promise<string[]> {
   const { data } = await client.get<{ data: string[] }>('/orders/provinces')
 
   return data.data
+}
+
+/**
+ * El costo cotizado, redondeado a centavos como lo va a guardar el envío
+ * (`decimal(10,2)`, que redondea la mitad hacia arriba). Un courier puede
+ * contestar con más decimales, y el costo elegido viaja al despacho: sin esto
+ * la pantalla mostraba un total y el detalle de la orden otro. Con
+ * `"1.005"`, `Math.round(1.005 * 100)` da 100 —el float es 1.00499…— y el
+ * backend guarda 1.01. Correr la coma en el texto (`"1.005e2"` es 100.5
+ * exacto) redondea el decimal que mandó el backend, no su aproximación binaria.
+ */
+function toCostInCents(cost: string | number): number {
+  return Math.round(Number(`${cost}e2`)) / 100
+}
+
+function toShippingQuote(quote: ApiShippingQuote): ShippingQuote {
+  return {
+    quoteIntegrationId: quote.company_integration_id,
+    dispatchIntegrationId: quote.dispatch_integration_id,
+    providerName: quote.provider_name,
+    shippingCost: toCostInCents(quote.shipping_cost),
+    estimatedDays: quote.estimated_days,
+  }
+}
+
+/**
+ * Las opciones de envío para el borrador del alta manual (TESIS-131), antes de
+ * que la orden exista. Una lista vacía no es un error: quiere decir que ningún
+ * operador contestó a tiempo, y la pantalla lo muestra distinto de un fallo.
+ */
+export async function quoteDraft(payload: DraftQuotePayload): Promise<ShippingQuote[]> {
+  const { data } = await client.post<{ data: ApiShippingQuote[] }>('/quotes', payload)
+
+  return data.data.map(toShippingQuote)
+}
+
+/** El alta de la orden (TESIS-42). Es lo que descuenta el stock. */
+export async function createOrder(payload: CreateOrderPayload): Promise<OrderDetail> {
+  const response = await client.post<ApiOrderDetail>('/orders', payload)
+
+  return toOrderDetail(response.data, readVersion(response.headers.etag))
+}
+
+/** Abre el envío de la orden, `pending` y sin courier (TESIS-105). */
+export async function createOrderShipment(orderId: number): Promise<Shipment> {
+  const { data } = await client.post<ApiShipment>(`/orders/${orderId}/shipment`)
+
+  return toShipment(data)
+}
+
+/** Despacha el envío con el operador elegido: pide la etiqueta (TESIS-47). */
+export async function dispatchShipment(
+  shipmentId: number,
+  payload: DispatchPayload,
+): Promise<Shipment> {
+  const { data } = await client.post<ApiShipment>(`/shipments/${shipmentId}/dispatch`, payload)
+
+  return toShipment(data)
 }

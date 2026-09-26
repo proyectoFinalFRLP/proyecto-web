@@ -6,9 +6,9 @@ import type { StatusVariant } from 'shared/components'
 
 import { ordersCopy } from '../../content'
 import type { CoverageLevel, WarehouseCoverage } from '../../utils/shipping'
+import { SelectableCard } from '../SelectableCard'
 
 import {
-  Option,
   OptionHeader,
   OptionTitle,
   OptionsGrid,
@@ -55,7 +55,7 @@ export function OriginWarehousePicker({
         const detailId = `origin-warehouse-${warehouse.id}-detail`
 
         return (
-          <Option
+          <SelectableCard
             key={warehouse.id}
             role="radio"
             aria-checked={selected}
@@ -98,7 +98,7 @@ export function OriginWarehousePicker({
                 <ScreenReaderOnly>{copy.missingDetail(itsCoverage.missing)}</ScreenReaderOnly>
               ) : null}
             </span>
-          </Option>
+          </SelectableCard>
         )
       })}
     </OptionsGrid>
