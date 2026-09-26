@@ -51,7 +51,7 @@ export const SectionBar = styled(Box)(({ theme }) => ({
   height: 20,
   flexShrink: 0,
   borderRadius: 9999,
-  backgroundColor: theme.palette.primary.main,
+  backgroundColor: theme.vars.palette.primary.main,
 }))
 
 // ── Grillas ──────────────────────────────────────────────────────────────────
@@ -85,7 +85,7 @@ export const WarehouseRow = styled(Box)(({ theme }) => ({
   gap: theme.spacing(2),
   padding: theme.spacing(2),
   borderRadius: ROW_RADIUS,
-  border: `1px solid ${theme.palette.divider}`,
+  border: `1px solid ${theme.vars.palette.divider}`,
   [theme.breakpoints.down('sm')]: {
     flexWrap: 'wrap',
     // El ícono se va en mobile: la fila ya se identifica por el nombre y ese
@@ -102,8 +102,8 @@ export const WarehouseIconBox = styled(Box)(({ theme }) => ({
   alignItems: 'center',
   justifyContent: 'center',
   borderRadius: ICON_RADIUS,
-  backgroundColor: theme.palette.primary.container,
-  color: theme.palette.primary.main,
+  backgroundColor: theme.vars.palette.primary.container,
+  color: theme.vars.palette.primary.main,
   '& svg': { display: 'block', fontSize: WAREHOUSE_ICON_GLYPH },
 }))
 
@@ -119,7 +119,7 @@ export const WarehouseName = styled(Typography)({
 // La dirección baja el peso de `labelMd` (600) para que el nombre del depósito
 // mande en la fila.
 export const WarehouseAddress = styled(Typography)(({ theme }) => ({
-  color: theme.palette.text.secondary,
+  color: theme.vars.palette.text.secondary,
   fontWeight: 400,
 }))
 
@@ -132,7 +132,7 @@ export const QuantityLabel = styled(Typography)(({ theme }) => ({
 
 export const QuantityError = styled(Typography)(({ theme }) => ({
   marginTop: theme.spacing(0.5),
-  color: theme.palette.error.main,
+  color: theme.vars.palette.error.main,
 }))
 
 export const QuantityField = styled(Box)(({ theme }) => ({
@@ -149,11 +149,11 @@ export const AddWarehouseButton = styled(Button)(({ theme }) => ({
   borderRadius: 9999,
   paddingInline: theme.spacing(1.5),
   paddingBlock: theme.spacing(0.75),
-  backgroundColor: theme.palette.primary.container,
-  color: theme.palette.primary.main,
+  backgroundColor: theme.vars.palette.primary.container,
+  color: theme.vars.palette.primary.main,
   fontSize: 12,
   fontWeight: 700,
   '&:hover': {
-    backgroundColor: `color-mix(in srgb, ${theme.palette.primary.main} 20%, transparent)`,
+    backgroundColor: `color-mix(in srgb, ${theme.vars.palette.primary.main} 20%, transparent)`,
   },
 }))

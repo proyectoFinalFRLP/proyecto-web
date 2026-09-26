@@ -17,6 +17,6 @@ export const TrackingRow = styled(Box)(({ theme }) => ({
 
 // El número va en el color de acción: es lo que el operador viene a buscar.
 export const TrackingValue = styled(Typography)(({ theme }) => ({
-  color: theme.palette.primary.main,
+  color: theme.vars.palette.primary.main,
   overflowWrap: 'anywhere',
 }))

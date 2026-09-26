@@ -25,6 +25,18 @@ describe('NotificationHost', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('Producto guardado.')
   })
 
+  // Con un tema de dos esquemas, un hex horneado no repinta al cambiar de modo
+  // (TESIS-104): el fondo opaco del toast sale de la variable del esquema activo.
+  it('paints the toast from the color scheme variables', () => {
+    renderWithTheme(<NotificationHost />)
+
+    act(() => notify('Producto guardado.', 'success'))
+
+    expect(getComputedStyle(screen.getByRole('alert')).backgroundColor).toBe(
+      'var(--mui-palette-background-paper)',
+    )
+  })
+
   // Apiladas se tapan entre sí y ninguna se lee: la segunda espera su turno.
   it('shows one notification at a time, in order', () => {
     renderWithTheme(<NotificationHost />)

@@ -118,7 +118,13 @@ export function StatusBadge({ status, label, size = 'md', ...rest }: StatusBadge
 ## 4. Reglas de estilo (transversales)
 
 - **Ningún valor crudo fuera de `tokens.ts`.** Colores, radios, duraciones y breakpoints se leen del
-  theme (`theme.palette`, `theme.spacing`, `theme.transitions`), nunca hardcodeados en el componente.
+  theme (`theme.vars.palette`, `theme.spacing`, `theme.transitions`), nunca hardcodeados en el
+  componente.
+- **Los colores, de `theme.vars`, nunca de `theme.palette`.** `theme.vars` devuelve la variable CSS
+  del esquema activo; `theme.palette` hornea el hex del esquema por defecto y ese componente no se
+  repinta al alternar el modo. Lo que cambia de forma entre claro y oscuro va en
+  `theme.applyStyles('dark', {...})`, y las transparencias en `theme.alpha(theme.vars.palette.X.main, a)`
+  (ADR-007, actualización de TESIS-104).
 - **Un componente por archivo** (`react/no-multi-comp`; los stateless pueden ser excepción).
 - **Textos de UI centralizados**, no literales sueltos en el JSX (ver el patrón de `content.ts` en
   la feature `design-system`).

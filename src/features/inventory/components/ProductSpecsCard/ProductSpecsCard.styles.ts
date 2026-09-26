@@ -38,7 +38,7 @@ export const SpecItem = styled(Box)(({ theme }) => ({
 }))
 
 export const SpecLabel = styled(Typography)(({ theme }) => ({
-  color: theme.palette.text.secondary,
+  color: theme.vars.palette.text.secondary,
 }))
 
 interface SpecValueProps {
@@ -54,7 +54,7 @@ export const SpecValue = styled(Typography, {
   shouldForwardProp: (prop) => !TRANSIENT_PROPS.has(prop as string),
 })<SpecValueProps>(({ theme, mono, unknown }) => ({
   fontWeight: theme.typography.labelMd.fontWeight,
-  color: unknown ? theme.palette.text.secondary : theme.palette.text.primary,
+  color: unknown ? theme.vars.palette.text.secondary : theme.vars.palette.text.primary,
   ...(mono ? { fontFamily: theme.typography.dataMono.fontFamily } : {}),
   overflowWrap: 'anywhere',
 }))

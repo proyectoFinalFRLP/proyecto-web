@@ -19,7 +19,7 @@ export function muiAlert(): Components<Theme>['MuiAlert'] {
         if (ownerState.variant === 'filled') return {}
 
         // Mismo orden que MUI: `color` pisa a `severity`, y sin ninguno es `success`.
-        const color = theme.palette[ownerState.color ?? ownerState.severity ?? 'success']
+        const color = theme.vars.palette[ownerState.color ?? ownerState.severity ?? 'success']
 
         return {
           ...theme.typography.bodyMd,
@@ -33,10 +33,12 @@ export function muiAlert(): Components<Theme>['MuiAlert'] {
           // Sólo la X va en gris, como en el diseño. La zona de acción también
           // aloja botones como "Reintentar" (`color="inherit"`), y esos tienen
           // que conservar el tono de la intención: son la salida del aviso.
-          '& .MuiAlert-action > .MuiIconButton-root': { color: theme.palette.text.secondary },
+          '& .MuiAlert-action > .MuiIconButton-root': { color: theme.vars.palette.text.secondary },
           // Con título, el título lleva el tono y el cuerpo baja a secundario.
           '& .MuiAlertTitle-root': { fontWeight: 600, color: color.onContainer },
-          '&:has(.MuiAlertTitle-root) .MuiAlert-message': { color: theme.palette.text.secondary },
+          '&:has(.MuiAlertTitle-root) .MuiAlert-message': {
+            color: theme.vars.palette.text.secondary,
+          },
         }
       },
     },

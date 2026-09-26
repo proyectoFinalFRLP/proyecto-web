@@ -35,8 +35,8 @@ export const SectionIconBox = styled(Box)(({ theme }) => ({
   alignItems: 'center',
   justifyContent: 'center',
   borderRadius: 8,
-  backgroundColor: theme.palette.secondary.container,
-  color: theme.palette.secondary.main,
+  backgroundColor: theme.vars.palette.secondary.container,
+  color: theme.vars.palette.secondary.main,
   '& svg': { display: 'block', fontSize: SECTION_ICON_GLYPH },
 }))
 
@@ -77,7 +77,7 @@ export const DimensionsRow = styled(Box)(({ theme }) => ({
 
 export const DimensionsSeparator = styled(Box)(({ theme }) => ({
   flexShrink: 0,
-  color: theme.palette.text.secondary,
+  color: theme.vars.palette.text.secondary,
   fontSize: 12,
   lineHeight: 1,
   userSelect: 'none',
@@ -97,9 +97,9 @@ export const StockRow = styled(Box)(({ theme }) => ({
   gap: theme.spacing(3),
   padding: theme.spacing(2.5),
   borderRadius: 12,
-  border: `1px solid ${theme.palette.divider}`,
+  border: `1px solid ${theme.vars.palette.divider}`,
   // Superficie recesada, igual que el relleno de los inputs del DS.
-  backgroundColor: theme.palette.background.default,
+  backgroundColor: theme.vars.palette.background.default,
   [theme.breakpoints.down('sm')]: {
     flexDirection: 'column',
     gap: theme.spacing(2),
@@ -122,11 +122,11 @@ export const AddWarehouseButton = styled(Button)(({ theme }) => ({
   borderRadius: 8,
   paddingInline: theme.spacing(1.5),
   paddingBlock: theme.spacing(0.75),
-  border: `1px solid color-mix(in srgb, ${theme.palette.secondary.main} 20%, transparent)`,
-  color: theme.palette.secondary.main,
+  border: `1px solid color-mix(in srgb, ${theme.vars.palette.secondary.main} 20%, transparent)`,
+  color: theme.vars.palette.secondary.main,
   fontSize: 12,
   fontWeight: 700,
   '&:hover': {
-    backgroundColor: `color-mix(in srgb, ${theme.palette.secondary.main} 10%, transparent)`,
+    backgroundColor: `color-mix(in srgb, ${theme.vars.palette.secondary.main} 10%, transparent)`,
   },
 }))

@@ -10,8 +10,8 @@ export function muiCard(): Components<Theme>['MuiCard'] {
       root: ({ theme }) => ({
         borderRadius: radius.lg,
         backgroundImage: 'none',
-        border: theme.elevation[1].border,
-        boxShadow: theme.elevation[1].boxShadow,
+        border: theme.vars.elevation[1].border,
+        boxShadow: theme.vars.elevation[1].boxShadow,
       }),
     },
   }

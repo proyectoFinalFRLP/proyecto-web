@@ -33,7 +33,7 @@ export const ModalHeader = styled(Box)(({ theme }) => ({
   alignItems: 'flex-start',
   gap: theme.spacing(2),
   padding: theme.spacing(3, 3, 2),
-  borderBottom: `1px solid ${theme.palette.divider}`,
+  borderBottom: `1px solid ${theme.vars.palette.divider}`,
   flexShrink: 0,
 }))
 
@@ -74,8 +74,8 @@ export const ModalFooter = styled(Box)(({ theme }) => ({
   justifyContent: 'flex-end',
   gap: theme.spacing(2),
   padding: theme.spacing(2, 3),
-  borderTop: `1px solid ${theme.palette.divider}`,
-  backgroundColor: theme.palette.background.default,
+  borderTop: `1px solid ${theme.vars.palette.divider}`,
+  backgroundColor: theme.vars.palette.background.default,
   flexShrink: 0,
   // En pantallas chicas el pie apila la nota sobre los botones.
   [theme.breakpoints.down('sm')]: {
@@ -87,7 +87,7 @@ export const ModalFooter = styled(Box)(({ theme }) => ({
 // Texto del pie a la izquierda de las acciones ("Actualizado hace 2 horas").
 export const ModalFooterNote = styled(Typography)(({ theme }) => ({
   marginRight: 'auto',
-  color: theme.palette.text.secondary,
+  color: theme.vars.palette.text.secondary,
   [theme.breakpoints.down('sm')]: { marginRight: 0 },
 }))
 

@@ -11,6 +11,6 @@ export const DangerIcon = styled(Box)(({ theme }) => ({
   width: theme.spacing(5),
   height: theme.spacing(5),
   borderRadius: theme.shape.borderRadius,
-  backgroundColor: theme.palette.error.container,
-  color: theme.palette.error.main,
+  backgroundColor: theme.vars.palette.error.container,
+  color: theme.vars.palette.error.main,
 }))

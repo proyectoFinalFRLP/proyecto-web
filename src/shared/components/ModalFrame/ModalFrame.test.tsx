@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { renderWithTheme } from '../../../test/renderWithTheme'
 
 import { ModalFrame } from './ModalFrame'
-import { ModalBody } from './ModalFrame.styles'
+import { ModalBody, ModalFooter } from './ModalFrame.styles'
 import type { ModalFrameProps } from './ModalFrame.types'
 
 function renderFrame(overrides: Partial<ModalFrameProps> = {}) {
@@ -68,6 +68,16 @@ describe('ModalFrame', () => {
     renderFrame({ size: 'lg' })
 
     expect(screen.getByRole('dialog')).toHaveStyle({ maxWidth: '880px' })
+  })
+
+  // Con un tema de dos esquemas, un hex horneado no repinta al cambiar de modo
+  // (TESIS-104): el pie tiene que leer la variable del esquema activo.
+  it('paints its footer from the color scheme variables', () => {
+    renderFrame({ children: <ModalFooter data-testid="footer" /> })
+
+    expect(getComputedStyle(screen.getByTestId('footer')).backgroundColor).toBe(
+      'var(--mui-palette-background-default)',
+    )
   })
 
   it('can present itself as an alert dialog described by its body', () => {

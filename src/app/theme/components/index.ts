@@ -1,7 +1,5 @@
 import type { ThemeOptions } from '@mui/material/styles'
 
-import type { ThemeMode } from '../tokens'
-
 import { muiAlert } from './alert'
 import { muiAppBar } from './appBar'
 import { muiButton } from './button'
@@ -16,23 +14,23 @@ import { muiTypography } from './typography'
 // Compone los overrides de MUI. Un archivo por componente: al sumar nuevos,
 // se agrega su factory acá y su propio archivo en esta carpeta.
 //
-// `accent` es el acento ya resuelto (el del tenant o el del DS). Lo reciben los
-// dos overrides que lo leían directo de los tokens y por eso no se enteraban del
-// branding: el anillo de foco global y el input enfocado.
-export function buildComponents(mode: ThemeMode, accent?: string): ThemeOptions['components'] {
+// Ninguno recibe el modo: leen los colores de `theme.vars` (una variable CSS por
+// esquema) y lo que cambia de forma entre claro y oscuro va en
+// `theme.applyStyles`. Así un mismo tema sirve para los dos esquemas (TESIS-104).
+export function buildComponents(): ThemeOptions['components'] {
   return {
-    MuiCssBaseline: muiCssBaseline(mode, accent),
+    MuiCssBaseline: muiCssBaseline(),
     MuiAppBar: muiAppBar(),
-    MuiSkeleton: muiSkeleton(mode),
-    MuiButton: muiButton(mode),
-    MuiOutlinedInput: muiOutlinedInput(mode, accent),
+    MuiSkeleton: muiSkeleton(),
+    MuiButton: muiButton(),
+    MuiOutlinedInput: muiOutlinedInput(),
     MuiTextField: muiTextField(),
     MuiCard: muiCard(),
     MuiAlert: muiAlert(),
     MuiDialog: muiDialog(),
     MuiBackdrop: muiBackdrop(),
     MuiTypography: muiTypography(),
-    MuiToggleButtonGroup: muiToggleButtonGroup(mode),
+    MuiToggleButtonGroup: muiToggleButtonGroup(),
     MuiToggleButton: muiToggleButton(),
   }
 }

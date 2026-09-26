@@ -140,7 +140,7 @@ export const badgeSamples: { status: StatusVariant; label: string }[] = [
 
 export const badgeSizes: StatusBadgeSize[] = ['sm', 'md', 'lg']
 
-// Niveles de la escala de elevación (theme.elevation[level]).
+// Niveles de la escala de elevación (theme.vars.elevation[level]).
 export const elevationLevels: { level: number; label: string }[] = [
   { level: 0, label: '0 · base' },
   { level: 1, label: '1 · card' },

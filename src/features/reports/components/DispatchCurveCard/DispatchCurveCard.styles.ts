@@ -45,7 +45,7 @@ export const AxisColumn = styled(Box)({
 export const AxisTick = styled(Typography)(({ theme }) => ({
   ...theme.typography.labelSm,
   fontFamily: theme.typography.dataMono.fontFamily,
-  color: theme.palette.text.secondary,
+  color: theme.vars.palette.text.secondary,
   whiteSpace: 'nowrap',
 }))
 
@@ -58,19 +58,19 @@ export const ChartSvg = styled('svg')({
 })
 
 export const GridLine = styled('line')(({ theme }) => ({
-  stroke: theme.palette.divider,
+  stroke: theme.vars.palette.divider,
   strokeWidth: 1,
   vectorEffect: 'non-scaling-stroke',
 }))
 
 export const AreaPath = styled('path')(({ theme }) => ({
-  fill: theme.palette.primary.main,
+  fill: theme.vars.palette.primary.main,
   opacity: AREA_OPACITY,
 }))
 
 export const LinePath = styled('path')(({ theme }) => ({
   fill: 'none',
-  stroke: theme.palette.primary.main,
+  stroke: theme.vars.palette.primary.main,
   strokeWidth: LINE_WIDTH,
   strokeLinecap: 'round',
   vectorEffect: 'non-scaling-stroke',
@@ -85,5 +85,5 @@ export const LabelsRow = styled(Box)({
 
 export const DayLabel = styled(Typography)(({ theme }) => ({
   ...theme.typography.labelSm,
-  color: theme.palette.text.secondary,
+  color: theme.vars.palette.text.secondary,
 }))

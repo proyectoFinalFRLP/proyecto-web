@@ -10,13 +10,13 @@ const TOAST_MAX_WIDTH = 520
 // ver la pantalla de atrás, así que el tinte se pinta encima del `paper` opaco;
 // y lleva la sombra del nivel 2, la de lo que se despliega por encima del resto.
 export const Toast = styled(Alert)(({ theme, severity = 'info' }) => {
-  const tint = theme.palette[severity].container
+  const tint = theme.vars.palette[severity].container
 
   return {
     width: '100%',
     maxWidth: TOAST_MAX_WIDTH,
-    backgroundColor: theme.palette.background.paper,
+    backgroundColor: theme.vars.palette.background.paper,
     backgroundImage: `linear-gradient(${tint}, ${tint})`,
-    boxShadow: theme.elevation[2].boxShadow,
+    boxShadow: theme.vars.elevation[2].boxShadow,
   }
 })
