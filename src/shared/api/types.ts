@@ -26,4 +26,9 @@ export interface ApiError {
  */
 export interface ApiRequestError extends Error {
   status?: number
+  /**
+   * Qué campo falló y por qué, cuando la API lo dice (el 422 del alta de una
+   * integración: `{ error, fields: { "settings.shop_domain": ["required"] } }`).
+   */
+  fields?: Record<string, string[]>
 }
