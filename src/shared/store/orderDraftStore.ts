@@ -34,11 +34,40 @@ export interface OrderDraftItem {
   quantity: number
 }
 
+/**
+ * El depósito del que sale la mercadería (paso 2). Uno solo para toda la orden:
+ * es el `warehouse_id` que el paso 3 manda en cada línea de `POST /orders`, y
+ * el `origin_warehouse_id` de la cotización. El nombre se copia para que el
+ * paso 3 lo muestre sin volver a pedir los depósitos.
+ */
+export interface OrderDraftOrigin {
+  warehouseId: number
+  name: string
+}
+
+/**
+ * El domicilio de entrega (paso 2), con los mismos cuatro datos que guarda la
+ * orden: `customer_address`, `customer_city`, `customer_province` y
+ * `customer_zip_code` (TESIS-128).
+ */
+export interface OrderDraftDestination {
+  address: string
+  city: string
+  province: string
+  zipCode: string
+}
+
 interface OrderDraftState {
   /** `null` hasta que el paso 1 se completa por primera vez. */
   customer: OrderDraftCustomer | null
   items: OrderDraftItem[]
+  /** `null` hasta que el paso 2 elige un depósito. */
+  origin: OrderDraftOrigin | null
+  /** `null` hasta que el paso 2 se completa por primera vez. */
+  destination: OrderDraftDestination | null
   setCustomer: (customer: OrderDraftCustomer) => void
+  setOrigin: (origin: OrderDraftOrigin | null) => void
+  setDestination: (destination: OrderDraftDestination) => void
   /** Suma la línea. Si el producto ya estaba, la reemplaza: un SKU es una sola fila. */
   addItem: (item: OrderDraftItem) => void
   updateItem: (
@@ -46,17 +75,19 @@ interface OrderDraftState {
     patch: Partial<Pick<OrderDraftItem, 'quantity' | 'unitPrice'>>,
   ) => void
   removeItem: (productId: number) => void
-  /** Cancelar la orden o confirmarla: el borrador vuelve a cero. */
+  /** Cancelar la orden, confirmarla o cerrar sesión: el borrador vuelve a cero. */
   clearDraft: () => void
 }
 
-const EMPTY_DRAFT = { customer: null, items: [] }
+const EMPTY_DRAFT = { customer: null, items: [], origin: null, destination: null }
 
 export const useOrderDraftStore = create<OrderDraftState>()(
   persist(
     (set) => ({
       ...EMPTY_DRAFT,
       setCustomer: (customer) => set({ customer }),
+      setOrigin: (origin) => set({ origin }),
+      setDestination: (destination) => set({ destination }),
       addItem: (item) =>
         set((state) => {
           const index = state.items.findIndex((row) => row.productId === item.productId)
@@ -81,7 +112,12 @@ export const useOrderDraftStore = create<OrderDraftState>()(
     {
       name: 'order-draft-store',
       storage: createJSONStorage(() => sessionStorage),
-      partialize: (state) => ({ customer: state.customer, items: state.items }),
+      partialize: (state) => ({
+        customer: state.customer,
+        items: state.items,
+        origin: state.origin,
+        destination: state.destination,
+      }),
     },
   ),
 )

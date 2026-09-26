@@ -35,9 +35,9 @@ export const MarkBox = styled(Box)(({ theme }) => ({
   alignItems: 'center',
   justifyContent: 'center',
   borderRadius: 4,
-  backgroundColor: `color-mix(in srgb, ${theme.palette.secondary.main} 20%, transparent)`,
-  border: `2px solid ${theme.palette.secondary.main}`,
-  color: theme.palette.secondary.main,
+  backgroundColor: `color-mix(in srgb, ${theme.vars.palette.secondary.main} 20%, transparent)`,
+  border: `2px solid ${theme.vars.palette.secondary.main}`,
+  color: theme.vars.palette.secondary.main,
 }))
 
 export const CropMark = styled(Box, {
@@ -46,7 +46,7 @@ export const CropMark = styled(Box, {
   position: 'absolute',
   width: CROP_MARK,
   height: CROP_MARK,
-  backgroundColor: theme.palette.secondary.main,
+  backgroundColor: theme.vars.palette.secondary.main,
   pointerEvents: 'none',
   ...(corner === 'tl' && { top: -CROP_MARK / 2, left: -CROP_MARK / 2 }),
   ...(corner === 'tr' && { top: -CROP_MARK / 2, right: -CROP_MARK / 2 }),
@@ -89,5 +89,5 @@ export const TaglineRule = styled(Box)(({ theme }) => ({
   flex: 1,
   minWidth: 8,
   height: 2,
-  backgroundColor: `color-mix(in srgb, ${theme.palette.secondary.main} 40%, transparent)`,
+  backgroundColor: `color-mix(in srgb, ${theme.vars.palette.secondary.main} 40%, transparent)`,
 }))

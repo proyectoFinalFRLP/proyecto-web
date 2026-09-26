@@ -1,10 +1,11 @@
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined'
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
-import { Box, Button, Snackbar, Stack, Typography } from '@mui/material'
+import { Box, Button, Stack, Typography } from '@mui/material'
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { ErrorFallback, LoadingSpinner, PageWrapper } from 'shared/components'
+import { notify } from 'shared/store'
 
 import { EditProductModal } from '../components/EditProductModal'
 import { MasterStockCard } from '../components/MasterStockCard'
@@ -172,7 +173,6 @@ export function ProductDetailPage() {
 
     void navigate(pathname, { replace: true, state: null })
   }, [abrirEdicion, navigate, pathname])
-  const [savedName, setSavedName] = useState<string | null>(null)
   // Estado del producto cuando el modal lo abrió. Se guarda para poder decir
   // QUÉ cambió si la API rechaza el guardado por versión vieja (TESIS-101).
   const [baseline, setBaseline] = useState<Product | undefined>(undefined)
@@ -207,7 +207,7 @@ export function ProductDetailPage() {
     const name = product.data?.name ?? ''
     updateMutation.mutate(payload, {
       onSuccess: () => {
-        setSavedName(name)
+        notify(page.saved(name), 'success')
         setEditing(false)
         setBaseline(undefined)
       },
@@ -303,13 +303,6 @@ export function ProductDetailPage() {
           setBaseline(undefined)
         }}
         onSubmit={save}
-      />
-
-      <Snackbar
-        open={savedName !== null}
-        autoHideDuration={4000}
-        onClose={() => setSavedName(null)}
-        message={savedName === null ? undefined : page.saved(savedName)}
       />
     </PageWrapper>
   )

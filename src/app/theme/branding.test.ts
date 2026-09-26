@@ -1,8 +1,18 @@
+import type { TenantBranding } from 'shared/api'
 import { describe, expect, it } from 'vitest'
 
 import { brandingFromSlug } from './branding'
 import { createAppTheme } from './theme'
 import { roleColors } from './tokens'
+import type { ThemeMode } from './tokens'
+
+// La paleta de un esquema. El tema trae los dos (TESIS-104): el branding de cada
+// esquema entra por su lado, así que los casos piden el que les importa.
+function paletteOf(mode: ThemeMode, branding?: TenantBranding) {
+  const scheme = createAppTheme({ [mode]: branding }).colorSchemes[mode]
+  if (!scheme) throw new Error(`el tema no trae el esquema ${mode}`)
+  return scheme.palette
+}
 
 describe('createAppTheme without tenant branding', () => {
   // El branding es aditivo: sin config, el tema tiene que ser exactamente el que
@@ -11,7 +21,7 @@ describe('createAppTheme without tenant branding', () => {
     ['dark', roleColors.dark.primary, '#051424', roleColors.dark.accent],
     ['light', roleColors.light.primary, '#ffffff', roleColors.light.accent],
   ] as const)('keeps the design system palette in %s', (mode, primary, onPrimary, accent) => {
-    const { palette } = createAppTheme(mode)
+    const palette = paletteOf(mode)
 
     expect(palette.primary.main).toBe(primary)
     expect(palette.primary.contrastText).toBe(onPrimary)
@@ -22,7 +32,7 @@ describe('createAppTheme without tenant branding', () => {
 
 describe('createAppTheme with tenant branding', () => {
   it('repaints primary and accent with the colors of the tenant', () => {
-    const { palette } = createAppTheme('dark', {
+    const palette = paletteOf('dark', {
       primary_color: '#2E7D32',
       accent_color: '#66BB6A',
     })
@@ -34,12 +44,8 @@ describe('createAppTheme with tenant branding', () => {
   // El primario del DS en dark es claro y lleva texto oscuro; un verde oscuro de
   // una empresa lleva texto blanco. Por eso el texto se mide en vez de fijarse.
   it('picks the text that can be read over the color of the tenant', () => {
-    expect(createAppTheme('dark', { primary_color: '#2E7D32' }).palette.primary.contrastText).toBe(
-      '#ffffff',
-    )
-    expect(createAppTheme('light', { primary_color: '#8ed5ff' }).palette.primary.contrastText).toBe(
-      '#051424',
-    )
+    expect(paletteOf('dark', { primary_color: '#2E7D32' }).primary.contrastText).toBe('#ffffff')
+    expect(paletteOf('light', { primary_color: '#8ed5ff' }).primary.contrastText).toBe('#051424')
   })
 
   // Un jsonb lo carga una persona: puede traer cualquier cosa. Un color que MUI
@@ -47,19 +53,21 @@ describe('createAppTheme with tenant branding', () => {
   it.each([['verde'], ['rgb(46, 125, 50)'], ['']])(
     'falls back to the design system when the color is %s',
     (color) => {
-      const { palette } = createAppTheme('dark', { primary_color: color })
+      const palette = paletteOf('dark', { primary_color: color })
 
       expect(palette.primary.main).toBe(roleColors.dark.primary)
     },
   )
 
   it('leaves the rest of the design system alone', () => {
-    const branded = createAppTheme('dark', { primary_color: '#2E7D32' })
-    const plain = createAppTheme('dark')
+    const branded = paletteOf('dark', { primary_color: '#2E7D32' })
+    const plain = paletteOf('dark')
 
-    expect(branded.palette.background.default).toBe(plain.palette.background.default)
-    expect(branded.palette.success.main).toBe(plain.palette.success.main)
-    expect(branded.typography.fontFamily).toBe(plain.typography.fontFamily)
+    expect(branded.background.default).toBe(plain.background.default)
+    expect(branded.success.main).toBe(plain.success.main)
+    expect(createAppTheme({ dark: { primary_color: '#2E7D32' } }).typography.fontFamily).toBe(
+      createAppTheme().typography.fontFamily,
+    )
   })
 })
 
@@ -82,7 +90,7 @@ describe('brandingFromSlug', () => {
   // tema igual que la config del backend.
   it('produces a color the theme accepts', () => {
     const branding = brandingFromSlug('sur', 'light')
-    const { palette } = createAppTheme('light', branding)
+    const palette = paletteOf('light', branding)
 
     expect(palette.primary.main).toBe(branding.primary_color)
   })

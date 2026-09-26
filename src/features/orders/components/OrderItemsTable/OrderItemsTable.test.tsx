@@ -15,6 +15,7 @@ const LINES: OrderLine[] = [
     productName: 'Nodo sensor industrial v3',
     quantity: 8,
     unitPrice: 120000,
+    warehouseId: 1,
   },
   {
     id: 2,
@@ -23,6 +24,7 @@ const LINES: OrderLine[] = [
     productName: 'Kit de fibra óptica',
     quantity: 57,
     unitPrice: 3313,
+    warehouseId: 1,
   },
 ]
 

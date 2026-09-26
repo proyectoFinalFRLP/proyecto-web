@@ -18,7 +18,7 @@ export const HeaderRow = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
   gap: theme.spacing(1),
-  '& > svg': { marginLeft: 'auto', color: theme.palette.text.secondary, display: 'block' },
+  '& > svg': { marginLeft: 'auto', color: theme.vars.palette.text.secondary, display: 'block' },
 }))
 
 export const Rows = styled(Box)(({ theme }) => ({
@@ -53,6 +53,6 @@ export const WarehouseName = styled(Typography)({
 // Las unidades en la monoespaciada del DS, como cualquier número de la pantalla.
 export const StoredUnits = styled(Typography)(({ theme }) => ({
   fontFamily: theme.typography.dataMono.fontFamily,
-  color: theme.palette.text.secondary,
+  color: theme.vars.palette.text.secondary,
   whiteSpace: 'nowrap',
 }))

@@ -12,13 +12,11 @@ export const menuPaperSx = (theme: Theme) => ({
   maxWidth: 260,
   maxHeight: 320,
   borderRadius: '8px',
-  border: `1px solid ${theme.palette.divider}`,
-  backgroundColor: theme.palette.background.paper,
+  border: `1px solid ${theme.vars.palette.divider}`,
+  backgroundColor: theme.vars.palette.background.paper,
   backgroundImage: 'none',
-  boxShadow:
-    theme.palette.mode === 'dark'
-      ? '0 12px 32px rgba(0,0,0,0.5)'
-      : '0 12px 32px rgba(16,24,40,0.12)',
+  boxShadow: '0 12px 32px rgba(16,24,40,0.12)',
+  ...theme.applyStyles('dark', { boxShadow: '0 12px 32px rgba(0,0,0,0.5)' }),
   '& .MuiList-root': {
     padding: '6px',
     display: 'flex',
@@ -36,13 +34,13 @@ export const StatusMenuItem = styled(MenuItem)(({ theme }) => ({
   minHeight: 'auto',
   borderRadius: '6px',
   fontSize: 13,
-  color: theme.palette.text.secondary,
-  '&:hover': { backgroundColor: theme.palette.background.containerHighest },
+  color: theme.vars.palette.text.secondary,
+  '&:hover': { backgroundColor: theme.vars.palette.background.containerHighest },
   '&.Mui-selected': {
-    color: theme.palette.text.primary,
-    backgroundColor: `color-mix(in srgb, ${theme.palette.primary.main} 10%, transparent)`,
+    color: theme.vars.palette.text.primary,
+    backgroundColor: `color-mix(in srgb, ${theme.vars.palette.primary.main} 10%, transparent)`,
     '&:hover': {
-      backgroundColor: `color-mix(in srgb, ${theme.palette.primary.main} 16%, transparent)`,
+      backgroundColor: `color-mix(in srgb, ${theme.vars.palette.primary.main} 16%, transparent)`,
     },
   },
 }))
@@ -55,7 +53,7 @@ export const StatusDot = styled('span', {
   height: 8,
   borderRadius: '50%',
   flexShrink: 0,
-  backgroundColor: theme.palette[statusColor].main,
+  backgroundColor: theme.vars.palette[statusColor].main,
 }))
 
 export const ItemLabel = styled('span')({ flexGrow: 1 })
