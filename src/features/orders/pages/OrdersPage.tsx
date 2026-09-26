@@ -92,9 +92,12 @@ export function OrdersPage() {
 
   return (
     <PageWrapper sx={{ maxWidth: 1400 }}>
+      {/* `useFlexGap`: sin él `spacing` separa con `margin-left` y pisa el
+          `ml: 'auto'` que manda las acciones a la derecha (TESIS-132). */}
       <Stack
         direction={{ xs: 'column', md: 'row' }}
         spacing={2}
+        useFlexGap
         sx={{ alignItems: { md: 'flex-start' }, mb: 3 }}
       >
         <Box>
