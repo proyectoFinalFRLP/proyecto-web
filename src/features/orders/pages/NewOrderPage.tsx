@@ -121,7 +121,9 @@ export function NewOrderPage() {
           weight={formatWeight(draftWeight(items))}
         />
 
-        <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
+        {/* `useFlexGap`: sin él `spacing` separa con `margin-left` y pisa el
+            `ml: 'auto'` que manda el botón de avanzar a la derecha (TESIS-132). */}
+        <Stack direction="row" spacing={2} useFlexGap sx={{ alignItems: 'center' }}>
           <Button variant="text" color="neutral" startIcon={<CloseIcon />} onClick={cancel}>
             {wizard.cancel}
           </Button>
