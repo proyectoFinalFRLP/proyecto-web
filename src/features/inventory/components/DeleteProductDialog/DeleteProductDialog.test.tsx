@@ -26,22 +26,34 @@ function renderDialog(overrides: Partial<Parameters<typeof DeleteProductDialog>[
     ...overrides,
   }
 
-  renderWithTheme(<DeleteProductDialog {...props} />)
+  const view = renderWithTheme(<DeleteProductDialog {...props} />)
 
-  return props
+  return { ...props, view }
 }
 
 describe('DeleteProductDialog', () => {
   it('stays closed without a product', () => {
     renderDialog({ product: undefined })
 
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument()
   })
 
   // Nombre y SKU: en un catálogo con productos parecidos, el nombre solo no
   // alcanza para saber cuál se está por borrar.
   it('names the product and its sku', () => {
     renderDialog()
+
+    expect(screen.getByText(/Cable UTP Cat6 \(CAB-6-305\)/)).toBeInTheDocument()
+  })
+
+  // Al cerrar, `product` pasa a `undefined` mientras el diálogo todavía se está
+  // desvaneciendo: el texto tiene que irse con él, no antes.
+  it('keeps naming the product while it fades out', () => {
+    const { view, onConfirm, onClose } = renderDialog()
+
+    view.rerender(
+      <DeleteProductDialog product={undefined} onConfirm={onConfirm} onClose={onClose} />,
+    )
 
     expect(screen.getByText(/Cable UTP Cat6 \(CAB-6-305\)/)).toBeInTheDocument()
   })

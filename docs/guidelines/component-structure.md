@@ -66,6 +66,7 @@ app/theme/
 ├── augmentations.d.ts     # module augmentation de MUI (variantes, keys de paleta)
 ├── utils.ts               # helpers (rem)
 └── components/
+    ├── alert.ts           # muiAlert(): el aviso del sistema (Alert.dc.html)
     ├── button.ts          # muiButton(mode)
     ├── card.ts            # muiCard(mode)
     ├── input.ts           # muiOutlinedInput() / muiTextField()

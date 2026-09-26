@@ -1,24 +1,22 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import AddIcon from '@mui/icons-material/Add'
-import CloseIcon from '@mui/icons-material/Close'
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import StraightenOutlinedIcon from '@mui/icons-material/StraightenOutlined'
 import WarehouseOutlinedIcon from '@mui/icons-material/WarehouseOutlined'
-import { Alert, Button, Divider, IconButton, MenuItem, TextField, Typography } from '@mui/material'
-import { useEffect, useId } from 'react'
+import { Alert, Button, Divider, MenuItem, TextField, Typography } from '@mui/material'
+import { useEffect } from 'react'
 import { useFieldArray, useForm } from 'react-hook-form'
-import { LabeledField } from 'shared/components'
+import {
+  LabeledField,
+  ModalBody,
+  ModalFooter,
+  ModalFooterActions,
+  ModalForm,
+  ModalFrame,
+} from 'shared/components'
 
 import { inventoryCopy } from '../../content'
 import { buildCreatePayload } from '../../utils/payload'
-import {
-  FooterActions,
-  ModalBody,
-  ModalFooter,
-  ModalForm,
-  ModalHeader,
-  ModalRoot,
-} from '../ProductModalShell'
 
 import { createProductSchema } from './CreateProductModal.schema'
 import type { CreateProductFormData } from './CreateProductModal.schema'
@@ -75,8 +73,6 @@ export function CreateProductModal({
   submitting = false,
   submitError,
 }: CreateProductModalProps) {
-  const titleId = useId()
-
   const {
     control,
     register,
@@ -121,21 +117,14 @@ export function CreateProductModal({
   const submit = handleSubmit((data) => onSubmit(buildCreatePayload(data)))
 
   return (
-    <ModalRoot open={open} onClose={onClose} aria-labelledby={titleId}>
-      <ModalHeader>
-        <div>
-          <Typography id={titleId} variant="h2" component="h2">
-            {copy.title}
-          </Typography>
-          <Typography variant="bodyMd" sx={{ color: 'text.secondary' }}>
-            {copy.subtitle}
-          </Typography>
-        </div>
-        <IconButton aria-label={copy.close} onClick={onClose} size="small">
-          <CloseIcon />
-        </IconButton>
-      </ModalHeader>
-
+    <ModalFrame
+      open={open}
+      title={copy.title}
+      subtitle={copy.subtitle}
+      closeLabel={copy.close}
+      onClose={onClose}
+      busy={submitting}
+    >
       <ModalForm onSubmit={submit} noValidate>
         <ModalBody>
           {generalError === undefined ? null : (
@@ -306,17 +295,17 @@ export function CreateProductModal({
           </SectionRoot>
         </ModalBody>
 
-        <ModalFooter sx={{ justifyContent: 'flex-end' }}>
-          <FooterActions>
+        <ModalFooter>
+          <ModalFooterActions>
             <Button color="neutral" variant="text" onClick={onClose} disabled={submitting}>
               {copy.cancel}
             </Button>
             <Button type="submit" variant="contained" disabled={submitting}>
               {submitting ? copy.submitting : copy.submit}
             </Button>
-          </FooterActions>
+          </ModalFooterActions>
         </ModalFooter>
       </ModalForm>
-    </ModalRoot>
+    </ModalFrame>
   )
 }

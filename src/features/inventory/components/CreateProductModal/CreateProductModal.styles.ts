@@ -1,8 +1,8 @@
 import { Box, Button } from '@mui/material'
 import { styled } from '@mui/material/styles'
 
-// El shell (root, header, form, body, footer, campos) viene de
-// `ProductModalShell`. Acá quedan las piezas propias del alta.
+// El marco (cabecera, form, cuerpo y pie) es el `ModalFrame` de
+// `shared/components`. Acá quedan las piezas propias del alta.
 //
 // El encabezado de sección de este frame es distinto al de la edición: ícono en
 // un recuadro tintado en vez de la barra de acento. Es la versión v2 del

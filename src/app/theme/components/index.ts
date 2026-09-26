@@ -1,5 +1,6 @@
 import type { ThemeOptions } from '@mui/material/styles'
 
+import { muiAlert } from './alert'
 import { muiAppBar } from './appBar'
 import { muiButton } from './button'
 import { muiCard } from './card'
@@ -25,6 +26,7 @@ export function buildComponents(): ThemeOptions['components'] {
     MuiOutlinedInput: muiOutlinedInput(),
     MuiTextField: muiTextField(),
     MuiCard: muiCard(),
+    MuiAlert: muiAlert(),
     MuiDialog: muiDialog(),
     MuiBackdrop: muiBackdrop(),
     MuiTypography: muiTypography(),
