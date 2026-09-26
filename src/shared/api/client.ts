@@ -29,28 +29,9 @@ function firstMessage(...candidates: unknown[]): string | undefined {
   )
 }
 
-// Los errores por campo viajan junto a `error` (ADR-015 del backend). Se
-// conservan sólo si tienen la forma esperada: un objeto de listas de textos.
-function fieldErrors(candidate: unknown): Record<string, string[]> | undefined {
-  if (typeof candidate !== 'object' || candidate === null || Array.isArray(candidate)) {
-    return undefined
-  }
-
-  const entries = Object.entries(candidate).filter(
-    (entry): entry is [string, string[]] =>
-      Array.isArray(entry[1]) && entry[1].every((item) => typeof item === 'string'),
-  )
-  return entries.length > 0 ? Object.fromEntries(entries) : undefined
-}
-
-function toRequestError(
-  message: string,
-  status?: number,
-  fields?: Record<string, string[]>,
-): ApiRequestError {
+function toRequestError(message: string, status?: number): ApiRequestError {
   const error: ApiRequestError = new Error(message)
   error.status = status
-  if (fields) error.fields = fields
   return error
 }
 
@@ -146,6 +127,6 @@ client.interceptors.response.use(
       notify(FORBIDDEN_MESSAGE, 'error')
     }
 
-    return Promise.reject(toRequestError(message, status, fieldErrors(payload.fields)))
+    return Promise.reject(toRequestError(message, status))
   },
 )

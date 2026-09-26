@@ -6,8 +6,10 @@ export const CardRoot = styled(Card)(({ theme }) => ({
   padding: theme.spacing(2.5),
   display: 'flex',
   flexDirection: 'column',
-  gap: theme.spacing(2),
+  gap: theme.spacing(1),
   height: '100%',
+  // Un nombre de tienda largo no desborda la tarjeta.
+  '& > *': { minWidth: 0, overflowWrap: 'anywhere' },
 }))
 
 export const CardHeader = styled(Box)(({ theme }) => ({
@@ -15,20 +17,4 @@ export const CardHeader = styled(Box)(({ theme }) => ({
   alignItems: 'flex-start',
   justifyContent: 'space-between',
   gap: theme.spacing(1),
-}))
-
-// La configuración de la cuenta (dominio, ubicación...) en una lista compacta.
-export const SettingsList = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  flexDirection: 'column',
-  gap: theme.spacing(0.5),
-  minWidth: 0,
-  '& > *': { overflowWrap: 'anywhere' },
-}))
-
-export const Actions = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: theme.spacing(1),
-  marginTop: 'auto',
 }))

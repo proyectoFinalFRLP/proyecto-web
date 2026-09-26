@@ -8,42 +8,23 @@ import type { ApiResponse } from './types'
 // Ojo con el nombre: el endpoint NO devuelve `company_integrations`. Devuelve
 // las plantillas conectables (`services`) con el estado de la integración de la
 // empresa del token encima. Por eso el identificador es `service_id`.
+//
+// Es de sólo lectura: las credenciales las carga el equipo de OneStock desde el
+// backoffice (ADR-018 del backend), así que acá no viaja nada para conectar.
 
 /** Tipo de servicio externo (`services.type`, con check constraint en la DB). */
 export type ServiceType = 'ecommerce' | 'courier'
-
-/**
- * Un dato que la plantilla le pide a la empresa para conectarse. Es la única
- * fuente de verdad del formulario de conexión: un campo nuevo en la plantilla
- * (desde el backoffice) aparece en el front sin tocar código.
- */
-export interface IntegrationFieldSpec {
-  key: string
-  label: string
-  required: boolean
-  /** Expresión regular (sintaxis de Ruby) que el valor tiene que cumplir. */
-  format: string | null
-}
 
 export interface IntegrationService {
   serviceId: number
   name: string
   type: ServiceType
-  /** `oauth_client_credentials`: el token lo obtiene el sistema, no la empresa. */
-  authStrategy: string
-  /** Secretos: se muestran como contraseña y nunca se precargan. */
-  credentialFields: IntegrationFieldSpec[]
-  /** Configuración no secreta: se precarga con `settings`. */
-  settingFields: IntegrationFieldSpec[]
   /** La empresa del token tiene una integración para esta plantilla. */
   configured: boolean
   isActive: boolean
   integrationId: number | null
-  settings: Record<string, string>
-  /** Qué secretos están cargados: sólo las claves, el back nunca manda los valores. */
-  credentialsSet: string[]
-  /** Si «probar conexión» tiene algo que verificar. */
-  testable: boolean
+  /** El nombre de la cuenta en el proveedor (en Shopify, el de la tienda), si se conoce. */
+  accountName: string | null
   /**
    * Marca de la última sincronización exitosa. Hoy el backend no la manda
    * (`company_integrations` no tiene la columna): queda opcional para que el
@@ -52,26 +33,14 @@ export interface IntegrationService {
   lastSyncedAt: string | null
 }
 
-interface ApiFieldSpec {
-  key: string
-  label?: string
-  required?: boolean
-  format?: string | null
-}
-
 interface ApiIntegrationService {
   service_id: number
   service_name: string
   type: ServiceType
-  auth_strategy?: string
-  credential_fields?: ApiFieldSpec[]
-  setting_fields?: ApiFieldSpec[]
   configured: boolean
   is_active: boolean
   integration_id: number | null
-  settings?: Record<string, string>
-  credentials_set?: string[]
-  testable?: boolean
+  account_name?: string | null
   last_synced_at?: string | null
 }
 
@@ -80,31 +49,15 @@ export const integrationKeys = {
   lists: () => [...integrationKeys.all, 'list'] as const,
 }
 
-// Un campo sin etiqueta muestra su clave: mejor un rótulo técnico que un input
-// sin nombre.
-function toFieldSpec(field: ApiFieldSpec): IntegrationFieldSpec {
-  return {
-    key: field.key,
-    label: field.label ?? field.key,
-    required: field.required === true,
-    format: field.format ?? null,
-  }
-}
-
 export function toIntegrationService(row: ApiIntegrationService): IntegrationService {
   return {
     serviceId: row.service_id,
     name: row.service_name,
     type: row.type,
-    authStrategy: row.auth_strategy ?? 'bearer',
-    credentialFields: (row.credential_fields ?? []).map(toFieldSpec),
-    settingFields: (row.setting_fields ?? []).map(toFieldSpec),
     configured: row.configured,
     isActive: row.is_active,
     integrationId: row.integration_id,
-    settings: row.settings ?? {},
-    credentialsSet: row.credentials_set ?? [],
-    testable: row.testable === true,
+    accountName: row.account_name ?? null,
     lastSyncedAt: row.last_synced_at ?? null,
   }
 }

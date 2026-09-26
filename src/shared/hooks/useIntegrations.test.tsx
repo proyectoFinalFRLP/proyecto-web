@@ -10,15 +10,10 @@ const ROW = {
   service_id: 7,
   service_name: 'Shopify',
   type: 'ecommerce',
-  auth_strategy: 'oauth_client_credentials',
-  credential_fields: [{ key: 'client_id', label: 'Client ID', required: true }],
-  setting_fields: [{ key: 'shop_domain', label: 'Dominio', required: true, format: '\\A.+\\z' }],
   configured: true,
   is_active: true,
   integration_id: 3,
-  settings: { shop_domain: 'demo.myshopify.com' },
-  credentials_set: ['client_id'],
-  testable: true,
+  account_name: 'Tienda Norte',
 }
 
 // Un cliente por ejemplo, sin reintentos: un fallo tiene que verse en el acto
@@ -48,41 +43,25 @@ describe('useIntegrations', () => {
           serviceId: 7,
           name: 'Shopify',
           type: 'ecommerce',
-          authStrategy: 'oauth_client_credentials',
-          credentialFields: [
-            { key: 'client_id', label: 'Client ID', required: true, format: null },
-          ],
-          settingFields: [
-            { key: 'shop_domain', label: 'Dominio', required: true, format: '\\A.+\\z' },
-          ],
           configured: true,
           isActive: true,
           integrationId: 3,
-          settings: { shop_domain: 'demo.myshopify.com' },
-          credentialsSet: ['client_id'],
-          testable: true,
+          accountName: 'Tienda Norte',
           lastSyncedAt: null,
         },
       ]),
     )
   })
 
-  // Una fila vieja (sin los campos declarados) no rompe la pantalla: se lee como
-  // una plantilla que no pide nada.
-  it('tolerates a row without the declared fields', async () => {
-    const legacy = {
-      service_id: 1,
-      service_name: 'ML',
-      type: 'ecommerce',
-      configured: false,
-      is_active: false,
-      integration_id: null,
-    }
-    vi.spyOn(client, 'get').mockResolvedValue({ data: { data: [legacy] } } as never)
+  // Una integración que nunca se probó no sabe con qué cuenta está conectada.
+  it('reads a missing account name as unknown', async () => {
+    const withoutAccount: Partial<typeof ROW> = { ...ROW }
+    delete withoutAccount.account_name
+    vi.spyOn(client, 'get').mockResolvedValue({ data: { data: [withoutAccount] } } as never)
 
     const { result } = renderHook(() => useIntegrations(), { wrapper })
 
-    await waitFor(() => expect(result.current.data?.[0]?.credentialFields).toEqual([]))
+    await waitFor(() => expect(result.current.data?.[0]?.accountName).toBeNull())
   })
 
   it('surfaces a failure instead of pretending there are no integrations', async () => {

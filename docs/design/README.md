@@ -75,8 +75,9 @@ aparte.
   cards a una o pedir las tres restantes al diseño.
 - **La pantalla de integraciones y la tarjeta «Canales de venta» del detalle de producto se
   construyeron sin maqueta** (RF-05, TESIS-139), con componentes del DS (`ModalFrame`,
-  `LabeledField`, `StatusBadge`, `ConfirmDialog`). El formulario de conexión no tiene campos fijos:
-  los arma con lo que declara la plantilla del proveedor. Falta la revisión de diseño de las dos.
+  `LabeledField`, `StatusBadge`, `ConfirmDialog`). La de integraciones es de sólo lectura: las
+  credenciales las carga el equipo de OneStock desde el backoffice (ADR-018 del backend). Falta la
+  revisión de diseño de las dos.
 - **No hay pantalla de transferencias entre depósitos**, que el backend ya modela (TESIS-103).
 
 ## Vocabulario del producto, tal como está en el diseño
