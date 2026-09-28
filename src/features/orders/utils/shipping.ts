@@ -153,12 +153,18 @@ export interface DispatchPayload {
  * (`dispatchIntegrationId`), no la que contestó la tarifa: son dos plantillas
  * del mismo courier, y el despacho rechaza la de cotización. El costo viaja
  * para que quede en el envío, que es de donde lo lee el detalle de la orden.
+ *
+ * Recibe el id del depósito y no el origen del borrador: despachan tanto el
+ * paso 3 como el detalle de una orden que ya existe, que no tiene borrador.
  */
-export function toDispatchPayload(quote: ShippingQuote, origin: OrderDraftOrigin): DispatchPayload {
+export function toDispatchPayload(
+  quote: ShippingQuote,
+  originWarehouseId: number,
+): DispatchPayload {
   return {
     dispatch: {
       company_integration_id: quote.dispatchIntegrationId,
-      origin_warehouse_id: origin.warehouseId,
+      origin_warehouse_id: originWarehouseId,
       shipping_cost: quote.shippingCost,
     },
   }

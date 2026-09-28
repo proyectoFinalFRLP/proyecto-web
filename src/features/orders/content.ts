@@ -78,6 +78,39 @@ export const ordersCopy = {
       error: 'No pudimos cargar el envío de la orden.',
       retry: 'Reintentar',
     },
+    /** Despachar desde el detalle un envío que quedó sin despachar (TESIS-134). */
+    dispatch: {
+      action: 'Despachar',
+      title: 'Despachar el envío',
+      /** "Orden #8829". */
+      subtitle: (orderLabel: string) => `Orden ${orderLabel}`,
+      close: 'Cerrar',
+      origin: {
+        title: 'Depósito de origen',
+        /** Hay más de un candidato: las líneas salieron de varios, o no lo registran. */
+        choose: 'Elegí desde qué depósito sale el envío.',
+        loading: 'Buscando los depósitos…',
+        error: 'No pudimos cargar los depósitos.',
+        retry: 'Reintentar',
+      },
+      options: {
+        title: 'Operador logístico',
+        /** Sin origen no hay qué cotizar. */
+        waitingOrigin: 'Elegí el depósito de origen para ver las opciones de envío.',
+      },
+      cancel: 'Cancelar',
+      confirm: 'Despachar',
+      confirming: 'Despachando…',
+      retry: 'Reintentar el despacho',
+      errors: {
+        failed: 'No pudimos emitir el despacho.',
+        /** 409: otro operador lo despachó mientras tanto. */
+        alreadyDispatched:
+          'El envío ya se despachó mientras tanto. Cerrá para ver cómo quedó en el detalle.',
+      },
+      /** "Envío despachado con Andreani." */
+      dispatched: (carrier: string) => `Envío despachado con ${carrier}.`,
+    },
     notFound: 'No encontramos la orden que buscabas.',
     backToOrders: 'Volver a órdenes',
     error: 'No pudimos cargar la orden.',
@@ -326,9 +359,12 @@ export const ordersCopy = {
       /** La orden ya existe: lo que falló es el envío o el despacho. */
       dispatch: (orderLabel: string) =>
         `La orden ${orderLabel} se creó, pero no pudimos emitir el despacho.`,
-      /** Hasta que el detalle de la orden permita despachar, ésta es la única salida. */
-      dispatchPending:
-        'Reintentalo antes de salir: la orden ya descontó el stock, y si dejás esta pantalla su envío queda sin despachar.',
+      /** El envío quedó `pending`: el detalle de la orden lo puede despachar (TESIS-134). */
+      dispatchLater:
+        'Podés reintentarlo acá o, si salís de esta pantalla, despachar el envío desde el detalle de la orden.',
+      /** Ni siquiera se abrió el envío: ninguna otra pantalla lo abre, ésta es la única salida. */
+      shipmentMissing:
+        'Reintentalo antes de salir: la orden ya descontó el stock y todavía no tiene envío, y ninguna otra pantalla lo puede abrir.',
       retryDispatch: 'Reintentar el despacho',
       viewOrder: 'Ver la orden',
     },

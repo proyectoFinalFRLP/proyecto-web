@@ -149,14 +149,11 @@ describe('toDispatchPayload', () => {
   // La cotización la contesta una plantilla y la etiqueta la emite otra: el
   // despacho rechaza la integración de la cotización.
   it('dispatches with the integration that dispatches, not with the one that quoted', () => {
-    expect(
-      toDispatchPayload(quote, { warehouseId: 3, name: 'CD Ezeiza' }).dispatch
-        .company_integration_id,
-    ).toBe(4)
+    expect(toDispatchPayload(quote, 3).dispatch.company_integration_id).toBe(4)
   })
 
   it('carries the origin and the cost that was confirmed', () => {
-    expect(toDispatchPayload(quote, { warehouseId: 3, name: 'CD Ezeiza' }).dispatch).toMatchObject({
+    expect(toDispatchPayload(quote, 3).dispatch).toMatchObject({
       origin_warehouse_id: 3,
       shipping_cost: 58300,
     })

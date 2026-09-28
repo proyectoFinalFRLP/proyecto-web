@@ -17,6 +17,7 @@ import type {
   ShippingQuote,
   UpdateOrderPayload,
 } from './types'
+import type { OrderQuotePayload } from './utils/dispatch'
 import type { CreateOrderPayload, DispatchPayload, DraftQuotePayload } from './utils/shipping'
 
 // Frontera con la API Rails. Lo que entra en snake_case se traduce acá y sale
@@ -414,6 +415,23 @@ function toShippingQuote(quote: ApiShippingQuote): ShippingQuote {
  */
 export async function quoteDraft(payload: DraftQuotePayload): Promise<ShippingQuote[]> {
   const { data } = await client.post<{ data: ApiShippingQuote[] }>('/quotes', payload)
+
+  return data.data.map(toShippingQuote)
+}
+
+/**
+ * Las opciones de envío de una orden que ya existe (TESIS-46), para despacharla
+ * desde su detalle. Mismo contrato de respuesta que la del borrador: ordenadas
+ * por precio y sólo las que se pueden despachar.
+ */
+export async function quoteOrder(
+  orderId: number,
+  payload: OrderQuotePayload,
+): Promise<ShippingQuote[]> {
+  const { data } = await client.post<{ data: ApiShippingQuote[] }>(
+    `/orders/${orderId}/quotes`,
+    payload,
+  )
 
   return data.data.map(toShippingQuote)
 }

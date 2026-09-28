@@ -22,6 +22,7 @@ import type { LifecycleStage } from '../../utils/shipment'
 import { ShipmentStateMessage } from '../ShipmentStateMessage'
 
 import {
+  CardAction,
   CardHeading,
   LifecycleCard,
   StageDot,
@@ -80,7 +81,7 @@ function feedEntries(shipment: Shipment): StatusFeedEntry[] {
  * «Ciclo de vida del envío» de S08: las cuatro etapas con su avance, y debajo
  * la bitácora completa de `ShipmentEvents` con los dos estados de cada evento.
  */
-export function ShipmentLifecycleCard({ shipment }: ShipmentLifecycleCardProps) {
+export function ShipmentLifecycleCard({ shipment, action }: ShipmentLifecycleCardProps) {
   return (
     <LifecycleCard>
       <CardHeading>
@@ -88,6 +89,7 @@ export function ShipmentLifecycleCard({ shipment }: ShipmentLifecycleCardProps) 
         <Typography variant="h3" component="h2" color="text.primary">
           {lifecycleCopy.title}
         </Typography>
+        {action === undefined ? null : <CardAction>{action}</CardAction>}
       </CardHeading>
 
       {shipment.kind === 'single' ? (

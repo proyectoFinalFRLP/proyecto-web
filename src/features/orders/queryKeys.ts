@@ -22,7 +22,7 @@ export const orderKeys = {
 }
 
 /**
- * La cotización del alta manual (TESIS-59).
+ * La cotización del alta manual (TESIS-59) y la del despacho desde el detalle.
  *
  * Tiene su propia raíz y no cuelga de `orders` a propósito: confirmar la orden
  * invalida `orderKeys.all`, y si la cotización colgara de ahí se volvería a
@@ -36,6 +36,12 @@ export const orderKeys = {
 export const quoteKeys = {
   all: ['quotes'] as const,
   draft: (payload: DraftQuotePayload) => [...quoteKeys.all, 'draft', payload] as const,
+  // La de una orden que ya existe (TESIS-134), por el mismo motivo: despachar
+  // invalida la orden, y no tiene que volver a cotizar mientras el operador
+  // decide si reintenta. El origen entra en la clave porque cambiarlo es otra
+  // cotización.
+  order: (orderId: number, originWarehouseId: number) =>
+    [...quoteKeys.all, 'order', orderId, originWarehouseId] as const,
 }
 
 /**
