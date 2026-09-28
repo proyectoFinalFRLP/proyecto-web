@@ -1,5 +1,7 @@
 import { fireEvent, screen, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import { notify } from 'shared/store'
+import type * as sharedStore from 'shared/store'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { renderWithTheme } from '../../../test/renderWithTheme'
@@ -13,11 +15,24 @@ vi.mock('../hooks/useOrderDetail', () => ({
   useOrderShipment: vi.fn(),
 }))
 
+vi.mock('shared/store', async (importOriginal) => ({
+  ...(await importOriginal<typeof sharedStore>()),
+  notify: vi.fn(),
+}))
+
 // El flujo del despacho tiene sus propios tests: acá sólo importa cuándo se
-// ofrece y con qué envío se abre.
+// ofrece, con qué envío se abre y qué hace la página cuando termina.
 vi.mock('../components/DispatchShipmentDialog', () => ({
-  DispatchShipmentDialog: ({ shipmentId }: { shipmentId: number }) => (
-    <p>{`Despachando el envío ${shipmentId}`}</p>
+  DispatchShipmentDialog: ({
+    shipmentId,
+    onDispatched,
+  }: {
+    shipmentId: number
+    onDispatched: (carrier: string) => void
+  }) => (
+    <button type="button" onClick={() => onDispatched('Andreani')}>
+      {`Despachando el envío ${shipmentId}`}
+    </button>
   ),
 }))
 
@@ -106,6 +121,7 @@ function renderAt(path: string) {
 beforeEach(() => {
   vi.mocked(useOrder).mockReset()
   vi.mocked(useOrderShipment).mockReset()
+  vi.mocked(notify).mockClear()
 })
 
 describe('OrderDetailPage', () => {
@@ -228,6 +244,17 @@ describe('OrderDetailPage', () => {
 
       fireEvent.click(screen.getByRole('button', { name: 'Despachar' }))
       expect(screen.getByText('Despachando el envío 31')).toBeInTheDocument()
+    })
+
+    it('announces the dispatch and closes the dialog when it is done', () => {
+      mockQueries({ data: ORDER }, { data: { kind: 'single', shipment: PENDING } })
+      renderAt('/orders/8829')
+
+      fireEvent.click(screen.getByRole('button', { name: 'Despachar' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Despachando el envío 31' }))
+
+      expect(notify).toHaveBeenCalledWith('Envío despachado con Andreani.', 'success')
+      expect(screen.queryByText('Despachando el envío 31')).not.toBeInTheDocument()
     })
 
     it('does not offer it once the shipment was dispatched', () => {
