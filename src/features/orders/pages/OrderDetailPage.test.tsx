@@ -13,6 +13,14 @@ vi.mock('../hooks/useOrderDetail', () => ({
   useOrderShipment: vi.fn(),
 }))
 
+// El flujo del despacho tiene sus propios tests: acá sólo importa cuándo se
+// ofrece y con qué envío se abre.
+vi.mock('../components/DispatchShipmentDialog', () => ({
+  DispatchShipmentDialog: ({ shipmentId }: { shipmentId: number }) => (
+    <p>{`Despachando el envío ${shipmentId}`}</p>
+  ),
+}))
+
 const ORDER: OrderDetail = {
   id: 8829,
   externalOrderId: 'ORD-8829-X',
@@ -199,5 +207,54 @@ describe('OrderDetailPage', () => {
     expect(screen.getByText('Sin envío')).toBeInTheDocument()
     expect(screen.getByText('Sin asignar')).toBeInTheDocument()
     expect(screen.getByText('Sin cotizar')).toBeInTheDocument()
+  })
+
+  // Criterio de la card: una orden con envío `pending` muestra «Despachar»;
+  // una con el envío ya despachado, no.
+  describe('dispatching from the detail', () => {
+    const PENDING: Shipment = {
+      ...SHIPMENT,
+      status: 'pending',
+      trackingNumber: null,
+      shippingCost: null,
+      courier: null,
+    }
+    const dispatchButton = () => screen.queryByRole('button', { name: 'Despachar' })
+
+    it('offers to dispatch a shipment that was left pending', () => {
+      mockQueries({ data: ORDER }, { data: { kind: 'single', shipment: PENDING } })
+
+      renderAt('/orders/8829')
+
+      fireEvent.click(screen.getByRole('button', { name: 'Despachar' }))
+      expect(screen.getByText('Despachando el envío 31')).toBeInTheDocument()
+    })
+
+    it('does not offer it once the shipment was dispatched', () => {
+      mockQueries({ data: ORDER })
+
+      renderAt('/orders/8829')
+
+      expect(dispatchButton()).not.toBeInTheDocument()
+    })
+
+    it('does not offer it for a cancelled order', () => {
+      mockQueries(
+        { data: { ...ORDER, status: 'cancelled' } },
+        { data: { kind: 'single', shipment: PENDING } },
+      )
+
+      renderAt('/orders/8829')
+
+      expect(dispatchButton()).not.toBeInTheDocument()
+    })
+
+    it('does not offer it while the order has no shipment', () => {
+      mockQueries({ data: ORDER }, { data: { kind: 'none' } })
+
+      renderAt('/orders/8829')
+
+      expect(dispatchButton()).not.toBeInTheDocument()
+    })
   })
 })

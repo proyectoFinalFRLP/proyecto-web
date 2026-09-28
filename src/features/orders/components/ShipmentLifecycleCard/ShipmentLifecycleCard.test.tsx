@@ -125,4 +125,15 @@ describe('ShipmentLifecycleCard', () => {
 
     expect(onRetry).toHaveBeenCalledTimes(1)
   })
+
+  it('places the action the page gives it next to the title', () => {
+    renderWithTheme(
+      <ShipmentLifecycleCard
+        shipment={{ kind: 'single', shipment: SHIPMENT }}
+        action={<button type="button">Despachar</button>}
+      />,
+    )
+
+    expect(screen.getByRole('button', { name: 'Despachar' })).toBeInTheDocument()
+  })
 })

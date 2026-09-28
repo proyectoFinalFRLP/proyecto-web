@@ -4,9 +4,12 @@ import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined
 import PaymentsOutlinedIcon from '@mui/icons-material/PaymentsOutlined'
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline'
 import { Box, Button, Stack, Typography } from '@mui/material'
+import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ErrorFallback, LoadingSpinner, PageWrapper } from 'shared/components'
+import { notify } from 'shared/store'
 
+import { DispatchShipmentDialog } from '../components/DispatchShipmentDialog'
 import { InfoPanel } from '../components/InfoPanel'
 import type { InfoField } from '../components/InfoPanel'
 import { OrderDetailHeader } from '../components/OrderDetailHeader'
@@ -19,6 +22,7 @@ import { TrackingNumberField } from '../components/TrackingNumberField'
 import { formatCount, ordersCopy } from '../content'
 import { useOrder, useOrderShipment } from '../hooks/useOrderDetail'
 import type { OrderDetail, Shipment, ShipmentView } from '../types'
+import { dispatchableShipment } from '../utils/dispatch'
 import { formatMoney, formatOrderId, formatShortDate } from '../utils/format'
 import { paymentSummary, totalUnits } from '../utils/payment'
 import { deliveredAt, headerStatus } from '../utils/shipment'
@@ -143,6 +147,9 @@ function NotFound() {
  * Los datos salen de dos lugares: la orden con sus líneas de `GET /orders/:id`
  * y el envío con su bitácora de `GET /shipments`. Son queries separadas a
  * propósito: si el envío no se puede leer, la orden se muestra igual.
+ *
+ * Un envío que quedó sin despachar —el despacho del alta falló y la pantalla se
+ * cerró— se despacha desde acá (TESIS-134).
  */
 export function OrderDetailPage() {
   const { orderId } = useParams()
@@ -155,6 +162,10 @@ export function OrderDetailPage() {
 
   const order = useOrder(id)
   const shipment = useOrderShipment(id)
+  // El envío que se está despachando, fijado al abrir el diálogo: despachar
+  // refresca el detalle, y el diálogo no tiene que desmontarse con el resultado
+  // todavía a la vista porque el envío dejó de estar pendiente.
+  const [dispatchingId, setDispatchingId] = useState<number | null>(null)
 
   if (id === undefined || order.error?.status === NOT_FOUND_STATUS) return <NotFound />
 
@@ -171,12 +182,14 @@ export function OrderDetailPage() {
   const resolved = resolvedShipment(shipmentView)
   const payment = paymentSummary(order.data, resolved?.shippingCost ?? null)
   const status = headerStatus(order.data.status, shipment.data)
+  const dispatchable = dispatchableShipment(order.data.status, shipmentView)
+  const orderLabel = formatOrderId(order.data.externalOrderId, order.data.id)
 
   return (
     <PageWrapper>
       <Stack spacing={3}>
         <OrderDetailHeader
-          orderLabel={formatOrderId(order.data.externalOrderId, order.data.id)}
+          orderLabel={orderLabel}
           statusLabel={status.label}
           statusVariant={status.variant}
           ordersPath={ORDERS_PATH}
@@ -188,7 +201,21 @@ export function OrderDetailPage() {
         <Box sx={CONTENT_GRID}>
           <Stack spacing={3} sx={{ minWidth: 0 }}>
             <OrderItemsTable lines={order.data.lines} productPath={productPath} />
-            <ShipmentLifecycleCard shipment={shipmentView} />
+            <ShipmentLifecycleCard
+              shipment={shipmentView}
+              action={
+                dispatchable === null ? undefined : (
+                  <Button
+                    variant="contained"
+                    size="small"
+                    startIcon={<LocalShippingOutlinedIcon />}
+                    onClick={() => setDispatchingId(dispatchable.id)}
+                  >
+                    {detail.dispatch.action}
+                  </Button>
+                )
+              }
+            />
           </Stack>
 
           <Stack spacing={1.5} sx={{ minWidth: 0 }}>
@@ -217,6 +244,23 @@ export function OrderDetailPage() {
           </Stack>
         </Box>
       </Stack>
+
+      {/* Se monta al abrirlo: los depósitos y la cotización se piden recién
+          cuando el operador decide despachar, no en cada visita al detalle. */}
+      {dispatchingId === null ? null : (
+        <DispatchShipmentDialog
+          open
+          orderId={order.data.id}
+          orderLabel={orderLabel}
+          shipmentId={dispatchingId}
+          lines={order.data.lines}
+          onClose={() => setDispatchingId(null)}
+          onDispatched={(carrier) => {
+            setDispatchingId(null)
+            notify(detail.dispatch.dispatched(carrier), 'success')
+          }}
+        />
+      )}
     </PageWrapper>
   )
 }

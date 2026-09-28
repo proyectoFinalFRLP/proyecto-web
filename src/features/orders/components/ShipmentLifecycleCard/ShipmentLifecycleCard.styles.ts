@@ -20,6 +20,12 @@ export const CardHeading = styled(Box)(({ theme }) => ({
   color: theme.vars.palette.primary.main,
 }))
 
+// La acción va contra el borde derecho del encabezado, como las de los
+// encabezados de página.
+export const CardAction = styled(Box)({
+  marginLeft: 'auto',
+})
+
 // Cuatro etapas en fila; al angostarse bajan a dos columnas.
 export const StageGrid = styled(Box)(({ theme }) => ({
   display: 'grid',
