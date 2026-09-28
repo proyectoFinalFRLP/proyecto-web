@@ -1,8 +1,8 @@
 import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined'
-import { Alert, Box, Button, Stack, Typography } from '@mui/material'
+import { Alert, Box, Button, Stack } from '@mui/material'
 import { useEffect, useMemo, useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
-import { LoadingSpinner, PageWrapper } from 'shared/components'
+import { PageWrapper } from 'shared/components'
 import { notify, useOrderDraftStore } from 'shared/store'
 import type {
   OrderDraftCustomer,
@@ -14,7 +14,7 @@ import type {
 import { FormSection } from '../components/FormSection'
 import { OrderConfirmCard } from '../components/OrderConfirmCard'
 import { OrderWizardHeader } from '../components/OrderWizardHeader'
-import { QuoteOptionList } from '../components/QuoteOptionList'
+import { QuoteOptionsPanel } from '../components/QuoteOptionsPanel'
 import { ordersCopy } from '../content'
 import { useConfirmDraftOrder } from '../hooks/useConfirmDraftOrder'
 import { useDraftQuotes } from '../hooks/useDraftQuotes'
@@ -163,7 +163,7 @@ export function CarrierStepPage() {
             icon={<LocalShippingOutlinedIcon aria-hidden />}
             title={carrier.options.groupLabel}
           >
-            <QuotesContent
+            <QuoteOptionsPanel
               quotes={quotes}
               selectedId={chosen?.dispatchIntegrationId ?? null}
               disabled={confirm.isPending}
@@ -195,66 +195,6 @@ export function CarrierStepPage() {
         </Box>
       </Stack>
     </PageWrapper>
-  )
-}
-
-interface QuotesContentProps {
-  quotes: ReturnType<typeof useDraftQuotes>
-  selectedId: number | null
-  disabled: boolean
-  onSelect: Parameters<typeof QuoteOptionList>[0]['onSelect']
-  onReview: () => void
-}
-
-// Los estados de la cotización, fuera del cuerpo de la página para que éste se
-// lea de un vistazo.
-function QuotesContent({ quotes, selectedId, disabled, onSelect, onReview }: QuotesContentProps) {
-  const { options: copy } = carrier
-
-  // Consultar a los operadores puede tardar lo que tarda el más lento: la
-  // pantalla lo dice en vez de quedarse en blanco.
-  if (quotes.isPending) {
-    return (
-      <Stack spacing={1} role="status" sx={{ alignItems: 'center', py: 4 }}>
-        <LoadingSpinner />
-        <Typography variant="bodyMd" sx={{ color: 'text.secondary' }}>
-          {copy.loading}
-        </Typography>
-      </Stack>
-    )
-  }
-
-  // Un fallo y una lista vacía son dos cosas distintas: el primero es nuestro o
-  // de la red, la segunda es que ningún operador contestó a tiempo. Las dos
-  // dejan reintentar o volver a revisar origen y destino.
-  if (quotes.isError || quotes.data.length === 0) {
-    return (
-      <Alert
-        severity={quotes.isError ? 'error' : 'warning'}
-        variant="outlined"
-        action={
-          <Stack direction="row" spacing={1}>
-            <Button color="inherit" size="small" onClick={onReview}>
-              {copy.review}
-            </Button>
-            <Button color="inherit" size="small" onClick={() => void quotes.refetch()}>
-              {copy.retry}
-            </Button>
-          </Stack>
-        }
-      >
-        {quotes.isError ? copy.error : copy.empty}
-      </Alert>
-    )
-  }
-
-  return (
-    <QuoteOptionList
-      quotes={quotes.data}
-      selectedId={selectedId}
-      onSelect={onSelect}
-      disabled={disabled}
-    />
   )
 }
 
