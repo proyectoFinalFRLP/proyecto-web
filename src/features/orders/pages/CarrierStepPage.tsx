@@ -112,7 +112,7 @@ export function CarrierStepPage() {
     confirm.mutate(
       {
         order: toCreateOrderPayload(draft.customer, draft.items, draft.origin, draft.destination),
-        dispatch: toDispatchPayload(chosen, draft.origin),
+        dispatch: toDispatchPayload(chosen, draft.origin.warehouseId),
       },
       {
         onSuccess: (orderId) => {
