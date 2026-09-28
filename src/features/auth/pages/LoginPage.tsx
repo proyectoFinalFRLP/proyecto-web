@@ -2,9 +2,9 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline'
 import VpnKeyOutlinedIcon from '@mui/icons-material/VpnKeyOutlined'
-import { Alert, Button, InputAdornment, Stack, TextField, Typography } from '@mui/material'
+import { Alert, Button, InputAdornment, Link, Stack, TextField, Typography } from '@mui/material'
 import { useForm } from 'react-hook-form'
-import { Navigate, useLocation } from 'react-router-dom'
+import { Link as RouterLink, Navigate, useLocation } from 'react-router-dom'
 import { useAuthStore, useTenantName, useTenantStore } from 'shared/store'
 import { z } from 'zod'
 
@@ -128,6 +128,12 @@ export function LoginPage() {
             <Button type="submit" variant="contained" size="large" fullWidth loading={isPending}>
               {isPending ? authContent.submitting : authContent.submit}
             </Button>
+
+            {/* La otra mitad de TESIS-51: sin este enlace la pantalla de
+                solicitud de acceso existe pero no se llega desde ningún lado. */}
+            <Link component={RouterLink} to="/register" variant="bodyMd" align="center">
+              {authContent.toRegister}
+            </Link>
           </Stack>
         </form>
       </AuthCard>

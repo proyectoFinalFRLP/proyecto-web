@@ -44,6 +44,7 @@ const ProductDetailPage = lazy(() =>
 )
 const ReportsPage = lazy(() => import('features/reports').then((m) => ({ default: m.ReportsPage })))
 const LoginPage = lazy(() => import('features/auth').then((m) => ({ default: m.LoginPage })))
+const RegisterPage = lazy(() => import('features/auth').then((m) => ({ default: m.RegisterPage })))
 
 export interface NavMeta {
   label: string
@@ -81,6 +82,13 @@ export const appRoutes: AppRoute[] = [
     path: '/login',
     element: <LoginPage />,
     // Sin `nav`: no pertenece al Sidebar, que sólo existe dentro de la sesión.
+    layout: 'bare',
+  },
+  {
+    path: '/register',
+    element: <RegisterPage />,
+    // Pública como el login: pedir acceso es lo que hace quien todavía no tiene
+    // cuenta, así que no puede exigir sesión (TESIS-135).
     layout: 'bare',
   },
   {
