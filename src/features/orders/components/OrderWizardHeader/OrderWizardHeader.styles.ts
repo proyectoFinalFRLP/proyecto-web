@@ -18,5 +18,5 @@ export const TitleRow = styled(Box)(({ theme }) => ({
 
 export const StepCounter = styled(Typography)(({ theme }) => ({
   marginLeft: 'auto',
-  color: theme.palette.primary.main,
+  color: theme.vars.palette.primary.main,
 }))

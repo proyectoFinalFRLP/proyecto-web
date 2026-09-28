@@ -10,6 +10,7 @@ import {
   elevationShadow,
   fontFamily,
   glow,
+  inputColors,
   layerColors,
   layout,
   motion,
@@ -134,6 +135,11 @@ function buildPalette(mode: ThemeMode, branding?: TenantBranding): PaletteOption
     },
     divider: role.outlineVariant,
     text: { primary: role.onSurface, secondary: role.onSurfaceVariant },
+    // Los rellenos de los campos (inputs y el canal del control segmentado).
+    // Viven en la paleta y no sólo en los tokens para que cada esquema tenga su
+    // variable CSS: los overrides los leen de `theme.vars` y el toggle de tema
+    // los repinta sin rearmar nada.
+    input: { ...inputColors[mode] },
   }
 }
 
@@ -156,15 +162,33 @@ function buildElevation(mode: ThemeMode) {
 
 // ── Tema ──────────────────────────────────────────────────────────────────────
 
+/** El branding del tenant para cada esquema: el provisorio del slug cambia de tono por modo. */
+export type SchemeBranding = Partial<Record<ThemeMode, TenantBranding>>
+
 /**
- * Tema de la app. `branding` es la config del tenant activo: sin él sale el tema
- * del DS tal cual, con él se repintan primario y acento.
+ * Tema de la app, con los dos esquemas de color (claro y oscuro) en un mismo
+ * objeto (TESIS-104).
+ *
+ * MUI emite cada color de cada esquema como variable CSS, y los estilos de la
+ * app leen `theme.vars`: alternar el modo cambia el atributo `data-light` /
+ * `data-dark` del `<html>` y el navegador repinta, sin rearmar el tema ni
+ * volver a serializar los estilos de cada componente. El modo activo lo maneja
+ * `ThemeWrapper` con `useColorScheme`. Ver ADR-007.
+ *
+ * `branding` es la config del tenant activo: sin él sale el tema del DS tal
+ * cual, con él se repintan primario y acento.
  */
-export function createAppTheme(mode: ThemeMode, branding?: TenantBranding) {
+export function createAppTheme(branding: SchemeBranding = {}) {
   return createTheme({
-    cssVariables: true,
-    elevation: buildElevation(mode),
-    palette: buildPalette(mode, branding),
+    // `data`: el esquema activo lo marca un atributo del `<html>` y no la
+    // preferencia del sistema operativo. Quién elige es el usuario (o el
+    // tenant), a través de `uiStore`.
+    cssVariables: { colorSchemeSelector: 'data' },
+    defaultColorScheme: 'dark',
+    colorSchemes: {
+      light: { palette: buildPalette('light', branding.light), elevation: buildElevation('light') },
+      dark: { palette: buildPalette('dark', branding.dark), elevation: buildElevation('dark') },
+    },
     typography,
     shape: { borderRadius: radius.base },
     // Breakpoints del DS mapeados a las keys estándar de MUI (xs/sm/md/lg/xl)
@@ -200,10 +224,9 @@ export function createAppTheme(mode: ThemeMode, branding?: TenantBranding) {
         minHeight: layout.topNavHeight,
       },
     },
-    // El acento resuelto también viaja a los overrides: el anillo de foco y el
-    // borde del input enfocado lo leen de los tokens, no de la paleta, y sin
-    // esto la pantalla de login quedaría con el celeste del DS alrededor de los
-    // campos de una empresa que es verde.
-    components: buildComponents(mode, tenantRoles(mode, branding).accent),
+    // Los overrides leen el acento de `theme.vars.palette.secondary` (que es el
+    // del tenant): el anillo de foco y el input enfocado siguen a la marca de la
+    // empresa en los dos esquemas.
+    components: buildComponents(),
   })
 }

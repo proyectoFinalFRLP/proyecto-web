@@ -23,10 +23,10 @@ export const Metric = styled(Box)(({ theme }) => ({
   minWidth: 0,
   // Separador entre las dos métricas: vertical lado a lado, horizontal apiladas.
   '& + &': {
-    borderLeft: `1px solid ${theme.palette.divider}`,
+    borderLeft: `1px solid ${theme.vars.palette.divider}`,
     [theme.breakpoints.down('md')]: {
       borderLeft: 'none',
-      borderTop: `1px solid ${theme.palette.divider}`,
+      borderTop: `1px solid ${theme.vars.palette.divider}`,
     },
   },
 }))
@@ -53,5 +53,5 @@ export const MetricValue = styled(Typography, {
   fontFamily: theme.typography.dataMono.fontFamily,
   marginLeft: 'auto',
   whiteSpace: 'nowrap',
-  color: emphasis === 'primary' ? theme.palette.primary.main : theme.palette.text.primary,
+  color: emphasis === 'primary' ? theme.vars.palette.primary.main : theme.vars.palette.text.primary,
 }))

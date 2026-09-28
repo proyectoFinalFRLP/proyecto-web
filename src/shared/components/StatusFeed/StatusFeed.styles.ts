@@ -61,8 +61,8 @@ export const EntryBar = styled(Box, { shouldForwardProp: notForwarded })<{ curre
     height: BAR_HEIGHT,
     borderRadius: 9999,
     backgroundColor: current
-      ? theme.palette.secondary.main
-      : theme.palette.background.containerHighest,
+      ? theme.vars.palette.secondary.main
+      : theme.vars.palette.background.containerHighest,
   }),
 )
 

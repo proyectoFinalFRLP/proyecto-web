@@ -1,5 +1,5 @@
 import { Box, Card, TableCell, TableContainer, TableRow, Typography } from '@mui/material'
-import { alpha, styled } from '@mui/material/styles'
+import { styled } from '@mui/material/styles'
 
 // Alto de fila de S12. `minHeight` y no `height`: la celda del depósito lleva
 // dos renglones y no puede quedar recortada al angostarse.
@@ -25,7 +25,7 @@ export const CardHeader = styled(Box)(({ theme }) => ({
   gap: theme.spacing(2),
   padding: theme.spacing(0, 2),
   minHeight: 48,
-  borderBottom: `1px solid ${theme.palette.divider}`,
+  borderBottom: `1px solid ${theme.vars.palette.divider}`,
 }))
 
 // La tabla desborda a lo ancho antes que comprimir las columnas numéricas: en
@@ -36,9 +36,9 @@ export const TableScroll = styled(TableContainer)({
 
 export const HeadCell = styled(TableCell)(({ theme }) => ({
   ...theme.typography.labelCaps,
-  color: theme.palette.text.secondary,
-  backgroundColor: theme.palette.background.layer.floor,
-  borderBottom: `1px solid ${theme.palette.divider}`,
+  color: theme.vars.palette.text.secondary,
+  backgroundColor: theme.vars.palette.background.layer.floor,
+  borderBottom: `1px solid ${theme.vars.palette.divider}`,
   whiteSpace: 'nowrap',
 }))
 
@@ -59,11 +59,11 @@ export const BodyRow = styled(TableRow, {
         // Tinte más liviano que `error.container`: ese tono es justamente el
         // fondo del badge, y con los dos iguales el badge desaparecía dentro de
         // la fila en tema claro.
-        backgroundColor: alpha(theme.palette.error.main, 0.08),
+        backgroundColor: theme.alpha(theme.vars.palette.error.main, 0.08),
         // La primera celda es un `th` (encabezado de fila), así que el
         // selector no puede ser `td:first-of-type`.
         '& > :first-child': {
-          boxShadow: `inset ${ROW_ACCENT_WIDTH}px 0 0 ${theme.palette.error.main}`,
+          boxShadow: `inset ${ROW_ACCENT_WIDTH}px 0 0 ${theme.vars.palette.error.main}`,
         },
       }
     : {}),
@@ -73,8 +73,8 @@ export const BodyRow = styled(TableRow, {
 export const BodyCell = styled(TableCell)(({ theme }) => ({
   ...theme.typography.bodyMd,
   height: ROW_HEIGHT,
-  color: theme.palette.text.primary,
-  borderBottom: `1px solid ${theme.palette.divider}`,
+  color: theme.vars.palette.text.primary,
+  borderBottom: `1px solid ${theme.vars.palette.divider}`,
 }))
 
 // Celdas numéricas: monoespaciada y alineadas a la derecha, como en el diseño.
@@ -92,7 +92,7 @@ export const StrongNumberCell = styled(NumberCell)(({ theme }) => ({
 
 // Columna sin dato: se atenúa para que no compita con las cantidades reales.
 export const MutedNumberCell = styled(NumberCell)(({ theme }) => ({
-  color: theme.palette.text.secondary,
+  color: theme.vars.palette.text.secondary,
 }))
 
 // La celda de identidad del depósito: nombre arriba, ubicación abajo.
@@ -105,7 +105,7 @@ export const WarehouseName = styled(Typography)({
 })
 
 export const WarehouseLocation = styled(Typography)(({ theme }) => ({
-  color: theme.palette.text.secondary,
+  color: theme.vars.palette.text.secondary,
   overflowWrap: 'anywhere',
 }))
 
@@ -117,7 +117,7 @@ export const CardFooter = styled(Box)(({ theme }) => ({
   flexWrap: 'wrap',
   padding: theme.spacing(1.5, 2),
   minHeight: 56,
-  borderTop: `1px solid ${theme.palette.divider}`,
+  borderTop: `1px solid ${theme.vars.palette.divider}`,
 }))
 
 export const EmptyState = styled(Box)(({ theme }) => ({

@@ -1,5 +1,5 @@
 import { Box, InputBase } from '@mui/material'
-import { alpha, styled } from '@mui/material/styles'
+import { styled } from '@mui/material/styles'
 import type { Theme } from '@mui/material/styles'
 import { Link } from 'react-router-dom'
 
@@ -11,7 +11,7 @@ export const BrandLink = styled(Link)(({ theme }) => ({
   fontWeight: 800,
   letterSpacing: '-0.02em',
   textTransform: 'uppercase',
-  color: theme.palette.primary.main,
+  color: theme.vars.palette.primary.main,
   textDecoration: 'none',
   whiteSpace: 'nowrap',
   [theme.breakpoints.down('sm')]: { display: 'none' },
@@ -25,8 +25,8 @@ export const OrganizationName = styled(Box)(({ theme }) => ({
   maxWidth: 220,
   marginInlineStart: theme.spacing(1.5),
   paddingInlineStart: theme.spacing(1.5),
-  borderInlineStart: `1px solid ${theme.palette.divider}`,
-  color: theme.palette.text.secondary,
+  borderInlineStart: `1px solid ${theme.vars.palette.divider}`,
+  color: theme.vars.palette.text.secondary,
   whiteSpace: 'nowrap',
   overflow: 'hidden',
   textOverflow: 'ellipsis',
@@ -48,29 +48,29 @@ export const SearchRoot = styled(Box, {
   height: 40,
   paddingInline: theme.spacing(1.5),
   borderRadius: 9999,
-  border: `1px solid ${theme.palette.divider}`,
-  backgroundColor: alpha(theme.palette.text.primary, 0.04),
+  border: `1px solid ${theme.vars.palette.divider}`,
+  backgroundColor: theme.alpha(theme.vars.palette.text.primary, 0.04),
   width: expanded ? '100%' : 260,
   transition: theme.transitions.create(['border-color', 'box-shadow']),
   '&:focus-within': {
-    borderColor: theme.palette.primary.main,
-    boxShadow: `0 0 0 3px ${alpha(theme.palette.primary.main, 0.2)}`,
+    borderColor: theme.vars.palette.primary.main,
+    boxShadow: `0 0 0 3px ${theme.alpha(theme.vars.palette.primary.main, 0.2)}`,
   },
 }))
 
 export const SearchInput = styled(InputBase)(({ theme }) => ({
   flex: 1,
-  color: theme.palette.text.primary,
+  color: theme.vars.palette.text.primary,
   ...theme.typography.bodyMd,
-  '& ::placeholder': { color: theme.palette.text.secondary, opacity: 1 },
+  '& ::placeholder': { color: theme.vars.palette.text.secondary, opacity: 1 },
 }))
 
 export const userMenuPaperSx = (theme: Theme) => ({
   mt: 1,
   minWidth: 200,
   borderRadius: '8px',
-  border: `1px solid ${theme.palette.divider}`,
-  backgroundColor: theme.palette.background.paper,
+  border: `1px solid ${theme.vars.palette.divider}`,
+  backgroundColor: theme.vars.palette.background.paper,
   backgroundImage: 'none',
-  boxShadow: theme.elevation[2].boxShadow,
+  boxShadow: theme.vars.elevation[2].boxShadow,
 })

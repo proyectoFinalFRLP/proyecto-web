@@ -49,7 +49,7 @@ export const CarrierRate = styled(Box, {
   display: 'inline-flex',
   alignItems: 'center',
   gap: theme.spacing(0.75),
-  color: theme.palette[tone].main,
+  color: theme.vars.palette[tone].main,
   '& > svg': { fontSize: theme.typography.bodyMd.fontSize },
 }))
 

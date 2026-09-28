@@ -1,16 +1,10 @@
 import type { Components, Theme } from '@mui/material/styles'
 
-import { roleColors } from '../tokens'
-import type { ThemeMode } from '../tokens'
-
-export function muiCssBaseline(
-  mode: ThemeMode,
-  accentOverride?: string,
-): Components<Theme>['MuiCssBaseline'] {
-  const accent = accentOverride ?? roleColors[mode].accent
-
+// El acento es `secondary.main`: el del tenant si lo tiene, el del DS si no. Se
+// lee de `theme.vars` para que el anillo de foco cambie con el esquema.
+export function muiCssBaseline(): Components<Theme>['MuiCssBaseline'] {
   return {
-    styleOverrides: {
+    styleOverrides: (theme) => ({
       // Suavizado de fuente: evita que el texto claro "sangre" sobre el fondo
       // oscuro y da un render más nítido en ambos temas.
       body: {
@@ -18,7 +12,10 @@ export function muiCssBaseline(
         MozOsxFontSmoothing: 'grayscale',
       },
       // Focus ring visible — WCAG 2.4.7.
-      ':focus-visible': { outline: `2px solid ${accent}`, outlineOffset: '2px' },
+      ':focus-visible': {
+        outline: `2px solid ${theme.vars.palette.secondary.main}`,
+        outlineOffset: '2px',
+      },
       // Respeta prefers-reduced-motion: solo fades, sin translate/scale/shimmer.
       '@media (prefers-reduced-motion: reduce)': {
         '*, *::before, *::after': {
@@ -28,6 +25,6 @@ export function muiCssBaseline(
           scrollBehavior: 'auto !important',
         },
       },
-    },
+    }),
   }
 }

@@ -24,7 +24,7 @@ export const HeaderRow = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
   gap: theme.spacing(1),
-  '& > svg': { marginLeft: 'auto', color: theme.palette.text.secondary, display: 'block' },
+  '& > svg': { marginLeft: 'auto', color: theme.vars.palette.text.secondary, display: 'block' },
 }))
 
 export const NodeRows = styled(Box)(({ theme }) => ({
@@ -48,8 +48,8 @@ export const ServiceTile = styled(Box)(({ theme }) => ({
   alignItems: 'center',
   justifyContent: 'center',
   borderRadius: theme.shape.borderRadius,
-  backgroundColor: theme.palette.background.containerHighest,
-  color: theme.palette.text.secondary,
+  backgroundColor: theme.vars.palette.background.containerHighest,
+  color: theme.vars.palette.text.secondary,
   '& svg': { fontSize: SERVICE_TILE.iconSize, display: 'block' },
 }))
 
@@ -85,7 +85,7 @@ export const SyncLine = styled(Typography, {
   shouldForwardProp: (prop) => !TRANSIENT_PROPS.has(prop as string),
 })<SyncLineProps>(({ theme, degraded }) => ({
   fontFamily: theme.typography.dataMono.fontFamily,
-  color: degraded ? theme.palette.error.main : theme.palette.text.secondary,
+  color: degraded ? theme.vars.palette.error.main : theme.vars.palette.text.secondary,
   // A diferencia del nombre, esta línea NO se recorta: el tiempo transcurrido
   // vive al final de la frase, y truncarlo sería perder justamente el dato que
   // la fila existe para mostrar. En una columna angosta envuelve a dos renglones.

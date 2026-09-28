@@ -22,7 +22,7 @@ export const PanelHeading = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
   gap: theme.spacing(1),
-  color: theme.palette.text.secondary,
+  color: theme.vars.palette.text.secondary,
   '& > svg': { marginLeft: 'auto', fontSize: theme.typography.h3.fontSize },
 }))
 
@@ -54,6 +54,6 @@ export const FieldValue = styled(Typography, {
 })<FieldValueProps>(({ theme, mono, unknown }) => ({
   ...theme.typography.bodyMd,
   fontFamily: mono ? theme.typography.dataMono.fontFamily : undefined,
-  color: unknown ? theme.palette.text.disabled : theme.palette.text.primary,
+  color: unknown ? theme.vars.palette.text.disabled : theme.vars.palette.text.primary,
   overflowWrap: 'anywhere',
 }))

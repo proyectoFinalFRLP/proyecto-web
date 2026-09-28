@@ -4,12 +4,16 @@ import { describe, expect, it, vi } from 'vitest'
 
 import {
   CATALOG_MATCHES,
+  createOrder,
+  createOrderShipment,
+  dispatchShipment,
   fetchCatalogProducts,
   fetchOrder,
   fetchOrderShipment,
   fetchProductStocks,
   fetchProvinces,
   fetchWarehouses,
+  quoteDraft,
   updateOrder,
 } from './api'
 
@@ -39,6 +43,45 @@ const SHIPMENT = {
     },
   ],
 }
+
+describe('fetchCatalogProducts', () => {
+  function capture() {
+    const sent: { params?: Record<string, unknown> }[] = []
+    vi.spyOn(client, 'get').mockImplementation((_url: string, config?: unknown) => {
+      sent.push(config as { params?: Record<string, unknown> })
+      return Promise.resolve(respond({ data: [], meta: { page: 1, per_page: 20, total: 0 } }))
+    })
+
+    return sent
+  }
+
+  // El filtro lo hace el backend desde TESIS-125: lo que esta capa tiene que
+  // garantizar es que el término llegue.
+  it('sends the term as the search parameter', async () => {
+    const sent = capture()
+
+    await fetchCatalogProducts('cable')
+
+    expect(sent[0].params).toEqual({ page: 1, per_page: CATALOG_MATCHES, search: 'cable' })
+  })
+
+  it('trims the term before sending it', async () => {
+    const sent = capture()
+
+    await fetchCatalogProducts('  cable  ')
+
+    expect(sent[0].params).toMatchObject({ search: 'cable' })
+  })
+
+  // Un `search` vacío haría que el backend filtre por cadena vacía: no viaja.
+  it('omits the parameter when nothing was typed', async () => {
+    const sent = capture()
+
+    await fetchCatalogProducts('   ')
+
+    expect(sent[0].params).toEqual({ page: 1, per_page: CATALOG_MATCHES })
+  })
+})
 
 describe('fetchOrderShipment', () => {
   it('asks the list for two rows, so a second shipment cannot hide past the page', async () => {
@@ -244,41 +287,132 @@ describe('fetchProvinces', () => {
   })
 })
 
-describe('fetchCatalogProducts', () => {
-  function capture() {
-    const sent: { params?: Record<string, unknown> }[] = []
-    vi.spyOn(client, 'get').mockImplementation((_url: string, config?: unknown) => {
-      sent.push(config as { params?: Record<string, unknown> })
-      return Promise.resolve(respond({ data: [], meta: { page: 1, per_page: 20, total: 0 } }))
-    })
-
-    return sent
+describe('quoteDraft', () => {
+  const payload = {
+    quote: {
+      origin_warehouse_id: 3,
+      destination_zip_code: '1193',
+      destination_address: 'Av. Corrientes 3247',
+      items: [{ product_id: 12, quantity: 4 }],
+    },
   }
 
-  // El filtro lo hace el backend desde TESIS-125: lo que esta capa tiene que
-  // garantizar es que el término llegue.
-  it('sends the term as the search parameter', async () => {
-    const sent = capture()
+  it('quotes the draft against the endpoint that needs no order', async () => {
+    const post = vi.spyOn(client, 'post').mockResolvedValueOnce(respond({ data: [] }))
 
-    await fetchCatalogProducts('cable')
+    await quoteDraft(payload)
 
-    expect(sent[0].params).toEqual({ page: 1, per_page: CATALOG_MATCHES, search: 'cable' })
+    expect(post).toHaveBeenCalledWith('/quotes', payload)
   })
 
-  it('trims the term before sending it', async () => {
-    const sent = capture()
+  // `shipping_cost` es un BigDecimal de Rails y el JSON lo manda como string.
+  it('turns each option into the domain, with the cost as a number', async () => {
+    vi.spyOn(client, 'post').mockResolvedValueOnce(
+      respond({
+        data: [
+          {
+            company_integration_id: 7,
+            dispatch_integration_id: 4,
+            provider_name: 'Andreani',
+            shipping_cost: '58300.0',
+            estimated_days: null,
+          },
+        ],
+      }),
+    )
 
-    await fetchCatalogProducts('  cable  ')
+    expect(await quoteDraft(payload)).toEqual([
+      {
+        quoteIntegrationId: 7,
+        dispatchIntegrationId: 4,
+        providerName: 'Andreani',
+        shippingCost: 58300,
+        estimatedDays: null,
+      },
+    ])
+  })
+})
 
-    expect(sent[0].params).toMatchObject({ search: 'cable' })
+// Lo que elige el operador viaja al despacho y queda en `decimal(10,2)`: la
+// pantalla tiene que mostrar lo mismo que después guarda el envío.
+describe('the cost of a quote with more than two decimals', () => {
+  async function quotedCost(cost: string | number) {
+    vi.spyOn(client, 'post').mockResolvedValueOnce(
+      respond({
+        data: [
+          {
+            company_integration_id: 7,
+            dispatch_integration_id: 4,
+            provider_name: 'Andreani',
+            shipping_cost: cost,
+            estimated_days: null,
+          },
+        ],
+      }),
+    )
+    const [quote] = await quoteDraft({
+      quote: {
+        origin_warehouse_id: 3,
+        destination_zip_code: '1193',
+        destination_address: 'Av. Corrientes 3247',
+        items: [{ product_id: 12, quantity: 1 }],
+      },
+    })
+    return quote?.shippingCost
+  }
+
+  it.each([
+    ['1.005', 1.01],
+    ['41200.555', 41200.56],
+    ['41200.5', 41200.5],
+    ['99.994', 99.99],
+    [2500.125, 2500.13],
+  ])('rounds %s to the cents the shipment keeps', async (cost, expected) => {
+    expect(await quotedCost(cost)).toBe(expected)
+  })
+})
+
+describe('the confirmation of a manual order', () => {
+  it('creates the order with the payload of the wizard', async () => {
+    const post = vi
+      .spyOn(client, 'post')
+      .mockResolvedValueOnce(respond({ ...ORDER, order_items: [] }))
+    const payload = {
+      order: {
+        customer_name: 'Global Tech',
+        customer_document: '30-71234567-8',
+        customer_address: 'Av. Corrientes 3247',
+        customer_city: 'CABA',
+        customer_province: 'Ciudad Autónoma de Buenos Aires',
+        customer_zip_code: '1193',
+        items: [{ product_id: 12, warehouse_id: 3, quantity: 4, unit_price: 120000 }],
+      },
+    }
+
+    const order = await createOrder(payload)
+
+    expect(post).toHaveBeenCalledWith('/orders', payload)
+    expect(order.id).toBe(ORDER.id)
   })
 
-  // Un `search` vacío haría que el backend filtre por cadena vacía: no viaja.
-  it('omits the parameter when nothing was typed', async () => {
-    const sent = capture()
+  it('opens the shipment of the order', async () => {
+    const post = vi.spyOn(client, 'post').mockResolvedValueOnce(respond(SHIPMENT))
 
-    await fetchCatalogProducts('   ')
+    const shipment = await createOrderShipment(8829)
 
-    expect(sent[0].params).toEqual({ page: 1, per_page: CATALOG_MATCHES })
+    expect(post).toHaveBeenCalledWith('/orders/8829/shipment')
+    expect(shipment.id).toBe(31)
+  })
+
+  it('dispatches the shipment with the chosen option', async () => {
+    const post = vi.spyOn(client, 'post').mockResolvedValueOnce(respond(SHIPMENT))
+    const payload = {
+      dispatch: { company_integration_id: 4, origin_warehouse_id: 3, shipping_cost: 58300 },
+    }
+
+    const shipment = await dispatchShipment(31, payload)
+
+    expect(post).toHaveBeenCalledWith('/shipments/31/dispatch', payload)
+    expect(shipment.trackingNumber).toBe('AND-9920-X8829-Z')
   })
 })

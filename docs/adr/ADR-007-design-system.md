@@ -78,6 +78,8 @@ Los componentes reutilizables que encapsulan patrones del DS viven en `src/share
   `var(--mui-palette-primary-main, #38bdf8)`. Hoy el código consume `theme.palette.*` en todos
   lados, así que las variables CSS que MUI genera no se usan (ver TESIS-104)
 
+  > **Resuelto en TESIS-104** (ver la actualización de 2026-09-25, más abajo).
+
 ---
 
 ## Actualización — dónde vive el diseño (2026-08-30)
@@ -116,3 +118,58 @@ del dominio real.
 
 Las cards de frontend anteriores a esta fecha llevan en su descripción una línea `Figma: <url>`.
 **Ese enlace está obsoleto**: la pantalla correspondiente está en `docs/design/`.
+
+---
+
+## Actualización — los dos esquemas en un tema, y `theme.vars` como la forma oficial (2026-09-25)
+
+**TESIS-104.** El toggle de tema armaba un tema nuevo en cada cambio: `createAppTheme(mode)`
+devolvía un tema con un solo esquema de color, y todos los estilos leían `theme.palette.*`, que
+hornea el hex en la clase de Emotion. Cambiar de modo dependía de que React volviera a renderizar
+cada componente `styled` y Emotion serializara otra vez sus estilos con los colores del otro modo.
+Medido en el navegador, el primer toggle agregaba 470 `<style>` en `/design-system`, 118 en
+`/orders` y 107 en `/inventory`. Las variables CSS que genera `cssVariables: true` (D2) existían
+pero nadie las leía.
+
+### La forma oficial
+
+- **Un tema por tenant con los dos esquemas.** `createAppTheme(branding)` arma `colorSchemes:
+{ light, dark }`, con el selector en un atributo del `<html>` (`colorSchemeSelector: 'data'` →
+  `[data-light]` / `[data-dark]`). El tema se rearma sólo si cambia el tenant, no el modo.
+- **El modo lo sigue decidiendo `uiStore`.** `ThemeWrapper` lo lleva a MUI con
+  `useColorScheme().setMode`, con `storageManager={null}` para que MUI no guarde su propia copia, y
+  `disableTransitionOnChange` para que el cambio sea instantáneo, como antes.
+- **Los estilos leen `theme.vars`**, que devuelve `var(--mui-…)`. Alternar el modo cambia el
+  atributo y el navegador repinta desde las variables. Después de la migración, esas tres rutas
+  agregan **0** `<style>` al alternar, y todos los elementos visibles cambian de color en los dos
+  sentidos.
+- **Lo que cambia de forma entre modos va en `theme.applyStyles('dark' | 'light', {...})`**, nunca en
+  un `if` sobre `theme.palette.mode`: con los dos esquemas en el tema, `palette.mode` es siempre el
+  del esquema por defecto.
+- **Transparencias:** `theme.alpha(theme.vars.palette.X.main, a)`, que arma el `rgba` desde el canal
+  de la variable (sólo existe para los colores con canal: `main`, `light`, `dark`, `contrastText`,
+  `text.*`, `common.onBackground`…). Para un tono propio sin canal, `color-mix(in srgb, …)`.
+- **Lo que depende del modo y no es un color de MUI vive en cada esquema**, para tener su variable:
+  la escala de elevación (`colorSchemes[modo].elevation` → `theme.vars.elevation[n]`) y los
+  rellenos de los campos (`palette.input`).
+
+### Excepciones
+
+Leer un valor en vez de la variable es válido sólo donde hace falta el color como dato, no como
+estilo. Hoy hay una sola: la página `/design-system` imprime el hex de cada capa como texto. Lo lee de
+`theme.colorSchemes[modo].palette`, con el modo de `uiStore`, porque `theme.palette` ya no dice el
+modo activo. Los overrides del tema usan `alpha()` sobre `common.black`, que es igual en los dos
+esquemas: ahí no hay nada que cambie con el modo.
+
+### Alternativa descartada
+
+**Seguir rearmando el tema por modo y migrar sólo los consumidores a `theme.vars`.** Con un único
+esquema, las variables de `:root` también cambian al rearmar, pero el costo que la card quería sacar
+seguía entero: tema nuevo, contexto nuevo y todo el árbol volviendo a renderizar en cada toggle.
+
+### El síntoma que lo originó
+
+Tomás no pudo reproducir en `master` el componente que Lorenzo vio sin repintar. Contra la versión
+nueva lo verifica `ThemeWrapper.test.tsx`, contra `primary.main`: el esquema cambia en los dos
+sentidos, el color sale de la variable y no de un hex horneado, cada esquema define el suyo y
+alternar no genera estilos. Los cuatro ejemplos fallan contra el tema anterior.

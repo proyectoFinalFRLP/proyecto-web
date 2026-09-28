@@ -1,33 +1,23 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import AddIcon from '@mui/icons-material/Add'
-import CloseIcon from '@mui/icons-material/Close'
-import {
-  Alert,
-  AlertTitle,
-  Button,
-  IconButton,
-  Menu,
-  MenuItem,
-  TextField,
-  Typography,
-} from '@mui/material'
-import { useEffect, useId, useMemo, useRef, useState } from 'react'
+import { Alert, AlertTitle, Button, Menu, MenuItem, TextField, Typography } from '@mui/material'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useFieldArray, useForm } from 'react-hook-form'
-import { LabeledField } from 'shared/components'
+import {
+  LabeledField,
+  ModalBody,
+  ModalFooter,
+  ModalFooterActions,
+  ModalFooterNote,
+  ModalForm,
+  ModalFrame,
+} from 'shared/components'
 import { formatRelativeTime } from 'shared/utils'
 
 import { inventoryCopy } from '../../content'
 import type { Product } from '../../types'
 import { parseDimensions } from '../../utils/dimensions'
 import { buildUpdatePayload } from '../../utils/payload'
-import {
-  FooterActions,
-  ModalBody,
-  ModalFooter,
-  ModalForm,
-  ModalHeader,
-  ModalRoot,
-} from '../ProductModalShell'
 
 import { editProductSchema } from './EditProductModal.schema'
 import type { EditProductFormData } from './EditProductModal.schema'
@@ -81,7 +71,6 @@ export function EditProductModal({
   submitting = false,
   conflict,
 }: EditProductModalProps) {
-  const titleId = useId()
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null)
 
   const {
@@ -131,21 +120,14 @@ export function EditProductModal({
   const submit = handleSubmit((data) => onSubmit(buildUpdatePayload(product, data)))
 
   return (
-    <ModalRoot open={open} onClose={onClose} aria-labelledby={titleId}>
-      <ModalHeader>
-        <div>
-          <Typography id={titleId} variant="h2" component="h2">
-            {modal.title(product.name)}
-          </Typography>
-          <Typography variant="bodyMd" sx={{ color: 'text.secondary' }}>
-            {modal.subtitle(product.sku)}
-          </Typography>
-        </div>
-        <IconButton aria-label={modal.close} onClick={onClose} size="small" disabled={submitting}>
-          <CloseIcon />
-        </IconButton>
-      </ModalHeader>
-
+    <ModalFrame
+      open={open}
+      title={modal.title(product.name)}
+      subtitle={modal.subtitle(product.sku)}
+      closeLabel={modal.close}
+      onClose={onClose}
+      busy={submitting}
+    >
       <ModalForm onSubmit={submit} noValidate>
         <ModalBody>
           {/* El conflicto va arriba del formulario y no reemplaza nada: lo que
@@ -273,10 +255,10 @@ export function EditProductModal({
         </ModalBody>
 
         <ModalFooter>
-          <Typography variant="labelSm" sx={{ color: 'text.secondary' }}>
+          <ModalFooterNote variant="labelSm">
             {lastUpdated === null ? '' : modal.lastUpdated(lastUpdated)}
-          </Typography>
-          <FooterActions>
+          </ModalFooterNote>
+          <ModalFooterActions>
             <Button color="neutral" variant="text" onClick={onClose} disabled={submitting}>
               {modal.cancel}
             </Button>
@@ -292,7 +274,7 @@ export function EditProductModal({
             >
               {conflict === undefined ? modal.submit : modal.conflict.overwrite}
             </Button>
-          </FooterActions>
+          </ModalFooterActions>
         </ModalFooter>
       </ModalForm>
 
@@ -314,6 +296,6 @@ export function EditProductModal({
           </MenuItem>
         ))}
       </Menu>
-    </ModalRoot>
+    </ModalFrame>
   )
 }

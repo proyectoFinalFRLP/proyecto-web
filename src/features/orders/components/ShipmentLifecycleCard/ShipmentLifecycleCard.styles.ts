@@ -17,7 +17,7 @@ export const CardHeading = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
   gap: theme.spacing(1),
-  color: theme.palette.primary.main,
+  color: theme.vars.palette.primary.main,
 }))
 
 // Cuatro etapas en fila; al angostarse bajan a dos columnas.
@@ -58,10 +58,10 @@ export const StageDot = styled(Box, {
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: reached
-      ? theme.palette.primary.container
-      : theme.palette.background.layer.floor,
-    border: `1px solid ${reached ? theme.palette.primary.main : theme.palette.divider}`,
-    color: reached ? theme.palette.primary.main : theme.palette.text.secondary,
+      ? theme.vars.palette.primary.container
+      : theme.vars.palette.background.layer.floor,
+    border: `1px solid ${reached ? theme.vars.palette.primary.main : theme.vars.palette.divider}`,
+    color: reached ? theme.vars.palette.primary.main : theme.vars.palette.text.secondary,
     '& > svg': { fontSize: theme.typography.h3.fontSize },
   }
 })
@@ -71,11 +71,12 @@ export const StageLabel = styled(Typography, {
 })<StageStateProps>(({ theme, stageState }) => ({
   ...theme.typography.labelMd,
   fontSize: theme.typography.bodyMd.fontSize,
-  color: stageState === 'pending' ? theme.palette.text.secondary : theme.palette.text.primary,
+  color:
+    stageState === 'pending' ? theme.vars.palette.text.secondary : theme.vars.palette.text.primary,
 }))
 
 export const StageWhen = styled(Typography)(({ theme }) => ({
   ...theme.typography.labelSm,
   fontFamily: theme.typography.dataMono.fontFamily,
-  color: theme.palette.text.secondary,
+  color: theme.vars.palette.text.secondary,
 }))

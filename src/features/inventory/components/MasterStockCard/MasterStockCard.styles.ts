@@ -61,10 +61,10 @@ export const BucketRow = styled(Box, {
   gap: theme.spacing(1.5),
   padding: theme.spacing(0, 2),
   borderRadius: theme.shape.borderRadius,
-  backgroundColor: theme.palette.background.layer.floor,
+  backgroundColor: theme.vars.palette.background.layer.floor,
   border: accent
-    ? `1px dashed ${theme.palette.primary.main}`
-    : `1px solid ${theme.palette.divider}`,
+    ? `1px dashed ${theme.vars.palette.primary.main}`
+    : `1px solid ${theme.vars.palette.divider}`,
   '& > svg': { display: 'block', flexShrink: 0 },
 }))
 
@@ -77,7 +77,7 @@ const TEXT_TRANSIENT_PROPS = new Set<string>(['emphasis'])
 export const BucketLabel = styled(Typography, {
   shouldForwardProp: (prop) => !TEXT_TRANSIENT_PROPS.has(prop as string),
 })<BucketTextProps>(({ theme, emphasis }) => ({
-  color: emphasis ? theme.palette.text.primary : theme.palette.text.secondary,
+  color: emphasis ? theme.vars.palette.text.primary : theme.vars.palette.text.secondary,
   minWidth: 0,
 }))
 
@@ -88,7 +88,7 @@ export const BucketValue = styled(Typography, {
 })<BucketTextProps>(({ theme, emphasis }) => ({
   marginLeft: 'auto',
   fontFamily: theme.typography.dataMono.fontFamily,
-  color: emphasis ? theme.palette.primary.main : theme.palette.text.primary,
+  color: emphasis ? theme.vars.palette.primary.main : theme.vars.palette.text.primary,
 }))
 
 // El botón queda pegado al pie de la card aunque el desglose sea corto.

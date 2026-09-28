@@ -27,6 +27,9 @@ const NewOrderPage = lazy(() =>
 const ShippingStepPage = lazy(() =>
   import('features/orders').then((m) => ({ default: m.ShippingStepPage })),
 )
+const CarrierStepPage = lazy(() =>
+  import('features/orders').then((m) => ({ default: m.CarrierStepPage })),
+)
 const OrderEditPage = lazy(() =>
   import('features/orders').then((m) => ({ default: m.OrderEditPage })),
 )
@@ -105,6 +108,11 @@ export const appRoutes: AppRoute[] = [
     path: '/orders/new/shipping',
     element: <ShippingStepPage />,
     // Paso 2 del alta manual: origen y destino. Se llega desde el paso 1.
+  },
+  {
+    path: '/orders/new/carrier',
+    element: <CarrierStepPage />,
+    // Paso 3 del alta manual: cotización y confirmación. Se llega desde el paso 2.
   },
   {
     path: '/orders/edit/:orderId',

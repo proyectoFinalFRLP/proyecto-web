@@ -9,9 +9,9 @@ export function muiAppBar(): Components<Theme>['MuiAppBar'] {
     styleOverrides: {
       root: ({ theme }) => ({
         zIndex: theme.zIndex.drawer + 1,
-        backgroundColor: theme.palette.background.paper,
+        backgroundColor: theme.vars.palette.background.paper,
         backgroundImage: 'none',
-        borderBottom: `1px solid ${theme.palette.divider}`,
+        borderBottom: `1px solid ${theme.vars.palette.divider}`,
         boxShadow: 'none',
       }),
     },

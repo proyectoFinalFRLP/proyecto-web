@@ -23,6 +23,8 @@ export const authContent = {
     // El backend responde 401 con un texto en inglés; se traduce acá en vez de
     // mostrárselo crudo al usuario.
     invalidCredentials: 'Email o contraseña incorrectos.',
+    // El backend frena el login después de 10 intentos en 3 minutos (TESIS-82).
+    tooManyAttempts: 'Hubo demasiados intentos. Esperá unos minutos y volvé a probar.',
     unexpected: 'No pudimos iniciar sesión. Probá de nuevo en unos segundos.',
   },
 } as const

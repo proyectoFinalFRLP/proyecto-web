@@ -83,7 +83,8 @@ describe('StatusBadge', () => {
     })
     const lightColor = getComputedStyle(light.getByText('Entregado')).color
 
-    expect(darkColor).not.toBe('')
-    expect(darkColor).not.toBe(lightColor)
+    // Cada modo lee su variable CSS: `main` en oscuro, `onContainer` en claro.
+    expect(darkColor).toBe('var(--mui-palette-success-main)')
+    expect(lightColor.toLowerCase()).toBe('var(--mui-palette-success-oncontainer)')
   })
 })
