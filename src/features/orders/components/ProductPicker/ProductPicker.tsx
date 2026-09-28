@@ -4,7 +4,7 @@ import { useState } from 'react'
 
 import { formatCount, ordersCopy } from '../../content'
 import type { CatalogProduct } from '../../types'
-import { filterCatalog, isDraftItemValid } from '../../utils/draft'
+import { isDraftItemValid } from '../../utils/draft'
 
 import { OptionBody, PickerForm, PriceSlot, QuantitySlot, SearchSlot } from './ProductPicker.styles'
 import type { ProductPickerProps } from './ProductPicker.types'
@@ -29,7 +29,13 @@ const MONO = { typography: 'dataMono' }
  * misma que valida las filas ya cargadas, y así vive en un solo lugar en vez
  * de repetirse en un schema.
  */
-export function ProductPicker({ products, loading = false, addedIds, onAdd }: ProductPickerProps) {
+export function ProductPicker({
+  products,
+  loading = false,
+  addedIds,
+  onSearchChange,
+  onAdd,
+}: ProductPickerProps) {
   const [product, setProduct] = useState<CatalogProduct | null>(null)
   const [quantity, setQuantity] = useState(INITIAL_QUANTITY)
   const [unitPrice, setUnitPrice] = useState(INITIAL_PRICE)
@@ -52,6 +58,8 @@ export function ProductPicker({ products, loading = false, addedIds, onAdd }: Pr
     })
     // Lista para el siguiente SKU: el foco queda en el buscador porque el
     // usuario va a tipear otro.
+    // El buscador se vacía solo: al volver `product` a null, MUI limpia el
+    // campo y avisa con un valor vacío, que `onInputChange` sí propaga.
     setProduct(null)
     setQuantity(INITIAL_QUANTITY)
     setUnitPrice(INITIAL_PRICE)
@@ -69,9 +77,26 @@ export function ProductPicker({ products, loading = false, addedIds, onAdd }: Pr
           options={products}
           value={product}
           onChange={(_event, value) => setProduct(value)}
-          // El filtro es el mismo que se prueba en `utils/draft.ts`, no el de
-          // MUI: así busca en el SKU y en el nombre con la misma regla.
-          filterOptions={(options, state) => filterCatalog(options, state.inputValue)}
+          // Sólo lo que la persona tipea es una búsqueda. Al elegir una opción
+          // MUI escribe su etiqueta en el campo y avisa con `reason: 'reset'`:
+          // si eso viajara al backend —y viajaba— se pediría el catálogo por
+          // «PX-9021-LRG · Router industrial…», que no matchea ni por SKU ni
+          // por nombre, y la lista quedaría vacía la próxima vez que se abra el
+          // buscador.
+          //
+          // `value === ''` sí se propaga: es la cruz de borrar y el reinicio
+          // que hace MUI cuando la línea se agrega y el producto vuelve a null.
+          onInputChange={(_event, value, reason) => {
+            if (reason === 'input' || value === '') onSearchChange(value)
+          }}
+          // Las opciones se muestran tal como llegaron: ya vienen filtradas por
+          // el backend, que busca por SKU y por nombre. Filtrar de nuevo acá no
+          // agregaría nada y sí quitaría: con `keepPreviousData` la lista sigue
+          // mostrando las coincidencias de la búsqueda anterior mientras llega
+          // la nueva, y el filtro de MUI —que compara contra lo ya tipeado— las
+          // escondería tras un «Ningún producto coincide.» que dura lo que
+          // tarda el request.
+          filterOptions={(options) => options}
           getOptionLabel={(option) => `${option.sku} · ${option.name}`}
           getOptionKey={(option) => option.id}
           isOptionEqualToValue={(option, value) => option.id === value.id}

@@ -345,6 +345,26 @@ describe('OrderEditPage', { timeout: 15_000 }, () => {
     expect(vi.mocked(useUpdateOrder)).toHaveBeenLastCalledWith(8829, '"v1"')
   })
 
+  // La pantalla de edición comparte el buscador con el paso 1 del alta, así que
+  // también busca contra el backend (TESIS-125). El depósito se elige primero:
+  // sin él no se muestra el buscador.
+  it('asks the backend for what was typed in the line search', async () => {
+    renderPage()
+
+    fireEvent.mouseDown(screen.getByRole('combobox', { name: 'Depósito de la línea nueva' }))
+    fireEvent.click(await screen.findByRole('option', { name: /CD Ezeiza/ }))
+
+    const productSearch = screen.getByRole('combobox', { name: 'Buscar por SKU o nombre' })
+    fireEvent.focus(productSearch)
+    fireEvent.change(productSearch, { target: { value: 'sensor' } })
+
+    await waitFor(() => {
+      const calls = vi.mocked(useCatalogProducts).mock.calls
+
+      expect(calls[calls.length - 1][0]).toBe('sensor')
+    })
+  })
+
   it('goes back to the detail without saving on Discard', async () => {
     renderPage()
 

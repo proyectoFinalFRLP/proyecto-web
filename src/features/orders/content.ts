@@ -195,7 +195,7 @@ export const ordersCopy = {
       searchLabel: 'Buscar por SKU o nombre',
       searchPlaceholder: 'SKU o nombre del producto',
       noMatches: 'Ningún producto coincide.',
-      loadingCatalog: 'Cargando el catálogo…',
+      loadingCatalog: 'Buscando…',
       catalogError: 'No pudimos cargar el catálogo de productos.',
       retry: 'Reintentar',
       /** El producto ya tiene su fila: se edita ahí, no se agrega dos veces. */
