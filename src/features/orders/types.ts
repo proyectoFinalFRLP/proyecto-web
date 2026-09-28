@@ -112,6 +112,23 @@ export interface ShipmentEvent {
   occurredAt: string
 }
 
+/**
+ * Una opción de envío cotizada (TESIS-46, TESIS-131). La lista llega ordenada
+ * por precio, de la más barata a la más cara, y ya sin las opciones que no se
+ * podrían despachar.
+ */
+export interface ShippingQuote {
+  /** La integración que contestó la tarifa. */
+  quoteIntegrationId: number
+  /** La que emite la etiqueta: es la que se le manda al despacho. */
+  dispatchIntegrationId: number
+  /** El courier ("Andreani"), no el nombre de su plantilla de cotización. */
+  providerName: string
+  shippingCost: number
+  /** Días de entrega que promete el courier, o null si no lo informa. */
+  estimatedDays: number | null
+}
+
 /** Detalle del envío (`GET /api/v1/shipments/:id`), con su bitácora. */
 export interface Shipment {
   id: number

@@ -1,4 +1,5 @@
 import type { OrderFilters, OrderStatus } from './types'
+import type { DraftQuotePayload } from './utils/shipping'
 
 // Factory de query keys de la feature — nunca literales sueltos en los hooks,
 // así las invalidaciones no se desincronizan cuando aparezcan las mutaciones
@@ -18,6 +19,23 @@ export const orderKeys = {
   // Cuelga de `orders` y no de un dominio `shipments` propio: se pide por orden,
   // y así invalidar `orderKeys.all` también refresca el envío que muestra.
   shipment: (orderId: number) => [...orderKeys.all, 'shipment', orderId] as const,
+}
+
+/**
+ * La cotización del alta manual (TESIS-59).
+ *
+ * Tiene su propia raíz y no cuelga de `orders` a propósito: confirmar la orden
+ * invalida `orderKeys.all`, y si la cotización colgara de ahí se volvería a
+ * pedir a todos los couriers apenas se crea la orden —una llamada de más por
+ * operador y, si el despacho falló, una lista que cambia mientras el operador
+ * decide si reintentar—.
+ *
+ * El borrador entero entra en la clave: volver al paso 2 y cambiar el depósito
+ * o una cantidad es otra cotización, no la misma con datos viejos.
+ */
+export const quoteKeys = {
+  all: ['quotes'] as const,
+  draft: (payload: DraftQuotePayload) => [...quoteKeys.all, 'draft', payload] as const,
 }
 
 /**

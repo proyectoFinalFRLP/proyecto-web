@@ -1,5 +1,6 @@
 export { OrdersTable } from './components/OrdersTable'
 export type { OrdersTableProps } from './components/OrdersTable'
+export { CarrierStepPage } from './pages/CarrierStepPage'
 export { NewOrderPage } from './pages/NewOrderPage'
 export { OrderDetailPage } from './pages/OrderDetailPage'
 export { OrderEditPage } from './pages/OrderEditPage'
