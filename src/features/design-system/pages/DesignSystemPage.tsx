@@ -18,6 +18,8 @@ import ViewColumnOutlinedIcon from '@mui/icons-material/ViewColumnOutlined'
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined'
 import WarningAmberOutlinedIcon from '@mui/icons-material/WarningAmberOutlined'
 import {
+  Alert,
+  AlertTitle,
   Box,
   Button,
   Card,
@@ -25,6 +27,8 @@ import {
   IconButton,
   Stack,
   TextField,
+  ToggleButton,
+  ToggleButtonGroup,
   Typography,
   useTheme,
 } from '@mui/material'
@@ -32,6 +36,7 @@ import { useState } from 'react'
 import type { ReactElement, ReactNode } from 'react'
 import {
   CompactStatCard,
+  ConfirmDialog,
   DataTable,
   Logo,
   PageWrapper,
@@ -44,20 +49,26 @@ import {
   StepsProgress,
   TopNavBar,
   type DataTableColumn,
+  type ModalSize,
   type StatusVariant,
   type TopNavThemeMode,
 } from 'shared/components'
+import { notify } from 'shared/store'
 import { useThemeMode } from 'shared/store/uiStore'
 
 import { FulfillmentPanel } from '../components/FulfillmentPanel'
 import { OperationalStatusCard } from '../components/OperationalStatusCard'
 import {
+  alertCopy,
+  alertSamples,
   badgeSamples,
   badgeSizes,
   buttonHierarchies,
   buttonIntents,
   compactGroups,
   compactStatSamples,
+  confirmDialogCopy,
+  confirmDialogSamples,
   dataTableCopy,
   dataTableOrders,
   dataTableTabs,
@@ -78,7 +89,7 @@ import {
   topNavDemoUser,
   typeSpecs,
 } from '../content'
-import type { CompactSampleKey, DemoOrder, StatSampleKey } from '../content'
+import type { CompactSampleKey, ConfirmSampleKey, DemoOrder, StatSampleKey } from '../content'
 
 // Grillas del catálogo: colapsan a una columna en mobile para que las tarjetas
 // no se compriman.
@@ -276,6 +287,122 @@ function DataTableDemo() {
         pageLabel: dataTableCopy.page,
       }}
     />
+  )
+}
+
+// Los toasts de la vitrina son los reales: `notify()` escribe en el store y los
+// dibuja el `NotificationHost` de los providers, como en cualquier pantalla.
+function AlertsDemo() {
+  return (
+    <Stack spacing={3}>
+      <Stack spacing={1.5}>
+        <Typography variant="labelCaps" color="text.secondary">
+          {alertCopy.inline}
+        </Typography>
+        {alertSamples.map((sample) => (
+          <Alert key={sample.severity} severity={sample.severity} onClose={() => {}}>
+            {sample.message}
+          </Alert>
+        ))}
+        <Alert severity="warning">
+          <AlertTitle>{alertCopy.withTitle.title}</AlertTitle>
+          {alertCopy.withTitle.body}
+        </Alert>
+        <Alert
+          severity="error"
+          action={
+            <Button color="inherit" size="small">
+              {alertCopy.withAction.action}
+            </Button>
+          }
+        >
+          {alertCopy.withAction.message}
+        </Alert>
+      </Stack>
+      <Stack spacing={1.5}>
+        <Typography variant="labelCaps" color="text.secondary">
+          {alertCopy.toast}
+        </Typography>
+        <Stack direction="row" spacing={1.5} useFlexGap sx={{ flexWrap: 'wrap' }}>
+          {alertSamples.map((sample) => (
+            <Button
+              key={sample.severity}
+              variant="glass"
+              color={sample.severity}
+              onClick={() => notify(sample.message, sample.severity)}
+            >
+              {sample.label}
+            </Button>
+          ))}
+        </Stack>
+      </Stack>
+    </Stack>
+  )
+}
+
+const CONFIRM_SAMPLE_KEYS = Object.keys(confirmDialogSamples) as ConfirmSampleKey[]
+const CONFIRM_SIZES: ModalSize[] = ['sm', 'md', 'lg']
+
+// Inerte como el resto del catálogo: confirmar sólo cierra el diálogo.
+function ConfirmDialogDemo() {
+  // La muestra y el estado abierto van separados: al cerrar, el diálogo se
+  // desvanece con la muestra que tenía, en vez de saltar a otra a mitad del
+  // fundido.
+  const [sampleKey, setSampleKey] = useState<ConfirmSampleKey>('default')
+  const [open, setOpen] = useState(false)
+  const [size, setSize] = useState<ModalSize>('sm')
+  const sample = confirmDialogSamples[sampleKey]
+  const close = () => setOpen(false)
+
+  return (
+    <>
+      <Stack direction="row" spacing={1.5} useFlexGap sx={{ flexWrap: 'wrap' }}>
+        <ToggleButtonGroup
+          exclusive
+          value={size}
+          onChange={(_, next: ModalSize | null) => {
+            // Un toggle exclusivo devuelve `null` al reclickear el activo: se
+            // ignora para que siempre haya un tamaño elegido.
+            if (next !== null) setSize(next)
+          }}
+          aria-label={confirmDialogCopy.sizeLabel}
+        >
+          {CONFIRM_SIZES.map((option) => (
+            <ToggleButton key={option} value={option}>
+              {option}
+            </ToggleButton>
+          ))}
+        </ToggleButtonGroup>
+        {CONFIRM_SAMPLE_KEYS.map((key) => (
+          <Button
+            key={key}
+            variant="outlined"
+            color={key === 'default' ? 'primary' : 'error'}
+            onClick={() => {
+              setSampleKey(key)
+              setOpen(true)
+            }}
+          >
+            {confirmDialogSamples[key].trigger}
+          </Button>
+        ))}
+      </Stack>
+      <ConfirmDialog
+        open={open}
+        tone={sampleKey === 'default' ? 'default' : 'destructive'}
+        size={size}
+        title={sample.title}
+        description={sample.description}
+        confirmLabel={sample.confirm}
+        cancelLabel={confirmDialogCopy.cancel}
+        closeLabel={confirmDialogCopy.close}
+        canConfirm={!('error' in sample)}
+        onConfirm={close}
+        onClose={close}
+      >
+        {'error' in sample ? <Alert severity="error">{sample.error}</Alert> : null}
+      </ConfirmDialog>
+    </>
   )
 }
 
@@ -813,6 +940,18 @@ export function DesignSystemPage() {
           subtitle={dsCopy.sections.dataTable.subtitle}
         >
           <DataTableDemo />
+        </Section>
+
+        <Divider />
+
+        <Section title={dsCopy.sections.alerts.title} subtitle={dsCopy.sections.alerts.subtitle}>
+          <AlertsDemo />
+        </Section>
+
+        <Divider />
+
+        <Section title={dsCopy.sections.confirm.title} subtitle={dsCopy.sections.confirm.subtitle}>
+          <ConfirmDialogDemo />
         </Section>
       </Stack>
     </PageWrapper>

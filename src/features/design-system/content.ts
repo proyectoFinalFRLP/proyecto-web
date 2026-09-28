@@ -62,6 +62,15 @@ export const dsCopy = {
       title: 'Tabla de datos estándar',
       subtitle: 'Pestañas, selección, badges de estado, acciones por fila y paginación',
     },
+    alerts: {
+      title: 'Avisos del sistema y toasts',
+      subtitle:
+        'Alert — en línea dentro de la pantalla o flotando como toast, en sus cuatro intenciones',
+    },
+    confirm: {
+      title: 'Modal de confirmación',
+      subtitle: 'ModalFrame — estándar, destructiva y rechazada; tamaños sm · md · lg',
+    },
   },
   progressGroups: {
     load: 'Columna Load — canal neutro',
@@ -420,4 +429,55 @@ export const dataTableCopy = {
   next: 'Página siguiente',
   page: (page: number) => `Ir a la página ${page}`,
   selectedCount: (count: number) => `${count} seleccionadas`,
+} as const
+
+// Las tres variantes del modal de confirmación. La "rechazada" es la destructiva
+// después de que el backend dijo que no: queda el motivo y sólo la salida.
+export const confirmDialogSamples = {
+  default: {
+    trigger: 'Estándar',
+    title: '¿Confirmar el despacho?',
+    description: 'Se va a emitir la etiqueta de la orden #ORD-7721-X con Andreani.',
+    confirm: 'Confirmar despacho',
+  },
+  destructive: {
+    trigger: 'Destructiva',
+    title: '¿Eliminar la orden?',
+    description: 'Se va a eliminar la orden #ORD-7721-X. Esta acción no se puede deshacer.',
+    confirm: 'Eliminar orden',
+  },
+  rejected: {
+    trigger: 'Rechazada',
+    title: '¿Eliminar la orden?',
+    description: 'Se va a eliminar la orden #ORD-7721-X. Esta acción no se puede deshacer.',
+    confirm: 'Eliminar orden',
+    error: 'No se puede eliminar: la orden ya fue despachada.',
+  },
+} as const
+
+export type ConfirmSampleKey = keyof typeof confirmDialogSamples
+
+export const confirmDialogCopy = {
+  cancel: 'Cancelar',
+  close: 'Cerrar',
+  sizeLabel: 'Tamaño del diálogo',
+} as const
+
+// Avisos del sistema (Alert.dc.html). Los mismos cuatro textos sirven en línea y
+// como toast: el componente es uno solo, lo que cambia es dónde se monta.
+export const alertSamples = [
+  { severity: 'success', label: 'Éxito', message: 'Orden #ORD-7721-X procesada.' },
+  { severity: 'info', label: 'Información', message: 'Envío pendiente de despacho en CD Ezeiza.' },
+  { severity: 'warning', label: 'Advertencia', message: 'Stock bajo en 3 productos del catálogo.' },
+  { severity: 'error', label: 'Error', message: 'Falló la sincronización con Tiendanube.' },
+] as const
+
+export const alertCopy = {
+  inline: 'En línea',
+  toast: 'Toast — se dispara el real, por notify()',
+  withTitle: {
+    title: 'La orden cambió mientras la editabas',
+    body: 'Revisá los cambios antes de guardar: guardar ahora pisa lo que cambió la otra persona.',
+  },
+  withAction: { message: 'No pudimos cargar el panel.', action: 'Reintentar' },
 } as const
