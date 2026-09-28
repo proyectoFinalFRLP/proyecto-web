@@ -55,10 +55,11 @@ interface ConfirmedDraft {
  * veces. Por eso lo que se muestra durante y después de confirmar sale de una
  * copia del borrador tomada al apretar el botón, no del store.
  *
- * La contracara: una vez creada la orden, esta pantalla es el único lugar desde
- * el que se puede despachar su envío (el detalle todavía no lo ofrece). Mientras
- * el despacho no salga, el navegador pregunta antes de recargar o cerrar la
- * pestaña, y el error lo dice.
+ * La contracara: si el despacho falla, la orden ya existe. Con su envío abierto
+ * y `pending`, el detalle de la orden lo puede despachar (TESIS-134), y el error
+ * remite ahí. Si ni siquiera se abrió el envío, esta pantalla es el único lugar
+ * que lo abre: el error lo dice y el navegador pregunta antes de recargar o
+ * cerrar la pestaña.
  */
 export function CarrierStepPage() {
   const navigate = useNavigate()
@@ -88,8 +89,9 @@ export function CarrierStepPage() {
   )
   const quotes = useDraftQuotes(payload)
   const confirm = useConfirmDraftOrder({ onOrderCreated: clearDraft })
-  const dispatchPending = confirm.createdOrderId !== null && !confirm.isSuccess
-  useLeaveWarning(dispatchPending)
+  const shipmentMissing =
+    confirm.createdOrderId !== null && confirm.createdShipmentId === null && !confirm.isSuccess
+  useLeaveWarning(shipmentMissing)
 
   // Sin cliente o sin líneas no hay orden que cotizar; sin origen o destino hay
   // que volver al paso 2. Se llegó por URL, recargando, o se canceló el
@@ -132,7 +134,13 @@ export function CarrierStepPage() {
           {createdOrderId === null ? carrier.errors.order : carrier.errors.dispatch(orderLabel)}{' '}
           {confirm.error.message}
         </span>
-        {createdOrderId === null ? null : <span>{carrier.errors.dispatchPending}</span>}
+        {createdOrderId === null ? null : (
+          <span>
+            {confirm.createdShipmentId === null
+              ? carrier.errors.shipmentMissing
+              : carrier.errors.dispatchLater}
+          </span>
+        )}
         {createdOrderId === null ? null : (
           <Button
             color="inherit"

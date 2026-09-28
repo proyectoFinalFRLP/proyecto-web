@@ -359,9 +359,12 @@ export const ordersCopy = {
       /** La orden ya existe: lo que falló es el envío o el despacho. */
       dispatch: (orderLabel: string) =>
         `La orden ${orderLabel} se creó, pero no pudimos emitir el despacho.`,
-      /** Hasta que el detalle de la orden permita despachar, ésta es la única salida. */
-      dispatchPending:
-        'Reintentalo antes de salir: la orden ya descontó el stock, y si dejás esta pantalla su envío queda sin despachar.',
+      /** El envío quedó `pending`: el detalle de la orden lo puede despachar (TESIS-134). */
+      dispatchLater:
+        'Podés reintentarlo acá o, si salís de esta pantalla, despachar el envío desde el detalle de la orden.',
+      /** Ni siquiera se abrió el envío: ninguna otra pantalla lo abre, ésta es la única salida. */
+      shipmentMissing:
+        'Reintentalo antes de salir: la orden ya descontó el stock y todavía no tiene envío, y ninguna otra pantalla lo puede abrir.',
       retryDispatch: 'Reintentar el despacho',
       viewOrder: 'Ver la orden',
     },

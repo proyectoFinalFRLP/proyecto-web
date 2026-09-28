@@ -99,6 +99,25 @@ describe('useConfirmDraftOrder', () => {
     await waitFor(() => expect(result.current.createdOrderId).toBe(8829))
   })
 
+  // Con el envío abierto, el detalle de la orden lo puede despachar (TESIS-134);
+  // sin él, no.
+  it('tells the page whether the shipment was opened before the dispatch failed', async () => {
+    vi.spyOn(api, 'createOrder').mockResolvedValue(ORDER)
+    const createShipment = vi
+      .spyOn(api, 'createOrderShipment')
+      .mockRejectedValueOnce(new Error('boom'))
+      .mockResolvedValueOnce(SHIPMENT)
+    vi.spyOn(api, 'dispatchShipment').mockRejectedValue(new Error('El courier no contestó.'))
+    const { result } = renderHook(() => useConfirmDraftOrder(), { wrapper })
+
+    await act(() => result.current.mutateAsync(INPUT).catch(() => undefined))
+    expect(result.current.createdShipmentId).toBeNull()
+
+    await act(() => result.current.mutateAsync(INPUT).catch(() => undefined))
+    await waitFor(() => expect(result.current.createdShipmentId).toBe(31))
+    expect(createShipment).toHaveBeenCalledTimes(2)
+  })
+
   it('leaves no created order behind when the order itself is rejected', async () => {
     vi.spyOn(api, 'createOrder').mockRejectedValue(new Error('Stock insuficiente'))
     const createShipment = vi.spyOn(api, 'createOrderShipment')
