@@ -2,9 +2,11 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 import CloseIcon from '@mui/icons-material/Close'
 import { Alert, Button, Stack } from '@mui/material'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import { PageWrapper } from 'shared/components'
+import { useDebouncedValue } from 'shared/hooks/useDebouncedValue'
 import { useOrderDraftStore } from 'shared/store'
 
 import { CustomerFieldsCard, customerSchema } from '../components/CustomerFieldsCard'
@@ -54,7 +56,11 @@ export function NewOrderPage() {
   const removeItem = useOrderDraftStore((state) => state.removeItem)
   const clearDraft = useOrderDraftStore((state) => state.clearDraft)
 
-  const catalog = useCatalogProducts()
+  // Lo tipeado actualiza el campo en el acto; lo que viaja a la API espera a
+  // que la persona deje de escribir. Sin esto el buscador dispara un request
+  // por pulsación y descarta casi todos.
+  const [search, setSearch] = useState('')
+  const catalog = useCatalogProducts(useDebouncedValue(search))
 
   const {
     register,
@@ -109,8 +115,9 @@ export function NewOrderPage() {
           toolbar={
             <ProductPicker
               products={catalog.data ?? []}
-              loading={catalog.isPending}
+              loading={catalog.isPending || catalog.isFetching}
               addedIds={addedIds}
+              onSearchChange={setSearch}
               onAdd={addItem}
             />
           }

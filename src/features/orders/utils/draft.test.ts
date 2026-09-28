@@ -1,36 +1,7 @@
 import type { OrderDraftItem } from 'shared/store'
 import { describe, expect, it } from 'vitest'
 
-import type { CatalogProduct } from '../types'
-
-import { canProceed, draftSubtotal, draftWeight, filterCatalog, isDraftItemValid } from './draft'
-
-const CATALOG: CatalogProduct[] = [
-  {
-    id: 1,
-    sku: 'PX-9021-LRG',
-    name: 'Router industrial',
-    category: 'Electronics',
-    weight: 1.2,
-    totalStock: 40,
-  },
-  {
-    id: 2,
-    sku: 'PX-1185-MED',
-    name: 'Sensor de presión X4',
-    category: 'Machinery',
-    weight: 0.4,
-    totalStock: 0,
-  },
-  {
-    id: 3,
-    sku: 'CB-4420-XT',
-    name: 'Precinto de carga',
-    category: null,
-    weight: 2.5,
-    totalStock: 12,
-  },
-]
+import { canProceed, draftSubtotal, draftWeight, isDraftItemValid } from './draft'
 
 function item(overrides: Partial<OrderDraftItem> = {}): OrderDraftItem {
   return {
@@ -44,20 +15,6 @@ function item(overrides: Partial<OrderDraftItem> = {}): OrderDraftItem {
     ...overrides,
   }
 }
-
-describe('filterCatalog', () => {
-  it('matches the sku ignoring case', () => {
-    expect(filterCatalog(CATALOG, 'px-11').map((p) => p.id)).toEqual([2])
-  })
-
-  it('matches the name ignoring case', () => {
-    expect(filterCatalog(CATALOG, 'PRECINTO').map((p) => p.id)).toEqual([3])
-  })
-
-  it('returns the whole catalog for a blank term', () => {
-    expect(filterCatalog(CATALOG, '   ')).toHaveLength(3)
-  })
-})
 
 describe('isDraftItemValid', () => {
   it('accepts a whole quantity with a positive price', () => {

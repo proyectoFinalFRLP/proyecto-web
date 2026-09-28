@@ -1,26 +1,9 @@
 import type { OrderDraftItem } from 'shared/store'
 
-import type { CatalogProduct } from '../types'
-
 import { lineSubtotal } from './payment'
 
 // Las reglas del paso 1 del alta manual, fuera de los componentes para que se
 // puedan probar sin montar la pantalla.
-
-/**
- * Los productos cuyo SKU o nombre contienen el término, sin distinguir
- * mayúsculas. Con el término vacío devuelve el catálogo entero: el buscador
- * recién abierto muestra todo, no nada.
- */
-export function filterCatalog(products: CatalogProduct[], term: string): CatalogProduct[] {
-  const needle = term.trim().toLowerCase()
-  if (needle === '') return products
-
-  return products.filter(
-    (product) =>
-      product.sku.toLowerCase().includes(needle) || product.name.toLowerCase().includes(needle),
-  )
-}
 
 /**
  * Una línea válida para enviar: al menos una unidad entera y un precio mayor a
