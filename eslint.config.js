@@ -85,6 +85,19 @@ export default defineConfig([
       'react/jsx-no-leaked-render': ['error', { validStrategies: ['ternary', 'coerce'] }],
       'react/no-unstable-nested-components': ['error', { allowAsProps: false }],
 
+      // XSS: el token de sesión vive en localStorage, así que un script inyectado
+      // se lleva la sesión. React escapa todo lo que renderiza como texto; estas
+      // son las salidas que insertan HTML sin escapar (TESIS-130, ADR-008).
+      'react/no-danger': 'error',
+      'react/jsx-no-script-url': 'error',
+      'no-restricted-properties': [
+        'error',
+        ...['innerHTML', 'outerHTML', 'insertAdjacentHTML'].map((property) => ({
+          property,
+          message: 'Inserta HTML sin escapar: renderizá el dato como texto con JSX (ADR-008).',
+        })),
+      ],
+
       // Código general
       'no-else-return': ['error', { allowElseIf: false }],
       'no-lonely-if': 'error',
