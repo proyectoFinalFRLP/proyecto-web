@@ -24,6 +24,12 @@ export interface EditProductModalProps {
    * está— pero ahora pisa el trabajo de otra persona, y eso se nombra.
    */
   conflict?: ConflictChange[]
+  /**
+   * Rechazo del guardado que no es el 412, ya traducido. Se muestra dentro del
+   * modal: afuera quedaba tapado por el fondo del diálogo, y el usuario veía
+   * que el guardado terminaba sin que pasara nada.
+   */
+  submitError?: string
 }
 
 export interface SectionHeadingProps {

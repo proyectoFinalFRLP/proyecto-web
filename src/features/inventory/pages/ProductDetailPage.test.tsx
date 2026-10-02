@@ -1,4 +1,4 @@
-import { fireEvent, screen, waitFor } from '@testing-library/react'
+import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -103,5 +103,45 @@ describe('ProductDetailPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Cerrar' }))
 
     await waitFor(() => expect(editForm()).not.toBeInTheDocument())
+  })
+
+  // Hallazgo de auditoría (TESIS-89): el mensaje se dibujaba en el cuerpo de la
+  // página, tapado por el fondo del diálogo. El usuario veía que el guardado
+  // terminaba y nada más.
+  describe('a save that the API rejects', () => {
+    function failSave(status: number) {
+      vi.mocked(useUpdateProduct).mockReturnValue({
+        mutate: vi.fn(),
+        reset: vi.fn(),
+        isPending: false,
+        isError: true,
+        error: Object.assign(new Error('raw message from the api'), { status }),
+      } as never)
+    }
+
+    it('explains a 409 inside the edit form, where the user is looking', async () => {
+      failSave(409)
+      renderDetail({ edit: true })
+
+      const dialog = within(await screen.findByRole('dialog'))
+      expect(dialog.getByText(/Otra operación está moviendo el stock/)).toBeInTheDocument()
+    })
+
+    it('never shows the raw message of the API', async () => {
+      failSave(500)
+      renderDetail({ edit: true })
+
+      await screen.findByRole('dialog')
+      expect(screen.queryByText('raw message from the api')).not.toBeInTheDocument()
+    })
+
+    // El 412 lo explica el aviso de conflicto, no un error genérico.
+    it('leaves a 412 to the conflict notice', async () => {
+      failSave(412)
+      renderDetail({ edit: true })
+
+      await screen.findByRole('dialog')
+      expect(screen.queryByText(/No pudimos guardar los cambios/)).not.toBeInTheDocument()
+    })
   })
 })

@@ -70,6 +70,7 @@ export function EditProductModal({
   onClose,
   submitting = false,
   conflict,
+  submitError,
 }: EditProductModalProps) {
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null)
 
@@ -132,6 +133,8 @@ export function EditProductModal({
         <ModalBody>
           {/* El conflicto va arriba del formulario y no reemplaza nada: lo que
               el usuario cargó sigue intacto abajo. */}
+          {submitError === undefined ? null : <Alert severity="error">{submitError}</Alert>}
+
           {conflict === undefined ? null : (
             <Alert severity="warning" variant="outlined">
               <AlertTitle>{modal.conflict.title}</AlertTitle>
