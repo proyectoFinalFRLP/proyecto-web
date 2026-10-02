@@ -35,6 +35,7 @@ interface ApiStock {
   quantity: number
   warehouse_id: number
   warehouse: ApiWarehouse
+  stock_status: StockStatus
 }
 
 interface ApiProductSummary {
@@ -54,8 +55,13 @@ interface ApiProduct {
   sku: string
   name: string
   description: string | null
+  category: string | null
   weight: number
   dimensions: string | null
+  total_stock: number
+  stock_status: StockStatus
+  in_transit_quantity: number
+  in_transit_by_warehouse: { warehouse_id: number; name: string; quantity: number }[]
   updated_at: string
   stocks: ApiStock[]
 }
@@ -81,14 +87,24 @@ function toProduct(product: ApiProduct, version: string | null = null): Product 
     sku: product.sku,
     name: product.name,
     description: product.description,
+    category: (product.category ?? null) as Product['category'],
     weight: product.weight,
     dimensions: product.dimensions,
+    totalStock: product.total_stock,
+    stockStatus: product.stock_status,
+    inTransitQuantity: product.in_transit_quantity,
+    inTransitByWarehouse: (product.in_transit_by_warehouse ?? []).map((transit) => ({
+      warehouseId: transit.warehouse_id,
+      name: transit.name,
+      quantity: transit.quantity,
+    })),
     updatedAt: product.updated_at,
     version,
     stocks: (product.stocks ?? []).map((stock) => ({
       warehouseId: stock.warehouse_id,
       quantity: stock.quantity,
       warehouse: toWarehouse(stock.warehouse),
+      stockStatus: stock.stock_status,
     })),
   }
 }

@@ -14,11 +14,17 @@ function product(overrides: Partial<Product> = {}): Product {
     description: 'Rollo de 305 metros',
     weight: 12.4,
     dimensions: '45x30x20',
+    category: null,
+    totalStock: 10,
+    stockStatus: 'low',
+    inTransitQuantity: 0,
+    inTransitByWarehouse: [],
     stocks: [
       {
         warehouseId: 1,
         quantity: 10,
         warehouse: { id: 1, name: 'CD Ezeiza', address: 'Autopista Riccheri km 33' },
+        stockStatus: 'low',
       },
     ],
     updatedAt: '2026-08-30T12:00:00.000Z',
