@@ -74,7 +74,7 @@ export function AnomaliesTable({ anomalies }: AnomaliesTableProps) {
   return (
     <DataTable
       columns={COLUMNS}
-      rows={anomalies}
+      rows={anomalies ?? []}
       getRowId={(anomaly) => anomaly.id}
       label={copy.tableLabel}
       title={copy.title}
@@ -90,7 +90,7 @@ export function AnomaliesTable({ anomalies }: AnomaliesTableProps) {
           </Box>
         </Tooltip>
       }
-      emptyMessage={copy.empty}
+      emptyMessage={anomalies === null ? copy.unavailable : copy.empty}
     />
   )
 }
