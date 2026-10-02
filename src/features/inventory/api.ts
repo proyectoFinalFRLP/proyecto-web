@@ -54,6 +54,7 @@ interface ApiProduct {
   sku: string
   name: string
   description: string | null
+  category: string | null
   weight: number
   dimensions: string | null
   updated_at: string
@@ -81,6 +82,7 @@ function toProduct(product: ApiProduct, version: string | null = null): Product 
     sku: product.sku,
     name: product.name,
     description: product.description,
+    category: (product.category ?? null) as Product['category'],
     weight: product.weight,
     dimensions: product.dimensions,
     updatedAt: product.updated_at,
@@ -206,4 +208,15 @@ export async function updateProduct(
  */
 export async function deleteProduct(id: number): Promise<void> {
   await client.delete(`/products/${id}`)
+}
+
+/**
+ * El vocabulario de categorías (`Product::CATEGORIES`). Sale del backend y no
+ * de una lista en el front: sumar una categoría es una línea en el modelo, y
+ * los selects de los modales la muestran sin tocar esta app.
+ */
+export async function fetchCategories(): Promise<string[]> {
+  const { data } = await client.get<{ data: string[] }>('/products/categories')
+
+  return data.data
 }

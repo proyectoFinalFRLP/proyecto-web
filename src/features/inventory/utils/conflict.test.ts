@@ -29,6 +29,7 @@ function product(overrides: Partial<Product> = {}): Product {
     description: 'Rollo de 305 metros',
     weight: 12.4,
     dimensions: '45x30x20',
+    category: null,
     stocks: [stock(1, 10, 'CD Ezeiza')],
     updatedAt: '2026-08-30T12:00:00.000Z',
     version: '"abc"',

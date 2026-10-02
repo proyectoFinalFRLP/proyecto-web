@@ -14,6 +14,7 @@ function product(overrides: Partial<Product> = {}): Product {
     description: 'Rollo de 305 metros',
     weight: 12.4,
     dimensions: '45x30x20',
+    category: null,
     stocks: [
       {
         warehouseId: 1,
@@ -31,6 +32,7 @@ function renderModal(initial: Product) {
   const props = {
     open: true,
     warehouses: [],
+    categories: ['Electronics', 'Cabling', 'Power'],
     onSubmit: vi.fn(),
     onClose: vi.fn(),
   }
@@ -176,6 +178,55 @@ describe('EditProductModal', () => {
 
       expect(screen.queryByRole('button', { name: 'Guardar cambios' })).not.toBeInTheDocument()
       expect(screen.getAllByRole('button', { name: /guardar/i })).toHaveLength(1)
+    })
+  })
+
+  describe('the category', () => {
+    const categorySelect = () => screen.getByRole('combobox', { name: 'Categoría' })
+
+    async function choose(option: string) {
+      fireEvent.mouseDown(categorySelect())
+      fireEvent.click(await screen.findByRole('option', { name: option }))
+    }
+
+    async function submittedCategory(props: { onSubmit: ReturnType<typeof vi.fn> }) {
+      fireEvent.click(screen.getByRole('button', { name: 'Guardar cambios' }))
+      await waitFor(() => expect(props.onSubmit).toHaveBeenCalled())
+      return (props.onSubmit.mock.calls[0]?.[0] as { product: { category: string | null } }).product
+        .category
+    }
+
+    it('opens with the category of the product', () => {
+      renderModal(product({ category: 'Cabling' }))
+
+      expect(categorySelect()).toHaveTextContent('Cabling')
+    })
+
+    it('offers the vocabulary of the API plus no category', () => {
+      renderModal(product())
+
+      fireEvent.mouseDown(categorySelect())
+
+      expect(screen.getAllByRole('option').map((option) => option.textContent)).toEqual([
+        'Sin categoría',
+        'Electronics',
+        'Cabling',
+        'Power',
+      ])
+    })
+
+    it('sends the category the user chose', async () => {
+      const { props } = renderModal(product({ category: 'Cabling' }))
+      await choose('Power')
+
+      expect(await submittedCategory(props)).toBe('Power')
+    })
+
+    it('lets the user clear it', async () => {
+      const { props } = renderModal(product({ category: 'Cabling' }))
+      await choose('Sin categoría')
+
+      expect(await submittedCategory(props)).toBeNull()
     })
   })
 })

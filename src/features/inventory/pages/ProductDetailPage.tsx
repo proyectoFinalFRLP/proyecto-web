@@ -16,7 +16,13 @@ import type { ProductSpec } from '../components/ProductSpecsCard'
 import { WarehouseDistributionCard } from '../components/WarehouseDistributionCard'
 import type { WarehouseDistributionRow } from '../components/WarehouseDistributionCard'
 import { inventoryCopy } from '../content'
-import { CONFLICT_STATUS, useProduct, useUpdateProduct, useWarehouses } from '../hooks/useInventory'
+import {
+  CONFLICT_STATUS,
+  useCategories,
+  useProduct,
+  useUpdateProduct,
+  useWarehouses,
+} from '../hooks/useInventory'
 import type { Product, UpdateProductPayload } from '../types'
 import { describeConflict } from '../utils/conflict'
 import { parseDimensions } from '../utils/dimensions'
@@ -184,6 +190,7 @@ export function ProductDetailPage() {
 
   const product = useProduct(id)
   const warehouses = useWarehouses()
+  const categories = useCategories()
   const updateMutation = useUpdateProduct(id, product.data?.version ?? null)
 
   // El 412 llega con la versión ya invalidada: React Query refetchea el detalle
@@ -293,6 +300,7 @@ export function ProductDetailPage() {
         open={editing}
         product={product.data}
         warehouses={warehouses.data}
+        categories={categories.data}
         submitting={updateMutation.isPending}
         conflict={conflict}
         onClose={() => {

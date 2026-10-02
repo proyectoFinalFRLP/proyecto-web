@@ -88,6 +88,8 @@ export interface Product {
   description: string | null
   weight: number
   dimensions: string | null
+  /** Opcional: los productos anteriores a TESIS-102 no tienen ninguna. */
+  category: ProductCategory | null
   stocks: ProductStock[]
   updatedAt: string
   /**
@@ -115,6 +117,8 @@ export interface CreateProductPayload {
     sku: string
     name: string
     description: string | null
+    /** `null` = sin categoría. El vocabulario es `GET /products/categories`. */
+    category: string | null
     weight: number
     dimensions: string | null
     stocks: { warehouse_id: number; quantity: number }[]
@@ -132,6 +136,7 @@ export interface UpdateProductPayload {
   product: {
     name: string
     description: string | null
+    category: string | null
     weight: number
     dimensions: string | null
     stocks: { warehouse_id: number; quantity: number }[]
