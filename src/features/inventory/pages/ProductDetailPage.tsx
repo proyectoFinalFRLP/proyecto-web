@@ -31,6 +31,11 @@ const { specs: specsCopy, master: masterCopy, distribution: distributionCopy, st
 // del breadcrumb se declara acá.
 const CATALOG_PATH = '/inventory'
 
+// Rechazos del guardado: el stock está tomado por otra operación (409, el lock
+// de ADR-009) o algún dato no pasó la validación (422).
+const LOCKED_STATUS = 409
+const INVALID_STATUS = 422
+
 // La grilla del diseño: columna fija para el stock maestro y el resto para la
 // distribución. En pantallas angostas se apilan.
 const CONTENT_GRID = {
@@ -38,6 +43,13 @@ const CONTENT_GRID = {
   gap: 3,
   gridTemplateColumns: { xs: '1fr', md: '280px minmax(0, 1fr)' },
   alignItems: 'stretch',
+}
+
+/** El rechazo del guardado en palabras, por status. El 412 no pasa por acá. */
+function saveError(status: number | undefined): string {
+  if (status === LOCKED_STATUS) return inventoryCopy.modal.saveFailed.locked
+  if (status === INVALID_STATUS) return inventoryCopy.modal.saveFailed.invalid
+  return inventoryCopy.modal.saveFailed.generic
 }
 
 /** Cuadrícula de especificaciones. Lo que la API no expone se muestra sin dato. */
@@ -276,17 +288,6 @@ export function ProductDetailPage() {
             footnote={distributionCopy.pending}
           />
         </Box>
-
-        {/* El 412 no es un error a mostrar acá: lo explica el propio modal, que
-            queda abierto con lo que el usuario cargó. La condición mira
-            `isConflict` y no `conflict`, que es `undefined` también mientras se
-            resuelve el refetch: con lo otro, el 412 se filtraba a este banner
-            durante ese render. */}
-        {updateMutation.isError && !isConflict ? (
-          <Typography variant="bodyMd" role="alert" sx={{ color: 'error.main' }}>
-            {updateMutation.error.message}
-          </Typography>
-        ) : null}
       </Stack>
 
       <EditProductModal
@@ -295,6 +296,13 @@ export function ProductDetailPage() {
         warehouses={warehouses.data}
         submitting={updateMutation.isPending}
         conflict={conflict}
+        // El 412 no va acá: lo explica `conflict`. La condición mira
+        // `isConflict` y no `conflict`, que es `undefined` también mientras se
+        // resuelve el refetch: con lo otro, el 412 se filtraba como error
+        // genérico durante ese render.
+        submitError={
+          updateMutation.isError && !isConflict ? saveError(updateMutation.error.status) : undefined
+        }
         onClose={() => {
           // Sin el reset, el error de la mutación sobrevive al modal y queda
           // colgado en la página — un 412 que ya no aplica a nada visible.

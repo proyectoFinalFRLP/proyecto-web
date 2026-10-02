@@ -150,6 +150,18 @@ export const inventoryCopy = {
     title: (productName: string) => `Editar producto: ${productName}`,
     subtitle: (sku: string) => `Actualizá especificaciones y stock del SKU: ${sku}`,
     close: 'Cerrar',
+    /**
+     * Rechazos del guardado que no son el 412 (ese lo explica `conflict`). El
+     * mensaje de la API viene en inglés: se muestra uno propio por status.
+     */
+    saveFailed: {
+      /** 409: el stock del producto está tomado por otra operación (una venta, una transferencia). */
+      locked:
+        'Otra operación está moviendo el stock de este producto. Tus cambios siguen acá: probá de nuevo en unos segundos.',
+      /** 422: la API rechazó algún dato del formulario. */
+      invalid: 'La API rechazó alguno de los datos. Revisalos y volvé a guardar.',
+      generic: 'No pudimos guardar los cambios. Tus cambios siguen acá: probá de nuevo.',
+    },
     conflict: {
       title: 'Alguien editó este producto mientras lo tenías abierto',
       body: 'Tus cambios siguen acá. Si guardás ahora, pisás lo que modificó la otra persona.',
