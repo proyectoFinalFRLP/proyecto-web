@@ -1,7 +1,7 @@
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
 import NavigateNextIcon from '@mui/icons-material/NavigateNext'
 import PrintOutlinedIcon from '@mui/icons-material/PrintOutlined'
-import { Box, Button, Tooltip } from '@mui/material'
+import { Box, Button } from '@mui/material'
 import { Link } from 'react-router-dom'
 import { StatusBadge } from 'shared/components'
 
@@ -24,6 +24,7 @@ export function OrderDetailHeader({
   statusVariant,
   ordersPath,
   onModify,
+  onPrint,
 }: OrderDetailHeaderProps) {
   return (
     <Box>
@@ -44,15 +45,9 @@ export function OrderDetailHeader({
         <StatusBadge status={statusVariant} label={statusLabel} size="lg" />
 
         <Actions>
-          {/* El botón deshabilitado no dispara eventos de puntero, así que el
-              Tooltip necesita un envoltorio propio para recibir el hover. */}
-          <Tooltip title={actions.printPending}>
-            <Box component="span">
-              <Button variant="outlined" startIcon={<PrintOutlinedIcon />} disabled>
-                {actions.print}
-              </Button>
-            </Box>
-          </Tooltip>
+          <Button variant="outlined" startIcon={<PrintOutlinedIcon />} onClick={onPrint}>
+            {actions.print}
+          </Button>
           <Button variant="contained" startIcon={<EditOutlinedIcon />} onClick={onModify}>
             {actions.modify}
           </Button>

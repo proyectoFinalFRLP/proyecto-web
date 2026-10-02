@@ -284,4 +284,30 @@ describe('OrderDetailPage', () => {
       expect(dispatchButton()).not.toBeInTheDocument()
     })
   })
+
+  describe('the delivery note', () => {
+    beforeEach(() => {
+      vi.spyOn(window, 'print').mockImplementation(() => undefined)
+    })
+
+    it('is not in the page until it is printed', () => {
+      mockQueries({ data: ORDER })
+
+      renderAt('/orders/8829')
+
+      expect(screen.queryByTestId('delivery-note')).not.toBeInTheDocument()
+    })
+
+    it('prints it and takes it away once the dialog closes', () => {
+      mockQueries({ data: ORDER })
+      renderAt('/orders/8829')
+
+      fireEvent.click(screen.getByRole('button', { name: 'Imprimir remito' }))
+      expect(window.print).toHaveBeenCalledTimes(1)
+      expect(screen.getByTestId('delivery-note')).toBeInTheDocument()
+
+      fireEvent(window, new Event('afterprint'))
+      expect(screen.queryByTestId('delivery-note')).not.toBeInTheDocument()
+    })
+  })
 })

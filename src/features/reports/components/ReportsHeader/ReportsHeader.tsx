@@ -14,9 +14,9 @@ const { page: pageCopy, actions: actionCopy } = reportsCopy
 /**
  * Encabezado de S14: título, bajada y las dos acciones del período.
  *
- * La exportación queda visible y apagada, como el remito del detalle de orden:
- * no hay endpoint que la resuelva, y además la decisión del proyecto es dejar
- * la exportación para el final, cuando el modelo de datos esté completo.
+ * La exportación queda visible y apagada: no hay endpoint que la resuelva, y
+ * además la decisión del proyecto es dejarla para el final, cuando el modelo
+ * de datos esté completo.
  */
 export function ReportsHeader({ period, onPeriodChange, sampleData = false }: ReportsHeaderProps) {
   return (

@@ -4,11 +4,12 @@ import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined
 import PaymentsOutlinedIcon from '@mui/icons-material/PaymentsOutlined'
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline'
 import { Box, Button, Stack, Typography } from '@mui/material'
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ErrorFallback, LoadingSpinner, PageWrapper } from 'shared/components'
-import { notify } from 'shared/store'
+import { notify, useTenantName } from 'shared/store'
 
+import { DeliveryNote } from '../components/DeliveryNote'
 import { DispatchShipmentDialog } from '../components/DispatchShipmentDialog'
 import { InfoPanel } from '../components/InfoPanel'
 import type { InfoField } from '../components/InfoPanel'
@@ -166,6 +167,9 @@ export function OrderDetailPage() {
   // refresca el detalle, y el diálogo no tiene que desmontarse con el resultado
   // todavía a la vista porque el envío dejó de estar pendiente.
   const [dispatchingId, setDispatchingId] = useState<number | null>(null)
+  const companyName = useTenantName() ?? detail.deliveryNote.companyFallback
+  const [printing, setPrinting] = useState(false)
+  const stopPrinting = useCallback(() => setPrinting(false), [])
 
   if (id === undefined || order.error?.status === NOT_FOUND_STATUS) return <NotFound />
 
@@ -194,6 +198,9 @@ export function OrderDetailPage() {
           statusVariant={status.variant}
           ordersPath={ORDERS_PATH}
           onModify={() => void navigate(editPath(order.data.id))}
+          // Montar el remito abre el diálogo del navegador, que también lo guarda
+          // como PDF; al cerrarlo se desmonta.
+          onPrint={() => setPrinting(true)}
         />
 
         <OrderMetrics metrics={buildMetrics(order.data, resolved, payment.total)} />
@@ -244,6 +251,16 @@ export function OrderDetailPage() {
           </Stack>
         </Box>
       </Stack>
+
+      {printing ? (
+        <DeliveryNote
+          order={order.data}
+          orderLabel={orderLabel}
+          companyName={companyName}
+          shipment={resolved}
+          onPrinted={stopPrinting}
+        />
+      ) : null}
 
       {/* Se monta al abrirlo: los depósitos y la cotización se piden recién
           cuando el operador decide despachar, no en cada visita al detalle. */}
