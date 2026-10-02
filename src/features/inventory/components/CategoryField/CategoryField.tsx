@@ -1,6 +1,8 @@
 import { MenuItem, TextField } from '@mui/material'
 import { LabeledField } from 'shared/components'
 
+import { categoryOptions } from '../../utils/categories'
+
 import type { CategoryFieldProps } from './CategoryField.types'
 
 /**
@@ -9,10 +11,8 @@ import type { CategoryFieldProps } from './CategoryField.types'
  * Controlado y no registrado: el modal de edición se rellena con `reset` al
  * abrir, y un select no controlado seguiría mostrando lo que tenía antes.
  *
- * Las opciones salen de `GET /products/categories`. Si la API todavía no
- * respondió, o el producto trae una categoría que ya no está en el
- * vocabulario, ese valor se ofrece igual: sin eso el select lo mostraría vacío
- * y guardar lo borraría sin que nadie lo haya pedido.
+ * Las opciones salen de `GET /products/categories`, más la del producto si la
+ * lista no la trae (ver `categoryOptions`): guardar no la borra por accidente.
  */
 export function CategoryField({
   value,
@@ -22,7 +22,7 @@ export function CategoryField({
   helperText,
   noneLabel,
 }: CategoryFieldProps) {
-  const options = value !== '' && !categories.includes(value) ? [value, ...categories] : categories
+  const options = categoryOptions(categories, value)
 
   return (
     <LabeledField label={label} helperText={helperText}>

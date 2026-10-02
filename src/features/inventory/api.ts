@@ -3,6 +3,7 @@ import { client } from 'shared/api/client'
 import type {
   CreateProductPayload,
   Product,
+  ProductCategory,
   ProductFilters,
   ProductPage,
   ProductSummary,
@@ -140,9 +141,13 @@ export async function fetchProductPage(filters: ProductFilters): Promise<Product
  * Alimenta los contadores de las pestañas: pide una sola fila y lee nada más
  * que el `meta.total`, que el backend cuenta sobre el scope ya filtrado.
  */
-export async function fetchProductCount(status?: StockStatus, search?: string): Promise<number> {
+export async function fetchProductCount(
+  status?: StockStatus,
+  search?: string,
+  category?: ProductCategory,
+): Promise<number> {
   const { data } = await client.get<ApiList<ApiProductSummary>>('/products', {
-    params: toParams({ page: 1, perPage: 1, status, search }),
+    params: toParams({ page: 1, perPage: 1, status, search, category }),
   })
 
   return data.meta.total

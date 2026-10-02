@@ -7,6 +7,8 @@ export const inventoryCopy = {
     title: 'Inventario',
     subtitle: 'Catálogo maestro de productos y disponibilidad por depósito.',
     searchLabel: 'Buscar productos',
+    categoryLabel: 'Categoría',
+    allCategories: 'Todas las categorías',
     searchPlaceholder: 'Buscar por SKU o nombre',
     tableLabel: 'Catálogo de productos',
     empty: 'No hay productos que coincidan con el filtro.',

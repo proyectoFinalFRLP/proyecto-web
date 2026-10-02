@@ -1,6 +1,6 @@
 import AddIcon from '@mui/icons-material/Add'
 import SearchIcon from '@mui/icons-material/Search'
-import { Box, Button, InputAdornment, Stack, TextField, Typography } from '@mui/material'
+import { Box, Button, InputAdornment, MenuItem, Stack, TextField, Typography } from '@mui/material'
 import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { ErrorFallback, LoadingSpinner, PageWrapper } from 'shared/components'
@@ -23,7 +23,8 @@ import {
   useWarehouses,
 } from '../hooks/useInventory'
 import type { CatalogTabId } from '../hooks/useInventory'
-import type { ProductSummary } from '../types'
+import type { ProductCategory, ProductSummary } from '../types'
+import { categoryOptions } from '../utils/categories'
 
 const { page, createModal, tabs: tabCopy, pagination } = inventoryCopy
 
@@ -33,6 +34,21 @@ const PER_PAGE = 20
 // panel de operación enlaza acá con `?tab=low` desde su tarjeta de alertas
 // (TESIS-55), y un estado local no se podría enlazar ni compartir.
 const TAB_PARAM = 'tab'
+
+// La categoría también vive en la URL, por el mismo motivo que la pestaña: un
+// filtro que no se puede enlazar ni recargar se pierde con un F5.
+const CATEGORY_PARAM = 'category'
+
+/**
+ * La categoría que pide la URL, o ninguna. No se valida contra el vocabulario:
+ * la lista llega de la API después del primer render, y una categoría que no
+ * existe devuelve cero filas, que es la respuesta honesta.
+ */
+function categoryFromParams(params: URLSearchParams): ProductCategory | undefined {
+  const requested = params.get(CATEGORY_PARAM)
+
+  return requested === null || requested === '' ? undefined : (requested as ProductCategory)
+}
 
 /** La pestaña que pide la URL, o `all` si no pide ninguna válida. */
 function tabFromParams(params: URLSearchParams): CatalogTabId {
@@ -64,6 +80,7 @@ export function InventoryPage() {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const tabId = tabFromParams(searchParams)
+  const category = categoryFromParams(searchParams)
   const [pageNumber, setPageNumber] = useState(1)
   const [search, setSearch] = useState('')
   const [creating, setCreating] = useState(false)
@@ -79,8 +96,9 @@ export function InventoryPage() {
     perPage: PER_PAGE,
     status,
     search: debouncedSearch,
+    category,
   })
-  const counts = useProductCounts(debouncedSearch)
+  const counts = useProductCounts(debouncedSearch, category)
   const warehouses = useWarehouses()
   const categories = useCategories()
   const createMutation = useCreateProduct()
@@ -97,6 +115,19 @@ export function InventoryPage() {
         const next = new URLSearchParams(current)
         if (nextTabId === 'all') next.delete(TAB_PARAM)
         else next.set(TAB_PARAM, nextTabId)
+        return next
+      },
+      { replace: true },
+    )
+    setPageNumber(1)
+  }
+
+  function changeCategory(value: string) {
+    setSearchParams(
+      (current) => {
+        const next = new URLSearchParams(current)
+        if (value === '') next.delete(CATEGORY_PARAM)
+        else next.set(CATEGORY_PARAM, value)
         return next
       },
       { replace: true },
@@ -207,6 +238,24 @@ export function InventoryPage() {
               },
             }}
           />
+          <TextField
+            select
+            size="small"
+            value={category ?? ''}
+            onChange={(event) => changeCategory(event.target.value)}
+            label={page.categoryLabel}
+            sx={{ width: { xs: '100%', sm: 200 } }}
+            slotProps={{ select: { displayEmpty: true }, inputLabel: { shrink: true } }}
+          >
+            <MenuItem value="">{page.allCategories}</MenuItem>
+            {/* La categoría de la URL se ofrece aunque la lista no la tenga: ver
+                `categoryOptions`. */}
+            {categoryOptions(categories.data ?? [], category ?? '').map((option) => (
+              <MenuItem key={option} value={option}>
+                {option}
+              </MenuItem>
+            ))}
+          </TextField>
           <Button variant="contained" startIcon={<AddIcon />} onClick={openCreate}>
             {createModal.open}
           </Button>

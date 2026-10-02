@@ -21,6 +21,7 @@ import { inventoryKeys } from '../queryKeys'
 import type {
   CreateProductPayload,
   Product,
+  ProductCategory,
   ProductFilters,
   ProductPage,
   StockStatus,
@@ -61,14 +62,15 @@ export function useProductPage(filters: ProductFilters) {
  * Los cuatro contadores de las pestañas, en paralelo. Son consultas de una sola
  * fila que leen nada más que el `meta.total`.
  *
- * Respetan la búsqueda: si no lo hicieran, buscar algo inexistente dejaría la
- * tabla vacía con una pestaña que sigue diciendo «Todos (1.284)».
+ * Respetan la búsqueda y la categoría: si no lo hicieran, buscar algo
+ * inexistente dejaría la tabla vacía con una pestaña que sigue diciendo
+ * «Todos (1.284)».
  */
-export function useProductCounts(search: string) {
+export function useProductCounts(search: string, category?: ProductCategory) {
   return useQueries({
     queries: CATALOG_TABS.map(({ status }) => ({
-      queryKey: inventoryKeys.count(status, search),
-      queryFn: () => fetchProductCount(status, search),
+      queryKey: inventoryKeys.count(status, search, category),
+      queryFn: () => fetchProductCount(status, search, category),
     })),
     // Un contador que falla no puede voltear la pantalla: la tabla se ve igual
     // y la pestaña queda sin número.

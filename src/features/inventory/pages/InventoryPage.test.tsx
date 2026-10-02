@@ -65,6 +65,57 @@ beforeEach(() => {
   vi.mocked(useDeleteProduct).mockReturnValue(IDLE_MUTATION as never)
 })
 
+/** Los filtros con los que la pantalla pidió la última página del catálogo. */
+function lastRequestedFilters() {
+  const calls = vi.mocked(useProductPage).mock.calls
+
+  return calls[calls.length - 1][0]
+}
+
+const categorySelect = () => screen.getByRole('combobox', { name: 'Categoría' })
+
+describe('InventoryPage · the category filter', () => {
+  it('asks for every category when the URL asks for none', () => {
+    renderCatalog('/inventory')
+
+    expect(lastRequestedFilters().category).toBeUndefined()
+    expect(categorySelect()).toHaveTextContent('Todas las categorías')
+  })
+
+  // Enlazable y recargable, como la pestaña.
+  it('opens filtered by the category the URL asks for', () => {
+    renderCatalog('/inventory?category=Power')
+
+    expect(lastRequestedFilters().category).toBe('Power')
+    expect(categorySelect()).toHaveTextContent('Power')
+  })
+
+  it('filters by the chosen category, from the first page', async () => {
+    renderCatalog('/inventory')
+
+    fireEvent.mouseDown(categorySelect())
+    fireEvent.click(await screen.findByRole('option', { name: 'Electronics' }))
+
+    expect(lastRequestedFilters()).toMatchObject({ category: 'Electronics', page: 1 })
+  })
+
+  // Si no, la pestaña diría «Todos (1.284)» con la tabla filtrada a tres filas.
+  it('counts the tabs within the chosen category', () => {
+    renderCatalog('/inventory?category=Power')
+
+    expect(vi.mocked(useProductCounts)).toHaveBeenLastCalledWith('', 'Power')
+  })
+
+  it('goes back to every category', async () => {
+    renderCatalog('/inventory?category=Power')
+
+    fireEvent.mouseDown(categorySelect())
+    fireEvent.click(await screen.findByRole('option', { name: 'Todas las categorías' }))
+
+    expect(lastRequestedFilters().category).toBeUndefined()
+  })
+})
+
 describe('InventoryPage · the tab in the URL', () => {
   it('opens on every product when the URL asks for no tab', () => {
     renderCatalog('/inventory')
