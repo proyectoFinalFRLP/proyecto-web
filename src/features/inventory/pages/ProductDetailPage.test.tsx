@@ -4,7 +4,14 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { renderWithTheme } from '../../../test/renderWithTheme'
 import type * as inventoryHooks from '../hooks/useInventory'
-import { useProduct, useUpdateProduct, useWarehouses } from '../hooks/useInventory'
+import {
+  useCreateTransfer,
+  useProduct,
+  useProductTransfers,
+  useSettleTransfer,
+  useUpdateProduct,
+  useWarehouses,
+} from '../hooks/useInventory'
 import type { Product } from '../types'
 
 import { ProductDetailPage } from './ProductDetailPage'
@@ -14,6 +21,9 @@ vi.mock('../hooks/useInventory', async (importOriginal) => ({
   useProduct: vi.fn(),
   useWarehouses: vi.fn(),
   useUpdateProduct: vi.fn(),
+  useProductTransfers: vi.fn(),
+  useCreateTransfer: vi.fn(),
+  useSettleTransfer: vi.fn(),
 }))
 
 const PRODUCT: Product = {
@@ -124,6 +134,15 @@ beforeEach(() => {
     isPending: false,
     error: null,
   } as never)
+  // La sección de transferencias tiene sus propios tests: acá sólo se monta.
+  vi.mocked(useProductTransfers).mockReturnValue({
+    data: [],
+    isPending: false,
+    isError: false,
+  } as never)
+  const idle = { mutate: vi.fn(), reset: vi.fn(), isPending: false, isError: false, error: null }
+  vi.mocked(useCreateTransfer).mockReturnValue(idle as never)
+  vi.mocked(useSettleTransfer).mockReturnValue(idle as never)
 })
 
 describe('ProductDetailPage', () => {

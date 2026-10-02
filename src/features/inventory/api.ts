@@ -2,11 +2,15 @@ import { client } from 'shared/api/client'
 
 import type {
   CreateProductPayload,
+  CreateTransferPayload,
   Product,
   ProductFilters,
   ProductPage,
   ProductSummary,
   StockStatus,
+  StockTransfer,
+  TransferOutcome,
+  TransferStatus,
   UpdateProductPayload,
   Warehouse,
 } from './types'
@@ -222,4 +226,58 @@ export async function updateProduct(
  */
 export async function deleteProduct(id: number): Promise<void> {
   await client.delete(`/products/${id}`)
+}
+
+interface ApiStockTransfer {
+  id: number
+  quantity: number
+  status: TransferStatus
+  dispatched_at: string
+  origin_warehouse: { id: number; name: string }
+  destination_warehouse: { id: number; name: string }
+}
+
+function toTransfer(transfer: ApiStockTransfer): StockTransfer {
+  return {
+    id: transfer.id,
+    quantity: transfer.quantity,
+    status: transfer.status,
+    dispatchedAt: transfer.dispatched_at,
+    origin: transfer.origin_warehouse,
+    destination: transfer.destination_warehouse,
+  }
+}
+
+/**
+ * Transferencias de un producto que todavía están en vuelo.
+ *
+ * `per_page` al techo de la API (100): la tarjeta del detalle no pagina, y un
+ * producto con más de cien transferencias abiertas a la vez no es un caso del
+ * negocio. Si pasara, `meta.total` lo diría; acá no se muestra.
+ */
+export async function fetchTransfers(productId: number): Promise<StockTransfer[]> {
+  const { data } = await client.get<ApiList<ApiStockTransfer>>('/stock-transfers', {
+    params: { product_id: productId, status: 'in_transit', per_page: 100 },
+  })
+
+  return data.data.map(toTransfer)
+}
+
+/**
+ * Despacha una transferencia: el backend descuenta el origen en la misma
+ * operación. Responde **422** si el origen no tiene esas unidades (alguien las
+ * movió mientras el modal estaba abierto) y **409** si otra operación tiene
+ * tomado el stock del producto en ese momento.
+ */
+export async function createTransfer(payload: CreateTransferPayload): Promise<StockTransfer> {
+  const { data } = await client.post<ApiStockTransfer>('/stock-transfers', payload)
+
+  return toTransfer(data)
+}
+
+/** Recibe o cancela. Responde **409** si la transferencia ya se liquidó. */
+export async function settleTransfer(id: number, outcome: TransferOutcome): Promise<StockTransfer> {
+  const { data } = await client.post<ApiStockTransfer>(`/stock-transfers/${id}/${outcome}`)
+
+  return toTransfer(data)
 }

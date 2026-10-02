@@ -141,6 +141,72 @@ export const inventoryCopy = {
       pending:
         'En tránsito son las unidades que vienen hacia cada depósito. Comprometido espera que la API modele las reservas.',
     },
+    transfers: {
+      title: 'Transferencias en curso',
+      subtitle: 'Unidades que salieron de un depósito y todavía no llegaron al otro.',
+      create: 'Transferir stock',
+      /** Por qué el botón está apagado: sin origen con unidades o sin otro depósito. */
+      createDisabled: 'Hace falta un depósito con unidades y otro depósito de destino.',
+      empty: 'No hay transferencias en curso para este producto.',
+      error: 'No pudimos cargar las transferencias.',
+      route: (origin: string, destination: string) => `${origin} → ${destination}`,
+      units: (quantity: number) =>
+        quantity === 1 ? '1 unidad' : `${formatUnits(quantity)} unidades`,
+      dispatchedAt: (when: string) => `Despachada ${when}`,
+      receive: 'Recibir',
+      cancel: 'Cancelar',
+      listLabel: 'Transferencias en curso',
+      receiveConfirm: {
+        title: 'Recibir transferencia',
+        body: (quantity: number, destination: string) =>
+          `Se van a sumar ${quantity === 1 ? '1 unidad' : `${formatUnits(quantity)} unidades`} al stock de ${destination}.`,
+        confirm: 'Recibir',
+      },
+      cancelConfirm: {
+        title: 'Cancelar transferencia',
+        body: (quantity: number, origin: string) =>
+          `Las ${quantity === 1 ? 'unidad vuelve' : `${formatUnits(quantity)} unidades vuelven`} a ${origin}. Esta acción no se puede deshacer.`,
+        confirm: 'Cancelar transferencia',
+      },
+      keep: 'Volver',
+      close: 'Cerrar',
+      received: 'Transferencia recibida.',
+      cancelled: 'Transferencia cancelada.',
+      /** 409: otra pestaña o persona ya la recibió o la canceló. */
+      alreadySettled: 'Esa transferencia ya se había liquidado. La lista está actualizada.',
+      settleFailed: 'No pudimos actualizar la transferencia. Probá de nuevo.',
+    },
+    transferModal: {
+      title: 'Transferir stock',
+      subtitle: (sku: string) => `Mover unidades del SKU ${sku} entre depósitos.`,
+      fields: {
+        origin: 'Depósito de origen',
+        destination: 'Depósito de destino',
+        quantity: 'Cantidad',
+      },
+      originOption: (name: string, quantity: number) => `${name} · ${formatUnits(quantity)} u.`,
+      quantityHelper: (max: number) => `Hasta ${formatUnits(max)} unidades.`,
+      note: 'Las unidades se descuentan del origen al confirmar y llegan al destino cuando se recibe.',
+      cancel: 'Cancelar',
+      submit: 'Transferir',
+      close: 'Cerrar',
+      created: 'Transferencia creada.',
+      validation: {
+        originRequired: 'Elegí el depósito de origen.',
+        destinationRequired: 'Elegí el depósito de destino.',
+        sameWarehouse: 'El destino tiene que ser otro depósito.',
+        quantityRequired: 'Ingresá una cantidad.',
+        quantityInteger: 'La cantidad tiene que ser un número entero.',
+        quantityPositive: 'La cantidad tiene que ser mayor a cero.',
+        quantityTooHigh: (max: number) => `El origen tiene ${formatUnits(max)} unidades.`,
+      },
+      /** 422: el origen ya no tiene esas unidades (alguien las movió en el medio). */
+      insufficient:
+        'El depósito de origen ya no tiene esas unidades. Revisá el stock y probá de nuevo.',
+      /** 409: el stock del producto está tomado por otra operación en ese momento. */
+      busy: 'Otra operación está moviendo stock de este producto. Probá de nuevo en unos segundos.',
+      failed: 'No pudimos crear la transferencia.',
+    },
     notFound: 'No encontramos el producto que buscabas.',
     backToCatalog: 'Volver al catálogo',
   },

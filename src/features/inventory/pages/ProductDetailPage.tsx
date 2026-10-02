@@ -13,6 +13,7 @@ import type { StockBucket } from '../components/MasterStockCard'
 import { ProductDetailHeader } from '../components/ProductDetailHeader'
 import { ProductSpecsCard } from '../components/ProductSpecsCard'
 import type { ProductSpec } from '../components/ProductSpecsCard'
+import { ProductTransfers } from '../components/ProductTransfers'
 import { WarehouseDistributionCard } from '../components/WarehouseDistributionCard'
 import type { WarehouseDistributionRow } from '../components/WarehouseDistributionCard'
 import { inventoryCopy } from '../content'
@@ -278,6 +279,8 @@ export function ProductDetailPage() {
             footnote={distributionCopy.pending}
           />
         </Box>
+
+        <ProductTransfers product={product.data} warehouses={warehouses.data} />
 
         {/* El 412 no es un error a mostrar acá: lo explica el propio modal, que
             queda abierto con lo que el usuario cargó. La condición mira
