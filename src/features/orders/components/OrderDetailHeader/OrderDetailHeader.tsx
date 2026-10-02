@@ -1,3 +1,4 @@
+import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined'
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
 import NavigateNextIcon from '@mui/icons-material/NavigateNext'
 import PrintOutlinedIcon from '@mui/icons-material/PrintOutlined'
@@ -24,6 +25,7 @@ export function OrderDetailHeader({
   statusVariant,
   ordersPath,
   onModify,
+  onCancel,
 }: OrderDetailHeaderProps) {
   return (
     <Box>
@@ -53,6 +55,16 @@ export function OrderDetailHeader({
               </Button>
             </Box>
           </Tooltip>
+          {onCancel === undefined ? null : (
+            <Button
+              variant="outlined"
+              color="error"
+              startIcon={<CancelOutlinedIcon />}
+              onClick={onCancel}
+            >
+              {actions.cancel}
+            </Button>
+          )}
           <Button variant="contained" startIcon={<EditOutlinedIcon />} onClick={onModify}>
             {actions.modify}
           </Button>

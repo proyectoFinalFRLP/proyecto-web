@@ -242,6 +242,22 @@ export async function updateOrder(
   return toOrderDetail(response.data, readVersion(response.headers.etag))
 }
 
+/**
+ * Cancela la orden: la API la pasa a `cancelled` y devuelve sus unidades a los
+ * depósitos de los que salieron (TESIS-999009). Viaja con `If-Match` como la
+ * modificación.
+ *
+ * Responde **409** si ya estaba cancelada o su envío salió, **412** si la
+ * versión es vieja y **422** si una línea no registra su depósito.
+ */
+export async function cancelOrder(id: number, version: string | null): Promise<OrderDetail> {
+  const response = await client.post<ApiOrderDetail>(`/orders/${id}/cancel`, undefined, {
+    headers: version === null ? undefined : { 'If-Match': version },
+  })
+
+  return toOrderDetail(response.data, readVersion(response.headers.etag))
+}
+
 function toShipment(shipment: ApiShipment): Shipment {
   return {
     id: shipment.id,

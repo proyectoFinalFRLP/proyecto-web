@@ -10,4 +10,6 @@ export interface OrderDetailHeaderProps {
   ordersPath: string
   /** «Modificar orden». */
   onModify: () => void
+  /** «Cancelar orden». Sin esto la acción no se muestra: la orden ya no se puede cancelar. */
+  onCancel?: () => void
 }
