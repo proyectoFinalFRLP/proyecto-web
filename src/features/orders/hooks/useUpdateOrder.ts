@@ -11,6 +11,9 @@ export const STALE_VERSION_STATUS = 412
 /** Orden cancelada o con el envío ya despachado: no hay body que la haga editable. */
 export const NOT_EDITABLE_STATUS = 409
 
+/** El guardado pidió más unidades de las que el depósito tiene ahora. */
+const INSUFFICIENT_STOCK_STATUS = 422
+
 /**
  * Guardado de la modificación de una orden.
  *
@@ -29,5 +32,13 @@ export function useUpdateOrder(id: number, version: string | null) {
         // Literal y no la factory de inventario: una feature no importa otra.
         queryClient.invalidateQueries({ queryKey: ['inventory'] }),
       ]),
+    // Un 422 de stock insuficiente dice que el stock por depósito con el que el
+    // formulario calculó los faltantes ya no es el real. Sin refrescarlo, la
+    // pantalla no avisaba nada y guardar volvía a fallar durante los cinco
+    // minutos de caché (hallazgo de auditoría, TESIS-89).
+    onError: (error) =>
+      error.status === INSUFFICIENT_STOCK_STATUS
+        ? queryClient.invalidateQueries({ queryKey: ['inventory'] })
+        : undefined,
   })
 }

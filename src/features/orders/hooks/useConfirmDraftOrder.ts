@@ -35,6 +35,9 @@ interface Options {
  * `pending`, lo que falte se puede despachar desde el detalle de la orden
  * (TESIS-134); sin envío, este paso sigue siendo el único lugar que lo abre.
  */
+/** El alta rechazada porque el depósito ya no tiene esas unidades. */
+const INSUFFICIENT_STOCK_STATUS = 422
+
 export function useConfirmDraftOrder({ onOrderCreated }: Options = {}) {
   const queryClient = useQueryClient()
   const progress = useRef<Progress>({ orderId: null, shipmentId: null })
@@ -63,8 +66,16 @@ export function useConfirmDraftOrder({ onOrderCreated }: Options = {}) {
     },
     // También si falló el despacho: la orden ya existe y el stock ya se movió,
     // así que el listado y el inventario quedaron viejos igual.
-    onSettled: () => {
-      if (progress.current.orderId === null) return undefined
+    onSettled: (_data, error) => {
+      // Sin orden creada no se movió nada, salvo un caso: el 422 de stock
+      // insuficiente dice que el stock por depósito que mostró el paso 2 ya no
+      // es el real (otra venta se lo llevó). Sin refrescarlo, la caché de cinco
+      // minutos lo seguía ofreciendo como «cubre todo» y confirmar volvía a
+      // fallar (hallazgo de auditoría, TESIS-89).
+      if (progress.current.orderId === null) {
+        if (error?.status !== INSUFFICIENT_STOCK_STATUS) return undefined
+        return queryClient.invalidateQueries({ queryKey: ['inventory'] })
+      }
 
       return Promise.all([
         queryClient.invalidateQueries({ queryKey: orderKeys.all }),
