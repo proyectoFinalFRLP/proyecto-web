@@ -9,20 +9,26 @@ import type { ApiRequestError } from 'shared/api/types'
 
 import {
   createProduct,
+  createTransfer,
   fetchProduct,
   deleteProduct,
   fetchProductCount,
   fetchProductPage,
+  fetchTransfers,
   fetchWarehouses,
+  settleTransfer,
   updateProduct,
 } from '../api'
 import { inventoryKeys } from '../queryKeys'
 import type {
   CreateProductPayload,
+  CreateTransferPayload,
   Product,
   ProductFilters,
   ProductPage,
   StockStatus,
+  StockTransfer,
+  TransferOutcome,
   UpdateProductPayload,
   Warehouse,
 } from '../types'
@@ -139,5 +145,44 @@ export function useDeleteProduct() {
   return useMutation<void, ApiRequestError, number>({
     mutationFn: deleteProduct,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: inventoryKeys.all }),
+  })
+}
+
+/** Status con el que la API rechaza liquidar una transferencia que ya no está en vuelo. */
+export const CONFLICT_STATUS_SETTLED = 409
+
+/** Transferencias en vuelo de un producto, para la tarjeta del detalle. */
+export function useProductTransfers(productId: number | undefined) {
+  return useQuery<StockTransfer[]>({
+    queryKey: inventoryKeys.transfers(productId ?? 0),
+    queryFn: () => fetchTransfers(productId ?? 0),
+    enabled: productId !== undefined,
+  })
+}
+
+/**
+ * Despacho de una transferencia. Invalida todo el dominio: cambian el stock del
+ * origen, el `total_stock` del listado, el en tránsito y esta misma lista.
+ */
+export function useCreateTransfer() {
+  const queryClient = useQueryClient()
+
+  return useMutation<StockTransfer, ApiRequestError, CreateTransferPayload>({
+    mutationFn: createTransfer,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: inventoryKeys.all }),
+  })
+}
+
+/**
+ * Recepción o cancelación. Invalida también al fallar: el caso real de error es
+ * el 409 de una transferencia que ya se liquidó en otra pestaña, y la lista
+ * tiene que dejar de ofrecerla.
+ */
+export function useSettleTransfer() {
+  const queryClient = useQueryClient()
+
+  return useMutation<StockTransfer, ApiRequestError, { id: number; outcome: TransferOutcome }>({
+    mutationFn: ({ id, outcome }) => settleTransfer(id, outcome),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: inventoryKeys.all }),
   })
 }

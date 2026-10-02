@@ -14,4 +14,7 @@ export const inventoryKeys = {
     [...inventoryKeys.counts(), status ?? 'all', search] as const,
   product: (id: number) => [...inventoryKeys.products(), 'detail', id] as const,
   warehouses: () => [...inventoryKeys.all, 'warehouses'] as const,
+  // Cuelga de `all` y no de `product(id)`: las mutaciones de stock invalidan
+  // `all`, y una transferencia nueva tiene que aparecer en esta lista también.
+  transfers: (productId: number) => [...inventoryKeys.all, 'transfers', productId] as const,
 }

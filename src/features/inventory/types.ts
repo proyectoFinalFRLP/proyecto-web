@@ -167,3 +167,39 @@ export interface UpdateProductPayload {
     stocks: { warehouse_id: number; quantity: number }[]
   }
 }
+
+/** Estados de una transferencia (`StockTransfer::STATUSES`). */
+export type TransferStatus = 'in_transit' | 'received' | 'cancelled'
+
+/** Un depósito tal como lo nombra una transferencia: sólo su identidad. */
+export interface TransferWarehouse {
+  id: number
+  name: string
+}
+
+/**
+ * Unidades de un producto que salieron de un depósito hacia otro
+ * (`GET /api/v1/stock-transfers`). Crearla ES despacharla: el origen ya se
+ * descontó. Recibirla suma al destino; cancelarla devuelve al origen.
+ */
+export interface StockTransfer {
+  id: number
+  quantity: number
+  status: TransferStatus
+  dispatchedAt: string
+  origin: TransferWarehouse
+  destination: TransferWarehouse
+}
+
+/** Cuerpo de `POST /api/v1/stock-transfers`, en el snake_case que espera Rails. */
+export interface CreateTransferPayload {
+  stock_transfer: {
+    product_id: number
+    origin_warehouse_id: number
+    destination_warehouse_id: number
+    quantity: number
+  }
+}
+
+/** Cómo se liquida una transferencia en vuelo: cada una es su propio endpoint. */
+export type TransferOutcome = 'receive' | 'cancel'
