@@ -21,8 +21,9 @@ const stockRowSchema = z.object({
 /**
  * Fuente única de verdad del alta: de acá salen la validación y el tipo.
  *
- * La categoría queda fuera a propósito — `products` no tiene esa columna, así
- * que el campo se pinta pero no se edita ni se envía.
+ * La categoría es un string y no un enum: el vocabulario llega de la API
+ * (`GET /products/categories`) y el select sólo ofrece esos valores. `''` es
+ * «sin categoría», que es válido: la columna es opcional.
  *
  * `description` tampoco está: el frame del alta no tiene ese campo, así que no
  * hay nada que validar. Viaja igual en el payload, en `null` explícito y no por
@@ -32,6 +33,7 @@ const stockRowSchema = z.object({
 export const createProductSchema = z.object({
   name: z.string().trim().min(1, validation.nameRequired),
   sku: z.string().trim().min(1, validation.skuRequired),
+  category: z.string(),
   weight: nonNegativeNumber,
   length: nonNegativeNumber,
   width: nonNegativeNumber,
