@@ -3,10 +3,10 @@ import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined'
 import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined'
 import PaymentsOutlinedIcon from '@mui/icons-material/PaymentsOutlined'
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline'
-import { Box, Button, Stack, Typography } from '@mui/material'
+import { Alert, Box, Button, Stack, Typography } from '@mui/material'
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ErrorFallback, LoadingSpinner, PageWrapper } from 'shared/components'
+import { ConfirmDialog, ErrorFallback, LoadingSpinner, PageWrapper } from 'shared/components'
 import { notify } from 'shared/store'
 
 import { DispatchShipmentDialog } from '../components/DispatchShipmentDialog'
@@ -20,8 +20,11 @@ import { PaymentSummaryCard } from '../components/PaymentSummaryCard'
 import { ShipmentLifecycleCard } from '../components/ShipmentLifecycleCard'
 import { TrackingNumberField } from '../components/TrackingNumberField'
 import { formatCount, ordersCopy } from '../content'
+import { LINE_WITHOUT_WAREHOUSE_STATUS, useCancelOrder } from '../hooks/useCancelOrder'
 import { useOrder, useOrderShipment } from '../hooks/useOrderDetail'
+import { NOT_EDITABLE_STATUS, STALE_VERSION_STATUS } from '../hooks/useUpdateOrder'
 import type { OrderDetail, Shipment, ShipmentView } from '../types'
+import { cancellableOrder } from '../utils/cancel'
 import { dispatchableShipment } from '../utils/dispatch'
 import { formatMoney, formatOrderId, formatShortDate } from '../utils/format'
 import { paymentSummary, totalUnits } from '../utils/payment'
@@ -45,6 +48,14 @@ const CONTENT_GRID = {
   gap: 3,
   gridTemplateColumns: { xs: '1fr', lg: 'minmax(0, 1fr) 300px' },
   alignItems: 'start',
+}
+
+/** El rechazo de la cancelación, en palabras: el mensaje de la API viene en inglés. */
+function cancelError(status: number | undefined): string {
+  if (status === NOT_EDITABLE_STATUS) return detail.cancel.notCancellable
+  if (status === STALE_VERSION_STATUS) return detail.cancel.stale
+  if (status === LINE_WITHOUT_WAREHOUSE_STATUS) return detail.cancel.lineWithoutWarehouse
+  return detail.cancel.failed
 }
 
 function resolvedShipment(view: ShipmentView): Shipment | null {
@@ -166,6 +177,8 @@ export function OrderDetailPage() {
   // refresca el detalle, y el diálogo no tiene que desmontarse con el resultado
   // todavía a la vista porque el envío dejó de estar pendiente.
   const [dispatchingId, setDispatchingId] = useState<number | null>(null)
+  const [cancelling, setCancelling] = useState(false)
+  const cancel = useCancelOrder(id ?? 0, order.data?.version ?? null)
 
   if (id === undefined || order.error?.status === NOT_FOUND_STATUS) return <NotFound />
 
@@ -184,6 +197,7 @@ export function OrderDetailPage() {
   const status = headerStatus(order.data.status, shipment.data)
   const dispatchable = dispatchableShipment(order.data.status, shipmentView)
   const orderLabel = formatOrderId(order.data.externalOrderId, order.data.id)
+  const canCancel = cancellableOrder(order.data.status, shipmentView)
 
   return (
     <PageWrapper>
@@ -194,6 +208,14 @@ export function OrderDetailPage() {
           statusVariant={status.variant}
           ordersPath={ORDERS_PATH}
           onModify={() => void navigate(editPath(order.data.id))}
+          onCancel={
+            canCancel
+              ? () => {
+                  cancel.reset()
+                  setCancelling(true)
+                }
+              : undefined
+          }
         />
 
         <OrderMetrics metrics={buildMetrics(order.data, resolved, payment.total)} />
@@ -244,6 +266,31 @@ export function OrderDetailPage() {
           </Stack>
         </Box>
       </Stack>
+
+      <ConfirmDialog
+        open={cancelling}
+        tone="destructive"
+        title={detail.cancel.title}
+        description={detail.cancel.body(orderLabel, totalUnits(order.data.lines))}
+        confirmLabel={detail.cancel.confirm}
+        cancelLabel={detail.cancel.keep}
+        closeLabel={detail.cancel.close}
+        busy={cancel.isPending}
+        // Rechazada, la cancelación no se ofrece de nuevo: el detalle ya se
+        // refrescó y reintentar lo mismo va a fallar igual.
+        canConfirm={!cancel.isError}
+        onConfirm={() =>
+          cancel.mutate(undefined, {
+            onSuccess: () => {
+              setCancelling(false)
+              notify(detail.cancel.cancelled(orderLabel), 'success')
+            },
+          })
+        }
+        onClose={() => setCancelling(false)}
+      >
+        {cancel.isError ? <Alert severity="error">{cancelError(cancel.error.status)}</Alert> : null}
+      </ConfirmDialog>
 
       {/* Se monta al abrirlo: los depósitos y la cotización se piden recién
           cuando el operador decide despachar, no en cada visita al detalle. */}

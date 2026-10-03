@@ -48,6 +48,7 @@ export const ordersCopy = {
         orders: 'Órdenes',
       },
       actions: {
+        cancel: 'Cancelar orden',
         modify: 'Modificar orden',
         print: 'Imprimir remito',
         /** No hay endpoint que genere el remito: la acción queda visible y apagada. */
@@ -79,6 +80,26 @@ export const ordersCopy = {
       retry: 'Reintentar',
     },
     /** Despachar desde el detalle un envío que quedó sin despachar (TESIS-134). */
+    cancel: {
+      title: 'Cancelar orden',
+      body: (orderLabel: string, units: number) =>
+        `La orden ${orderLabel} pasa a cancelada y ${units === 1 ? 'su unidad vuelve al depósito del que salió' : `sus ${formatCount(units)} unidades vuelven a los depósitos de los que salieron`}. Esta acción no se puede deshacer.`,
+      confirm: 'Cancelar orden',
+      keep: 'Volver',
+      close: 'Cerrar',
+      cancelled: (orderLabel: string) =>
+        `Orden ${orderLabel} cancelada. El stock volvió a los depósitos.`,
+      /** 409: alguien la canceló o despachó su envío mientras tanto. */
+      notCancellable:
+        'La orden ya no se puede cancelar: o ya está cancelada o su envío salió. El detalle está actualizado.',
+      /** 412: alguien la modificó; el detalle se recargó con la versión nueva. */
+      stale:
+        'Alguien modificó la orden mientras la mirabas. Revisá el detalle y volvé a intentarlo.',
+      /** 422: una línea anterior al registro del depósito, sin a dónde devolverla. */
+      lineWithoutWarehouse:
+        'Una de sus líneas no registra de qué depósito salió, así que sus unidades no se pueden devolver solas. Cancelala desde el backoffice.',
+      failed: 'No pudimos cancelar la orden. Probá de nuevo.',
+    },
     dispatch: {
       action: 'Despachar',
       title: 'Despachar el envío',

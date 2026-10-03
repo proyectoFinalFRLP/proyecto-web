@@ -5,6 +5,8 @@ import type * as sharedStore from 'shared/store'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { renderWithTheme } from '../../../test/renderWithTheme'
+import type * as cancelHooks from '../hooks/useCancelOrder'
+import { useCancelOrder } from '../hooks/useCancelOrder'
 import { useOrder, useOrderShipment } from '../hooks/useOrderDetail'
 import type { OrderDetail, OrderShipment, Shipment } from '../types'
 
@@ -13,6 +15,11 @@ import { OrderDetailPage } from './OrderDetailPage'
 vi.mock('../hooks/useOrderDetail', () => ({
   useOrder: vi.fn(),
   useOrderShipment: vi.fn(),
+}))
+
+vi.mock('../hooks/useCancelOrder', async (importOriginal) => ({
+  ...(await importOriginal<typeof cancelHooks>()),
+  useCancelOrder: vi.fn(),
 }))
 
 vi.mock('shared/store', async (importOriginal) => ({
@@ -118,10 +125,24 @@ function renderAt(path: string) {
   )
 }
 
+const cancelMutate = vi.fn()
+
+function mockCancel(state: { isError?: boolean; error?: { status?: number } | null } = {}) {
+  vi.mocked(useCancelOrder).mockReturnValue({
+    mutate: cancelMutate,
+    reset: vi.fn(),
+    isPending: false,
+    isError: state.isError ?? false,
+    error: state.error ?? null,
+  } as never)
+}
+
 beforeEach(() => {
   vi.mocked(useOrder).mockReset()
   vi.mocked(useOrderShipment).mockReset()
   vi.mocked(notify).mockClear()
+  cancelMutate.mockReset()
+  mockCancel()
 })
 
 describe('OrderDetailPage', () => {
@@ -282,6 +303,71 @@ describe('OrderDetailPage', () => {
       renderAt('/orders/8829')
 
       expect(dispatchButton()).not.toBeInTheDocument()
+    })
+  })
+
+  describe('cancelling from the detail', () => {
+    const cancelButton = () => screen.queryByRole('button', { name: 'Cancelar orden' })
+    const pending: Shipment = { ...SHIPMENT, status: 'pending', trackingNumber: null }
+
+    it('offers it while the shipment has not left', () => {
+      mockQueries({ data: ORDER }, { data: { kind: 'single', shipment: pending } })
+
+      renderAt('/orders/8829')
+
+      expect(cancelButton()).toBeInTheDocument()
+    })
+
+    it('does not offer it once the shipment is on its way', () => {
+      mockQueries({ data: ORDER })
+
+      renderAt('/orders/8829')
+
+      expect(cancelButton()).not.toBeInTheDocument()
+    })
+
+    it('does not offer it for an order already cancelled', () => {
+      mockQueries({ data: { ...ORDER, status: 'cancelled' } }, { data: { kind: 'none' } })
+
+      renderAt('/orders/8829')
+
+      expect(cancelButton()).not.toBeInTheDocument()
+    })
+
+    it('says the units go back and cancels on confirmation', () => {
+      mockQueries({ data: ORDER }, { data: { kind: 'none' } })
+      renderAt('/orders/8829')
+
+      fireEvent.click(cancelButton() as HTMLElement)
+      const dialog = within(screen.getByRole('alertdialog'))
+      expect(dialog.getByText(/sus 10 unidades vuelven a los depósitos/)).toBeInTheDocument()
+      fireEvent.click(dialog.getByRole('button', { name: 'Cancelar orden' }))
+
+      expect(cancelMutate).toHaveBeenCalled()
+    })
+
+    // El mensaje de la API viene en inglés: el diálogo dice el motivo en palabras
+    // y deja de ofrecer la confirmación.
+    it('explains a 409 and stops offering to confirm', () => {
+      mockQueries({ data: ORDER }, { data: { kind: 'none' } })
+      mockCancel({ isError: true, error: { status: 409 } })
+      renderAt('/orders/8829')
+
+      fireEvent.click(cancelButton() as HTMLElement)
+      const dialog = within(screen.getByRole('alertdialog'))
+
+      expect(dialog.getByText(/ya no se puede cancelar/)).toBeInTheDocument()
+      expect(dialog.queryByRole('button', { name: 'Cancelar orden' })).not.toBeInTheDocument()
+    })
+
+    it('explains a line whose warehouse is unknown', () => {
+      mockQueries({ data: ORDER }, { data: { kind: 'none' } })
+      mockCancel({ isError: true, error: { status: 422 } })
+      renderAt('/orders/8829')
+
+      fireEvent.click(cancelButton() as HTMLElement)
+
+      expect(screen.getByText(/Cancelala desde el backoffice/)).toBeInTheDocument()
     })
   })
 })
