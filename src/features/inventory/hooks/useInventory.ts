@@ -75,13 +75,26 @@ export function useProductCounts(search: string) {
   })
 }
 
+/** Status con el que la API responde un producto inexistente o de otra empresa. */
+export const NOT_FOUND_STATUS = 404
+
+/**
+ * Un 404 no se reintenta: el producto no existe (o es de otra empresa, que la
+ * API responde igual para no confirmar que existe), y reintentar sólo demora
+ * el aviso. Mismo criterio que el detalle de una orden.
+ */
+export function shouldRetryProduct(failureCount: number, error: ApiRequestError): boolean {
+  return error.status !== NOT_FOUND_STATUS && failureCount < 1
+}
+
 /** Detalle de un producto, con su desglose de stock por depósito. */
 export function useProduct(id: number | undefined) {
-  return useQuery<Product>({
+  return useQuery<Product, ApiRequestError>({
     queryKey: inventoryKeys.product(id ?? 0),
     queryFn: () => fetchProduct(id ?? 0),
     // Sin id todavía (el listado no resolvió) la query no se dispara.
     enabled: id !== undefined,
+    retry: shouldRetryProduct,
   })
 }
 

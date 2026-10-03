@@ -104,4 +104,26 @@ describe('ProductDetailPage', () => {
 
     await waitFor(() => expect(editForm()).not.toBeInTheDocument())
   })
+
+  // Hallazgo de auditoría (TESIS-89): un producto inexistente o de otra empresa
+  // caía en «Algo salió mal» con el «Not found» crudo de la API.
+  it('says the product was not found when the API answers 404', () => {
+    vi.mocked(useProduct).mockReturnValue({
+      data: undefined,
+      isPending: false,
+      isError: true,
+      isFetching: false,
+      error: Object.assign(new Error('Not found'), { status: 404 }),
+      refetch: vi.fn(),
+    } as never)
+
+    renderDetail()
+
+    expect(screen.getByText('No encontramos el producto que buscabas.')).toBeInTheDocument()
+    expect(screen.queryByText('Not found')).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Volver al catálogo' })).toHaveAttribute(
+      'href',
+      '/inventory',
+    )
+  })
 })

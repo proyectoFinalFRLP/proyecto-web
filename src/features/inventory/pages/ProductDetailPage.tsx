@@ -17,7 +17,13 @@ import { SalesChannelsCard } from '../components/SalesChannelsCard'
 import { WarehouseDistributionCard } from '../components/WarehouseDistributionCard'
 import type { WarehouseDistributionRow } from '../components/WarehouseDistributionCard'
 import { inventoryCopy } from '../content'
-import { CONFLICT_STATUS, useProduct, useUpdateProduct, useWarehouses } from '../hooks/useInventory'
+import {
+  CONFLICT_STATUS,
+  NOT_FOUND_STATUS,
+  useProduct,
+  useUpdateProduct,
+  useWarehouses,
+} from '../hooks/useInventory'
 import type { Product, UpdateProductPayload } from '../types'
 import { describeConflict } from '../utils/conflict'
 import { parseDimensions } from '../utils/dimensions'
@@ -220,7 +226,11 @@ export function ProductDetailPage() {
     })
   }
 
-  if (id === undefined) {
+  // Un id que no es un entero y un producto que no existe (o que es de otra
+  // empresa: la API responde 404 igual) son lo mismo para quien llegó por un
+  // enlace viejo. Antes el segundo caía en el error genérico, con el «Not found»
+  // crudo de la API y un reintento que no podía cambiar nada.
+  if (id === undefined || product.error?.status === NOT_FOUND_STATUS) {
     return (
       <PageWrapper>
         <Stack spacing={2} alignItems="flex-start">
