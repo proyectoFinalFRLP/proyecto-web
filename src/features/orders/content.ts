@@ -50,8 +50,6 @@ export const ordersCopy = {
       actions: {
         modify: 'Modificar orden',
         print: 'Imprimir remito',
-        /** No hay endpoint que genere el remito: la acción queda visible y apagada. */
-        printPending: 'El remito todavía no se puede generar desde el sistema.',
       },
       /** La orden todavía no tiene envío creado (TESIS-105). */
       noShipment: 'Sin envío',
@@ -79,6 +77,24 @@ export const ordersCopy = {
       retry: 'Reintentar',
     },
     /** Despachar desde el detalle un envío que quedó sin despachar (TESIS-134). */
+    deliveryNote: {
+      title: 'Remito',
+      notInvoice: 'Documento no válido como factura',
+      order: (orderLabel: string) => `Orden ${orderLabel}`,
+      date: (date: string) => `Fecha: ${date}`,
+      recipient: 'Destinatario',
+      document: (document: string) => `CUIT/DNI: ${document}`,
+      noAddress: 'Sin domicilio registrado',
+      shipping: 'Transporte',
+      noCourier: 'Sin operador asignado',
+      tracking: (number: string) => `Seguimiento: ${number}`,
+      noTracking: 'Sin número de seguimiento',
+      columns: { sku: 'SKU', product: 'Producto', quantity: 'Cantidad' },
+      totalUnits: 'Total de unidades',
+      signature: { sign: 'Firma', name: 'Aclaración', document: 'DNI' },
+      /** Sin nombre de tenant resuelto (no debería pasar con sesión). */
+      companyFallback: 'OneStock',
+    },
     dispatch: {
       action: 'Despachar',
       title: 'Despachar el envío',
