@@ -12,15 +12,30 @@ export const homeCopy = {
   sections: {
     shortcuts: 'Dónde ir',
   },
+  // Las pantallas del día a día, en el orden en que se recorre la operación:
+  // mirar el panel, cargar o revisar ventas, cuidar el stock, analizar.
   shortcuts: {
+    dashboard: {
+      label: 'Panel de operación',
+      description:
+        'Envíos activos, salud de las integraciones, alertas de stock y órdenes recientes.',
+    },
+    newOrder: {
+      label: 'Nueva orden',
+      description: 'Cargá una venta hecha por fuera de los canales conectados.',
+    },
+    orders: {
+      label: 'Órdenes',
+      description: 'Listado de ventas de todos los canales, con su envío.',
+    },
     inventory: {
       label: 'Inventario',
       description: 'Catálogo de productos y stock consolidado por depósito.',
     },
+    reports: {
+      label: 'Reportes',
+      description: 'Facturación, volumen despachado y curva del período.',
+    },
   },
-  // El panel de operación con métricas es TESIS-53 a TESIS-56 y depende de
-  // endpoints que la API todavía no expone. Decirlo es más honesto que pintar
-  // tarjetas con números inventados.
-  pending: 'El panel de operación, con las métricas de la empresa, llega más adelante.',
   designSystem: 'Design System',
 } as const
