@@ -1,36 +1,29 @@
-import type { TenantFeatureFlags } from 'shared/api'
 import { describe, expect, it } from 'vitest'
 
-import { navRoutesFor } from './routes'
+import { navRoutes } from './routes'
 
-function navPaths(features: TenantFeatureFlags | undefined) {
-  return navRoutesFor(features).map((route) => route.path)
-}
+const paths = navRoutes.map((route) => route.path)
 
-describe('navRoutesFor', () => {
-  it('lists the sections of a feature the tenant has enabled', () => {
-    expect(navPaths({ integrations: true })).toContain('/integrations')
+describe('navRoutes', () => {
+  // El panel es la pantalla de entrada desde TESIS-140: antes `/` era una
+  // pantalla de Inicio sin datos y el panel vivía en `/dashboard`.
+  it('opens the sidebar with the dashboard, which is the root of the app', () => {
+    expect(navRoutes[0]).toMatchObject({ path: '/', nav: { label: 'Dashboard' } })
   })
 
-  it('hides them for a tenant that has the feature off', () => {
-    expect(navPaths({ integrations: false })).not.toContain('/integrations')
+  it('lists the sections of the product, and only those', () => {
+    expect(paths).toEqual(['/', '/orders', '/inventory', '/reports'])
   })
 
-  // Un flag ausente es un flag apagado: la empresa que no compró la feature no
-  // la tiene declarada, y el default no puede ser mostrarla.
-  it('hides them when the config does not mention the feature at all', () => {
-    expect(navPaths({})).not.toContain('/integrations')
-    expect(navPaths(undefined)).not.toContain('/integrations')
-  })
-
-  it('keeps the sections that belong to the product for every tenant', () => {
-    expect(navPaths({})).toEqual(['/', '/dashboard', '/orders', '/inventory', '/reports'])
+  // Integraciones se sacó en TESIS-140: las conexiones las administra el
+  // equipo desde el backoffice, no la empresa desde la app.
+  it('does not offer a section for the integrations of the company', () => {
+    expect(paths).not.toContain('/integrations')
   })
 
   it('never lists a route that has no place in the sidebar', () => {
-    const paths = navPaths({ integrations: true })
-
     expect(paths).not.toContain('/login')
     expect(paths).not.toContain('/design-system')
+    expect(paths).not.toContain('/orders/new')
   })
 })

@@ -33,7 +33,6 @@ const { specs: specsCopy, master: masterCopy, distribution: distributionCopy, st
 const CATALOG_PATH = '/inventory'
 // Misma razón: la pantalla de integraciones, a la que manda la tarjeta de
 // canales cuando no hay ninguno conectado.
-const INTEGRATIONS_PATH = '/integrations'
 
 // La grilla del diseño: columna fija para el stock maestro y el resto para la
 // distribución. En pantallas angostas se apilan.
@@ -284,9 +283,7 @@ export function ProductDetailPage() {
 
         {/* Canales de venta: sólo para las empresas con la feature encendida,
             igual que la ruta de integraciones (TESIS-121). */}
-        {integrationsEnabled ? (
-          <SalesChannelsCard productId={product.data.id} integrationsPath={INTEGRATIONS_PATH} />
-        ) : null}
+        {integrationsEnabled ? <SalesChannelsCard productId={product.data.id} /> : null}
 
         {/* El 412 no es un error a mostrar acá: lo explica el propio modal, que
             queda abierto con lo que el usuario cargó. La condición mira
