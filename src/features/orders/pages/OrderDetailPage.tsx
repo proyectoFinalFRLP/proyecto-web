@@ -18,6 +18,7 @@ import { OrderMetrics } from '../components/OrderMetrics'
 import type { OrderMetric } from '../components/OrderMetrics'
 import { PaymentSummaryCard } from '../components/PaymentSummaryCard'
 import { ShipmentLifecycleCard } from '../components/ShipmentLifecycleCard'
+import { ShippingLabelField } from '../components/ShippingLabelField'
 import { TrackingNumberField } from '../components/TrackingNumberField'
 import { formatCount, ordersCopy } from '../content'
 import { useOrder, useOrderShipment } from '../hooks/useOrderDetail'
@@ -233,8 +234,10 @@ export function OrderDetailPage() {
             >
               {/* Sin envío resuelto el tracking tampoco existe: el panel dice
                   «Pendiente de despacho», que es lo mismo que ve el operador
-                  mientras el courier no confirma. */}
+                  mientras el courier no confirma. La etiqueta sigue el mismo
+                  criterio: la emite el courier al despachar (RF-23). */}
               <TrackingNumberField trackingNumber={resolved?.trackingNumber ?? null} />
+              <ShippingLabelField shipment={resolved} />
             </InfoPanel>
             <PaymentSummaryCard
               subtotal={formatMoney(payment.subtotal)}

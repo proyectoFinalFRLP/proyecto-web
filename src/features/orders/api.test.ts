@@ -32,6 +32,7 @@ const SHIPMENT = {
   status: 'in_transit',
   tracking_number: 'AND-9920-X8829-Z',
   shipping_cost: 58300,
+  shipping_label_url: 'https://andreani.test/etiquetas/AND-9920.pdf',
   courier: { id: 4, service_id: 7, name: 'Andreani' },
   events: [
     {
@@ -125,6 +126,7 @@ describe('fetchOrderShipment', () => {
         status: 'in_transit',
         trackingNumber: 'AND-9920-X8829-Z',
         shippingCost: 58300,
+        labelUrl: 'https://andreani.test/etiquetas/AND-9920.pdf',
         courier: { id: 4, serviceId: 7, name: 'Andreani' },
         events: [
           {

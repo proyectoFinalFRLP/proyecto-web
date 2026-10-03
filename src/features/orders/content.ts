@@ -155,6 +155,15 @@ export const ordersCopy = {
         copied: 'Número de seguimiento copiado.',
         copyFailed: 'No se pudo copiar. Seleccioná el número y copialo a mano.',
       },
+      /** El rótulo que emite el courier al despachar (RF-23). */
+      label: {
+        title: 'Etiqueta de envío',
+        action: 'Imprimir etiqueta',
+        /** Sin despachar no hay etiqueta: la emite el courier (TESIS-47). */
+        pending: 'Se emite al despachar.',
+        /** Despachado y sin etiqueta: el courier no la devolvió. */
+        missing: 'El operador no devolvió la etiqueta.',
+      },
       fields: {
         serviceType: 'Tipo de servicio',
         origin: 'Depósito de origen',

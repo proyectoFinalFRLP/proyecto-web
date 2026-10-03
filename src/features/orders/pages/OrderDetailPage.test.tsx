@@ -78,6 +78,7 @@ const SHIPMENT: Shipment = {
   trackingNumber: 'AND-9920-X8829-Z',
   shippingCost: 58300,
   courier: { id: 4, serviceId: 7, name: 'Andreani' },
+  labelUrl: null,
   events: [],
 }
 
@@ -234,6 +235,7 @@ describe('OrderDetailPage', () => {
       trackingNumber: null,
       shippingCost: null,
       courier: null,
+      labelUrl: null,
     }
     const dispatchButton = () => screen.queryByRole('button', { name: 'Despachar' })
 
