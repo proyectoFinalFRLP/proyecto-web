@@ -156,4 +156,45 @@ describe('useConfirmDraftOrder', () => {
     expect(queryClient.getQueryState(orderKeys.lists())?.isInvalidated).toBe(true)
     expect(queryClient.getQueryState(quote)?.isInvalidated).toBe(false)
   })
+
+  // Hallazgo de auditoría (TESIS-89): sin orden creada no se invalidaba nada, y
+  // el stock por depósito del paso 2 seguía diciendo «cubre todo» cinco minutos.
+  describe('when the creation is refused for lack of stock', () => {
+    const STOCK_KEY = ['inventory', 'products', 'stocks', [12]] as const
+
+    function refuse(status: number) {
+      vi.spyOn(api, 'createOrder').mockRejectedValue(
+        Object.assign(new Error('Insufficient stock'), { status }),
+      )
+    }
+
+    async function confirmWith(queryClient: QueryClient) {
+      const { result } = renderHook(() => useConfirmDraftOrder(), {
+        wrapper: wrapperFor(queryClient),
+      })
+      await act(async () => {
+        await result.current.mutateAsync(INPUT).catch(() => undefined)
+      })
+    }
+
+    it('refreshes the stock the wizard showed', async () => {
+      refuse(422)
+      const queryClient = newClient()
+      queryClient.setQueryData(STOCK_KEY, [])
+
+      await confirmWith(queryClient)
+
+      expect(queryClient.getQueryState(STOCK_KEY)?.isInvalidated).toBe(true)
+    })
+
+    it('leaves the stock alone for any other failure', async () => {
+      refuse(500)
+      const queryClient = newClient()
+      queryClient.setQueryData(STOCK_KEY, [])
+
+      await confirmWith(queryClient)
+
+      expect(queryClient.getQueryState(STOCK_KEY)?.isInvalidated).toBe(false)
+    })
+  })
 })
