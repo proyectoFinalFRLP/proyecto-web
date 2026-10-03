@@ -78,6 +78,15 @@ export const ordersCopy = {
       error: 'No pudimos cargar el envío de la orden.',
       retry: 'Reintentar',
     },
+    /** Abrir el envío de una orden que todavía no lo tiene (TESIS-141). */
+    openShipment: {
+      action: 'Crear envío',
+      creating: 'Creando…',
+      created: 'Envío creado. Ya se puede despachar.',
+      /** 409: lo abrió el asistente del alta, u otra pestaña. */
+      duplicated: 'La orden ya tenía un envío. Lo acabamos de traer.',
+      error: 'No pudimos crear el envío de la orden.',
+    },
     /** Despachar desde el detalle un envío que quedó sin despachar (TESIS-134). */
     dispatch: {
       action: 'Despachar',
