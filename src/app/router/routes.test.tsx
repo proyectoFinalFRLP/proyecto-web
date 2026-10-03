@@ -24,7 +24,14 @@ describe('navRoutesFor', () => {
   })
 
   it('keeps the sections that belong to the product for every tenant', () => {
-    expect(navPaths({})).toEqual(['/', '/dashboard', '/orders', '/inventory', '/reports'])
+    expect(navPaths({})).toEqual([
+      '/',
+      '/dashboard',
+      '/orders',
+      '/inventory',
+      '/warehouses',
+      '/reports',
+    ])
   })
 
   it('never lists a route that has no place in the sidebar', () => {
