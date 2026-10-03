@@ -1,21 +1,13 @@
 import BarChartOutlinedIcon from '@mui/icons-material/BarChartOutlined'
-import HomeIcon from '@mui/icons-material/Home'
-import HubOutlinedIcon from '@mui/icons-material/HubOutlined'
 import InsightsOutlinedIcon from '@mui/icons-material/InsightsOutlined'
 import Inventory2Icon from '@mui/icons-material/Inventory2'
 import ReceiptLongOutlinedIcon from '@mui/icons-material/ReceiptLongOutlined'
 import { lazy } from 'react'
 import type { ReactNode } from 'react'
-import { isFeatureEnabled } from 'shared/api'
-import type { TenantFeature, TenantFeatureFlags } from 'shared/api'
 
 // Páginas cargadas de forma diferida (code-splitting por ruta).
-const HomePage = lazy(() => import('features/home').then((m) => ({ default: m.HomePage })))
 const DashboardPage = lazy(() =>
   import('features/dashboard').then((m) => ({ default: m.DashboardPage })),
-)
-const IntegrationsPage = lazy(() =>
-  import('features/integrations').then((m) => ({ default: m.IntegrationsPage })),
 )
 const DesignSystemPage = lazy(() =>
   import('features/design-system').then((m) => ({ default: m.DesignSystemPage })),
@@ -62,12 +54,6 @@ export interface AppRoute {
    * Ver docs/guidelines/architecture.md §4.1.
    */
   layout?: 'app' | 'bare'
-  /**
-   * Feature flag del tenant que habilita la ruta. Sin flag la ruta es del
-   * producto y la ve todo el mundo; con flag, sólo las empresas que la tienen
-   * encendida en su config (TESIS-121).
-   */
-  feature?: TenantFeature
 }
 
 /** Ruta ya angostada para el Sidebar: `nav` garantizado. */
@@ -84,12 +70,11 @@ export const appRoutes: AppRoute[] = [
     layout: 'bare',
   },
   {
+    // El panel es la pantalla de entrada: es lo primero que se ve al iniciar
+    // sesión (LoginPage navega a `from ?? '/'`). Antes acá vivía una pantalla
+    // de Inicio que no mostraba datos y anunciaba el panel como algo que
+    // llegaba más adelante (TESIS-111); el panel existe desde TESIS-53.
     path: '/',
-    element: <HomePage />,
-    nav: { label: 'Inicio', icon: <HomeIcon /> },
-  },
-  {
-    path: '/dashboard',
     element: <DashboardPage />,
     nav: { label: 'Dashboard', icon: <InsightsOutlinedIcon /> },
   },
@@ -125,14 +110,6 @@ export const appRoutes: AppRoute[] = [
     // Sin `nav`: se llega desde el listado, no desde el Sidebar.
   },
   {
-    path: '/integrations',
-    element: <IntegrationsPage />,
-    nav: { label: 'Integraciones', icon: <HubOutlinedIcon /> },
-    // La feature que diferencia a las dos empresas de la demo: Norte la tiene
-    // encendida y Sur no (§2 del contrato).
-    feature: 'integrations',
-  },
-  {
     path: '/inventory',
     element: <InventoryPage />,
     nav: { label: 'Inventario', icon: <Inventory2Icon /> },
@@ -155,18 +132,22 @@ export const appRoutes: AppRoute[] = [
 ]
 
 /**
- * Rutas que muestra el Sidebar para la config de tenant activa.
+ * Rutas que lista el Sidebar.
  *
- * Es una función y no una constante porque la navegación depende de los feature
- * flags de la empresa: la diferencia entre dos clientes es su config, nunca una
- * rama del código.
+ * Era `navRoutesFor(features)`, porque Integraciones se mostraba sólo a los
+ * tenants con ese flag encendido. Esa sección se sacó en TESIS-140 —la
+ * administra el equipo, no la empresa— y con ella la última ruta con flag, así
+ * que hoy la navegación es la misma para todos y una función que recibiera la
+ * config y no la mirara diría algo falso.
+ *
+ * El flag del tenant no desaparece: sigue decidiendo si el detalle de producto
+ * muestra la tarjeta de canales de venta (`useTenantFeature('integrations')`).
+ * La diferencia entre dos clientes sigue estando en su config y no en una rama
+ * del código; lo que cambió es dónde se nota.
  */
-export function navRoutesFor(features: TenantFeatureFlags | undefined): NavRoute[] {
-  return appRoutes.filter(
-    (route): route is NavRoute =>
-      Boolean(route.nav) && (!route.feature || isFeatureEnabled(features, route.feature)),
-  )
-}
+export const navRoutes: NavRoute[] = appRoutes.filter((route): route is NavRoute =>
+  Boolean(route.nav),
+)
 
 // Partición por layout — AppRouter monta `shellRoutes` detrás del guard y dentro
 // de `AppLayout`, y `bareRoutes` sueltas, públicas y sin shell.

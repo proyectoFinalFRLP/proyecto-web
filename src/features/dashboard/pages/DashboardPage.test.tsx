@@ -71,9 +71,9 @@ const alertCard = () => screen.getByRole('link', { name: /Alertas de inventario/
 
 function renderPage() {
   return renderWithTheme(
-    <MemoryRouter initialEntries={['/dashboard']}>
+    <MemoryRouter initialEntries={['/']}>
       <Routes>
-        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/" element={<DashboardPage />} />
         <Route path="/inventory" element={<h1>Inventario</h1>} />
       </Routes>
     </MemoryRouter>,
