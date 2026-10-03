@@ -140,6 +140,12 @@ export interface Shipment {
   shippingCost: number | null
   /** Null hasta que se asigna el courier al confirmar el despacho. */
   courier: Courier | null
+  /**
+   * El rótulo imprimible que emite el courier al despachar (RF-23): el PDF con
+   * el código de barras que se pega al paquete. Null hasta el despacho, y
+   * también después si el courier no lo devolvió.
+   */
+  labelUrl: string | null
   /** Ordenados por `occurredAt`, del más viejo al más nuevo. */
   events: ShipmentEvent[]
 }
