@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react'
+import { fireEvent, screen } from '@testing-library/react'
 import type { TenantConfig } from 'shared/api'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -8,7 +8,12 @@ import { TenantGate } from './TenantGate'
 
 // Sólo interesa en cuál de sus tres estados está el pedido de config; el pedido
 // en sí ya se prueba del lado del cliente HTTP.
-const tenantConfigQuery = vi.hoisted(() => ({ isError: false }))
+const tenantConfigQuery = vi.hoisted(() => ({
+  isError: false,
+  isFetching: false,
+  error: null as { status?: number } | null,
+  refetch: vi.fn(),
+}))
 
 vi.mock('shared/hooks/useTenantConfig', () => ({
   useTenantConfig: () => tenantConfigQuery,
@@ -28,7 +33,23 @@ async function setTenant(state: { slug: string | null; config: TenantConfig | nu
 
 beforeEach(() => {
   tenantConfigQuery.isError = false
+  tenantConfigQuery.error = null
+  tenantConfigQuery.refetch.mockReset()
 })
+
+/** El pedido de config falló con este status (sin status: red, respuesta inválida). */
+function failWith(status?: number) {
+  tenantConfigQuery.isError = true
+  tenantConfigQuery.error = status === undefined ? {} : { status }
+}
+
+function renderGate() {
+  renderWithTheme(
+    <TenantGate>
+      <p>panel</p>
+    </TenantGate>,
+  )
+}
 
 describe('TenantGate', () => {
   it('holds the app behind a splash with the identity of the tenant', async () => {
@@ -72,7 +93,7 @@ describe('TenantGate', () => {
   // Un slug inexistente o una empresa inactiva responden 404 (§3 del contrato).
   it('says the tenant is unknown when the backend does not recognise the slug', async () => {
     await setTenant({ slug: 'ninguna', config: null })
-    tenantConfigQuery.isError = true
+    failWith(404)
 
     renderWithTheme(
       <TenantGate>
@@ -82,5 +103,38 @@ describe('TenantGate', () => {
 
     expect(screen.getByText('No encontramos esta empresa')).toBeInTheDocument()
     expect(screen.getByText('Identificador buscado: ninguna')).toBeInTheDocument()
+  })
+
+  // Hallazgo de auditoría (TESIS-89): cualquier falla de `/tenant-config`
+  // tapaba la app con «No encontramos esta empresa».
+  describe('when the config request fails for another reason', () => {
+    it('keeps the app running with the config it already had', async () => {
+      await setTenant({ slug: 'norte', config: norteConfig })
+      failWith(500)
+
+      renderGate()
+
+      expect(screen.getByText('panel')).toBeInTheDocument()
+    })
+
+    it('offers to retry instead of saying the tenant does not exist', async () => {
+      await setTenant({ slug: 'norte', config: null })
+      failWith(500)
+
+      renderGate()
+
+      expect(screen.getByText('No pudimos conectarnos')).toBeInTheDocument()
+      expect(screen.queryByText('No encontramos esta empresa')).not.toBeInTheDocument()
+    })
+
+    it('asks for the config again on retry', async () => {
+      await setTenant({ slug: 'norte', config: null })
+      failWith()
+      renderGate()
+
+      fireEvent.click(screen.getByRole('button', { name: 'Reintentar' }))
+
+      expect(tenantConfigQuery.refetch).toHaveBeenCalled()
+    })
   })
 })
