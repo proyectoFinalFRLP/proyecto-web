@@ -98,13 +98,6 @@ function renderPage() {
 const option = (name: RegExp) => screen.getByRole('radio', { name })
 const confirmButton = () => screen.getByRole('button', { name: /Confirmar orden/ })
 
-// Lo que hace el navegador al recargar: si algún listener cancela el evento,
-// pregunta antes de salir.
-function leaveIsBlocked() {
-  const event = new Event('beforeunload', { cancelable: true })
-  window.dispatchEvent(event)
-  return event.defaultPrevented
-}
 const total = () => screen.getByLabelText('Total final')
 
 function stubConfirmation() {
@@ -327,19 +320,8 @@ describe('CarrierStepPage', () => {
         fireEvent.click(confirmButton())
 
         expect(
-          await screen.findByText(/despachar el envío desde el detalle de la orden/),
+          await screen.findByText(/terminar el envío desde el detalle de la orden/),
         ).toBeInTheDocument()
-      })
-
-      it('does not ask before reloading or closing the tab', async () => {
-        failDispatchOnce()
-        renderPage()
-
-        fireEvent.click(option(/Andreani/))
-        fireEvent.click(confirmButton())
-        await screen.findByText(/se creó, pero/)
-
-        expect(leaveIsBlocked()).toBe(false)
       })
 
       it('no longer offers going back to a draft that is already an order', async () => {
@@ -366,8 +348,10 @@ describe('CarrierStepPage', () => {
     })
   })
 
-  // Si falla la apertura del envío, la orden existe y no tiene envío: el
-  // detalle no lo puede despachar, y ninguna otra pantalla lo abre.
+  // Si falla la apertura del envío, la orden existe y todavía no tiene envío.
+  // Desde TESIS-141 el detalle de la orden lo abre, así que la salida es la
+  // misma que cuando el envío existe y lo que falló fue el despacho: por eso no
+  // hay un mensaje aparte ni un aviso al salir de la pantalla.
   describe('when the shipment could not even be opened', () => {
     function failShipmentOnce() {
       const calls = stubConfirmation()
@@ -377,7 +361,7 @@ describe('CarrierStepPage', () => {
       return calls
     }
 
-    it('says no other screen can open it', async () => {
+    it('points at the order detail, the same way a failed dispatch does', async () => {
       failShipmentOnce()
       renderPage()
 
@@ -385,23 +369,13 @@ describe('CarrierStepPage', () => {
       fireEvent.click(confirmButton())
 
       expect(
-        await screen.findByText(/todavía no tiene envío, y ninguna otra pantalla lo puede abrir/),
+        await screen.findByText(/terminar el envío desde el detalle de la orden/),
       ).toBeInTheDocument()
     })
 
-    it('asks before reloading or closing the tab', async () => {
-      failShipmentOnce()
-      renderPage()
-      expect(leaveIsBlocked()).toBe(false)
-
-      fireEvent.click(option(/Andreani/))
-      fireEvent.click(confirmButton())
-      await screen.findByText(/se creó, pero/)
-
-      expect(leaveIsBlocked()).toBe(true)
-    })
-
-    it('stops asking once the retry opens the shipment, even if the dispatch fails', async () => {
+    // El envío que no llegó a abrirse se reintenta; la orden, que sí se creó, no
+    // se vuelve a crear.
+    it('opens the shipment on the retry, without creating the order again', async () => {
       const calls = failShipmentOnce()
       calls.dispatch.mockReset()
       calls.dispatch.mockRejectedValue(new Error('El courier no contestó.'))
@@ -411,8 +385,9 @@ describe('CarrierStepPage', () => {
       fireEvent.click(confirmButton())
       fireEvent.click(await screen.findByRole('button', { name: 'Reintentar el despacho' }))
 
-      await screen.findByText(/despachar el envío desde el detalle de la orden/)
-      expect(leaveIsBlocked()).toBe(false)
+      await screen.findByText(/terminar el envío desde el detalle de la orden/)
+      expect(calls.createShipment).toHaveBeenCalledTimes(2)
+      expect(calls.createOrder).toHaveBeenCalledTimes(1)
     })
   })
 
