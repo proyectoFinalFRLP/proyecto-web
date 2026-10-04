@@ -167,3 +167,30 @@ export interface UpdateProductPayload {
     stocks: { warehouse_id: number; quantity: number }[]
   }
 }
+
+/**
+ * El vínculo de un producto con su publicación en un canal de venta
+ * (`product_mappings`, TESIS-139): el id con el que el canal lo vende y con
+ * el que el OMS le publica el stock.
+ */
+export interface ProductMapping {
+  id: number
+  companyIntegrationId: number
+  serviceName: string
+  externalProductId: string
+}
+
+/**
+ * Lo que pide vincular un producto. Sin `externalProductId`, el canal lo busca
+ * por el SKU del producto (si sabe hacerlo).
+ */
+export interface LinkProductPayload {
+  companyIntegrationId: number
+  externalProductId?: string
+}
+
+/** El vínculo creado y lo que conviene revisar (por ejemplo, un SKU distinto). */
+export interface LinkProductResult {
+  mapping: ProductMapping
+  warnings: string[]
+}
