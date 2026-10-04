@@ -203,6 +203,7 @@ export function OrderDetailPage() {
             <OrderItemsTable lines={order.data.lines} productPath={productPath} />
             <ShipmentLifecycleCard
               shipment={shipmentView}
+              pickup={!order.data.requiresShipping}
               action={
                 dispatchable === null ? undefined : (
                   <Button

@@ -46,6 +46,7 @@ const ORDER: OrderDetail = {
   customerCity: null,
   customerProvince: null,
   status: 'paid',
+  requiresShipping: true,
   version: null,
   totalAmount: 1420000,
   lines: [
@@ -213,6 +214,25 @@ describe('OrderDetailPage', () => {
     expect(screen.getByText('No pudimos cargar el envío de la orden.')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'PRO-8812-A' })).toBeInTheDocument()
     expect(screen.getByText('Pendiente de despacho')).toBeInTheDocument()
+  })
+
+  // TESIS-162: no es lo mismo que le falte el envío que que no lleve.
+  it('says the customer picks the order up instead of saying the shipment is missing', () => {
+    mockQueries({ data: { ...ORDER, requiresShipping: false } }, { data: { kind: 'none' } })
+
+    renderAt('/orders/8829')
+
+    expect(
+      screen.getByText('El cliente retira esta orden en el local. No lleva envío.'),
+    ).toBeInTheDocument()
+  })
+
+  it('still says the shipment is missing for an order that is shipped', () => {
+    mockQueries({ data: ORDER }, { data: { kind: 'none' } })
+
+    renderAt('/orders/8829')
+
+    expect(screen.getByText('La orden todavía no tiene un envío creado.')).toBeInTheDocument()
   })
 
   it('leaves the shipping unquoted and the courier unassigned without a shipment', () => {

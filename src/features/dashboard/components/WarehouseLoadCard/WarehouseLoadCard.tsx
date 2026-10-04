@@ -21,16 +21,16 @@ const copy = dashboardCopy.warehouses
 /**
  * Cuánto guarda cada depósito, ordenados de más a menos cargado.
  *
- * El diseño dibuja acá un porcentaje de ocupación con tres tonos (azul, naranja,
- * rojo) según qué tan lleno está el depósito. Eso no se puede mostrar: la tabla
- * `warehouses` no tiene ninguna capacidad máxima contra la cual medir, y un
- * porcentaje inventado pondría un número sin significado en un panel cuyo
- * subtítulo promete datos en vivo.
+ * El diseño dibuja acá un porcentaje de ocupación. Desde TESIS-162 el depósito
+ * puede declarar su capacidad, así que el de los que la declararon es real: la
+ * barra mide cuánto de lo que entra está ocupado, y la fila lo dice.
  *
- * Lo que sí es real es cuánto guarda cada uno, así que la barra compara los
- * depósitos entre sí: el 100% es el más cargado. Por eso todas las barras van
- * en el mismo tono —no codifican riesgo, codifican proporción— y el epígrafe
- * dice contra qué se mide, para que nadie lea ocupación donde no la hay.
+ * El de los que no la declararon sigue sin existir, y ahí la barra compara los
+ * depósitos entre sí —el 100 % es el más cargado—, que es la única comparación
+ * real que queda. Un porcentaje de ocupación sin techo sería inventado.
+ *
+ * Por eso todas las barras van en el mismo tono: no codifican riesgo, y lo que
+ * cada una mide lo dice su fila y su rótulo accesible.
  *
  * Presentacional: recibe los depósitos ya ordenados y con su proporción.
  */
@@ -63,13 +63,25 @@ export function WarehouseLoadCard({
               <Row key={warehouse.id}>
                 <RowHeader>
                   <WarehouseName variant="bodyMd">{warehouse.name}</WarehouseName>
-                  <StoredUnits variant="labelSm">{copy.units(warehouse.storedUnits)}</StoredUnits>
+                  <StoredUnits variant="labelSm">
+                    {warehouse.measuredAgainstCapacity
+                      ? copy.occupancy(warehouse.share)
+                      : copy.units(warehouse.storedUnits)}
+                  </StoredUnits>
                 </RowHeader>
                 <ProgressIndicator
                   value={warehouse.share}
                   size="medium"
                   track="neutral"
-                  ariaLabel={copy.barLabel(warehouse.name, warehouse.storedUnits)}
+                  ariaLabel={
+                    warehouse.capacity === null
+                      ? copy.barLabel(warehouse.name, warehouse.storedUnits)
+                      : copy.barLabelWithCapacity(
+                          warehouse.name,
+                          warehouse.storedUnits,
+                          warehouse.capacity,
+                        )
+                  }
                 />
               </Row>
             ))}

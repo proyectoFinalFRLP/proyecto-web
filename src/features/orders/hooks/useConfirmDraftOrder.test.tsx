@@ -19,6 +19,7 @@ const INPUT: ConfirmDraftOrderInput = {
       customer_city: 'CABA',
       customer_province: 'Ciudad Autónoma de Buenos Aires',
       customer_zip_code: '1193',
+      requires_shipping: true,
       items: [{ product_id: 12, warehouse_id: 3, quantity: 4, unit_price: 120000 }],
     },
   },

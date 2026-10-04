@@ -3,16 +3,16 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { renderWithTheme } from '../../../test/renderWithTheme'
-import { useInfraHealth } from '../hooks/useInfraHealth'
 import { useInventoryAlerts } from '../hooks/useInventoryAlerts'
 import { useLogisticsKpis } from '../hooks/useLogisticsKpis'
 import { useRecentOrders } from '../hooks/useRecentOrders'
+import { useRecentShipments } from '../hooks/useRecentShipments'
 import type { RecentOrder } from '../types'
 
 import { DashboardPage } from './DashboardPage'
 
 vi.mock('../hooks/useLogisticsKpis', () => ({ useLogisticsKpis: vi.fn() }))
-vi.mock('../hooks/useInfraHealth', () => ({ useInfraHealth: vi.fn() }))
+vi.mock('../hooks/useRecentShipments', () => ({ useRecentShipments: vi.fn() }))
 vi.mock('../hooks/useInventoryAlerts', () => ({ useInventoryAlerts: vi.fn() }))
 vi.mock('../hooks/useRecentOrders', () => ({ useRecentOrders: vi.fn() }))
 
@@ -48,8 +48,22 @@ function mockOrders(overrides: Partial<ReturnType<typeof useRecentOrders>> = {})
 }
 
 const WAREHOUSES = [
-  { id: 1, name: 'CD Norte', storedUnits: 200, share: 100 },
-  { id: 2, name: 'CD Sur', storedUnits: 50, share: 25 },
+  {
+    id: 1,
+    name: 'CD Norte',
+    storedUnits: 200,
+    capacity: null,
+    share: 100,
+    measuredAgainstCapacity: false,
+  },
+  {
+    id: 2,
+    name: 'CD Sur',
+    storedUnits: 50,
+    capacity: null,
+    share: 25,
+    measuredAgainstCapacity: false,
+  },
 ]
 
 // 18 por debajo del umbral y 6 agotados: 24 en alerta. El desglose importa
@@ -84,19 +98,16 @@ beforeEach(() => {
   vi.mocked(useLogisticsKpis).mockReturnValue({
     pendingOrders: { value: 12, isLoading: false, isError: false },
     activeShipments: { value: 5, isLoading: false, isError: false },
+    failedEvents: { value: 0, isLoading: false, isError: false },
     isError: false,
     refetch: vi.fn(),
   })
-  vi.mocked(useInfraHealth).mockReturnValue({
-    nodes: [],
-    reportingNodes: 0,
-    onlineNodes: 0,
-    healthPercentage: null,
-    healthTone: 'neutral',
+  vi.mocked(useRecentShipments).mockReturnValue({
+    shipments: [],
     isLoading: false,
     isError: false,
     refetch: vi.fn(),
-  } as never)
+  })
   mockInventory()
   mockOrders()
 })
@@ -223,12 +234,34 @@ describe('DashboardPage · warehouse load', () => {
     expect(screen.getByText('50 u')).toBeInTheDocument()
   })
 
-  // Lo que evita que alguien lea ocupación donde hay una comparación.
-  it('says out loud what the bar is measured against', () => {
+  // Lo que evita que alguien lea ocupación donde hay una comparación: desde
+  // TESIS-162 cada fila dice contra qué se mide, porque las dos barras se ven
+  // igual y significan cosas distintas.
+  it('shows the units of a warehouse that declared no capacity', () => {
     renderPage()
 
+    expect(screen.getByText('200 u')).toBeInTheDocument()
+    expect(screen.queryByText(/de su capacidad/)).not.toBeInTheDocument()
+  })
+
+  it('shows the occupancy of a warehouse that declared one', () => {
+    mockInventory({
+      warehouses: [
+        {
+          id: 1,
+          name: 'CD Norte',
+          storedUnits: 200,
+          capacity: 1_000,
+          share: 20,
+          measuredAgainstCapacity: true,
+        },
+      ],
+    })
+    renderPage()
+
+    expect(screen.getByText('20 % de su capacidad')).toBeInTheDocument()
     expect(
-      screen.getByText(/250 unidades guardadas · la barra compara contra el depósito más cargado/),
+      screen.getByLabelText('CD Norte: 200 de 1.000 unidades de capacidad'),
     ).toBeInTheDocument()
   })
 

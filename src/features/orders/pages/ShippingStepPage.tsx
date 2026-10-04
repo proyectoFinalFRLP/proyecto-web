@@ -1,8 +1,17 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
+import StorefrontOutlinedIcon from '@mui/icons-material/StorefrontOutlined'
 import WarehouseOutlinedIcon from '@mui/icons-material/WarehouseOutlined'
-import { Alert, Button, Stack, Typography } from '@mui/material'
+import {
+  Alert,
+  Button,
+  FormControlLabel,
+  Radio,
+  RadioGroup,
+  Stack,
+  Typography,
+} from '@mui/material'
 import { useEffect, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { Navigate, useNavigate } from 'react-router-dom'
@@ -22,6 +31,7 @@ import { warehouseCoverage } from '../utils/shipping'
 import type { WarehouseCoverage } from '../utils/shipping'
 
 const { wizard, shipping } = ordersCopy
+const { fulfillment } = shipping
 
 // Mismo criterio que el paso 1: las rutas se declaran acá porque una feature no
 // puede importar el router (architecture.md §3.2). El paso 3 lo construye
@@ -57,6 +67,8 @@ export function ShippingStepPage() {
   const destination = useOrderDraftStore((state) => state.destination)
   const setOrigin = useOrderDraftStore((state) => state.setOrigin)
   const setDestination = useOrderDraftStore((state) => state.setDestination)
+  const requiresShipping = useOrderDraftStore((state) => state.requiresShipping)
+  const setRequiresShipping = useOrderDraftStore((state) => state.setRequiresShipping)
 
   const warehouses = useOriginWarehouses()
   const stocks = useProductStocks(items.map((item) => item.productId))
@@ -140,6 +152,40 @@ export function ShippingStepPage() {
             noneCovers={noneCovers}
             onSelect={(warehouse) => setOrigin({ warehouseId: warehouse.id, name: warehouse.name })}
           />
+        </FormSection>
+
+        {/* Antes del domicilio: con retiro en el local, el destino deja de
+            pedirse porque la orden no va a ningún lado (TESIS-162). */}
+        <FormSection icon={<StorefrontOutlinedIcon aria-hidden />} title={fulfillment.title}>
+          <RadioGroup
+            value={requiresShipping ? 'shipped' : 'pickup'}
+            onChange={(event) => setRequiresShipping(event.target.value === 'shipped')}
+          >
+            <FormControlLabel
+              value="shipped"
+              control={<Radio />}
+              label={
+                <>
+                  <Typography variant="bodyMd">{fulfillment.shipped}</Typography>
+                  <Typography variant="labelSm" color="text.secondary">
+                    {fulfillment.shippedHint}
+                  </Typography>
+                </>
+              }
+            />
+            <FormControlLabel
+              value="pickup"
+              control={<Radio />}
+              label={
+                <>
+                  <Typography variant="bodyMd">{fulfillment.pickup}</Typography>
+                  <Typography variant="labelSm" color="text.secondary">
+                    {fulfillment.pickupHint}
+                  </Typography>
+                </>
+              }
+            />
+          </RadioGroup>
         </FormSection>
 
         <DestinationFieldsCard

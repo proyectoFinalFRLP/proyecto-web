@@ -1,22 +1,22 @@
 import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined'
-import MonitorHeartOutlinedIcon from '@mui/icons-material/MonitorHeartOutlined'
+import ReportGmailerrorredOutlinedIcon from '@mui/icons-material/ReportGmailerrorredOutlined'
 import ScheduleOutlinedIcon from '@mui/icons-material/ScheduleOutlined'
 import WarningAmberOutlinedIcon from '@mui/icons-material/WarningAmberOutlined'
 import { Alert, Box, Button, Grid, Stack, Typography } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
 import { PageWrapper, StatCard } from 'shared/components'
 
-import { IntegrationNodeList } from '../components/IntegrationNodeList'
 import { RecentOrdersTable } from '../components/RecentOrdersTable'
+import { RecentShipmentsCard } from '../components/RecentShipmentsCard'
 import { WarehouseLoadCard } from '../components/WarehouseLoadCard'
 import { dashboardCopy } from '../content'
-import { useInfraHealth } from '../hooks/useInfraHealth'
 import { useInventoryAlerts } from '../hooks/useInventoryAlerts'
 import { useLogisticsKpis } from '../hooks/useLogisticsKpis'
 import { useRecentOrders } from '../hooks/useRecentOrders'
+import { useRecentShipments } from '../hooks/useRecentShipments'
 
-const { metrics, infra, error: errorCopy } = dashboardCopy
-const healthCopy = infra.health
+const { metrics, error: errorCopy } = dashboardCopy
+const failedEventsCopy = metrics.failedEvents
 const alertsCopy = metrics.inventoryAlerts
 
 // Destino del click en la tarjeta de alertas. Las rutas se registran en
@@ -70,20 +70,10 @@ export function DashboardPage() {
   const {
     pendingOrders,
     activeShipments,
+    failedEvents,
     isError: isKpisError,
     refetch: refetchKpis,
   } = useLogisticsKpis()
-
-  const {
-    nodes,
-    reportingNodes,
-    onlineNodes,
-    healthPercentage,
-    healthTone,
-    isLoading: isInfraLoading,
-    isError: isInfraError,
-    refetch: refetchInfra,
-  } = useInfraHealth()
 
   const {
     alerts,
@@ -102,13 +92,20 @@ export function DashboardPage() {
     refetch: refetchOrders,
   } = useRecentOrders()
 
-  const isError = isKpisError || isInfraError || isInventoryError || isOrdersError
+  const {
+    shipments,
+    isLoading: shipmentsLoading,
+    isError: isShipmentsError,
+    refetch: refetchShipments,
+  } = useRecentShipments()
+
+  const isError = isKpisError || isInventoryError || isOrdersError || isShipmentsError
 
   const retry = () => {
     refetchKpis()
-    refetchInfra()
     refetchInventory()
     refetchOrders()
+    refetchShipments()
   }
 
   // El tono de alerta se enciende sólo si hay algo que alertar: con cero
@@ -118,13 +115,10 @@ export function DashboardPage() {
   const hasAlerts = alerts.value !== undefined && alerts.value > 0
   const alertsValue = formatCount(alerts.value)
 
-  // Sin nodos reportando sync, el KPI no tiene numerador ni denominador reales:
-  // se muestra "—" en vez de un 0% que se leería como caída total de la
-  // infraestructura, o un 100% que afirmaría una salud que nadie verificó.
-  const healthValue =
-    isInfraLoading || healthPercentage === null
-      ? healthCopy.unknownValue
-      : `${NUMBER_FORMAT.format(healthPercentage)}%`
+  // Mismo criterio que las alertas de inventario: el tono se enciende sólo si
+  // hay algo que revisar. `undefined` no es cero, así que mientras el número
+  // viaja la tarjeta no afirma que la cola está limpia.
+  const hasFailures = failedEvents.value !== undefined && failedEvents.value > 0
 
   return (
     <PageWrapper>
@@ -170,11 +164,22 @@ export function DashboardPage() {
             />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            {/* Reemplaza al KPI de «Salud del sistema» (TESIS-163): la misma
+                salud de las integraciones, dicha como un número sobre el que
+                se puede actuar. */}
             <StatCard
-              label={healthCopy.label}
-              value={healthValue}
-              icon={<MonitorHeartOutlinedIcon />}
-              tone={healthTone}
+              label={failedEventsCopy.label}
+              value={formatCount(failedEvents.value)}
+              loading={failedEvents.isLoading}
+              icon={<ReportGmailerrorredOutlinedIcon />}
+              tone={hasFailures ? 'warning' : 'neutral'}
+              tag={hasFailures ? failedEventsCopy.tag : undefined}
+              tagTone="warning"
+              note={
+                failedEvents.value === undefined
+                  ? undefined
+                  : failedEventsCopy.note(failedEvents.value)
+              }
             />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
@@ -203,7 +208,8 @@ export function DashboardPage() {
         </Grid>
 
         {/* La fila inferior del diseño: la tabla de órdenes recientes y, a su
-            derecha, la columna de 280px con integraciones y carga de depósitos.
+            derecha, la columna de 280px con los últimos envíos y la carga de
+            depósitos.
             En pantallas angostas la columna baja debajo de la tabla. */}
         <Grid container spacing={2}>
           <Grid size={{ xs: 12, md: 8 }}>
@@ -211,12 +217,7 @@ export function DashboardPage() {
           </Grid>
           <Grid size={{ xs: 12, md: 4 }}>
             <Stack spacing={3}>
-              <IntegrationNodeList
-                nodes={nodes}
-                reportingNodes={reportingNodes}
-                onlineNodes={onlineNodes}
-                loading={isInfraLoading}
-              />
+              <RecentShipmentsCard shipments={shipments} loading={shipmentsLoading} />
               <WarehouseLoadCard
                 warehouses={warehouses}
                 storedUnits={storedUnits}

@@ -113,7 +113,10 @@ describe('ShippingStepPage', () => {
   it('offers exactly the warehouses the company has', () => {
     renderPage()
 
-    expect(screen.getAllByRole('radio')).toHaveLength(2)
+    // Acotado al grupo de depósitos: desde TESIS-162 la pantalla tiene otro
+    // grupo de radios, el de envío contra retiro en el local.
+    const origins = screen.getByRole('radiogroup', { name: 'Depósito de origen de la orden' })
+    expect(within(origins).getAllByRole('radio')).toHaveLength(2)
     expect(option(/CD Ezeiza/)).toBeInTheDocument()
     expect(option(/CD Córdoba/)).toBeInTheDocument()
   })

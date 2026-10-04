@@ -22,6 +22,17 @@ export const dashboardCopy = {
     pendingOrders: {
       label: 'Órdenes pendientes',
     },
+    // Reemplaza al KPI de «Salud del sistema» (TESIS-163): la misma salud de
+    // las integraciones, dicha como un número sobre el que se puede actuar.
+    failedEvents: {
+      label: 'Eventos fallidos',
+      tag: 'Revisar',
+      note: (pending: number) =>
+        pending === 1
+          ? '1 evento esperando reintento'
+          : `${UNITS_FORMAT.format(pending)} eventos esperando reintento`,
+      calmNote: 'Sin eventos pendientes de reintento',
+    },
     // Cuarta tarjeta de la fila del diseño. El chip y la nota son los del
     // MetricCard de S03-Panel; el tono `error` es lo que le da el borde de
     // acento que el diseño marca como `critical`.
@@ -54,10 +65,16 @@ export const dashboardCopy = {
   warehouses: {
     title: 'Carga por depósito',
     caption: (units: number) =>
-      `${UNITS_FORMAT.format(units)} ${units === 1 ? 'unidad guardada' : 'unidades guardadas'} · la barra compara contra el depósito más cargado`,
+      `${UNITS_FORMAT.format(units)} ${units === 1 ? 'unidad guardada' : 'unidades guardadas'}`,
     units: (units: number) => `${UNITS_FORMAT.format(units)} u`,
+    // Con capacidad declarada (TESIS-162) se muestra la ocupación; sin ella, lo
+    // guardado a secas. El rótulo accesible dice contra qué se mide, porque las
+    // dos barras se ven igual y significan cosas distintas.
+    occupancy: (percentage: number) => `${Math.round(percentage)} % de su capacidad`,
     barLabel: (name: string, units: number) =>
       `${name}: ${UNITS_FORMAT.format(units)} ${units === 1 ? 'unidad' : 'unidades'}`,
+    barLabelWithCapacity: (name: string, units: number, capacity: number) =>
+      `${name}: ${UNITS_FORMAT.format(units)} de ${UNITS_FORMAT.format(capacity)} unidades de capacidad`,
     empty: 'La empresa no tiene depósitos cargados.',
   },
   // Tabla de órdenes recientes del panel (TESIS-56). Vocabulario y orden de
@@ -85,36 +102,25 @@ export const dashboardCopy = {
       cancelled: 'Cancelada',
     },
   },
-  infra: {
-    health: {
-      // Vocabulario del diseño (S03-Panel): "Salud del sistema", no "de infraestructura".
-      label: 'Salud del sistema',
-      unknownValue: UNKNOWN_VALUE,
-    },
-    nodes: {
-      title: 'Integraciones',
-      subtitleSynced: (online: number, reporting: number) =>
-        `${online}/${reporting} ${reporting === 1 ? 'nodo sincronizado' : 'nodos sincronizados'}`,
-      subtitleNoReports: (active: number) =>
-        `${active} ${active === 1 ? 'integración activa' : 'integraciones activas'} · sin datos de sincronización`,
-      empty: 'La empresa no tiene integraciones activas.',
-      // Línea inferior de cada fila. El diseño la usa como frase de estado
-      // ("Sincronizado hace 2 ms"), no como un timestamp suelto.
-      sync: {
-        online: (elapsed: string) => `Sincronizado ${elapsed}`,
-        stale: (elapsed: string) => `Sin sincronizar desde ${elapsed}`,
-        unknown: 'Sin datos de sincronización',
-      },
-      // Texto accesible del ícono de estado.
-      status: {
-        online: 'Sincronizado',
-        stale: 'Sincronización atrasada',
-        unknown: 'Sin datos de sincronización',
-      },
-      types: {
-        ecommerce: 'E-commerce',
-        courier: 'Courier',
-      },
+  // La tarjeta «Últimos envíos» reemplaza a la de Integraciones (TESIS-163):
+  // las conexiones las administra el equipo, no la empresa, y lo que sí le
+  // sirve al operador es qué salió y con quién.
+  shipments: {
+    title: 'Últimos envíos',
+    subtitle: (count: number) => (count === 1 ? '1 envío reciente' : `${count} envíos recientes`),
+    empty: 'Todavía no se despachó ningún envío.',
+    noCourier: 'Sin operador asignado',
+    noTracking: 'Sin seguimiento',
+    /** "Orden #8829" — nombre accesible de la fila. */
+    order: (id: number) => `Orden #${id}`,
+    // El destino se declara acá y no se importa del router: una feature no
+    // puede depender de `app/` (architecture.md §3.2).
+    orderPath: (id: number) => `/orders/${id}`,
+    status: {
+      pending: 'Pendiente',
+      ready_to_ship: 'Listo para despachar',
+      in_transit: 'En tránsito',
+      delivered: 'Entregado',
     },
   },
   error: {

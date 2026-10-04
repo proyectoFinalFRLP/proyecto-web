@@ -1,5 +1,6 @@
 import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined'
-import { Alert, Box, Button, Stack } from '@mui/material'
+import StorefrontOutlinedIcon from '@mui/icons-material/StorefrontOutlined'
+import { Alert, Box, Button, Stack, Typography } from '@mui/material'
 import { useEffect, useMemo, useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { PageWrapper } from 'shared/components'
@@ -68,6 +69,7 @@ export function CarrierStepPage() {
   const items = useOrderDraftStore((state) => state.items)
   const origin = useOrderDraftStore((state) => state.origin)
   const destination = useOrderDraftStore((state) => state.destination)
+  const requiresShipping = useOrderDraftStore((state) => state.requiresShipping)
   const clearDraft = useOrderDraftStore((state) => state.clearDraft)
 
   const [confirmed, setConfirmed] = useState<ConfirmedDraft | null>(null)
@@ -82,10 +84,14 @@ export function CarrierStepPage() {
   )
   const draft = confirmed ?? live
 
+  // Con retiro en el local no se cotiza: no hay envío que despachar, así que
+  // tampoco hay a quién preguntarle el precio (TESIS-162).
   const payload = useMemo(
     () =>
-      draft === null ? null : toDraftQuotePayload(draft.items, draft.origin, draft.destination),
-    [draft],
+      draft === null || !requiresShipping
+        ? null
+        : toDraftQuotePayload(draft.items, draft.origin, draft.destination),
+    [draft, requiresShipping],
   )
   const quotes = useDraftQuotes(payload)
   const confirm = useConfirmDraftOrder({ onOrderCreated: clearDraft })
@@ -108,17 +114,30 @@ export function CarrierStepPage() {
   const orderLabel = createdOrderId === null ? '' : formatOrderId(null, createdOrderId)
 
   function confirmOrder() {
-    if (draft === null || chosen === null) return
+    // Con envío hace falta la opción elegida; con retiro, no hay ninguna.
+    if (draft === null || (requiresShipping && chosen === null)) return
 
     setConfirmed(draft)
     confirm.mutate(
       {
-        order: toCreateOrderPayload(draft.customer, draft.items, draft.origin, draft.destination),
-        dispatch: toDispatchPayload(chosen, draft.origin.warehouseId),
+        order: toCreateOrderPayload(
+          draft.customer,
+          draft.items,
+          draft.origin,
+          draft.destination,
+          requiresShipping,
+        ),
+        dispatch: chosen === null ? null : toDispatchPayload(chosen, draft.origin.warehouseId),
       },
       {
         onSuccess: (orderId) => {
-          notify(carrier.confirmed(formatOrderId(null, orderId), chosen.providerName), 'success')
+          const label = formatOrderId(null, orderId)
+          notify(
+            chosen === null
+              ? carrier.confirmedPickup(label)
+              : carrier.confirmed(label, chosen.providerName),
+            'success',
+          )
           void navigate(ORDERS_PATH)
         },
       },
@@ -168,16 +187,30 @@ export function CarrierStepPage() {
           }}
         >
           <FormSection
-            icon={<LocalShippingOutlinedIcon aria-hidden />}
-            title={carrier.options.groupLabel}
+            icon={
+              requiresShipping ? (
+                <LocalShippingOutlinedIcon aria-hidden />
+              ) : (
+                <StorefrontOutlinedIcon aria-hidden />
+              )
+            }
+            title={requiresShipping ? carrier.options.groupLabel : carrier.pickup.title}
           >
-            <QuoteOptionsPanel
-              quotes={quotes}
-              selectedId={chosen?.dispatchIntegrationId ?? null}
-              disabled={confirm.isPending}
-              onSelect={(quote) => setSelectedId(quote.dispatchIntegrationId)}
-              onReview={() => void navigate(SHIPPING_STEP_PATH)}
-            />
+            {/* Con retiro en el local no hay nada que cotizar: la venta se
+                registra y el cliente la busca (TESIS-162). */}
+            {requiresShipping ? (
+              <QuoteOptionsPanel
+                quotes={quotes}
+                selectedId={chosen?.dispatchIntegrationId ?? null}
+                disabled={confirm.isPending}
+                onSelect={(quote) => setSelectedId(quote.dispatchIntegrationId)}
+                onReview={() => void navigate(SHIPPING_STEP_PATH)}
+              />
+            ) : (
+              <Typography variant="bodyMd" color="text.secondary">
+                {carrier.pickup.body(draft.origin.name)}
+              </Typography>
+            )}
           </FormSection>
 
           <OrderConfirmCard
@@ -190,7 +223,7 @@ export function CarrierStepPage() {
               draft.destination.province,
               draft.destination.zipCode,
             )}
-            canConfirm={chosen !== null && !confirm.isPending}
+            canConfirm={(chosen !== null || !requiresShipping) && !confirm.isPending}
             confirming={confirm.isPending}
             confirmLabel={
               createdOrderId === null ? carrier.summary.confirm : carrier.errors.retryDispatch

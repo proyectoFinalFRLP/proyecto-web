@@ -66,12 +66,20 @@ export interface Warehouse {
   id: number
   name: string
   address: string
+  /**
+   * Capacidad declarada, en unidades (TESIS-162). `null` cuando nadie la cargó
+   * todavía: no es cero, que diría que no entra nada, y por eso la barra de
+   * ocupación no se dibuja en ese caso.
+   */
+  capacity: number | null
 }
 
 /** Cantidad de un producto en un depósito concreto (tabla `stocks`). */
 export interface ProductStock {
   warehouseId: number
   quantity: number
+  /** Vendido y todavía en este depósito (TESIS-162). */
+  committed: number
   warehouse: Warehouse
 }
 
@@ -86,8 +94,31 @@ export interface Product {
   sku: string
   name: string
   description: string | null
+  category: ProductCategory | null
+  /** Cómo viene embalado. Texto libre: lo describe el rubro, no un vocabulario. */
+  packaging: string | null
+  /** Norma del producto (IRAM, IEC). Es un código de un organismo externo. */
+  technicalStandard: string | null
   weight: number
   dimensions: string | null
+  /**
+   * Los tres números del stock, que la API calcula desde TESIS-162. Ninguno se
+   * deriva acá: `onHand` no es la suma de `stocks[].quantity` —lo vendido sin
+   * despachar sigue en el estante pero ya salió de esas filas— y restarlos mal
+   * del lado del cliente era justamente el problema.
+   *
+   * Son números y no `null`: un producto que nadie reservó tiene 0
+   * comprometido, que es un dato.
+   */
+  committed: number
+  onHand: number
+  availableToPromise: number
+  /**
+   * Unidades que salieron de un depósito y todavía no llegaron a otro. Ya venía
+   * en el serializer del detalle (`in_transit_quantity`); lo que faltaba era
+   * mapearlo. El desglose **por depósito** lo trae TESIS-144.
+   */
+  inTransit: number
   stocks: ProductStock[]
   updatedAt: string
   /**
@@ -163,4 +194,15 @@ export interface LinkProductPayload {
 export interface LinkProductResult {
   mapping: ProductMapping
   warnings: string[]
+}
+
+/**
+ * Cuántos productos tiene cada pestaña del catálogo (`GET /products/counts`).
+ * Las claves son las de `CATALOG_TABS`: el backend las nombra igual.
+ */
+export interface CatalogCounts {
+  all: number
+  available: number
+  low: number
+  out_of_stock: number
 }

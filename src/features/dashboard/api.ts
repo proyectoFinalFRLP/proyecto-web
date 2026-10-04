@@ -1,7 +1,7 @@
 import { client } from 'shared/api/client'
 import { fetchCount } from 'shared/api/count'
 
-import type { RecentOrder, WarehouseLoad } from './types'
+import type { DispatchedShipment, RecentOrder, WarehouseLoad } from './types'
 
 // Frontera con Rails de los KPIs de órdenes y envíos (TESIS-53). Único lugar de
 // la feature que conoce los endpoints y el vocabulario de estados del backend.
@@ -77,6 +77,7 @@ interface ApiWarehouse {
   id: number
   name: string
   stored_units: number
+  capacity: number | null
 }
 
 /**
@@ -93,6 +94,54 @@ export async function fetchWarehouseLoads(): Promise<WarehouseLoad[]> {
     id: warehouse.id,
     name: warehouse.name,
     storedUnits: warehouse.stored_units,
+    capacity: warehouse.capacity,
+  }))
+}
+
+/**
+ * Los eventos que todavía esperan en la cola de reintentos (TESIS-163).
+ *
+ * Reemplaza al KPI de «Salud del sistema», que mostraba un porcentaje derivado
+ * de la frescura de los nodos. Es la misma salud dicha de una forma sobre la
+ * que se puede actuar: cuántas cosas se cayeron y siguen sin resolverse.
+ */
+export const PENDING_FAILED_EVENT_STATUS = 'pending'
+
+export function fetchPendingFailedEventCount(): Promise<number> {
+  return fetchCount('/failed-events', { status: PENDING_FAILED_EVENT_STATUS })
+}
+
+/** Cuántos envíos muestra la tarjeta del panel. */
+export const RECENT_SHIPMENTS = 5
+
+interface ApiDispatchedShipment {
+  id: number
+  order_id: number
+  status: DispatchedShipment['status']
+  tracking_number: string | null
+  courier: { id: number; service_id: number; name: string } | null
+  created_at: string
+}
+
+/**
+ * Los últimos envíos de la empresa (`GET /api/v1/shipments?page=1&per_page=5`).
+ *
+ * Igual que las órdenes recientes: el backend los devuelve del más nuevo al más
+ * viejo, así que la primera página *es* «los últimos cinco» y no se reordena de
+ * este lado.
+ */
+export async function fetchRecentShipments(): Promise<DispatchedShipment[]> {
+  const { data } = await client.get<{ data: ApiDispatchedShipment[] }>('/shipments', {
+    params: { page: 1, per_page: RECENT_SHIPMENTS },
+  })
+
+  return data.data.map((shipment) => ({
+    id: shipment.id,
+    orderId: shipment.order_id,
+    status: shipment.status,
+    trackingNumber: shipment.tracking_number,
+    courier: shipment.courier?.name ?? null,
+    createdAt: shipment.created_at,
   }))
 }
 

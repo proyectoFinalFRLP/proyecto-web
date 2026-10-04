@@ -124,6 +124,63 @@ beforeEach(() => {
   mockQuotes()
 })
 
+// TESIS-162: con retiro en el local la venta no entra al circuito logístico,
+// así que el paso 3 no cotiza ni despacha.
+describe('CarrierStepPage · pickup at the store', () => {
+  beforeEach(() => {
+    useOrderDraftStore.getState().setRequiresShipping(false)
+  })
+
+  it('does not ask the carriers for a quote', () => {
+    renderPage()
+
+    expect(screen.getByText('Retiro en el local')).toBeInTheDocument()
+    expect(screen.queryByRole('radio')).not.toBeInTheDocument()
+  })
+
+  it('can be confirmed without choosing a carrier', () => {
+    renderPage()
+
+    expect(confirmButton()).toBeEnabled()
+  })
+
+  // El alta y nada más: no hay envío que abrir ni etiqueta que pedir.
+  it('creates the order and stops there', async () => {
+    const calls = stubConfirmation()
+    renderPage()
+
+    fireEvent.click(confirmButton())
+
+    await waitFor(() => expect(calls.createOrder).toHaveBeenCalled())
+    expect(calls.createShipment).not.toHaveBeenCalled()
+    expect(calls.dispatch).not.toHaveBeenCalled()
+  })
+
+  it('tells the API that the order is picked up', async () => {
+    const calls = stubConfirmation()
+    renderPage()
+
+    fireEvent.click(confirmButton())
+
+    await waitFor(() => expect(calls.createOrder).toHaveBeenCalled())
+    expect(calls.createOrder.mock.calls[0][0].order.requires_shipping).toBe(false)
+  })
+
+  it('announces the pickup instead of a dispatch', async () => {
+    stubConfirmation()
+    renderPage()
+
+    fireEvent.click(confirmButton())
+
+    await waitFor(() =>
+      expect(notify).toHaveBeenCalledWith(
+        expect.stringContaining('El cliente la retira en el local'),
+        'success',
+      ),
+    )
+  })
+})
+
 describe('CarrierStepPage', () => {
   it('marks step 3 as the active one', () => {
     renderPage()

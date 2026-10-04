@@ -65,9 +65,16 @@ interface OrderDraftState {
   origin: OrderDraftOrigin | null
   /** `null` hasta que el paso 2 se completa por primera vez. */
   destination: OrderDraftDestination | null
+  /**
+   * Si la venta se despacha o la retira el cliente en el local (TESIS-162). Lo
+   * elige el paso 2. Arranca en `true`: el envío es el caso habitual, y hasta
+   * esta card era el único que el sistema sabía registrar.
+   */
+  requiresShipping: boolean
   setCustomer: (customer: OrderDraftCustomer) => void
   setOrigin: (origin: OrderDraftOrigin | null) => void
   setDestination: (destination: OrderDraftDestination) => void
+  setRequiresShipping: (requiresShipping: boolean) => void
   /** Suma la línea. Si el producto ya estaba, la reemplaza: un SKU es una sola fila. */
   addItem: (item: OrderDraftItem) => void
   updateItem: (
@@ -79,7 +86,13 @@ interface OrderDraftState {
   clearDraft: () => void
 }
 
-const EMPTY_DRAFT = { customer: null, items: [], origin: null, destination: null }
+const EMPTY_DRAFT = {
+  customer: null,
+  items: [],
+  origin: null,
+  destination: null,
+  requiresShipping: true,
+}
 
 export const useOrderDraftStore = create<OrderDraftState>()(
   persist(
@@ -88,6 +101,7 @@ export const useOrderDraftStore = create<OrderDraftState>()(
       setCustomer: (customer) => set({ customer }),
       setOrigin: (origin) => set({ origin }),
       setDestination: (destination) => set({ destination }),
+      setRequiresShipping: (requiresShipping) => set({ requiresShipping }),
       addItem: (item) =>
         set((state) => {
           const index = state.items.findIndex((row) => row.productId === item.productId)

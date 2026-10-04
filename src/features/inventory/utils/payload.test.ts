@@ -44,13 +44,26 @@ function product(overrides: Partial<Product> = {}): Product {
     sku: 'CAB-6-305',
     name: 'Cable UTP Cat6',
     description: 'Rollo de 305 metros',
+    category: null,
+    packaging: null,
+    technicalStandard: null,
     weight: 12.4,
     dimensions: '45x30x20',
+    committed: 0,
+    onHand: 10,
+    availableToPromise: 10,
+    inTransit: 0,
     stocks: [
       {
         warehouseId: 1,
         quantity: 10,
-        warehouse: { id: 1, name: 'CD Ezeiza', address: 'Autopista Riccheri km 33' },
+        committed: 0,
+        warehouse: {
+          id: 1,
+          name: 'CD Ezeiza',
+          address: 'Autopista Riccheri km 33',
+          capacity: null,
+        },
       },
     ],
     updatedAt: '2026-08-30T12:00:00.000Z',
@@ -119,7 +132,8 @@ describe('buildUpdatePayload', () => {
         {
           warehouseId: 2,
           quantity: 40,
-          warehouse: { id: 2, name: 'CD Córdoba', address: 'Ruta 9 km 695' },
+          committed: 0,
+          warehouse: { id: 2, name: 'CD Córdoba', address: 'Ruta 9 km 695', capacity: null },
         },
       ],
     })

@@ -58,6 +58,13 @@ function buildDefaults(product: Product): EditProductFormData {
 /**
  * Modal de edición de un producto: datos básicos, medidas y stock por depósito.
  *
+ * Con `scope="stock"` muestra sólo el bloque de depósitos. El botón «Editar
+ * stock» del detalle abría el formulario entero, que es lo que marcó la
+ * auditoría del 04/10: prometía una cosa y hacía otra. Es un alcance del mismo
+ * modal y no otro componente porque el guardado, el `If-Match` y el 412
+ * (TESIS-101) son los mismos y duplicarlos sería tener dos versiones de la
+ * parte delicada.
+ *
  * Es presentacional: recibe el producto y los depósitos ya resueltos y entrega
  * en `onSubmit` el cuerpo listo para `PUT /api/v1/products/:id`. Quien lo monta
  * decide de dónde salen los datos y qué hacer con el resultado.
@@ -70,7 +77,9 @@ export function EditProductModal({
   onClose,
   submitting = false,
   conflict,
+  scope = 'product',
 }: EditProductModalProps) {
+  const onlyStock = scope === 'stock'
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null)
 
   const {
@@ -122,7 +131,7 @@ export function EditProductModal({
   return (
     <ModalFrame
       open={open}
-      title={modal.title(product.name)}
+      title={onlyStock ? modal.stockTitle(product.name) : modal.title(product.name)}
       subtitle={modal.subtitle(product.sku)}
       closeLabel={modal.close}
       onClose={onClose}
@@ -148,67 +157,73 @@ export function EditProductModal({
             </Alert>
           )}
 
-          <SectionRoot>
-            <SectionHeading title={modal.sections.basic} />
-            <BasicGrid>
-              <LabeledField label={modal.fields.name} error={errors.name?.message} fullWidth>
-                <TextField {...register('name')} error={errors.name !== undefined} fullWidth />
-              </LabeledField>
+          {/* Con alcance `stock` el formulario es sólo el bloque de depósitos:
+              el botón que lo abre dice «Editar stock» y eso es lo que edita. */}
+          {onlyStock ? null : (
+            <SectionRoot>
+              <SectionHeading title={modal.sections.basic} />
+              <BasicGrid>
+                <LabeledField label={modal.fields.name} error={errors.name?.message} fullWidth>
+                  <TextField {...register('name')} error={errors.name !== undefined} fullWidth />
+                </LabeledField>
 
-              <LabeledField label={modal.fields.sku} helperText={modal.skuHelper}>
-                <TextField value={product.sku} fullWidth disabled />
-              </LabeledField>
+                <LabeledField label={modal.fields.sku} helperText={modal.skuHelper}>
+                  <TextField value={product.sku} fullWidth disabled />
+                </LabeledField>
 
-              <LabeledField label={modal.fields.category} helperText={modal.categoryHelper}>
-                <TextField value="—" fullWidth disabled />
-              </LabeledField>
-            </BasicGrid>
-          </SectionRoot>
+                <LabeledField label={modal.fields.category} helperText={modal.categoryHelper}>
+                  <TextField value="—" fullWidth disabled />
+                </LabeledField>
+              </BasicGrid>
+            </SectionRoot>
+          )}
 
-          <SectionRoot>
-            <SectionHeading title={modal.sections.technical} />
-            <SpecGrid>
-              <LabeledField label={modal.fields.weight} error={errors.weight?.message}>
-                <TextField
-                  {...register('weight', { valueAsNumber: true })}
-                  type="number"
-                  inputProps={{ step: '0.01', min: 0 }}
-                  error={errors.weight !== undefined}
-                  fullWidth
-                />
-              </LabeledField>
+          {onlyStock ? null : (
+            <SectionRoot>
+              <SectionHeading title={modal.sections.technical} />
+              <SpecGrid>
+                <LabeledField label={modal.fields.weight} error={errors.weight?.message}>
+                  <TextField
+                    {...register('weight', { valueAsNumber: true })}
+                    type="number"
+                    inputProps={{ step: '0.01', min: 0 }}
+                    error={errors.weight !== undefined}
+                    fullWidth
+                  />
+                </LabeledField>
 
-              <LabeledField label={modal.fields.length} error={errors.length?.message}>
-                <TextField
-                  {...register('length', { valueAsNumber: true })}
-                  type="number"
-                  inputProps={{ min: 0 }}
-                  error={errors.length !== undefined}
-                  fullWidth
-                />
-              </LabeledField>
+                <LabeledField label={modal.fields.length} error={errors.length?.message}>
+                  <TextField
+                    {...register('length', { valueAsNumber: true })}
+                    type="number"
+                    inputProps={{ min: 0 }}
+                    error={errors.length !== undefined}
+                    fullWidth
+                  />
+                </LabeledField>
 
-              <LabeledField label={modal.fields.width} error={errors.width?.message}>
-                <TextField
-                  {...register('width', { valueAsNumber: true })}
-                  type="number"
-                  inputProps={{ min: 0 }}
-                  error={errors.width !== undefined}
-                  fullWidth
-                />
-              </LabeledField>
+                <LabeledField label={modal.fields.width} error={errors.width?.message}>
+                  <TextField
+                    {...register('width', { valueAsNumber: true })}
+                    type="number"
+                    inputProps={{ min: 0 }}
+                    error={errors.width !== undefined}
+                    fullWidth
+                  />
+                </LabeledField>
 
-              <LabeledField label={modal.fields.height} error={errors.height?.message}>
-                <TextField
-                  {...register('height', { valueAsNumber: true })}
-                  type="number"
-                  inputProps={{ min: 0 }}
-                  error={errors.height !== undefined}
-                  fullWidth
-                />
-              </LabeledField>
-            </SpecGrid>
-          </SectionRoot>
+                <LabeledField label={modal.fields.height} error={errors.height?.message}>
+                  <TextField
+                    {...register('height', { valueAsNumber: true })}
+                    type="number"
+                    inputProps={{ min: 0 }}
+                    error={errors.height !== undefined}
+                    fullWidth
+                  />
+                </LabeledField>
+              </SpecGrid>
+            </SectionRoot>
+          )}
 
           <SectionRoot>
             <SectionHeading

@@ -31,6 +31,12 @@ export interface OrderSummary {
   customerAddress: string | null
   customerZipCode: string | null
   status: OrderStatus
+  /**
+   * Si la orden se despacha o la retira el cliente en el local (TESIS-162).
+   * El listado lo marca para que se vea sin entrar: una orden de retiro no
+   * espera envío, y hasta ahora no se distinguía de una a la que le falta.
+   */
+  requiresShipping: boolean
   carrier: string | null
   totalAmount: number | null
   itemCount: number
@@ -77,6 +83,8 @@ export interface OrderDetail {
   customerCity: string | null
   customerProvince: string | null
   status: OrderStatus
+  /** Si se despacha o la retira el cliente en el local (TESIS-162). */
+  requiresShipping: boolean
   /**
    * La versión de la orden, tal como vino en el `ETag` del detalle (TESIS-126).
    * Viaja de vuelta en `If-Match` al guardar la modificación. `null` si el

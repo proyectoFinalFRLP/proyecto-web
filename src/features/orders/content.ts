@@ -73,6 +73,9 @@ export const ordersCopy = {
     },
     shipmentState: {
       none: 'La orden todavía no tiene un envío creado.',
+      // Distinto de `none`: a esta orden no le falta el envío, es que no lleva
+      // (TESIS-162). Hasta ahora las dos se veían igual.
+      pickup: 'El cliente retira esta orden en el local. No lleva envío.',
       duplicated: (count: number) =>
         `La orden tiene ${count} envíos registrados y debería tener uno solo. No se muestra ninguno hasta que se corrija.`,
       error: 'No pudimos cargar el envío de la orden.',
@@ -290,6 +293,15 @@ export const ordersCopy = {
       noneCovers:
         'Ningún depósito tiene stock para toda la orden. Volvé al paso anterior y ajustá las cantidades.',
     },
+    // Cómo llega la orden al cliente (TESIS-162). Va antes del domicilio
+    // porque decide si hace falta cargarlo.
+    fulfillment: {
+      title: 'Cómo la recibe el cliente',
+      shipped: 'Envío a domicilio',
+      shippedHint: 'Se cotiza con los operadores conectados y se despacha.',
+      pickup: 'Retiro en el local',
+      pickupHint: 'El cliente la busca por el depósito. No se cotiza ni se despacha.',
+    },
     destination: {
       title: 'Domicilio de entrega',
       fields: {
@@ -354,6 +366,16 @@ export const ordersCopy = {
     /** "Orden #8829 creada y despachada con Andreani." */
     confirmed: (orderLabel: string, carrier: string) =>
       `Orden ${orderLabel} creada y despachada con ${carrier}.`,
+    // Lo que ocupa el lugar de las cotizaciones cuando la venta se retira en
+    // el local: no hay operador que elegir (TESIS-162).
+    pickup: {
+      title: 'Retiro en el local',
+      body: (warehouse: string) =>
+        `El cliente retira la orden en ${warehouse}. No se cotiza ni se despacha ningún envío.`,
+    },
+    /** Con retiro en el local no hay despacho que anunciar (TESIS-162). */
+    confirmedPickup: (orderLabel: string) =>
+      `Orden ${orderLabel} creada. El cliente la retira en el local.`,
     errors: {
       order: 'No pudimos crear la orden.',
       /** La orden ya existe: lo que falló es el envío o el despacho. */
@@ -478,6 +500,8 @@ export const ordersCopy = {
     menuFor: (orderId: string) => `Acciones de la orden ${orderId}`,
   },
   cells: {
+    /** La orden no espera courier: la retira el cliente (TESIS-162). */
+    pickup: 'Retiro en el local',
     /** El courier se asigna al confirmar el despacho: antes de eso no hay. */
     noCarrier: 'Sin asignar',
     /** Una venta cargada a mano puede no tener dirección. */

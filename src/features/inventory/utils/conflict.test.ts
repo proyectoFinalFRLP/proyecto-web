@@ -17,7 +17,8 @@ function stock(warehouseId: number, quantity: number, warehouseName: string): Pr
   return {
     warehouseId,
     quantity,
-    warehouse: { id: warehouseId, name: warehouseName, address: 'Calle 1' },
+    committed: 0,
+    warehouse: { id: warehouseId, name: warehouseName, address: 'Calle 1', capacity: null },
   }
 }
 
@@ -27,8 +28,15 @@ function product(overrides: Partial<Product> = {}): Product {
     sku: 'CAB-6-305',
     name: 'Cable UTP Cat6',
     description: 'Rollo de 305 metros',
+    category: null,
+    packaging: null,
+    technicalStandard: null,
     weight: 12.4,
     dimensions: '45x30x20',
+    committed: 0,
+    onHand: 10,
+    availableToPromise: 10,
+    inTransit: 0,
     stocks: [stock(1, 10, 'CD Ezeiza')],
     updatedAt: '2026-08-30T12:00:00.000Z',
     version: '"abc"',

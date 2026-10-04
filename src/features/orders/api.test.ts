@@ -147,6 +147,7 @@ const ORDER = {
   customer_document: '30-71234567-8',
   customer_address: 'Av. Corrientes 3247',
   customer_zip_code: 'C1193',
+  requires_shipping: true,
   customer_city: null,
   customer_province: null,
   status: 'paid',
@@ -164,6 +165,7 @@ describe('fetchOrder', () => {
         customer_document: '30-71234567-8',
         customer_address: 'Av. Corrientes 3247',
         customer_zip_code: 'C1193',
+        requires_shipping: true,
         status: 'paid',
         total_amount: 960000,
         created_at: '2026-08-12T12:42:00Z',
@@ -219,6 +221,7 @@ describe('updateOrder', () => {
       customer_city: 'CABA',
       customer_province: 'Ciudad Autónoma de Buenos Aires',
       customer_zip_code: '1193',
+      requires_shipping: true,
       status: 'paid' as const,
     },
   }
@@ -385,6 +388,7 @@ describe('the confirmation of a manual order', () => {
         customer_city: 'CABA',
         customer_province: 'Ciudad Autónoma de Buenos Aires',
         customer_zip_code: '1193',
+        requires_shipping: true,
         items: [{ product_id: 12, warehouse_id: 3, quantity: 4, unit_price: 120000 }],
       },
     }

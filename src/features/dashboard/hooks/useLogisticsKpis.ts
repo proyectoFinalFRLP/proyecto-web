@@ -4,10 +4,12 @@ import { useCallback } from 'react'
 import {
   ACTIVE_SHIPMENT_STATUS,
   fetchActiveShipmentCount,
+  fetchPendingFailedEventCount,
   fetchPendingOrderCount,
+  PENDING_FAILED_EVENT_STATUS,
   PENDING_ORDER_STATUS,
 } from '../api'
-import { orderKeys, shipmentKeys } from '../queryKeys'
+import { failedEventKeys, orderKeys, shipmentKeys } from '../queryKeys'
 
 export interface KpiState {
   /** El total que devolvió la API, o `undefined` mientras carga o si falló. */
@@ -19,7 +21,14 @@ export interface KpiState {
 export interface LogisticsKpis {
   pendingOrders: KpiState
   activeShipments: KpiState
-  /** Alguna de las dos consultas falló. */
+  /**
+   * Los eventos que siguen esperando en la cola de reintentos (TESIS-163).
+   * Reemplaza al KPI de «Salud del sistema», que mostraba un porcentaje
+   * derivado de la frescura de los nodos: es la misma salud dicha como un
+   * número sobre el que se puede actuar.
+   */
+  failedEvents: KpiState
+  /** Alguna de las consultas falló. */
   isError: boolean
   refetch: () => void
 }
@@ -45,15 +54,22 @@ export function useLogisticsKpis(): LogisticsKpis {
     queryFn: fetchActiveShipmentCount,
   })
 
+  const failedEvents = useQuery<number>({
+    queryKey: failedEventKeys.kpi(PENDING_FAILED_EVENT_STATUS),
+    queryFn: fetchPendingFailedEventCount,
+  })
+
   const { refetch: refetchPendingOrders } = pendingOrders
   const { refetch: refetchActiveShipments } = activeShipments
+  const { refetch: refetchFailedEvents } = failedEvents
 
   // Envuelto: `refetch` de React Query recibe `RefetchOptions`, y cablearlo
   // directo a un `onClick` le pasaría el MouseEvent como opciones.
   const refetch = useCallback(() => {
     void refetchPendingOrders()
     void refetchActiveShipments()
-  }, [refetchPendingOrders, refetchActiveShipments])
+    void refetchFailedEvents()
+  }, [refetchPendingOrders, refetchActiveShipments, refetchFailedEvents])
 
   return {
     pendingOrders: {
@@ -66,7 +82,12 @@ export function useLogisticsKpis(): LogisticsKpis {
       isLoading: activeShipments.isLoading,
       isError: activeShipments.isError,
     },
-    isError: pendingOrders.isError || activeShipments.isError,
+    failedEvents: {
+      value: failedEvents.data,
+      isLoading: failedEvents.isLoading,
+      isError: failedEvents.isError,
+    },
+    isError: pendingOrders.isError || activeShipments.isError || failedEvents.isError,
     refetch,
   }
 }

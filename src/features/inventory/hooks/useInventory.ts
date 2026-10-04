@@ -1,25 +1,21 @@
-import {
-  keepPreviousData,
-  useMutation,
-  useQueries,
-  useQuery,
-  useQueryClient,
-} from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { ApiRequestError } from 'shared/api/types'
 
 import {
   createProduct,
   fetchProduct,
   deleteProduct,
-  fetchProductCount,
+  fetchProductCounts,
   fetchProductPage,
   fetchWarehouses,
   updateProduct,
 } from '../api'
 import { inventoryKeys } from '../queryKeys'
 import type {
+  CatalogCounts,
   CreateProductPayload,
   Product,
+  ProductCategory,
   ProductFilters,
   ProductPage,
   StockStatus,
@@ -57,21 +53,23 @@ export function useProductPage(filters: ProductFilters) {
 }
 
 /**
- * Los cuatro contadores de las pestañas, en paralelo. Son consultas de una sola
- * fila que leen nada más que el `meta.total`.
+ * Los cuatro contadores de las pestañas, en una sola consulta.
  *
- * Respetan la búsqueda: si no lo hicieran, buscar algo inexistente dejaría la
- * tabla vacía con una pestaña que sigue diciendo «Todos (1.284)».
+ * Eran cuatro requests, uno por pestaña, cada uno pidiendo una fila sólo para
+ * leer su `meta.total`. La auditoría del 04/10 marcó que la pantalla disparaba
+ * seis llamadas; con `GET /products/counts` (TESIS-162) bajan a tres.
+ *
+ * Respetan la búsqueda y la categoría: si no lo hicieran, buscar algo
+ * inexistente dejaría la tabla vacía con una pestaña que sigue diciendo
+ * «Todos (1.284)».
+ *
+ * Que falle no voltea la pantalla: la tabla se ve igual y las pestañas quedan
+ * sin número, que es lo que ya hacían cuando un contador fallaba.
  */
-export function useProductCounts(search: string) {
-  return useQueries({
-    queries: CATALOG_TABS.map(({ status }) => ({
-      queryKey: inventoryKeys.count(status, search),
-      queryFn: () => fetchProductCount(status, search),
-    })),
-    // Un contador que falla no puede voltear la pantalla: la tabla se ve igual
-    // y la pestaña queda sin número.
-    combine: (results) => results.map((result) => result.data),
+export function useProductCounts(search: string, category?: ProductCategory) {
+  return useQuery<CatalogCounts>({
+    queryKey: inventoryKeys.counts(search, category ?? ''),
+    queryFn: () => fetchProductCounts({ search, category }),
   })
 }
 

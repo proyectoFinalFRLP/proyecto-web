@@ -8,7 +8,11 @@ import type { CreateOrderPayload, DispatchPayload } from '../utils/shipping'
 
 export interface ConfirmDraftOrderInput {
   order: CreateOrderPayload
-  dispatch: DispatchPayload
+  /**
+   * `null` cuando la venta se retira en el local (TESIS-162): no hay envío que
+   * abrir ni courier que despachar, así que la confirmación termina en el alta.
+   */
+  dispatch: DispatchPayload | null
 }
 
 interface Progress {
@@ -50,6 +54,9 @@ export function useConfirmDraftOrder({ onOrderCreated }: Options = {}) {
         onOrderCreated?.(created.id)
       }
       const orderId = progress.current.orderId
+
+      // Retiro en el local: la venta queda registrada y ahí termina.
+      if (dispatch === null) return orderId
 
       if (progress.current.shipmentId === null) {
         const shipment = await createOrderShipment(orderId)

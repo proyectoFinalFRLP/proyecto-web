@@ -99,7 +99,6 @@ export const inventoryCopy = {
         `${length} × ${width} × ${height} cm`,
       /** Marca de "sin dato" del DS, la misma que usa el dashboard. */
       unknown: '—',
-      pendingBackend: 'Categoría, empaque y norma técnica todavía no existen en la API.',
     },
     master: {
       title: 'Stock maestro',
@@ -112,11 +111,6 @@ export const inventoryCopy = {
         inTransit: 'En tránsito',
         availableToPromise: 'Disponible para prometer',
       },
-      // Cubre las dos piezas del diseño que la API no puede alimentar: la barra
-      // de capacidad ("71 % del umbral máximo de 6.000 unidades"), que necesita
-      // un techo por producto, y el desglose por estado de reserva.
-      pending:
-        'El porcentaje de capacidad y el desglose por reserva esperan datos que la API todavía no expone.',
       edit: 'Editar stock',
     },
     distribution: {
@@ -134,7 +128,9 @@ export const inventoryCopy = {
       footer: (count: number) =>
         count === 1 ? '1 depósito con stock asignado' : `${count} depósitos con stock asignado`,
       empty: 'Este producto no tiene stock asignado en ningún depósito.',
-      pending: 'Comprometido y en tránsito esperan que la API los modele.',
+      // En tránsito **por depósito** llega con TESIS-144; el total del producto
+      // ya se muestra en el encabezado. Comprometido sí está, por depósito.
+      pendingInTransit: 'El en tránsito por depósito llega con el detalle de stock por nodo.',
     },
     status: {
       available: 'Disponible',
@@ -148,6 +144,8 @@ export const inventoryCopy = {
   modal: {
     /** El título lleva el nombre del producto; el subtítulo, el SKU. */
     title: (productName: string) => `Editar producto: ${productName}`,
+    /** Con alcance `stock`: el modal muestra sólo las cantidades por depósito. */
+    stockTitle: (productName: string) => `Editar stock: ${productName}`,
     subtitle: (sku: string) => `Actualizá especificaciones y stock del SKU: ${sku}`,
     close: 'Cerrar',
     conflict: {

@@ -14,7 +14,8 @@ function stock(overrides: Partial<ProductStock> = {}): ProductStock {
   return {
     warehouseId: 1,
     quantity: 10,
-    warehouse: { id: 1, name: 'CD Ezeiza', address: 'Autopista Riccheri km 33' },
+    committed: 0,
+    warehouse: { id: 1, name: 'CD Ezeiza', address: 'Autopista Riccheri km 33', capacity: null },
     ...overrides,
   }
 }

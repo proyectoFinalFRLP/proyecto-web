@@ -8,6 +8,7 @@ import { ErrorFallback, LoadingSpinner, PageWrapper } from 'shared/components'
 import { notify, useTenantFeature } from 'shared/store'
 
 import { EditProductModal } from '../components/EditProductModal'
+import type { EditScope } from '../components/EditProductModal'
 import { MasterStockCard } from '../components/MasterStockCard'
 import type { StockBucket } from '../components/MasterStockCard'
 import { ProductDetailHeader } from '../components/ProductDetailHeader'
@@ -50,11 +51,16 @@ function buildSpecs(product: Product): ProductSpec[] {
   const hasDimensions = product.dimensions !== null && product.dimensions !== ''
 
   return [
-    // `products` no tiene columna de categoría (las cuatro de Product::CATEGORIES
-    // viven en el backend pero no llegan en el serializer), ni empaque, ni norma
-    // técnica. Se muestran los rótulos del diseño sin valor, en vez de omitir las
-    // celdas: así la ficha dice qué falta en lugar de disimularlo.
-    { id: 'category', label: specsCopy.fields.category, value: specsCopy.unknown, unknown: true },
+    // Los tres salen de la API desde TESIS-150 (categoría) y TESIS-162
+    // (empaque y norma). Un producto puede no tenerlos cargados, y ahí sí va el
+    // «—»: la diferencia es que ahora es un dato que falta y no una columna que
+    // no existe.
+    {
+      id: 'category',
+      label: specsCopy.fields.category,
+      value: product.category ?? specsCopy.unknown,
+      unknown: product.category === null,
+    },
     {
       id: 'weight',
       label: specsCopy.fields.weight,
@@ -74,7 +80,12 @@ function buildSpecs(product: Product): ProductSpec[] {
       mono: true,
       unknown: !hasDimensions,
     },
-    { id: 'packaging', label: specsCopy.fields.packaging, value: specsCopy.unknown, unknown: true },
+    {
+      id: 'packaging',
+      label: specsCopy.fields.packaging,
+      value: product.packaging ?? specsCopy.unknown,
+      unknown: product.packaging === null,
+    },
   ]
 }
 
@@ -83,7 +94,12 @@ function buildSecondarySpecs(product: Product): ProductSpec[] {
   const updatedAt = formatSpecTimestamp(product.updatedAt)
 
   return [
-    { id: 'standard', label: specsCopy.fields.standard, value: specsCopy.unknown, unknown: true },
+    {
+      id: 'standard',
+      label: specsCopy.fields.standard,
+      value: product.technicalStandard ?? specsCopy.unknown,
+      unknown: product.technicalStandard === null,
+    },
     {
       id: 'updatedAt',
       label: specsCopy.fields.updatedAt,
@@ -94,34 +110,34 @@ function buildSecondarySpecs(product: Product): ProductSpec[] {
 }
 
 /**
- * Desglose por estado de reserva.
+ * Desglose por estado de reserva, con los números que calcula la API desde
+ * TESIS-162.
  *
- * Las tres cubetas van sin dato: la API devuelve un solo número por depósito
- * (las unidades en depósito) y no modela reservas ni mercadería en tránsito.
- * Ver el encabezado de `utils/stock.ts`.
+ * Las tres cubetas mostraban «—» con la aclaración de que el modelo no las
+ * registraba. Ahora muestran dato, y **cero cuando el valor es cero**: un
+ * producto que nadie reservó tiene 0 comprometido, que es un hecho y no una
+ * carencia. Ninguna se deriva acá: `onHand` no es la suma de `stocks[]`, porque
+ * lo vendido sin despachar ya salió de esas filas y sigue en el estante.
  */
-function buildBuckets(): StockBucket[] {
+function buildBuckets(product: Product): StockBucket[] {
   return [
     {
       id: 'committed',
       label: masterCopy.buckets.committed,
-      icon: <LockOutlinedIcon fontSize="small" color="disabled" />,
-      value: specsCopy.unknown,
-      unknown: true,
+      icon: <LockOutlinedIcon fontSize="small" color="action" />,
+      value: formatUnits(product.committed),
     },
     {
       id: 'inTransit',
       label: masterCopy.buckets.inTransit,
-      icon: <LocalShippingOutlinedIcon fontSize="small" color="disabled" />,
-      value: specsCopy.unknown,
-      unknown: true,
+      icon: <LocalShippingOutlinedIcon fontSize="small" color="action" />,
+      value: formatUnits(product.inTransit),
     },
     {
       id: 'availableToPromise',
       label: masterCopy.buckets.availableToPromise,
-      icon: <CheckCircleOutlineIcon fontSize="small" color="disabled" />,
-      value: specsCopy.unknown,
-      unknown: true,
+      icon: <CheckCircleOutlineIcon fontSize="small" color="action" />,
+      value: formatUnits(product.availableToPromise),
       accent: true,
     },
   ]
@@ -136,7 +152,7 @@ function buildRows(product: Product): WarehouseDistributionRow[] {
       id: stock.warehouseId,
       name: stock.warehouse.name,
       location: stock.warehouse.address,
-      committed: specsCopy.unknown,
+      committed: formatUnits(stock.committed),
       inTransit: specsCopy.unknown,
       onHand: formatUnits(stock.quantity),
       statusLabel: status[level],
@@ -166,7 +182,9 @@ export function ProductDetailPage() {
   const { pathname, state } = useLocation()
   const navigate = useNavigate()
   const abrirEdicion = typeof state === 'object' && state !== null && 'edit' in state
-  const [editing, setEditing] = useState(abrirEdicion)
+  // Qué alcance abre el modal, o `null` si está cerrado: «Editar producto»
+  // abre el formulario entero y «Editar stock» sólo las cantidades.
+  const [editing, setEditing] = useState<EditScope | null>(abrirEdicion ? 'product' : null)
   const integrationsEnabled = useTenantFeature('integrations')
 
   // La intención se consume una sola vez. `location.state` vive en
@@ -213,7 +231,7 @@ export function ProductDetailPage() {
     updateMutation.mutate(payload, {
       onSuccess: () => {
         notify(page.saved(name), 'success')
-        setEditing(false)
+        setEditing(null)
         setBaseline(undefined)
       },
       onError: () => void product.refetch(),
@@ -259,26 +277,24 @@ export function ProductDetailPage() {
           statusLabel={status[level]}
           statusVariant={STOCK_LEVEL_STATUS[level]}
           catalogPath={CATALOG_PATH}
-          onEdit={() => setEditing(true)}
+          onEdit={() => setEditing('product')}
         />
 
         <ProductSpecsCard
           specs={buildSpecs(product.data)}
           secondarySpecs={buildSecondarySpecs(product.data)}
-          footnote={specsCopy.pendingBackend}
         />
 
         <Box sx={CONTENT_GRID}>
           <MasterStockCard
             totalLabel={formatUnits(total)}
             caption={masterCopy.warehouseCount(product.data.stocks.length)}
-            buckets={buildBuckets()}
-            footnote={masterCopy.pending}
-            onEditStock={() => setEditing(true)}
+            buckets={buildBuckets(product.data)}
+            onEditStock={() => setEditing('stock')}
           />
           <WarehouseDistributionCard
             rows={buildRows(product.data)}
-            footnote={distributionCopy.pending}
+            footnote={distributionCopy.pendingInTransit}
           />
         </Box>
 
@@ -301,7 +317,8 @@ export function ProductDetailPage() {
       </Stack>
 
       <EditProductModal
-        open={editing}
+        open={editing !== null}
+        scope={editing ?? 'product'}
         product={product.data}
         warehouses={warehouses.data}
         submitting={updateMutation.isPending}
@@ -310,7 +327,7 @@ export function ProductDetailPage() {
           // Sin el reset, el error de la mutación sobrevive al modal y queda
           // colgado en la página — un 412 que ya no aplica a nada visible.
           updateMutation.reset()
-          setEditing(false)
+          setEditing(null)
           setBaseline(undefined)
         }}
         onSubmit={save}

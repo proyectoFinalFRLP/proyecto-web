@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react'
+
 export type TopNavThemeMode = 'light' | 'dark'
 
 export interface TopNavUser {
@@ -24,11 +26,21 @@ export interface TopNavBarProps {
   onToggleTheme?: () => void
   /** Contador del badge de notificaciones. Badge oculto si es 0/undefined. */
   notificationsCount?: number
-  onNotificationsClick?: () => void
+  /**
+   * La campanita entrega el botón que la disparó: el panel de actividad se
+   * ancla a él (TESIS-163). Sin el elemento, quien escucha tendría que buscarlo
+   * en el DOM, que es justo lo que un `Popover` de MUI no necesita.
+   */
+  onNotificationsClick?: (anchor: HTMLElement) => void
   /** Si se define, muestra el ícono de engranaje linkeando a esta ruta. */
   settingsTo?: string
   /** Datos del usuario. Sin esto, el avatar cae a un ícono genérico. */
   user?: TopNavUser
-  onProfileClick?: () => void
   onLogout?: () => void
+  /**
+   * Lo que cuelga de la barra, anclado a ella: hoy el panel de actividad. Va
+   * como nodo y no como una prop por caso, porque `shared/components` no puede
+   * importar una feature y el contenido lo decide quien la monta.
+   */
+  children?: ReactNode
 }

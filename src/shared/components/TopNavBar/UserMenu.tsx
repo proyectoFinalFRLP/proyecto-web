@@ -1,6 +1,5 @@
 import LogoutIcon from '@mui/icons-material/Logout'
 import PersonIcon from '@mui/icons-material/Person'
-import PersonOutlineIcon from '@mui/icons-material/PersonOutline'
 import {
   Avatar,
   Box,
@@ -28,13 +27,15 @@ function getInitials(name: string) {
 
 interface UserMenuProps {
   user?: TopNavUser
-  onProfileClick?: () => void
   onLogout?: () => void
 }
 
 // Avatar (imagen del usuario, con fallback nativo de MUI a los children si
-// falla la carga) + menú desplegable con "Mi perfil" / "Cerrar sesión".
-export function UserMenu({ user, onProfileClick, onLogout }: UserMenuProps) {
+// falla la carga) + menú desplegable con quién tiene la sesión y «Cerrar
+// sesión». Tenía además un «Mi perfil» que no llevaba a ningún lado —el header
+// nunca pasó su handler y no hay pantalla de perfil—: se sacó en TESIS-163, en
+// vez de dejar una acción que no hace nada.
+export function UserMenu({ user, onLogout }: UserMenuProps) {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
   const open = Boolean(anchorEl)
   const menuId = useId()
@@ -83,13 +84,6 @@ export function UserMenu({ user, onProfileClick, onLogout }: UserMenuProps) {
             </Typography>
           )}
         </Box>
-        <Divider sx={{ my: 0.5 }} />
-        <MenuItem onClick={runAndClose(onProfileClick)}>
-          <ListItemIcon>
-            <PersonOutlineIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText>{topNavContent.profileLabel}</ListItemText>
-        </MenuItem>
         <Divider sx={{ my: 0.5 }} />
         <MenuItem onClick={runAndClose(onLogout)}>
           <ListItemIcon>

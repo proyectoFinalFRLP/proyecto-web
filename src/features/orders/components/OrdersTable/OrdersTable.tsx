@@ -75,7 +75,7 @@ function buildColumns(onView: (order: OrderSummary) => void): DataTableColumn<Or
       id: 'carrier',
       header: columnCopy.carrier,
       width: 170,
-      render: (order) => <CarrierCell carrier={order.carrier} />,
+      render: (order) => <CarrierCell carrier={order.carrier} pickup={!order.requiresShipping} />,
     },
     {
       id: 'total',
