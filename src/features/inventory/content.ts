@@ -99,7 +99,7 @@ export const inventoryCopy = {
         `${length} × ${width} × ${height} cm`,
       /** Marca de "sin dato" del DS, la misma que usa el dashboard. */
       unknown: '—',
-      pendingBackend: 'Categoría, empaque y norma técnica todavía no existen en la API.',
+      pendingBackend: 'Empaque y norma técnica todavía no existen en la API.',
     },
     master: {
       title: 'Stock maestro',
@@ -114,9 +114,10 @@ export const inventoryCopy = {
       },
       // Cubre las dos piezas del diseño que la API no puede alimentar: la barra
       // de capacidad ("71 % del umbral máximo de 6.000 unidades"), que necesita
-      // un techo por producto, y el desglose por estado de reserva.
+      // un techo por producto, y el desglose por reserva. Y aclara que el en
+      // tránsito, a diferencia del diseño, no es una porción del total.
       pending:
-        'El porcentaje de capacidad y el desglose por reserva esperan datos que la API todavía no expone.',
+        'El en tránsito no forma parte del total. La capacidad y las reservas esperan datos que la API todavía no expone.',
       edit: 'Editar stock',
     },
     distribution: {
@@ -131,16 +132,14 @@ export const inventoryCopy = {
         onHand: 'En depósito',
         status: 'Estado',
       },
+      // Cuenta también los depósitos que sólo esperan unidades en camino.
       footer: (count: number) =>
-        count === 1 ? '1 depósito con stock asignado' : `${count} depósitos con stock asignado`,
+        count === 1
+          ? '1 depósito con stock o en camino'
+          : `${count} depósitos con stock o en camino`,
       empty: 'Este producto no tiene stock asignado en ningún depósito.',
-      pending: 'Comprometido y en tránsito esperan que la API los modele.',
-    },
-    status: {
-      available: 'Disponible',
-      low: 'Stock bajo',
-      critical: 'Crítico',
-      out: 'Sin stock',
+      pending:
+        'En tránsito son las unidades que vienen hacia cada depósito. Comprometido espera que la API modele las reservas.',
     },
     notFound: 'No encontramos el producto que buscabas.',
     backToCatalog: 'Volver al catálogo',
