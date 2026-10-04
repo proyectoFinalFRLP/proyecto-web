@@ -24,14 +24,14 @@ export const dashboardCopy = {
     },
     // Reemplaza al KPI de «Salud del sistema» (TESIS-163): la misma salud de
     // las integraciones, dicha como un número sobre el que se puede actuar.
-    failedEvents: {
-      label: 'Eventos fallidos',
-      tag: 'Revisar',
-      note: (pending: number) =>
-        pending === 1
-          ? '1 evento esperando reintento'
-          : `${UNITS_FORMAT.format(pending)} eventos esperando reintento`,
-      calmNote: 'Sin eventos pendientes de reintento',
+    // Reemplaza al KPI de «Salud del sistema» (TESIS-163), que mostraba un
+    // porcentaje derivado de la frescura de los nodos. Las unidades guardadas
+    // son el inventario del que vive la operación, y salen del mismo dato que
+    // ya alimenta la carga por depósito: ni un request más.
+    storedUnits: {
+      label: 'Unidades en stock',
+      note: (warehouses: number) =>
+        warehouses === 1 ? 'en 1 depósito' : `repartidas en ${warehouses} depósitos`,
     },
     // Cuarta tarjeta de la fila del diseño. El chip y la nota son los del
     // MetricCard de S03-Panel; el tono `error` es lo que le da el borde de

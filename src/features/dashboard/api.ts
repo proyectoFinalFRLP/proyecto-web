@@ -98,19 +98,6 @@ export async function fetchWarehouseLoads(): Promise<WarehouseLoad[]> {
   }))
 }
 
-/**
- * Los eventos que todavía esperan en la cola de reintentos (TESIS-163).
- *
- * Reemplaza al KPI de «Salud del sistema», que mostraba un porcentaje derivado
- * de la frescura de los nodos. Es la misma salud dicha de una forma sobre la
- * que se puede actuar: cuántas cosas se cayeron y siguen sin resolverse.
- */
-export const PENDING_FAILED_EVENT_STATUS = 'pending'
-
-export function fetchPendingFailedEventCount(): Promise<number> {
-  return fetchCount('/failed-events', { status: PENDING_FAILED_EVENT_STATUS })
-}
-
 /** Cuántos envíos muestra la tarjeta del panel. */
 export const RECENT_SHIPMENTS = 5
 

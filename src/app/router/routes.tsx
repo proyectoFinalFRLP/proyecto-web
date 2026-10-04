@@ -3,6 +3,7 @@ import HomeIcon from '@mui/icons-material/Home'
 import HubOutlinedIcon from '@mui/icons-material/HubOutlined'
 import InsightsOutlinedIcon from '@mui/icons-material/InsightsOutlined'
 import Inventory2Icon from '@mui/icons-material/Inventory2'
+import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined'
 import ReceiptLongOutlinedIcon from '@mui/icons-material/ReceiptLongOutlined'
 import { lazy } from 'react'
 import type { ReactNode } from 'react'
@@ -41,6 +42,9 @@ const InventoryPage = lazy(() =>
 )
 const ProductDetailPage = lazy(() =>
   import('features/inventory').then((m) => ({ default: m.ProductDetailPage })),
+)
+const ShipmentsPage = lazy(() =>
+  import('features/shipments').then((m) => ({ default: m.ShipmentsPage })),
 )
 const ReportsPage = lazy(() => import('features/reports').then((m) => ({ default: m.ReportsPage })))
 const LoginPage = lazy(() => import('features/auth').then((m) => ({ default: m.LoginPage })))
@@ -131,6 +135,11 @@ export const appRoutes: AppRoute[] = [
     // La feature que diferencia a las dos empresas de la demo: Norte la tiene
     // encendida y Sur no (§2 del contrato).
     feature: 'integrations',
+  },
+  {
+    path: '/shipments',
+    element: <ShipmentsPage />,
+    nav: { label: 'Envíos', icon: <LocalShippingOutlinedIcon /> },
   },
   {
     path: '/inventory',

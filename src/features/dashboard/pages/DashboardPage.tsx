@@ -1,5 +1,5 @@
+import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined'
 import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined'
-import ReportGmailerrorredOutlinedIcon from '@mui/icons-material/ReportGmailerrorredOutlined'
 import ScheduleOutlinedIcon from '@mui/icons-material/ScheduleOutlined'
 import WarningAmberOutlinedIcon from '@mui/icons-material/WarningAmberOutlined'
 import { Alert, Box, Button, Grid, Stack, Typography } from '@mui/material'
@@ -16,7 +16,7 @@ import { useRecentOrders } from '../hooks/useRecentOrders'
 import { useRecentShipments } from '../hooks/useRecentShipments'
 
 const { metrics, error: errorCopy } = dashboardCopy
-const failedEventsCopy = metrics.failedEvents
+const storedUnitsCopy = metrics.storedUnits
 const alertsCopy = metrics.inventoryAlerts
 
 // Destino del click en la tarjeta de alertas. Las rutas se registran en
@@ -70,7 +70,6 @@ export function DashboardPage() {
   const {
     pendingOrders,
     activeShipments,
-    failedEvents,
     isError: isKpisError,
     refetch: refetchKpis,
   } = useLogisticsKpis()
@@ -114,11 +113,6 @@ export function DashboardPage() {
   // enciende: `undefined` no es cero.
   const hasAlerts = alerts.value !== undefined && alerts.value > 0
   const alertsValue = formatCount(alerts.value)
-
-  // Mismo criterio que las alertas de inventario: el tono se enciende sólo si
-  // hay algo que revisar. `undefined` no es cero, así que mientras el número
-  // viaja la tarjeta no afirma que la cola está limpia.
-  const hasFailures = failedEvents.value !== undefined && failedEvents.value > 0
 
   return (
     <PageWrapper>
@@ -164,22 +158,15 @@ export function DashboardPage() {
             />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-            {/* Reemplaza al KPI de «Salud del sistema» (TESIS-163): la misma
-                salud de las integraciones, dicha como un número sobre el que
-                se puede actuar. */}
+            {/* Reemplaza al KPI de «Salud del sistema» (TESIS-163). Sale del
+                mismo dato que la carga por depósito, así que no agrega ningún
+                request. */}
             <StatCard
-              label={failedEventsCopy.label}
-              value={formatCount(failedEvents.value)}
-              loading={failedEvents.isLoading}
-              icon={<ReportGmailerrorredOutlinedIcon />}
-              tone={hasFailures ? 'warning' : 'neutral'}
-              tag={hasFailures ? failedEventsCopy.tag : undefined}
-              tagTone="warning"
-              note={
-                failedEvents.value === undefined
-                  ? undefined
-                  : failedEventsCopy.note(failedEvents.value)
-              }
+              label={storedUnitsCopy.label}
+              value={formatCount(storedUnits)}
+              loading={warehousesLoading}
+              icon={<Inventory2OutlinedIcon />}
+              note={warehousesLoading ? undefined : storedUnitsCopy.note(warehouses.length)}
             />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, md: 3 }}>

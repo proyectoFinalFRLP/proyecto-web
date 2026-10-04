@@ -40,3 +40,16 @@ describe('formatSpecTimestamp', () => {
     expect(formatSpecTimestamp(isoDate)).toBe(`${expectedDate} · ${expectedTime}`)
   })
 })
+
+// Lo que la API manda es lo que la pantalla imprime, y si una versión vieja no
+// manda un campo que esta pantalla ya lee, `Intl` escribe `NaN`.
+describe('formatUnits with something that is not a number', () => {
+  it('says there is no data instead of printing NaN', () => {
+    expect(formatUnits(undefined as unknown as number)).toBe('—')
+    expect(formatUnits(Number.NaN)).toBe('—')
+  })
+
+  it('still formats a zero, which is a number like any other', () => {
+    expect(formatUnits(0)).toBe('0')
+  })
+})

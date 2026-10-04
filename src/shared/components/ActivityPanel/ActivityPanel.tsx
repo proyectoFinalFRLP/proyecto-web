@@ -1,3 +1,6 @@
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
+import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined'
+import ReceiptLongOutlinedIcon from '@mui/icons-material/ReceiptLongOutlined'
 import {
   Alert,
   Box,
@@ -8,14 +11,26 @@ import {
   Popover,
   Typography,
 } from '@mui/material'
+import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 
+import type { ActivityType } from '../../api/activity'
 import { useActivity } from '../../hooks/useActivity'
 import { LoadingSpinner } from '../LoadingSpinner'
 
+import { EntryIcon } from './ActivityPanel.styles'
 import type { ActivityPanelProps } from './ActivityPanel.types'
 import { activityContent } from './content'
 import { activityLabel, activityPath } from './entry'
+
+// Un ícono por tipo de hecho, para que la fila se reconozca sin leerla. Mapa
+// explícito y no un `switch` con default: si el backend suma un tipo, el
+// compilador marca este archivo.
+const ICONS: Record<ActivityType, ReactNode> = {
+  order_created: <ReceiptLongOutlinedIcon fontSize="small" />,
+  shipment_dispatched: <LocalShippingOutlinedIcon fontSize="small" />,
+  event_failed: <ErrorOutlineIcon fontSize="small" />,
+}
 
 // Hora y día de cada hecho. Corto a propósito: el panel es una lista de un
 // vistazo, no una bitácora. La zona es la de quien mira, igual que el resto de
@@ -50,7 +65,7 @@ export function ActivityPanel({ anchorEl, onClose, paths }: ActivityPanelProps) 
       onClose={onClose}
       anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-      slotProps={{ paper: { sx: { width: 360, maxWidth: '100vw', mt: 1 } } }}
+      slotProps={{ paper: { sx: { width: 420, maxWidth: '100vw', mt: 1 } } }}
     >
       <Box sx={{ px: 2, py: 1.5 }}>
         <Typography variant="labelCaps">{activityContent.title}</Typography>
@@ -102,12 +117,25 @@ export function ActivityPanel({ anchorEl, onClose, paths }: ActivityPanelProps) 
               onClick={onClose}
               // Sin destino no es un botón: es una fila que informa y nada más.
               disableRipple={to === null}
-              sx={{ display: 'block', cursor: to === null ? 'default' : 'pointer' }}
+              divider
+              sx={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: 1.5,
+                // Fila alta y con aire: es un historial que se lee, no un menú
+                // que se recorre con la vista.
+                py: 1.75,
+                px: 2,
+                cursor: to === null ? 'default' : 'pointer',
+              }}
             >
-              <Typography variant="bodyMd">{activityLabel(entry)}</Typography>
-              <Typography variant="labelSm" color="text.secondary">
-                {WHEN.format(new Date(entry.occurredAt))}
-              </Typography>
+              <EntryIcon>{ICONS[entry.type]}</EntryIcon>
+              <Box sx={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                <Typography variant="bodyMd">{activityLabel(entry)}</Typography>
+                <Typography variant="labelSm" color="text.secondary">
+                  {WHEN.format(new Date(entry.occurredAt))}
+                </Typography>
+              </Box>
             </ListItemButton>
           )
         })}

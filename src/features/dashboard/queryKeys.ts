@@ -23,14 +23,6 @@ export const shipmentKeys = {
   recent: (size: number) => [...shipmentKeys.all, 'recent', size] as const,
 }
 
-// Cuelga de `['failed-events']`, la raíz del recurso que cuenta, por el mismo
-// motivo que los otros KPIs: reintentar o descartar un evento refresca el
-// número sin que el panel tenga que enterarse.
-export const failedEventKeys = {
-  all: ['failed-events'] as const,
-  kpi: (status: string) => ['failed-events', 'kpi', status] as const,
-}
-
 // Misma regla que los KPIs de órdenes y envíos: la key cuelga de la raíz del
 // recurso que lee —`['inventory']`, la que usa `features/inventory`— para que
 // un alta o una edición de producto refresque también el contador del panel.

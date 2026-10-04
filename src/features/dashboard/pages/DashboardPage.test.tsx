@@ -98,7 +98,6 @@ beforeEach(() => {
   vi.mocked(useLogisticsKpis).mockReturnValue({
     pendingOrders: { value: 12, isLoading: false, isError: false },
     activeShipments: { value: 5, isLoading: false, isError: false },
-    failedEvents: { value: 0, isLoading: false, isError: false },
     isError: false,
     refetch: vi.fn(),
   })
