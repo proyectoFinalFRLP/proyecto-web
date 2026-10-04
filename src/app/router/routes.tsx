@@ -15,7 +15,7 @@ const DashboardPage = lazy(() =>
   import('features/dashboard').then((m) => ({ default: m.DashboardPage })),
 )
 const IntegrationsPage = lazy(() =>
-  import('features/dashboard').then((m) => ({ default: m.IntegrationsPage })),
+  import('features/integrations').then((m) => ({ default: m.IntegrationsPage })),
 )
 const DesignSystemPage = lazy(() =>
   import('features/design-system').then((m) => ({ default: m.DesignSystemPage })),

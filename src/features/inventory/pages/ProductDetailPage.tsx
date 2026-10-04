@@ -5,7 +5,7 @@ import { Box, Button, Stack, Typography } from '@mui/material'
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { ErrorFallback, LoadingSpinner, PageWrapper } from 'shared/components'
-import { notify } from 'shared/store'
+import { notify, useTenantFeature } from 'shared/store'
 
 import { EditProductModal } from '../components/EditProductModal'
 import { MasterStockCard } from '../components/MasterStockCard'
@@ -13,6 +13,7 @@ import type { StockBucket } from '../components/MasterStockCard'
 import { ProductDetailHeader } from '../components/ProductDetailHeader'
 import { ProductSpecsCard } from '../components/ProductSpecsCard'
 import type { ProductSpec } from '../components/ProductSpecsCard'
+import { SalesChannelsCard } from '../components/SalesChannelsCard'
 import { WarehouseDistributionCard } from '../components/WarehouseDistributionCard'
 import type { WarehouseDistributionRow } from '../components/WarehouseDistributionCard'
 import { inventoryCopy } from '../content'
@@ -30,6 +31,9 @@ const { specs: specsCopy, master: masterCopy, distribution: distributionCopy, st
 // una feature no puede importar (ver architecture.md §3.2), así que el destino
 // del breadcrumb se declara acá.
 const CATALOG_PATH = '/inventory'
+// Misma razón: la pantalla de integraciones, a la que manda la tarjeta de
+// canales cuando no hay ninguno conectado.
+const INTEGRATIONS_PATH = '/integrations'
 
 // La grilla del diseño: columna fija para el stock maestro y el resto para la
 // distribución. En pantallas angostas se apilan.
@@ -163,6 +167,7 @@ export function ProductDetailPage() {
   const navigate = useNavigate()
   const abrirEdicion = typeof state === 'object' && state !== null && 'edit' in state
   const [editing, setEditing] = useState(abrirEdicion)
+  const integrationsEnabled = useTenantFeature('integrations')
 
   // La intención se consume una sola vez. `location.state` vive en
   // `history.state`, que el navegador conserva al recargar y al ir y volver:
@@ -276,6 +281,12 @@ export function ProductDetailPage() {
             footnote={distributionCopy.pending}
           />
         </Box>
+
+        {/* Canales de venta: sólo para las empresas con la feature encendida,
+            igual que la ruta de integraciones (TESIS-121). */}
+        {integrationsEnabled ? (
+          <SalesChannelsCard productId={product.data.id} integrationsPath={INTEGRATIONS_PATH} />
+        ) : null}
 
         {/* El 412 no es un error a mostrar acá: lo explica el propio modal, que
             queda abierto con lo que el usuario cargó. La condición mira
