@@ -211,19 +211,28 @@ export function editSubtotal(lines: EditLine[]): number {
  * el backend borra las que no vienen. Una existente manda su `id` y la cantidad
  * nueva —el precio facturado no se toca—; una nueva manda los cuatro datos del
  * alta.
+ *
+ * El domicilio, también sólo si cambió. Una orden que entró por webhook no trae
+ * ciudad ni provincia (el canal no las manda), y mandar esos campos vacíos haría
+ * que la API rechace la provincia: no se podría ni pasarla a «Pagada».
  */
 export function toUpdatePayload(
   header: EditHeader,
   lines: EditLine[],
   includeLines: boolean,
+  includeDestination = true,
 ): UpdateOrderPayload {
   const order: UpdateOrderPayload['order'] = {
     customer_name: header.customerName.trim(),
     customer_document: header.customerDocument.trim(),
-    customer_address: header.address.trim(),
-    customer_city: header.city.trim(),
-    customer_province: header.province,
-    customer_zip_code: header.zipCode.trim(),
+    ...(includeDestination
+      ? {
+          customer_address: header.address.trim(),
+          customer_city: header.city.trim(),
+          customer_province: header.province,
+          customer_zip_code: header.zipCode.trim(),
+        }
+      : {}),
     status: header.status,
   }
 

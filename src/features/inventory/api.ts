@@ -2,7 +2,10 @@ import { client } from 'shared/api/client'
 
 import type {
   CreateProductPayload,
+  LinkProductPayload,
+  LinkProductResult,
   Product,
+  ProductMapping,
   ProductFilters,
   ProductPage,
   ProductSummary,
@@ -206,4 +209,52 @@ export async function updateProduct(
  */
 export async function deleteProduct(id: number): Promise<void> {
   await client.delete(`/products/${id}`)
+}
+
+interface ApiProductMapping {
+  id: number
+  company_integration_id: number
+  service_name: string
+  external_product_id: string
+}
+
+function toMapping(mapping: ApiProductMapping): ProductMapping {
+  return {
+    id: mapping.id,
+    companyIntegrationId: mapping.company_integration_id,
+    serviceName: mapping.service_name,
+    externalProductId: mapping.external_product_id,
+  }
+}
+
+/** `GET /products/:id/mappings`: los canales donde está publicado el producto. */
+export async function fetchProductMappings(productId: number): Promise<ProductMapping[]> {
+  const { data } = await client.get<ApiList<ApiProductMapping>>(`/products/${productId}/mappings`)
+  return data.data.map(toMapping)
+}
+
+/**
+ * `POST /products/:id/mappings`. El back le pregunta al canal antes de crear el
+ * vínculo: **422** si la publicación no existe (o el SKU no la identifica),
+ * **409** si ese id ya está vinculado a otro producto y **502** si el canal no
+ * contestó. Después publica el stock del producto en ese canal.
+ */
+export async function linkProduct(
+  productId: number,
+  { companyIntegrationId, externalProductId }: LinkProductPayload,
+): Promise<LinkProductResult> {
+  const { data } = await client.post<ApiProductMapping & { warnings?: string[] }>(
+    `/products/${productId}/mappings`,
+    {
+      product_mapping: {
+        company_integration_id: companyIntegrationId,
+        ...(externalProductId ? { external_product_id: externalProductId } : {}),
+      },
+    },
+  )
+  return { mapping: toMapping(data), warnings: data.warnings ?? [] }
+}
+
+export async function unlinkProduct(productId: number, mappingId: number): Promise<void> {
+  await client.delete(`/products/${productId}/mappings/${mappingId}`)
 }

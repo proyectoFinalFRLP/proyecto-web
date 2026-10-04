@@ -3,11 +3,11 @@ import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined
 import StorefrontOutlinedIcon from '@mui/icons-material/StorefrontOutlined'
 import { Skeleton, Typography } from '@mui/material'
 import type { ReactNode } from 'react'
+import type { ServiceType } from 'shared/api'
 import { formatRelativeTime } from 'shared/utils'
 
 import { dashboardCopy } from '../../content'
 import type { InfraNode } from '../../hooks/useInfraHealth'
-import type { ServiceType } from '../../types'
 import { NodeStatusIcon } from '../NodeStatusIcon'
 
 import {
