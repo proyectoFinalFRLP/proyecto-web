@@ -29,6 +29,7 @@ export const shipmentsCopy = {
     cost: 'Costo',
     status: 'Estado',
     createdAt: 'Creado',
+    actions: 'Acciones',
   },
   cells: {
     /** El courier se asigna recién al confirmar el despacho (TESIS-47). */
@@ -52,6 +53,8 @@ export const shipmentsCopy = {
     empty: 'No hay envíos para este filtro.',
     /** El detalle del envío vive en la orden: no hay pantalla propia. */
     view: 'Ver la orden',
+    /** El ojito se repite en cada fila: el nombre accesible dice cuál es. */
+    viewFor: (id: number) => `Ver la orden del envío #${id}`,
   },
   pagination: {
     previous: 'Página anterior',

@@ -104,6 +104,17 @@ describe('ShipmentsPage', () => {
     expect(screen.getByText('Detalle de la orden')).toBeInTheDocument()
   })
 
+  // El ojito va directo en la fila: no hay un kebab que abrir para llegar a la
+  // única acción que tiene el listado.
+  it('opens the order from the eye of its row, with no menu in between', () => {
+    renderPage()
+
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Ver la orden del envío #31' }))
+
+    expect(screen.getByText('Detalle de la orden')).toBeInTheDocument()
+  })
+
   it('counts each tab of the lifecycle', () => {
     renderPage()
 

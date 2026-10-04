@@ -1,7 +1,7 @@
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined'
-import { Link, Typography } from '@mui/material'
+import { IconButton, Link, Tooltip, Typography } from '@mui/material'
 import { DataTable, StackedCell, StatusBadge } from 'shared/components'
-import type { DataTableAction, DataTableColumn, StatusVariant } from 'shared/components'
+import type { DataTableColumn, StatusVariant } from 'shared/components'
 
 import { formatMoney, shipmentsCopy } from '../../content'
 import type { ShipmentStatus, ShipmentSummary } from '../../types'
@@ -116,6 +116,25 @@ function buildColumns(
         />
       ),
     },
+    {
+      // Una sola acción no justifica un kebab: abrirlo para elegir lo único que
+      // hay es un clic de más. El ojito va directo en la fila.
+      id: 'actions',
+      header: columnCopy.actions,
+      width: 72,
+      align: 'center',
+      render: (shipment) => (
+        <Tooltip title={table.view}>
+          <IconButton
+            size="small"
+            aria-label={table.viewFor(shipment.id)}
+            onClick={() => onView(shipment)}
+          >
+            <VisibilityOutlinedIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+      ),
+    },
   ]
 }
 
@@ -133,15 +152,6 @@ export function ShipmentsTable({
   pagination,
   onView,
 }: ShipmentsTableProps) {
-  const actions: DataTableAction<ShipmentSummary>[] = [
-    {
-      id: 'view',
-      label: table.view,
-      icon: <VisibilityOutlinedIcon fontSize="small" />,
-      onSelect: onView,
-    },
-  ]
-
   return (
     <DataTable
       columns={buildColumns(onView)}
@@ -151,8 +161,6 @@ export function ShipmentsTable({
       tabs={tabs}
       activeTabId={activeTabId}
       onTabChange={onTabChange}
-      actions={actions}
-      actionsHeader={columnCopy.status}
       emptyMessage={table.empty}
       pagination={pagination}
       paginationLabels={{
