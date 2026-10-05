@@ -8,6 +8,37 @@ import { statusLabel, statusVariant } from './status'
 // Reglas del ciclo de vida del envío que muestra el detalle de la orden. Viven
 // acá y no en los componentes para poder probarlas sin montar la pantalla.
 
+/**
+ * Los esquemas que puede tener el enlace de la etiqueta para que la pantalla lo
+ * abra. Es una lista blanca y no una lista negra: lo que no sea una dirección
+ * web no se pinta como enlace.
+ */
+const PRINTABLE_SCHEMES = ['https:', 'http:']
+
+/**
+ * El enlace a la etiqueta, o null si no hay uno que se pueda abrir.
+ *
+ * La URL no la escribe el OMS: la devuelve el courier y la plantilla la mapea
+ * tal cual (`'etiqueta.url' => 'shipping_label_url'`). Ponerla en un `href` sin
+ * mirarla deja que un proveedor —o alguien que le entre la respuesta— decida
+ * qué ejecuta el navegador del operador: `javascript:` en un `href` corre al
+ * hacer clic. Acotarlo a http(s) cierra eso sin pedirle nada al backend.
+ *
+ * Un valor que no se puede abrir no se muestra roto: el campo queda como si no
+ * hubiera etiqueta, que es la verdad desde donde está parado el operador.
+ */
+export function printableLabel(url: string | null | undefined): string | null {
+  if (url === null || url === undefined || url.trim() === '') return null
+
+  try {
+    return PRINTABLE_SCHEMES.includes(new URL(url).protocol) ? url : null
+  } catch {
+    // No es una URL absoluta: una relativa no sirve, porque el destino es el
+    // sitio del courier y no el nuestro.
+    return null
+  }
+}
+
 /** Las etapas del ciclo, en orden. Es el mismo vocabulario que `Shipment::STATUSES`. */
 export const SHIPMENT_STAGES: readonly ShipmentStatus[] = [
   'pending',
