@@ -2,7 +2,10 @@ import { client } from 'shared/api/client'
 
 import type {
   CreateProductPayload,
+  LinkProductPayload,
+  LinkProductResult,
   Product,
+  ProductMapping,
   ProductFilters,
   ProductPage,
   ProductSummary,
@@ -35,6 +38,7 @@ interface ApiStock {
   quantity: number
   warehouse_id: number
   warehouse: ApiWarehouse
+  stock_status: StockStatus
 }
 
 interface ApiProductSummary {
@@ -54,8 +58,13 @@ interface ApiProduct {
   sku: string
   name: string
   description: string | null
+  category: string | null
   weight: number
   dimensions: string | null
+  total_stock: number
+  stock_status: StockStatus
+  in_transit_quantity: number
+  in_transit_by_warehouse: { warehouse_id: number; name: string; quantity: number }[]
   updated_at: string
   stocks: ApiStock[]
 }
@@ -81,14 +90,24 @@ function toProduct(product: ApiProduct, version: string | null = null): Product 
     sku: product.sku,
     name: product.name,
     description: product.description,
+    category: (product.category ?? null) as Product['category'],
     weight: product.weight,
     dimensions: product.dimensions,
+    totalStock: product.total_stock,
+    stockStatus: product.stock_status,
+    inTransitQuantity: product.in_transit_quantity,
+    inTransitByWarehouse: (product.in_transit_by_warehouse ?? []).map((transit) => ({
+      warehouseId: transit.warehouse_id,
+      name: transit.name,
+      quantity: transit.quantity,
+    })),
     updatedAt: product.updated_at,
     version,
     stocks: (product.stocks ?? []).map((stock) => ({
       warehouseId: stock.warehouse_id,
       quantity: stock.quantity,
       warehouse: toWarehouse(stock.warehouse),
+      stockStatus: stock.stock_status,
     })),
   }
 }
@@ -206,4 +225,52 @@ export async function updateProduct(
  */
 export async function deleteProduct(id: number): Promise<void> {
   await client.delete(`/products/${id}`)
+}
+
+interface ApiProductMapping {
+  id: number
+  company_integration_id: number
+  service_name: string
+  external_product_id: string
+}
+
+function toMapping(mapping: ApiProductMapping): ProductMapping {
+  return {
+    id: mapping.id,
+    companyIntegrationId: mapping.company_integration_id,
+    serviceName: mapping.service_name,
+    externalProductId: mapping.external_product_id,
+  }
+}
+
+/** `GET /products/:id/mappings`: los canales donde está publicado el producto. */
+export async function fetchProductMappings(productId: number): Promise<ProductMapping[]> {
+  const { data } = await client.get<ApiList<ApiProductMapping>>(`/products/${productId}/mappings`)
+  return data.data.map(toMapping)
+}
+
+/**
+ * `POST /products/:id/mappings`. El back le pregunta al canal antes de crear el
+ * vínculo: **422** si la publicación no existe (o el SKU no la identifica),
+ * **409** si ese id ya está vinculado a otro producto y **502** si el canal no
+ * contestó. Después publica el stock del producto en ese canal.
+ */
+export async function linkProduct(
+  productId: number,
+  { companyIntegrationId, externalProductId }: LinkProductPayload,
+): Promise<LinkProductResult> {
+  const { data } = await client.post<ApiProductMapping & { warnings?: string[] }>(
+    `/products/${productId}/mappings`,
+    {
+      product_mapping: {
+        company_integration_id: companyIntegrationId,
+        ...(externalProductId ? { external_product_id: externalProductId } : {}),
+      },
+    },
+  )
+  return { mapping: toMapping(data), warnings: data.warnings ?? [] }
+}
+
+export async function unlinkProduct(productId: number, mappingId: number): Promise<void> {
+  await client.delete(`/products/${productId}/mappings/${mappingId}`)
 }

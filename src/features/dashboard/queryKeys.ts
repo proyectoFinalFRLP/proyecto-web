@@ -2,11 +2,6 @@
 // solo lugar (nunca literales sueltos en los hooks) para que las invalidaciones
 // sean consistentes. Patrón por feature (ver architecture.md §4.3).
 
-export const integrationKeys = {
-  all: ['integrations'] as const,
-  lists: () => [...integrationKeys.all, 'list'] as const,
-}
-
 // Los KPIs cuelgan de la raíz del recurso que cuentan —la misma `['orders']`
 // que usa `features/orders`— y no de una raíz propia del panel: así una
 // mutación de órdenes que invalide su dominio entero refresca también el

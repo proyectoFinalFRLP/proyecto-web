@@ -18,6 +18,7 @@ function stock(warehouseId: number, quantity: number, warehouseName: string): Pr
     warehouseId,
     quantity,
     warehouse: { id: warehouseId, name: warehouseName, address: 'Calle 1' },
+    stockStatus: 'low',
   }
 }
 
@@ -29,6 +30,11 @@ function product(overrides: Partial<Product> = {}): Product {
     description: 'Rollo de 305 metros',
     weight: 12.4,
     dimensions: '45x30x20',
+    category: null,
+    totalStock: 10,
+    stockStatus: 'low',
+    inTransitQuantity: 0,
+    inTransitByWarehouse: [],
     stocks: [stock(1, 10, 'CD Ezeiza')],
     updatedAt: '2026-08-30T12:00:00.000Z',
     version: '"abc"',
