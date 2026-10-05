@@ -13,6 +13,9 @@ export const shipmentsCopy = {
     title: 'Envíos',
     subtitle: 'Todos los envíos de la empresa y en qué anda cada uno.',
     error: 'No pudimos cargar los envíos.',
+    searchLabel: 'Buscar',
+    /** Los dos códigos que el operador tiene en la mano cuando lo llaman. */
+    searchPlaceholder: 'Seguimiento u orden del canal',
   },
   tabs: {
     all: 'Todos',
@@ -51,6 +54,8 @@ export const shipmentsCopy = {
   table: {
     label: 'Envíos de la empresa',
     empty: 'No hay envíos para este filtro.',
+    /** Buscar y no encontrar no es lo mismo que una pestaña vacía. */
+    emptySearch: 'Ningún envío coincide con la búsqueda.',
     /** El detalle del envío vive en la orden: no hay pantalla propia. */
     view: 'Ver la orden',
     /** El ojito se repite en cada fila: el nombre accesible dice cuál es. */

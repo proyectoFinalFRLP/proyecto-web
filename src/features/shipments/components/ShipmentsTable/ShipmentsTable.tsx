@@ -150,6 +150,7 @@ export function ShipmentsTable({
   activeTabId,
   onTabChange,
   pagination,
+  emptyMessage,
   onView,
 }: ShipmentsTableProps) {
   return (
@@ -161,7 +162,7 @@ export function ShipmentsTable({
       tabs={tabs}
       activeTabId={activeTabId}
       onTabChange={onTabChange}
-      emptyMessage={table.empty}
+      emptyMessage={emptyMessage}
       pagination={pagination}
       paginationLabels={{
         previousLabel: shipmentsCopy.pagination.previous,

@@ -1,4 +1,4 @@
-import { fireEvent, screen, within } from '@testing-library/react'
+import { act, fireEvent, screen, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -45,6 +45,21 @@ function mockPage(rows: ShipmentSummary[], overrides: Partial<ShipmentPage> = {}
     isError: false,
     refetch: vi.fn(),
   } as never)
+}
+
+// Lo tipeado viaja con un debounce de 300 ms (`useDebouncedValue`): hay que
+// dejarlo vencer para afirmar sobre lo que se le pidió a la API.
+const SETTLE_MS = 400
+
+function settle() {
+  return act(() => new Promise((resolve) => setTimeout(resolve, SETTLE_MS)))
+}
+
+/** Los filtros del último pedido del listado. */
+function lastFilters() {
+  const calls = vi.mocked(useShipmentPage).mock.calls
+
+  return calls[calls.length - 1][0]
 }
 
 function renderPage() {
@@ -146,6 +161,72 @@ describe('ShipmentsPage', () => {
     renderPage()
 
     expect(screen.getByText('Mostrando 0 a 0 de 0 envíos')).toBeInTheDocument()
+  })
+
+  // El buscador del listado (TESIS-164).
+  describe('search', () => {
+    function type(term: string) {
+      fireEvent.change(screen.getByRole('textbox', { name: 'Buscar' }), {
+        target: { value: term },
+      })
+
+      return settle()
+    }
+
+    it('sends the typed term to the API', async () => {
+      renderPage()
+      await type('AND-9920')
+
+      expect(lastFilters().search).toBe('AND-9920')
+    })
+
+    // Sin el debounce cada tecla es un request: escribir el seguimiento entero
+    // son dieciséis, de los que quince se descartan.
+    it('does not send anything until the typing settles', () => {
+      renderPage()
+      fireEvent.change(screen.getByRole('textbox', { name: 'Buscar' }), {
+        target: { value: 'AND' },
+      })
+
+      expect(lastFilters().search).toBe('')
+    })
+
+    // Buscar parado en la página 3 devolvía una página vacía: el resultado de
+    // la búsqueda entra en una sola.
+    it('goes back to the first page when the term changes', async () => {
+      mockPage([DISPATCHED, PENDING], { total: 45 })
+      renderPage()
+      fireEvent.click(screen.getByRole('button', { name: 'Página siguiente' }))
+      expect(lastFilters().page).toBe(2)
+
+      await type('AND')
+
+      expect(lastFilters().page).toBe(1)
+    })
+
+    // Las pestañas tienen que contar lo mismo que muestra la tabla.
+    it('counts the tabs with the term applied', async () => {
+      renderPage()
+      await type('AND')
+
+      expect(vi.mocked(useShipmentCounts)).toHaveBeenLastCalledWith('AND')
+    })
+
+    // Buscar y no encontrar no es lo mismo que una pestaña vacía.
+    it('says nothing matched instead of showing the empty tab message', async () => {
+      mockPage([], { total: 0 })
+      renderPage()
+      await type('nada')
+
+      expect(screen.getByText('Ningún envío coincide con la búsqueda.')).toBeInTheDocument()
+    })
+
+    it('keeps the empty tab message when nobody searched', () => {
+      mockPage([], { total: 0 })
+      renderPage()
+
+      expect(screen.getByText('No hay envíos para este filtro.')).toBeInTheDocument()
+    })
   })
 
   it('offers to retry when the listing fails', () => {

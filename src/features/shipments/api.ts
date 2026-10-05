@@ -50,13 +50,16 @@ function toShipment(shipment: ApiShipmentSummary): ShipmentSummary {
 }
 
 // Un filtro vacío no viaja: mandar `status=` en blanco haría que el backend
-// filtre por el string vacío y devuelva cero filas.
-function toParams({ page, perPage, status, orderId }: ShipmentFilters) {
+// filtre por el string vacío y devuelva cero filas. Con `search` el backend sí
+// tolera el vacío —corta antes de armar la condición—, pero mandarlo igual
+// ensucia la URL y la clave de caché, así que se omite por el mismo criterio.
+function toParams({ page, perPage, status, orderId, search }: ShipmentFilters) {
   return {
     page,
     per_page: perPage,
     ...(status === undefined ? {} : { status }),
     ...(orderId === undefined ? {} : { order_id: orderId }),
+    ...(search ? { search } : {}),
   }
 }
 
@@ -80,6 +83,9 @@ export async function fetchShipmentPage(filters: ShipmentFilters): Promise<Shipm
  * que el `meta.total`, que el backend cuenta sobre el scope ya filtrado. Es el
  * mismo `fetchCount` que usan el panel y el catálogo.
  */
-export function fetchShipmentCount(status?: ShipmentStatus): Promise<number> {
-  return fetchCount('/shipments', status === undefined ? {} : { status })
+export function fetchShipmentCount(status?: ShipmentStatus, search = ''): Promise<number> {
+  return fetchCount('/shipments', {
+    ...(status === undefined ? {} : { status }),
+    ...(search ? { search } : {}),
+  })
 }

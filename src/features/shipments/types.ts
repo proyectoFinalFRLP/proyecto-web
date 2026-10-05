@@ -43,4 +43,6 @@ export interface ShipmentFilters {
   status?: ShipmentStatus
   /** Filtra los envíos de una orden concreta. */
   orderId?: number
+  /** Número de seguimiento o id del canal. Vacío es «sin buscar». */
+  search?: string
 }
