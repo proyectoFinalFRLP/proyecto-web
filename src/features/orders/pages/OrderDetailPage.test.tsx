@@ -5,6 +5,7 @@ import type * as sharedStore from 'shared/store'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { renderWithTheme } from '../../../test/renderWithTheme'
+import { useCreateOrderShipment } from '../hooks/useCreateOrderShipment'
 import { useOrder, useOrderShipment } from '../hooks/useOrderDetail'
 import type { OrderDetail, OrderShipment, Shipment } from '../types'
 
@@ -13,6 +14,10 @@ import { OrderDetailPage } from './OrderDetailPage'
 vi.mock('../hooks/useOrderDetail', () => ({
   useOrder: vi.fn(),
   useOrderShipment: vi.fn(),
+}))
+
+vi.mock('../hooks/useCreateOrderShipment', () => ({
+  useCreateOrderShipment: vi.fn(),
 }))
 
 vi.mock('shared/store', async (importOriginal) => ({
@@ -79,6 +84,7 @@ const SHIPMENT: Shipment = {
   trackingNumber: 'AND-9920-X8829-Z',
   shippingCost: 58300,
   courier: { id: 4, serviceId: 7, name: 'Andreani' },
+  labelUrl: null,
   events: [],
 }
 
@@ -108,6 +114,21 @@ function mockQueries(
   vi.mocked(useOrderShipment).mockReturnValue(query(shipment))
 }
 
+// Sólo lo que la página usa de la mutación. `mutate` guarda los callbacks para
+// que cada ejemplo decida si el alta salió bien o con qué error falló.
+let lastMutation: { orderId: number; onSuccess: () => void; onError: (e: unknown) => void } | null =
+  null
+
+function mockOpenShipment(pending = false) {
+  vi.mocked(useCreateOrderShipment).mockReturnValue({
+    isPending: pending,
+    mutate: (
+      orderId: number,
+      callbacks: { onSuccess: () => void; onError: (e: unknown) => void },
+    ) => (lastMutation = { orderId, ...callbacks }),
+  } as never)
+}
+
 function renderAt(path: string) {
   renderWithTheme(
     <MemoryRouter initialEntries={[path]}>
@@ -122,7 +143,10 @@ function renderAt(path: string) {
 beforeEach(() => {
   vi.mocked(useOrder).mockReset()
   vi.mocked(useOrderShipment).mockReset()
+  vi.mocked(useCreateOrderShipment).mockReset()
   vi.mocked(notify).mockClear()
+  lastMutation = null
+  mockOpenShipment()
 })
 
 describe('OrderDetailPage', () => {
@@ -254,6 +278,7 @@ describe('OrderDetailPage', () => {
       trackingNumber: null,
       shippingCost: null,
       courier: null,
+      labelUrl: null,
     }
     const dispatchButton = () => screen.queryByRole('button', { name: 'Despachar' })
 
@@ -302,6 +327,106 @@ describe('OrderDetailPage', () => {
       renderAt('/orders/8829')
 
       expect(dispatchButton()).not.toBeInTheDocument()
+    })
+  })
+
+  // Criterio de la card (TESIS-141): una orden que entró por webhook nace sin
+  // envío, y hasta ahora el único lugar que lo abría era el paso 3 del alta
+  // manual, así que no tenía forma de llegar al circuito logístico.
+  describe('opening the shipment of an order that has none', () => {
+    const openButton = () => screen.queryByRole('button', { name: 'Crear envío' })
+
+    it('offers to open it when the order has no shipment', () => {
+      mockQueries({ data: ORDER }, { data: { kind: 'none' } })
+
+      renderAt('/orders/8829')
+
+      expect(openButton()).toBeInTheDocument()
+    })
+
+    it('opens the shipment of the order it is showing', () => {
+      mockQueries({ data: ORDER }, { data: { kind: 'none' } })
+      renderAt('/orders/8829')
+
+      fireEvent.click(screen.getByRole('button', { name: 'Crear envío' }))
+
+      expect(lastMutation?.orderId).toBe(8829)
+    })
+
+    it('announces it once the shipment exists', () => {
+      mockQueries({ data: ORDER }, { data: { kind: 'none' } })
+      renderAt('/orders/8829')
+      fireEvent.click(screen.getByRole('button', { name: 'Crear envío' }))
+
+      lastMutation?.onSuccess()
+
+      expect(notify).toHaveBeenCalledWith('Envío creado. Ya se puede despachar.', 'success')
+    })
+
+    // El 409 quiere decir que el envío ya existe: el refresco lo trae y no hay
+    // nada que reintentar, así que no se informa como un fallo.
+    it('says the shipment was already there when the api answers 409', () => {
+      mockQueries({ data: ORDER }, { data: { kind: 'none' } })
+      renderAt('/orders/8829')
+      fireEvent.click(screen.getByRole('button', { name: 'Crear envío' }))
+
+      lastMutation?.onError({ status: 409 })
+
+      expect(notify).toHaveBeenCalledWith('La orden ya tenía un envío. Lo acabamos de traer.')
+    })
+
+    it('reports any other failure as an error', () => {
+      mockQueries({ data: ORDER }, { data: { kind: 'none' } })
+      renderAt('/orders/8829')
+      fireEvent.click(screen.getByRole('button', { name: 'Crear envío' }))
+
+      lastMutation?.onError({ status: 500 })
+
+      expect(notify).toHaveBeenCalledWith('No pudimos crear el envío de la orden.', 'error')
+    })
+
+    it('holds the action while the shipment is being created', () => {
+      mockOpenShipment(true)
+      mockQueries({ data: ORDER }, { data: { kind: 'none' } })
+
+      renderAt('/orders/8829')
+
+      expect(screen.getByRole('button', { name: 'Creando…' })).toBeDisabled()
+    })
+
+    it('does not offer it for a cancelled order', () => {
+      mockQueries({ data: { ...ORDER, status: 'cancelled' } }, { data: { kind: 'none' } })
+
+      renderAt('/orders/8829')
+
+      expect(openButton()).not.toBeInTheDocument()
+    })
+
+    // La otra acción tiene prioridad: con envío abierto lo que falta es
+    // despacharlo, no volver a crearlo.
+    it('gives way to the dispatch action once the shipment exists', () => {
+      mockQueries(
+        { data: ORDER },
+        {
+          data: {
+            kind: 'single',
+            shipment: { ...SHIPMENT, status: 'pending', trackingNumber: null, courier: null },
+          },
+        },
+      )
+
+      renderAt('/orders/8829')
+
+      expect(openButton()).not.toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Despachar' })).toBeInTheDocument()
+    })
+
+    it('does not offer it while the shipment query has not resolved', () => {
+      mockQueries({ data: ORDER }, { isPending: true })
+
+      renderAt('/orders/8829')
+
+      expect(openButton()).not.toBeInTheDocument()
     })
   })
 })

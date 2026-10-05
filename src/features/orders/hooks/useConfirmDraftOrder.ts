@@ -36,15 +36,15 @@ interface Options {
  * volver a crearla sería una segunda venta. `createdOrderId` le dice a la
  * pantalla si eso pasó.
  *
- * `createdShipmentId` le dice si el envío también llegó a abrirse: con envío
- * `pending`, lo que falte se puede despachar desde el detalle de la orden
- * (TESIS-134); sin envío, este paso sigue siendo el único lugar que lo abre.
+ * No hace falta distinguir hasta dónde llegó: con la orden creada, el detalle
+ * termina el envío de las dos maneras —lo abre si no llegó a abrirse (TESIS-141)
+ * y lo despacha si quedó `pending` (TESIS-134)—. `progress` sí lleva la cuenta,
+ * pero puertas adentro, para que el reintento no repita lo que ya salió bien.
  */
 export function useConfirmDraftOrder({ onOrderCreated }: Options = {}) {
   const queryClient = useQueryClient()
   const progress = useRef<Progress>({ orderId: null, shipmentId: null })
   const [createdOrderId, setCreatedOrderId] = useState<number | null>(null)
-  const [createdShipmentId, setCreatedShipmentId] = useState<number | null>(null)
 
   const mutation = useMutation<number, ApiRequestError, ConfirmDraftOrderInput>({
     mutationFn: async ({ order, dispatch }) => {
@@ -60,9 +60,7 @@ export function useConfirmDraftOrder({ onOrderCreated }: Options = {}) {
       if (dispatch === null) return orderId
 
       if (progress.current.shipmentId === null) {
-        const shipment = await createOrderShipment(orderId)
-        progress.current.shipmentId = shipment.id
-        setCreatedShipmentId(shipment.id)
+        progress.current.shipmentId = (await createOrderShipment(orderId)).id
       }
 
       await dispatchShipment(progress.current.shipmentId, dispatch)
@@ -87,5 +85,5 @@ export function useConfirmDraftOrder({ onOrderCreated }: Options = {}) {
     },
   })
 
-  return { ...mutation, createdOrderId, createdShipmentId }
+  return { ...mutation, createdOrderId }
 }

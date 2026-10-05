@@ -1,7 +1,6 @@
 import { Alert, Button, MenuItem, TextField, Typography } from '@mui/material'
 import { useState } from 'react'
 import type { FormEvent } from 'react'
-import { Link } from 'react-router-dom'
 import { ConfirmDialog, LabeledField, LoadingSpinner } from 'shared/components'
 import { useIntegrations } from 'shared/hooks/useIntegrations'
 import { notify } from 'shared/store'
@@ -34,7 +33,7 @@ const { channels: copy } = inventoryCopy
  * vínculos tienen su endpoint y sus mutaciones, y así la página no carga con
  * ellos cuando la empresa no tiene la feature `integrations`.
  */
-export function SalesChannelsCard({ productId, integrationsPath }: SalesChannelsCardProps) {
+export function SalesChannelsCard({ productId }: SalesChannelsCardProps) {
   const mappings = useProductMappings(productId)
   const integrations = useIntegrations()
   const link = useLinkProduct(productId)
@@ -147,12 +146,12 @@ export function SalesChannelsCard({ productId, integrationsPath }: SalesChannels
         </LinkForm>
       ) : null}
 
+      {/* Sin canales conectados no hay a dónde mandar al usuario: la pantalla
+          de Integraciones se sacó en TESIS-140 porque las conexiones las
+          administra el equipo. El aviso dice a quién pedírselo. */}
       {!integrations.isLoading && channels.length === 0 && rows.length === 0 ? (
         <Typography variant="bodyMd" color="text.secondary">
-          {copy.noChannels}{' '}
-          <Button component={Link} to={integrationsPath} size="small">
-            {copy.goToIntegrations}
-          </Button>
+          {copy.noChannels}
         </Typography>
       ) : null}
 

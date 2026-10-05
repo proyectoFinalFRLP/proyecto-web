@@ -204,8 +204,8 @@ export const inventoryCopy = {
     subtitle: 'Publicaciones vinculadas: el stock de OneStock se publica en cada una.',
     externalId: (id: string) => `ID de la publicación: ${id}`,
     empty: 'Este producto todavía no está vinculado a ningún canal.',
-    noChannels: 'No hay canales conectados donde vincularlo.',
-    goToIntegrations: 'Ir a Integraciones',
+    noChannels:
+      'No hay canales conectados donde vincularlo. Las conexiones las configura el equipo de OneStock: escribinos para sumar uno.',
     channel: 'Canal',
     externalIdLabel: 'ID de la publicación',
     externalIdHelper: 'Dejalo vacío para buscarla por el SKU del producto.',
