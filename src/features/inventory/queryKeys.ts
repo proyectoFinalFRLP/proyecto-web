@@ -15,4 +15,5 @@ export const inventoryKeys = {
   product: (id: number) => [...inventoryKeys.products(), 'detail', id] as const,
   warehouses: () => [...inventoryKeys.all, 'warehouses'] as const,
   categories: () => [...inventoryKeys.all, 'categories'] as const,
+  mappings: (productId: number) => [...inventoryKeys.product(productId), 'mappings'] as const,
 }

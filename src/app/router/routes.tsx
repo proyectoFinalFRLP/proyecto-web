@@ -4,6 +4,7 @@ import HubOutlinedIcon from '@mui/icons-material/HubOutlined'
 import InsightsOutlinedIcon from '@mui/icons-material/InsightsOutlined'
 import Inventory2Icon from '@mui/icons-material/Inventory2'
 import ReceiptLongOutlinedIcon from '@mui/icons-material/ReceiptLongOutlined'
+import WarehouseOutlinedIcon from '@mui/icons-material/WarehouseOutlined'
 import { lazy } from 'react'
 import type { ReactNode } from 'react'
 import { isFeatureEnabled } from 'shared/api'
@@ -15,7 +16,7 @@ const DashboardPage = lazy(() =>
   import('features/dashboard').then((m) => ({ default: m.DashboardPage })),
 )
 const IntegrationsPage = lazy(() =>
-  import('features/dashboard').then((m) => ({ default: m.IntegrationsPage })),
+  import('features/integrations').then((m) => ({ default: m.IntegrationsPage })),
 )
 const DesignSystemPage = lazy(() =>
   import('features/design-system').then((m) => ({ default: m.DesignSystemPage })),
@@ -41,6 +42,9 @@ const InventoryPage = lazy(() =>
 )
 const ProductDetailPage = lazy(() =>
   import('features/inventory').then((m) => ({ default: m.ProductDetailPage })),
+)
+const WarehousesPage = lazy(() =>
+  import('features/warehouses').then((m) => ({ default: m.WarehousesPage })),
 )
 const ReportsPage = lazy(() => import('features/reports').then((m) => ({ default: m.ReportsPage })))
 const LoginPage = lazy(() => import('features/auth').then((m) => ({ default: m.LoginPage })))
@@ -141,6 +145,11 @@ export const appRoutes: AppRoute[] = [
     path: '/inventory/:productId',
     element: <ProductDetailPage />,
     // Sin `nav`: se llega desde el catálogo, no desde el Sidebar.
+  },
+  {
+    path: '/warehouses',
+    element: <WarehousesPage />,
+    nav: { label: 'Depósitos', icon: <WarehouseOutlinedIcon /> },
   },
   {
     path: '/reports',
