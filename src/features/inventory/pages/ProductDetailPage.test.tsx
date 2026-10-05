@@ -71,6 +71,11 @@ const SEEDED_MOUSE: Product = {
     },
   ],
   totalStock: 130,
+  // 130 libres y 14 vendidos sin despachar: 144 en el estante. El en tránsito
+  // queda afuera, que no está en ningún depósito todavía.
+  committed: 14,
+  onHand: 144,
+  availableToPromise: 130,
   stockStatus: 'available',
   inTransitQuantity: 12,
   inTransitByWarehouse: [
@@ -205,8 +210,19 @@ describe('ProductDetailPage', () => {
       expect(screen.getByText('Categoría').parentElement).toHaveTextContent('—')
     })
 
+    // El titular es lo que hay en el estante —lo libre más lo vendido sin
+    // despachar—, que es justo lo que las cubetas descomponen. Encabezar con
+    // `totalStock` dejaba la tarjeta sin cerrar: la cubeta de comprometido
+    // sumaba unidades que el titular no contaba.
+    it('headlines what is on the shelf, and not just what is free', () => {
+      showProduct(SEEDED_MOUSE)
+      renderDetail()
+
+      expect(screen.getByText('144')).toBeInTheDocument()
+    })
+
     it('takes the master total from the API instead of adding the rows', () => {
-      showProduct({ ...SEEDED_MOUSE, totalStock: 131 })
+      showProduct({ ...SEEDED_MOUSE, onHand: 131 })
       renderDetail()
 
       expect(screen.getByText('131')).toBeInTheDocument()
