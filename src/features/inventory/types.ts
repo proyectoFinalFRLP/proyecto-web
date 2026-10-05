@@ -81,6 +81,22 @@ export interface ProductStock {
   /** Vendido y todavía en este depósito (TESIS-162). */
   committed: number
   warehouse: Warehouse
+  /**
+   * Disponibilidad de este depósito. La calcula el backend con la misma regla
+   * que la del producto (`Product.stock_status_for`), aplicada a `quantity`.
+   */
+  stockStatus: StockStatus
+}
+
+/**
+ * Unidades en vuelo **hacia** un depósito: salieron de otro y todavía no
+ * llegaron. El saliente no aparece porque el backend ya lo descontó del
+ * depósito de origen al despachar.
+ */
+export interface IncomingTransit {
+  warehouseId: number
+  name: string
+  quantity: number
 }
 
 /**
@@ -114,12 +130,29 @@ export interface Product {
   onHand: number
   availableToPromise: number
   /**
-   * Unidades que salieron de un depósito y todavía no llegaron a otro. Ya venía
-   * en el serializer del detalle (`in_transit_quantity`); lo que faltaba era
-   * mapearlo. El desglose **por depósito** lo trae TESIS-144.
+   * El mismo `inTransitQuantity`, con el nombre que usa el detalle. Son el
+   * mismo campo de la API (`in_transit_quantity`) y conviene unificarlos.
    */
   inTransit: number
   stocks: ProductStock[]
+  /** Unidades en depósito sumando todos los depósitos, calculado por la API. */
+  totalStock: number
+  /** Disponibilidad del producto: la misma que muestra el catálogo. */
+  stockStatus: StockStatus
+  /** Unidades en vuelo entre depósitos. **No** están incluidas en `totalStock`. */
+  inTransitQuantity: number
+  /**
+   * El mismo en tránsito, por depósito de destino. Puede nombrar depósitos que
+   * todavía no tienen fila en `stocks`: la fila nace cuando la transferencia
+   * se recibe. La suma de `quantity` es `inTransitQuantity`.
+   */
+  inTransitByWarehouse: IncomingTransit[]
+  /**
+   * Lo vendido sin despachar, por depósito. Puede nombrar depósitos que no
+   * están en `stocks`: si la venta se llevó la última unidad, la fila de stock
+   * queda en cero o desaparece y las unidades siguen en el estante.
+   */
+  committedByWarehouse: IncomingTransit[]
   updatedAt: string
   /**
    * Versión del agregado que devolvió la API en el header `ETag` (TESIS-101).
@@ -146,6 +179,8 @@ export interface CreateProductPayload {
     sku: string
     name: string
     description: string | null
+    /** `null` = sin categoría. El vocabulario es `GET /products/categories`. */
+    category: string | null
     weight: number
     dimensions: string | null
     stocks: { warehouse_id: number; quantity: number }[]
@@ -163,6 +198,7 @@ export interface UpdateProductPayload {
   product: {
     name: string
     description: string | null
+    category: string | null
     weight: number
     dimensions: string | null
     stocks: { warehouse_id: number; quantity: number }[]

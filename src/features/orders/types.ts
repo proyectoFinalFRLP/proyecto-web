@@ -239,10 +239,15 @@ export interface UpdateOrderPayload {
   order: {
     customer_name: string
     customer_document: string
-    customer_address: string
-    customer_city: string
-    customer_province: string
-    customer_zip_code: string
+    /**
+     * El domicilio viaja sólo si el operador lo tocó (ver `toUpdatePayload`):
+     * las órdenes de webhook no traen ciudad ni provincia, y mandarlas vacías
+     * haría que la API las rechace.
+     */
+    customer_address?: string
+    customer_city?: string
+    customer_province?: string
+    customer_zip_code?: string
     status: EditableOrderStatus
     items?: (
       | { id: number; quantity: number }

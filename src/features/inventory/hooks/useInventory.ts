@@ -3,6 +3,7 @@ import type { ApiRequestError } from 'shared/api/types'
 
 import {
   createProduct,
+  fetchCategories,
   fetchProduct,
   deleteProduct,
   fetchProductCounts,
@@ -80,6 +81,18 @@ export function useProduct(id: number | undefined) {
     queryFn: () => fetchProduct(id ?? 0),
     // Sin id todavía (el listado no resolvió) la query no se dispara.
     enabled: id !== undefined,
+  })
+}
+
+/**
+ * Las categorías del catálogo, para los selects de alta y edición. No cambian
+ * en la vida de una sesión: se piden una vez.
+ */
+export function useCategories() {
+  return useQuery<string[]>({
+    queryKey: inventoryKeys.categories(),
+    queryFn: fetchCategories,
+    staleTime: Number.POSITIVE_INFINITY,
   })
 }
 

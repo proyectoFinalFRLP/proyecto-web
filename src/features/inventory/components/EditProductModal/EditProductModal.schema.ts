@@ -20,12 +20,13 @@ const stockFieldSchema = z.object({
  * Fuente única de verdad del formulario: de acá sale la validación y también el
  * tipo (`EditProductFormData`). Nunca declarar la interfaz por separado (ADR-006).
  *
- * SKU y categoría quedan fuera del schema a propósito: el SKU es de solo lectura
- * por diseño y la categoría todavía no existe en el backend. Son campos que se
- * pintan pero no se editan ni se envían, así que no tienen nada que validar.
+ * El SKU queda fuera del schema a propósito: es de solo lectura por diseño, se
+ * pinta pero no se edita ni se envía. La categoría sí se edita: `''` es «sin
+ * categoría» (ver `CreateProductModal.schema.ts`).
  */
 export const editProductSchema = z.object({
   name: z.string().trim().min(1, validation.nameRequired),
+  category: z.string(),
   weight: nonNegativeNumber,
   length: nonNegativeNumber,
   width: nonNegativeNumber,

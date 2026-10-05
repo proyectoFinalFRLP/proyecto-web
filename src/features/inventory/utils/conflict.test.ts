@@ -19,6 +19,7 @@ function stock(warehouseId: number, quantity: number, warehouseName: string): Pr
     quantity,
     committed: 0,
     warehouse: { id: warehouseId, name: warehouseName, address: 'Calle 1', capacity: null },
+    stockStatus: 'low',
   }
 }
 
@@ -37,6 +38,11 @@ function product(overrides: Partial<Product> = {}): Product {
     onHand: 10,
     availableToPromise: 10,
     inTransit: 0,
+    totalStock: 10,
+    stockStatus: 'low',
+    inTransitQuantity: 0,
+    inTransitByWarehouse: [],
+    committedByWarehouse: [],
     stocks: [stock(1, 10, 'CD Ezeiza')],
     updatedAt: '2026-08-30T12:00:00.000Z',
     version: '"abc"',

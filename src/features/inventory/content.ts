@@ -125,8 +125,11 @@ export const inventoryCopy = {
         onHand: 'En depósito',
         status: 'Estado',
       },
+      // Cuenta también los depósitos que sólo esperan unidades en camino.
       footer: (count: number) =>
-        count === 1 ? '1 depósito con stock asignado' : `${count} depósitos con stock asignado`,
+        count === 1
+          ? '1 depósito con stock o en camino'
+          : `${count} depósitos con stock o en camino`,
       empty: 'Este producto no tiene stock asignado en ningún depósito.',
       // En tránsito **por depósito** llega con TESIS-144; el total del producto
       // ya se muestra en el encabezado. Comprometido sí está, por depósito.
@@ -184,7 +187,8 @@ export const inventoryCopy = {
       available: 'Disponible',
     },
     skuHelper: 'El SKU identifica al producto y no se edita.',
-    categoryHelper: 'Pendiente de backend: el producto todavía no tiene categoría.',
+    categoryHelper: 'Se usa para agrupar y filtrar el catálogo.',
+    noCategory: 'Sin categoría',
     addWarehouse: 'Agregar depósito',
     removeWarehouse: (warehouseName: string) => `Quitar ${warehouseName}`,
     noWarehouses: 'Este producto no tiene stock asignado en ningún depósito.',
@@ -251,7 +255,8 @@ export const inventoryCopy = {
       width: 'A',
       height: 'H',
     },
-    categoryHelper: 'Pendiente de backend: el producto todavía no tiene categoría.',
+    categoryHelper: 'Se usa para agrupar y filtrar el catálogo.',
+    noCategory: 'Sin categoría',
     addWarehouse: 'Agregar depósito',
     removeRow: (position: number) => `Quitar la fila ${position}`,
     noWarehouses: 'La empresa todavía no tiene depósitos cargados.',

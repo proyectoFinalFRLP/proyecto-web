@@ -1,7 +1,9 @@
-import type { CurvePoint } from '../../types'
+import type { CurveGranularity, CurvePoint } from '../../types'
 
 export interface DispatchCurveCardProps {
   points: CurvePoint[]
+  /** Si cada punto es un día o una semana: lo dice la descripción del gráfico. */
+  granularity?: CurveGranularity
 }
 
 export interface LineChartProps {

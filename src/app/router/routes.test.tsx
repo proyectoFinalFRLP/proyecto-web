@@ -30,6 +30,8 @@ describe('navRoutesFor', () => {
       '/orders',
       '/shipments',
       '/inventory',
+      '/warehouses',
+      '/failed-events',
       '/reports',
     ])
   })

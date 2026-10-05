@@ -200,6 +200,48 @@ describe('OrderEditPage', { timeout: 15_000 }, () => {
     expect(lastPayload().order.customer_city).toBe('Buenos Aires')
   })
 
+  // Hallazgo de auditoría (TESIS-89): las órdenes de webhook no traen ciudad ni
+  // provincia, y exigirlas dejaba el guardado apagado —sin ningún campo en
+  // rojo— aunque sólo se quisiera cambiar el estado.
+  describe('an order that came by webhook without city nor province', () => {
+    const fromWebhook = { ...ORDER, customerCity: null, customerProvince: null }
+
+    async function markPaid() {
+      fireEvent.mouseDown(screen.getByRole('combobox', { name: 'Estado' }))
+      fireEvent.click(await screen.findByRole('option', { name: 'Pagada' }))
+    }
+
+    it('can still be marked as paid', async () => {
+      mockAll({ order: fromWebhook })
+      renderPage()
+      await markPaid()
+
+      await waitFor(() => expect(saveButton()).toBeEnabled())
+    })
+
+    // Vacía, la provincia no pasa la validación de la API.
+    it('does not send the address it did not touch', async () => {
+      mockAll({ order: fromWebhook })
+      renderPage()
+      await markPaid()
+      await waitFor(() => expect(saveButton()).toBeEnabled())
+      fireEvent.click(saveButton())
+
+      expect(lastPayload().order).not.toHaveProperty('customer_province')
+    })
+
+    it('asks for every missing field once the address is touched', async () => {
+      mockAll({ order: fromWebhook })
+      renderPage()
+      fireEvent.change(screen.getByRole('textbox', { name: 'Calle y número' }), {
+        target: { value: 'Av. Siempreviva 742' },
+      })
+
+      expect(await screen.findByText('Ingresá la ciudad.')).toBeInTheDocument()
+      expect(saveButton()).toBeDisabled()
+    })
+  })
+
   // Criterio de la card: las validaciones bloquean el guardado.
   it('blocks saving with a missing customer', async () => {
     renderPage()
