@@ -75,6 +75,10 @@ export const dashboardCopy = {
       `${name}: ${UNITS_FORMAT.format(units)} ${units === 1 ? 'unidad' : 'unidades'}`,
     barLabelWithCapacity: (name: string, units: number, capacity: number) =>
       `${name}: ${UNITS_FORMAT.format(units)} de ${UNITS_FORMAT.format(capacity)} unidades de capacidad`,
+    // Las dos barras se ven igual y miden cosas distintas: una la ocupación
+    // declarada y la otra la comparación contra el depósito más cargado. El
+    // rótulo accesible lo dice por fila; esto lo dice para quien mira.
+    relativeNote: 'Los depósitos sin capacidad declarada se comparan con el más cargado.',
     empty: 'La empresa no tiene depósitos cargados.',
     /** La lista vacía por un error no es la lista vacía de una empresa sin depósitos. */
     unavailable: 'No pudimos cargar la carga por depósito.',
@@ -115,6 +119,8 @@ export const dashboardCopy = {
     noTracking: 'Sin seguimiento',
     /** "Orden #8829" — nombre accesible de la fila. */
     order: (id: number) => `Orden #${id}`,
+    /** La fila entera es un enlace: el nombre accesible dice a dónde lleva. */
+    openOrder: (id: number) => `Ver la orden #${id}`,
     // El destino se declara acá y no se importa del router: una feature no
     // puede depender de `app/` (architecture.md §3.2).
     orderPath: (id: number) => `/orders/${id}`,

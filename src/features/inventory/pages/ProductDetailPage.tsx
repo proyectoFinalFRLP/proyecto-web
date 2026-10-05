@@ -33,7 +33,7 @@ import { distributionPositions } from '../utils/stock'
 import { stockLabel, stockRowTone, stockVariant } from '../utils/stockStatus'
 
 const { detail, page } = inventoryCopy
-const { specs: specsCopy, master: masterCopy, distribution: distributionCopy } = detail
+const { specs: specsCopy, master: masterCopy } = detail
 
 // Ruta del catálogo. Las rutas se registran en `app/router/routes.tsx`, capa que
 // una feature no puede importar (ver architecture.md §3.2), así que el destino
@@ -175,9 +175,11 @@ function buildRows(product: Product): WarehouseDistributionRow[] {
  * Detalle de producto (S12) — especificaciones, stock agregado y distribución
  * por depósito del SKU.
  *
- * Los datos salen de `GET /api/v1/products/:id`, que es lo único que hay: los
- * campos del diseño que la API todavía no expone se muestran sin dato en lugar
- * de rellenarse con un valor plausible.
+ * Todo sale de `GET /api/v1/products/:id`. Desde TESIS-162 y TESIS-144 la API
+ * expone también el comprometido por depósito, el en tránsito por depósito, el
+ * empaque y la norma técnica, así que ya no queda ninguna pieza del diseño
+ * mostrándose sin dato por falta de modelo: un «—» ahora es un dato que el
+ * producto no tiene cargado, no una columna que no existe.
  */
 export function ProductDetailPage() {
   const { productId } = useParams()
@@ -191,9 +193,20 @@ export function ProductDetailPage() {
   const { pathname, state } = useLocation()
   const navigate = useNavigate()
   const abrirEdicion = typeof state === 'object' && state !== null && 'edit' in state
-  // Qué alcance abre el modal, o `null` si está cerrado: «Editar producto»
-  // abre el formulario entero y «Editar stock» sólo las cantidades.
-  const [editing, setEditing] = useState<EditScope | null>(abrirEdicion ? 'product' : null)
+  // Abierto o cerrado, y con qué alcance, en dos estados separados: «Editar
+  // producto» abre el formulario entero y «Editar stock» sólo las cantidades.
+  //
+  // Separados y no un `EditScope | null` porque el modal se cierra con una
+  // animación: al pasar el alcance a `null` y leerlo con un `?? 'product'`, el
+  // de stock mostraba el formulario completo durante la salida. El alcance sólo
+  // cambia al abrir, así que lo que se ve mientras se cierra es lo que había.
+  const [editing, setEditing] = useState(abrirEdicion)
+  const [scope, setScope] = useState<EditScope>('product')
+
+  function openEditor(next: EditScope) {
+    setScope(next)
+    setEditing(true)
+  }
   const integrationsEnabled = useTenantFeature('integrations')
 
   // La intención se consume una sola vez. `location.state` vive en
@@ -241,7 +254,7 @@ export function ProductDetailPage() {
     updateMutation.mutate(payload, {
       onSuccess: () => {
         notify(page.saved(name), 'success')
-        setEditing(null)
+        setEditing(false)
         setBaseline(undefined)
       },
       onError: () => void product.refetch(),
@@ -284,7 +297,7 @@ export function ProductDetailPage() {
           statusLabel={stockLabel(product.data.stockStatus)}
           statusVariant={stockVariant(product.data.stockStatus)}
           catalogPath={CATALOG_PATH}
-          onEdit={() => setEditing('product')}
+          onEdit={() => openEditor('product')}
         />
 
         <ProductSpecsCard
@@ -305,12 +318,9 @@ export function ProductDetailPage() {
             totalLabel={formatUnits(product.data.onHand)}
             caption={masterCopy.warehouseCount(distributionPositions(product.data).length)}
             buckets={buildBuckets(product.data)}
-            onEditStock={() => setEditing('stock')}
+            onEditStock={() => openEditor('stock')}
           />
-          <WarehouseDistributionCard
-            rows={buildRows(product.data)}
-            footnote={distributionCopy.pendingInTransit}
-          />
+          <WarehouseDistributionCard rows={buildRows(product.data)} />
         </Box>
 
         {/* Canales de venta: sólo para las empresas con la feature encendida,
@@ -332,8 +342,8 @@ export function ProductDetailPage() {
       </Stack>
 
       <EditProductModal
-        open={editing !== null}
-        scope={editing ?? 'product'}
+        open={editing}
+        scope={scope}
         product={product.data}
         warehouses={warehouses.data}
         categories={categories.data}
@@ -343,7 +353,7 @@ export function ProductDetailPage() {
           // Sin el reset, el error de la mutación sobrevive al modal y queda
           // colgado en la página — un 412 que ya no aplica a nada visible.
           updateMutation.reset()
-          setEditing(null)
+          setEditing(false)
           setBaseline(undefined)
         }}
         onSubmit={save}

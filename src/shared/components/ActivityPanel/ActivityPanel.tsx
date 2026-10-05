@@ -1,16 +1,7 @@
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
 import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined'
 import ReceiptLongOutlinedIcon from '@mui/icons-material/ReceiptLongOutlined'
-import {
-  Alert,
-  Box,
-  Button,
-  Divider,
-  List,
-  ListItemButton,
-  Popover,
-  Typography,
-} from '@mui/material'
+import { Alert, Box, Button, Divider, List, ListItem, Popover, Typography } from '@mui/material'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 
@@ -52,6 +43,18 @@ const WHEN = new Intl.DateTimeFormat('es-AR', {
  * header, que está en `app/` y no puede importar features. Por eso las rutas de
  * destino llegan por props en vez de importarse del router.
  */
+// Fila alta y con aire: es un historial que se lee, no un menú que se recorre
+// con la vista.
+const ROW = {
+  display: 'flex',
+  alignItems: 'flex-start',
+  gap: 1.5,
+  py: 1.75,
+  px: 2,
+} as const
+
+const CLICKABLE = { cursor: 'pointer', color: 'inherit', textDecoration: 'none' } as const
+
 export function ActivityPanel({ anchorEl, onClose, paths }: ActivityPanelProps) {
   const open = anchorEl !== null
   // La consulta se dispara recién al abrirlo: el panel está montado en todas
@@ -110,24 +113,18 @@ export function ActivityPanel({ anchorEl, onClose, paths }: ActivityPanelProps) 
           const to = activityPath(entry, paths)
 
           return (
-            <ListItemButton
+            // Sin destino no es un botón: `ListItemButton` se anuncia como
+            // uno aunque se lo monte sobre un `div`, y una fila que informa y
+            // nada más no tiene que prometer una acción. Tampoco cierra el
+            // panel al tocarla, que era la otra mitad de la misma promesa.
+            <ListItem
               key={entry.id}
-              component={to === null ? 'div' : Link}
-              to={to ?? undefined}
-              onClick={onClose}
-              // Sin destino no es un botón: es una fila que informa y nada más.
-              disableRipple={to === null}
+              disablePadding={to !== null}
               divider
-              sx={{
-                display: 'flex',
-                alignItems: 'flex-start',
-                gap: 1.5,
-                // Fila alta y con aire: es un historial que se lee, no un menú
-                // que se recorre con la vista.
-                py: 1.75,
-                px: 2,
-                cursor: to === null ? 'default' : 'pointer',
-              }}
+              sx={ROW}
+              {...(to === null
+                ? {}
+                : { component: Link, to, onClick: onClose, sx: { ...ROW, ...CLICKABLE } })}
             >
               <EntryIcon>{ICONS[entry.type]}</EntryIcon>
               <Box sx={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
@@ -136,7 +133,7 @@ export function ActivityPanel({ anchorEl, onClose, paths }: ActivityPanelProps) 
                   {WHEN.format(new Date(entry.occurredAt))}
                 </Typography>
               </Box>
-            </ListItemButton>
+            </ListItem>
           )
         })}
       </List>

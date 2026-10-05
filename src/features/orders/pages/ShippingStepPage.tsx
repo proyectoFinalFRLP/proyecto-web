@@ -128,10 +128,19 @@ export function ShippingStepPage() {
     return <Navigate to={CUSTOMER_STEP_PATH} replace />
   }
 
-  const next = handleSubmit((data) => {
-    setDestination(data)
-    void navigate(CARRIER_STEP_PATH)
-  })
+  // Con retiro en el local el domicilio deja de ser obligatorio: la orden no va
+  // a ningún lado. Se guarda igual lo que haya escrito —puede hacer falta para
+  // la factura— y por eso el paso 3 sigue encontrando un destino, que es lo que
+  // necesita para no mandar de vuelta al 2.
+  const next = requiresShipping
+    ? handleSubmit((data) => {
+        setDestination(data)
+        void navigate(CARRIER_STEP_PATH)
+      })
+    : () => {
+        setDestination(getValues())
+        void navigate(CARRIER_STEP_PATH)
+      }
 
   function back() {
     setDestination(getValues())
@@ -188,6 +197,8 @@ export function ShippingStepPage() {
           </RadioGroup>
         </FormSection>
 
+        {/* Se muestra igual con retiro: el domicilio del cliente puede hacer
+            falta para la factura. Lo que cambia es que deja de exigirse. */}
         <DestinationFieldsCard
           register={register}
           control={control}
@@ -195,6 +206,7 @@ export function ShippingStepPage() {
           provinces={provinces.data ?? []}
           provincesLoading={provinces.isPending}
           provincesError={provinces.isError}
+          optional={!requiresShipping}
         />
 
         {/* `useFlexGap`: sin él `spacing` separa con `margin-left` y pisa el
@@ -207,7 +219,7 @@ export function ShippingStepPage() {
             variant="contained"
             size="large"
             endIcon={<ArrowForwardIcon />}
-            disabled={!isValid || selectedId === null}
+            disabled={(requiresShipping && !isValid) || selectedId === null}
             onClick={() => void next()}
             sx={{ ml: 'auto' }}
           >

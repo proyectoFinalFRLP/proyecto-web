@@ -304,6 +304,8 @@ export const ordersCopy = {
     },
     destination: {
       title: 'Domicilio de entrega',
+      /** Con retiro en el local el domicilio deja de exigirse. */
+      optionalTitle: 'Domicilio del cliente (opcional)',
       fields: {
         address: 'Calle y número',
         city: 'Ciudad',

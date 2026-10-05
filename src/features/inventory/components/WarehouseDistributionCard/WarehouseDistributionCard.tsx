@@ -34,7 +34,7 @@ const { columns } = distributionCopy
  * muestra todas las posiciones del producto, así que el enlace no tendría a
  * dónde ir.
  */
-export function WarehouseDistributionCard({ rows, footnote }: WarehouseDistributionCardProps) {
+export function WarehouseDistributionCard({ rows }: WarehouseDistributionCardProps) {
   return (
     <DistributionCard>
       <CardHeader>
@@ -91,11 +91,6 @@ export function WarehouseDistributionCard({ rows, footnote }: WarehouseDistribut
         <Typography variant="labelMd" color="text.secondary">
           {distributionCopy.footer(rows.length)}
         </Typography>
-        {footnote === undefined ? null : (
-          <Typography variant="labelSm" color="text.secondary" sx={{ marginLeft: 'auto' }}>
-            {footnote}
-          </Typography>
-        )}
       </CardFooter>
     </DistributionCard>
   )

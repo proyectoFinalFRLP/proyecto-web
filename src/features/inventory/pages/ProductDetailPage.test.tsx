@@ -256,3 +256,18 @@ describe('ProductDetailPage', () => {
     })
   })
 })
+
+// El modal se cierra con una animación: si el alcance volviera a `product` al
+// apretar cerrar, el de stock mostraría el formulario entero durante la salida.
+describe('ProductDetailPage · closing the stock editor', () => {
+  it('does not flash the full form on the way out', async () => {
+    showProduct(SEEDED_MOUSE)
+    renderDetail()
+    fireEvent.click(screen.getByRole('button', { name: /Editar stock/ }))
+
+    fireEvent.click(screen.getByRole('button', { name: /Cerrar/ }))
+
+    // Mientras el modal se va, lo que se ve sigue siendo el alcance de stock.
+    expect(screen.queryByRole('textbox', { name: /Nombre/ })).not.toBeInTheDocument()
+  })
+})

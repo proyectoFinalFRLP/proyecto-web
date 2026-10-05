@@ -15,6 +15,4 @@ export interface ProductSpecsCardProps {
   specs: ProductSpec[]
   /** Fila de abajo del divisor (norma técnica, última actualización). */
   secondarySpecs: ProductSpec[]
-  /** Aclaración al pie, para los campos que la API todavía no expone. */
-  footnote?: string
 }

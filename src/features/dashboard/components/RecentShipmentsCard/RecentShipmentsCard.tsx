@@ -55,10 +55,10 @@ export function RecentShipmentsCard({ shipments, loading = false }: RecentShipme
         <RowLink
           key={shipment.id}
           to={shipmentsCopy.orderPath(shipment.orderId)}
-          aria-label={shipmentsCopy.order(shipment.orderId)}
+          aria-label={shipmentsCopy.openOrder(shipment.orderId)}
         >
           <ShipmentRow>
-            <ShipmentTile role="img" aria-label={shipmentsCopy.title}>
+            <ShipmentTile aria-hidden>
               <LocalShippingOutlinedIcon />
             </ShipmentTile>
             <ShipmentIdentity>
