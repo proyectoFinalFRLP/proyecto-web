@@ -5,6 +5,14 @@ import type { CreateProductPayload, Product, UpdateProductPayload } from '../typ
 import { formatDimensions, isParseableDimensions } from './dimensions'
 
 /**
+ * El select de categoría usa `''` para «sin categoría» (un `<select>` no tiene
+ * `null`); la API la espera en `null`.
+ */
+function categoryOf(value: string): string | null {
+  return value === '' ? null : value
+}
+
+/**
  * Traduce el formulario de alta al cuerpo de `POST /api/v1/products`.
  *
  * `description` viaja en `null`: el frame del modal no tiene ese campo, aunque
@@ -19,6 +27,7 @@ export function buildCreatePayload(data: CreateProductFormData): CreateProductPa
       sku: data.sku,
       name: data.name,
       description: null,
+      category: categoryOf(data.category),
       weight: data.weight,
       dimensions: formatDimensions({
         length: data.length,
@@ -72,6 +81,7 @@ export function buildUpdatePayload(
     product: {
       name: data.name,
       description: product.description,
+      category: categoryOf(data.category),
       weight: data.weight,
       dimensions,
       stocks: [
