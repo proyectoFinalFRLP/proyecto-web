@@ -1,9 +1,10 @@
 import type { ReportsOverview } from './types'
 
-// El dataset de muestra de S14-Reportes, tal cual lo dibuja el diseño. Es lo
-// que la pantalla muestra mientras no exista el endpoint de agregados (ver
-// `api.ts`), y lo que usan las pruebas de los componentes. Se borra entero
-// cuando la API lo reemplace.
+// El dataset de S14-Reportes tal cual lo dibuja el diseño. Ya no es lo que
+// muestra la pantalla —los agregados salen de `GET /reports/overview`, ver
+// `api.ts`—: queda como fixture de las pruebas de los componentes, que
+// necesitan valores en todos los bloques, incluidos los que la API todavía
+// devuelve vacíos.
 
 export const SAMPLE_OVERVIEW: ReportsOverview = {
   kpis: {
@@ -23,12 +24,12 @@ export const SAMPLE_OVERVIEW: ReportsOverview = {
     { label: 'sáb', orders: 8_200, revenue: 690_000 },
     { label: 'dom', orders: 9_400, revenue: 740_000 },
   ],
+  granularity: 'day',
   // Los operadores del producto (docs/design/README.md), no los del Figma viejo.
-  serviceLevels: [
-    { carrier: 'Andreani', onTimeRate: 99.4 },
-    { carrier: 'Moova', onTimeRate: 96.8 },
-    { carrier: 'Correo Argentino', onTimeRate: 94.2 },
-    { carrier: 'OCASA', onTimeRate: 88.5 },
+  carriers: [
+    { carrier: 'Andreani', dispatched: 180, delivered: 171 },
+    { carrier: 'Moova', dispatched: 95, delivered: 88 },
+    { carrier: 'Correo Argentino', dispatched: 60, delivered: 41 },
   ],
   anomalies: [
     {

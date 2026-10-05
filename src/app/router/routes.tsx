@@ -1,4 +1,5 @@
 import BarChartOutlinedIcon from '@mui/icons-material/BarChartOutlined'
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
 import HomeIcon from '@mui/icons-material/Home'
 import HubOutlinedIcon from '@mui/icons-material/HubOutlined'
 import InsightsOutlinedIcon from '@mui/icons-material/InsightsOutlined'
@@ -45,6 +46,9 @@ const ProductDetailPage = lazy(() =>
 )
 const WarehousesPage = lazy(() =>
   import('features/warehouses').then((m) => ({ default: m.WarehousesPage })),
+)
+const FailedEventsPage = lazy(() =>
+  import('features/failed-events').then((m) => ({ default: m.FailedEventsPage })),
 )
 const ReportsPage = lazy(() => import('features/reports').then((m) => ({ default: m.ReportsPage })))
 const LoginPage = lazy(() => import('features/auth').then((m) => ({ default: m.LoginPage })))
@@ -150,6 +154,11 @@ export const appRoutes: AppRoute[] = [
     path: '/warehouses',
     element: <WarehousesPage />,
     nav: { label: 'Depósitos', icon: <WarehouseOutlinedIcon /> },
+  },
+  {
+    path: '/failed-events',
+    element: <FailedEventsPage />,
+    nav: { label: 'Eventos fallidos', icon: <ErrorOutlineIcon /> },
   },
   {
     path: '/reports',
