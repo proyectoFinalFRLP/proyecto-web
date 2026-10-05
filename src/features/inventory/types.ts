@@ -73,6 +73,22 @@ export interface ProductStock {
   warehouseId: number
   quantity: number
   warehouse: Warehouse
+  /**
+   * Disponibilidad de este depósito. La calcula el backend con la misma regla
+   * que la del producto (`Product.stock_status_for`), aplicada a `quantity`.
+   */
+  stockStatus: StockStatus
+}
+
+/**
+ * Unidades en vuelo **hacia** un depósito: salieron de otro y todavía no
+ * llegaron. El saliente no aparece porque el backend ya lo descontó del
+ * depósito de origen al despachar.
+ */
+export interface IncomingTransit {
+  warehouseId: number
+  name: string
+  quantity: number
 }
 
 /**
@@ -88,7 +104,21 @@ export interface Product {
   description: string | null
   weight: number
   dimensions: string | null
+  /** Opcional: los productos anteriores a TESIS-102 no tienen ninguna. */
+  category: ProductCategory | null
   stocks: ProductStock[]
+  /** Unidades en depósito sumando todos los depósitos, calculado por la API. */
+  totalStock: number
+  /** Disponibilidad del producto: la misma que muestra el catálogo. */
+  stockStatus: StockStatus
+  /** Unidades en vuelo entre depósitos. **No** están incluidas en `totalStock`. */
+  inTransitQuantity: number
+  /**
+   * El mismo en tránsito, por depósito de destino. Puede nombrar depósitos que
+   * todavía no tienen fila en `stocks`: la fila nace cuando la transferencia
+   * se recibe. La suma de `quantity` es `inTransitQuantity`.
+   */
+  inTransitByWarehouse: IncomingTransit[]
   updatedAt: string
   /**
    * Versión del agregado que devolvió la API en el header `ETag` (TESIS-101).
@@ -115,6 +145,8 @@ export interface CreateProductPayload {
     sku: string
     name: string
     description: string | null
+    /** `null` = sin categoría. El vocabulario es `GET /products/categories`. */
+    category: string | null
     weight: number
     dimensions: string | null
     stocks: { warehouse_id: number; quantity: number }[]
@@ -132,6 +164,7 @@ export interface UpdateProductPayload {
   product: {
     name: string
     description: string | null
+    category: string | null
     weight: number
     dimensions: string | null
     stocks: { warehouse_id: number; quantity: number }[]

@@ -12,7 +12,14 @@ describe('navRoutes', () => {
   })
 
   it('lists the sections of the product, and only those', () => {
-    expect(paths).toEqual(['/', '/orders', '/inventory', '/reports'])
+    expect(paths).toEqual([
+      '/',
+      '/orders',
+      '/inventory',
+      '/warehouses',
+      '/failed-events',
+      '/reports',
+    ])
   })
 
   // Integraciones se sacó en TESIS-140: las conexiones las administra el

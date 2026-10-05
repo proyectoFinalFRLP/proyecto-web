@@ -6,6 +6,8 @@ export interface CreateProductModalProps {
   open: boolean
   /** Depósitos de la empresa — alimentan los selectores de cada fila. */
   warehouses: Warehouse[]
+  /** Vocabulario de categorías (`GET /products/categories`). */
+  categories?: string[]
   /** Recibe el cuerpo ya armado para `POST /api/v1/products`. */
   onSubmit: (payload: CreateProductPayload) => void
   onClose: () => void

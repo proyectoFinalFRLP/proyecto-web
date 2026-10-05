@@ -1,5 +1,5 @@
-// Dominio de la pantalla de reportes (S14). Es el contrato que el endpoint de
-// agregados tendrá que cumplir cuando exista: ver `api.ts`.
+// Dominio de la pantalla de reportes (S14), traducido de
+// `GET /api/v1/reports/overview` en `api.ts`.
 
 /** Ventana de tiempo sobre la que se calculan los agregados. */
 export type ReportPeriod = '7d' | '30d' | '90d'
@@ -16,17 +16,21 @@ export interface TrendedValue {
 }
 
 export interface ReportsKpis {
-  /** Unidades despachadas en el período. */
+  /** Unidades de las órdenes cuyo envío se despachó en el período. */
   dispatchedUnits: TrendedValue
-  /** Facturación del período, en pesos. */
+  /** Facturación del período, en pesos, sin las órdenes canceladas. */
   revenue: TrendedValue
-  /** Porcentaje (0-100) de entregas dentro del plazo comprometido. */
-  onTimeDeliveryRate: TrendedValue
+  /**
+   * Porcentaje (0-100) de entregas dentro del plazo comprometido. `null`: el
+   * modelo no guarda una fecha comprometida contra la cual medirlo.
+   */
+  onTimeDeliveryRate: TrendedValue | null
+  /** `null`: el sistema todavía no registra anomalías. */
   activeAnomalies: {
     count: number
     /** Alguna de las anomalías abiertas es crítica: la tarjeta pasa a alerta. */
     critical: boolean
-  }
+  } | null
 }
 
 /** Qué serie dibuja la curva de despacho. */
@@ -39,11 +43,19 @@ export interface CurvePoint {
   revenue: number
 }
 
-export interface CarrierServiceLevel {
+/** Un punto por día o por semana, según el largo del período. */
+export type CurveGranularity = 'day' | 'week'
+
+/**
+ * Envíos despachados en el período con un operador logístico, y cuántos de
+ * esos ya llegaron. No es el cumplimiento de plazo del diseño: sin fecha
+ * comprometida, es lo que el modelo puede afirmar.
+ */
+export interface CarrierDeliveries {
   /** Nombre del operador logístico, tal como lo devuelve la integración. */
   carrier: string
-  /** Porcentaje (0-100) de entregas en plazo, con decimales. */
-  onTimeRate: number
+  dispatched: number
+  delivered: number
 }
 
 export type AnomalyStatus = 'investigating' | 'critical' | 'resolved'
@@ -60,7 +72,9 @@ export interface RegionalAnomaly {
 
 export interface ReportsOverview {
   kpis: ReportsKpis
+  granularity: CurveGranularity
   curve: CurvePoint[]
-  serviceLevels: CarrierServiceLevel[]
-  anomalies: RegionalAnomaly[]
+  carriers: CarrierDeliveries[]
+  /** `null`: el sistema todavía no registra anomalías (no es lo mismo que cero). */
+  anomalies: RegionalAnomaly[] | null
 }

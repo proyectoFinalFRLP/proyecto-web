@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import AddIcon from '@mui/icons-material/Add'
 import { Alert, AlertTitle, Button, Menu, MenuItem, TextField, Typography } from '@mui/material'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useFieldArray, useForm } from 'react-hook-form'
+import { Controller, useFieldArray, useForm } from 'react-hook-form'
 import {
   LabeledField,
   ModalBody,
@@ -18,6 +18,7 @@ import { inventoryCopy } from '../../content'
 import type { Product } from '../../types'
 import { parseDimensions } from '../../utils/dimensions'
 import { buildUpdatePayload } from '../../utils/payload'
+import { CategoryField } from '../CategoryField'
 
 import { editProductSchema } from './EditProductModal.schema'
 import type { EditProductFormData } from './EditProductModal.schema'
@@ -42,6 +43,7 @@ function buildDefaults(product: Product): EditProductFormData {
 
   return {
     name: product.name,
+    category: product.category ?? '',
     weight: product.weight,
     length,
     width,
@@ -66,6 +68,7 @@ export function EditProductModal({
   open,
   product,
   warehouses,
+  categories = [],
   onSubmit,
   onClose,
   submitting = false,
@@ -159,9 +162,20 @@ export function EditProductModal({
                 <TextField value={product.sku} fullWidth disabled />
               </LabeledField>
 
-              <LabeledField label={modal.fields.category} helperText={modal.categoryHelper}>
-                <TextField value="—" fullWidth disabled />
-              </LabeledField>
+              <Controller
+                name="category"
+                control={control}
+                render={({ field }) => (
+                  <CategoryField
+                    value={field.value}
+                    onChange={field.onChange}
+                    categories={categories}
+                    label={modal.fields.category}
+                    helperText={modal.categoryHelper}
+                    noneLabel={modal.noCategory}
+                  />
+                )}
+              />
             </BasicGrid>
           </SectionRoot>
 

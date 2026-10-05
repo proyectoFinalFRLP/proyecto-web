@@ -1,7 +1,9 @@
 import BarChartOutlinedIcon from '@mui/icons-material/BarChartOutlined'
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
 import InsightsOutlinedIcon from '@mui/icons-material/InsightsOutlined'
 import Inventory2Icon from '@mui/icons-material/Inventory2'
 import ReceiptLongOutlinedIcon from '@mui/icons-material/ReceiptLongOutlined'
+import WarehouseOutlinedIcon from '@mui/icons-material/WarehouseOutlined'
 import { lazy } from 'react'
 import type { ReactNode } from 'react'
 
@@ -33,6 +35,12 @@ const InventoryPage = lazy(() =>
 )
 const ProductDetailPage = lazy(() =>
   import('features/inventory').then((m) => ({ default: m.ProductDetailPage })),
+)
+const WarehousesPage = lazy(() =>
+  import('features/warehouses').then((m) => ({ default: m.WarehousesPage })),
+)
+const FailedEventsPage = lazy(() =>
+  import('features/failed-events').then((m) => ({ default: m.FailedEventsPage })),
 )
 const ReportsPage = lazy(() => import('features/reports').then((m) => ({ default: m.ReportsPage })))
 const LoginPage = lazy(() => import('features/auth').then((m) => ({ default: m.LoginPage })))
@@ -118,6 +126,16 @@ export const appRoutes: AppRoute[] = [
     path: '/inventory/:productId',
     element: <ProductDetailPage />,
     // Sin `nav`: se llega desde el catálogo, no desde el Sidebar.
+  },
+  {
+    path: '/warehouses',
+    element: <WarehousesPage />,
+    nav: { label: 'Depósitos', icon: <WarehouseOutlinedIcon /> },
+  },
+  {
+    path: '/failed-events',
+    element: <FailedEventsPage />,
+    nav: { label: 'Eventos fallidos', icon: <ErrorOutlineIcon /> },
   },
   {
     path: '/reports',

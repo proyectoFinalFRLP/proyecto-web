@@ -15,6 +15,7 @@ import { formatUnits, inventoryCopy } from '../content'
 import {
   CATALOG_TABS,
   RESTRICTED_STATUS,
+  useCategories,
   useCreateProduct,
   useDeleteProduct,
   useProductCounts,
@@ -81,6 +82,7 @@ export function InventoryPage() {
   })
   const counts = useProductCounts(debouncedSearch)
   const warehouses = useWarehouses()
+  const categories = useCategories()
   const createMutation = useCreateProduct()
   const deleteMutation = useDeleteProduct()
 
@@ -232,6 +234,7 @@ export function InventoryPage() {
       <CreateProductModal
         open={creating}
         warehouses={warehouses.data}
+        categories={categories.data}
         submitting={createMutation.isPending}
         // Un SKU repetido vuelve como 409: el modal queda abierto y marca el
         // campo en conflicto en vez de perder lo que el usuario cargó.
