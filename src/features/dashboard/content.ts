@@ -76,6 +76,8 @@ export const dashboardCopy = {
     barLabelWithCapacity: (name: string, units: number, capacity: number) =>
       `${name}: ${UNITS_FORMAT.format(units)} de ${UNITS_FORMAT.format(capacity)} unidades de capacidad`,
     empty: 'La empresa no tiene depósitos cargados.',
+    /** La lista vacía por un error no es la lista vacía de una empresa sin depósitos. */
+    unavailable: 'No pudimos cargar la carga por depósito.',
   },
   // Tabla de órdenes recientes del panel (TESIS-56). Vocabulario y orden de
   // columnas de S03-Panel.

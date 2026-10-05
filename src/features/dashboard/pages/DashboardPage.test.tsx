@@ -111,6 +111,35 @@ beforeEach(() => {
   mockOrders()
 })
 
+// Una lista de depósitos que no llegó no es una empresa sin unidades: sumar
+// sobre la lista vacía daría 0, que es un dato real y acá no lo sabemos.
+describe('DashboardPage · stored units when the warehouses never arrived', () => {
+  it('shows no number instead of claiming zero units', () => {
+    mockInventory({ storedUnits: undefined, warehouses: [], isError: true })
+    renderPage()
+
+    const card = screen.getByText('Unidades en stock').closest('div')
+
+    expect(within(card as HTMLElement).queryByText('0')).not.toBeInTheDocument()
+    expect(within(card as HTMLElement).getByText('—')).toBeInTheDocument()
+  })
+
+  it('does not say the company has zero warehouses either', () => {
+    mockInventory({ storedUnits: undefined, warehouses: [], isError: true })
+    renderPage()
+
+    expect(screen.queryByText(/repartidas en 0 depósitos/)).not.toBeInTheDocument()
+  })
+
+  it('says the warehouse load could not be loaded, not that there are none', () => {
+    mockInventory({ storedUnits: undefined, warehouses: [], isError: true })
+    renderPage()
+
+    expect(screen.getByText('No pudimos cargar la carga por depósito.')).toBeInTheDocument()
+    expect(screen.queryByText('La empresa no tiene depósitos cargados.')).not.toBeInTheDocument()
+  })
+})
+
 describe('DashboardPage · inventory alerts', () => {
   // El agotado también es alerta: `low` en el backend es `BETWEEN 1 AND umbral`,
   // así que contar sólo eso dejaba afuera los productos que ya no se venden.

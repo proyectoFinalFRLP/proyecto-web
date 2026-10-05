@@ -126,11 +126,15 @@ export const useOrderDraftStore = create<OrderDraftState>()(
     {
       name: 'order-draft-store',
       storage: createJSONStorage(() => sessionStorage),
+      // `requiresShipping` también se persiste: sin él, recargar en el paso 2 o
+      // 3 lo devuelve a su default `true` y convierte un retiro en un envío sin
+      // decir nada.
       partialize: (state) => ({
         customer: state.customer,
         items: state.items,
         origin: state.origin,
         destination: state.destination,
+        requiresShipping: state.requiresShipping,
       }),
     },
   ),

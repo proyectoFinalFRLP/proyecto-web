@@ -38,12 +38,14 @@ export function warehouseShares(warehouses: WarehouseLoad[]): WarehouseShare[] {
     .map((warehouse) => ({
       ...warehouse,
       share: shareOf(warehouse, busiest),
-      measuredAgainstCapacity: warehouse.capacity !== null,
+      measuredAgainstCapacity: warehouse.capacity !== null && warehouse.capacity > 0,
     }))
 }
 
 function shareOf(warehouse: WarehouseLoad, busiest: number): number {
-  if (warehouse.capacity !== null) {
+  // `> 0` y no `!== null`: un techo en cero no define ninguna ocupación, y
+  // `0 / 0` daría `NaN` en el ancho de la barra.
+  if (warehouse.capacity !== null && warehouse.capacity > 0) {
     return Math.min(100, (warehouse.storedUnits / warehouse.capacity) * 100)
   }
 

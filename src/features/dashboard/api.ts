@@ -93,8 +93,11 @@ export async function fetchWarehouseLoads(): Promise<WarehouseLoad[]> {
   return data.data.map((warehouse) => ({
     id: warehouse.id,
     name: warehouse.name,
-    storedUnits: warehouse.stored_units,
-    capacity: warehouse.capacity,
+    // `?? null` y no el valor crudo: si el front se despliega antes que el
+    // backend que agrega el campo, `undefined` pasa el `!== null` de
+    // `shareOf` y la barra sale en NaN %.
+    storedUnits: warehouse.stored_units ?? 0,
+    capacity: warehouse.capacity ?? null,
   }))
 }
 

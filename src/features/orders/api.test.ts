@@ -9,6 +9,7 @@ import {
   dispatchShipment,
   fetchCatalogProducts,
   fetchOrder,
+  fetchOrderPage,
   fetchOrderShipment,
   fetchProductStocks,
   fetchProvinces,
@@ -195,6 +196,19 @@ describe('fetchOrder', () => {
         warehouseId: 3,
       },
     ])
+  })
+
+  // Si el front se despliega antes que el backend que agrega el campo,
+  // `undefined` es falsy y el detalle trataría la orden como retiro en el
+  // local: ocultaría el envío y el despacho de una venta que sí los lleva.
+  it('treats an order whose API does not send requires_shipping as one that ships', async () => {
+    const { requires_shipping: omitido, ...sinElCampo } = ORDER
+    expect(omitido).toBe(true)
+    vi.spyOn(client, 'get').mockResolvedValueOnce(respond({ ...sinElCampo, order_items: [] }))
+
+    const order = await fetchOrder(8829)
+
+    expect(order.requiresShipping).toBe(true)
   })
 
   it('keeps the version from the ETag as it came', async () => {
@@ -418,5 +432,22 @@ describe('the confirmation of a manual order', () => {
 
     expect(post).toHaveBeenCalledWith('/shipments/31/dispatch', payload)
     expect(shipment.trackingNumber).toBe('AND-9920-X8829-Z')
+  })
+})
+
+// El mismo riesgo que en el detalle, en el otro mapeo: el listado marca con un
+// chip las ventas que se retiran en el local, y sin el campo las marcaría
+// todas.
+describe('fetchOrderPage and a backend that does not send requires_shipping', () => {
+  it('treats every order as one that ships', async () => {
+    const { requires_shipping: omitido, ...sinElCampo } = ORDER
+    expect(omitido).toBe(true)
+    vi.spyOn(client, 'get').mockResolvedValueOnce(
+      respond({ data: [sinElCampo], meta: { page: 1, per_page: 20, total: 1 } }),
+    )
+
+    const page = await fetchOrderPage({ page: 1, perPage: 20, search: '' })
+
+    expect(page.orders[0].requiresShipping).toBe(true)
   })
 })
