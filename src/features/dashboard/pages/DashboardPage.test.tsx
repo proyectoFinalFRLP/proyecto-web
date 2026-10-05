@@ -272,6 +272,34 @@ describe('DashboardPage · warehouse load', () => {
     expect(screen.queryByText(/de su capacidad/)).not.toBeInTheDocument()
   })
 
+  // «200 u» no dice contra qué se mide la barra. El rótulo accesible lo dice
+  // por fila; abajo de la lista se dice también para quien mira.
+  it('says what the bars without a declared capacity are measured against', () => {
+    renderPage()
+
+    expect(
+      screen.getByText('Los depósitos sin capacidad declarada se comparan con el más cargado.'),
+    ).toBeInTheDocument()
+  })
+
+  it('does not say it when every warehouse declared its capacity', () => {
+    mockInventory({
+      warehouses: [
+        {
+          id: 1,
+          name: 'CD Norte',
+          storedUnits: 200,
+          capacity: 1000,
+          share: 20,
+          measuredAgainstCapacity: true,
+        },
+      ],
+    })
+    renderPage()
+
+    expect(screen.queryByText(/se comparan con el más cargado/)).not.toBeInTheDocument()
+  })
+
   it('shows the occupancy of a warehouse that declared one', () => {
     mockInventory({
       warehouses: [

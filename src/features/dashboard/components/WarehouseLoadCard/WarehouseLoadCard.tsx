@@ -77,19 +77,29 @@ export function WarehouseLoadCard({
                   value={warehouse.share}
                   size="medium"
                   track="neutral"
+                  // `measuredAgainstCapacity` y no `capacity === null`: un
+                  // techo en cero tampoco define una ocupación, y con el otro
+                  // criterio el rótulo diría «de 0 unidades de capacidad»
+                  // mientras la barra compara contra el más cargado.
                   ariaLabel={
-                    warehouse.capacity === null
-                      ? copy.barLabel(warehouse.name, warehouse.storedUnits)
-                      : copy.barLabelWithCapacity(
+                    warehouse.measuredAgainstCapacity && warehouse.capacity !== null
+                      ? copy.barLabelWithCapacity(
                           warehouse.name,
                           warehouse.storedUnits,
                           warehouse.capacity,
                         )
+                      : copy.barLabel(warehouse.name, warehouse.storedUnits)
                   }
                 />
               </Row>
             ))}
           </Rows>
+
+          {warehouses.some((warehouse) => !warehouse.measuredAgainstCapacity) && (
+            <Typography variant="labelSm" color="text.secondary">
+              {copy.relativeNote}
+            </Typography>
+          )}
         </>
       )}
     </LoadCard>
