@@ -102,3 +102,25 @@ describe('warehouseShares with a declared capacity', () => {
     })
   })
 })
+
+// Un techo en cero no define ninguna ocupación, y `0 / 0` daría `NaN` en el
+// ancho de la barra.
+describe('warehouseShares with a capacity of zero', () => {
+  it('does not turn the bar into NaN', () => {
+    const shares = warehouseShares([warehouse(1, 'Norte', 0, 0)])
+
+    expect(Number.isFinite(shares[0].share)).toBe(true)
+    expect(shares[0].share).toBe(0)
+  })
+
+  // Sin techo utilizable la barra vuelve a comparar contra el más cargado, y
+  // el rótulo tiene que decir eso y no «% de su capacidad».
+  it('measures it against the fullest warehouse instead', () => {
+    const shares = warehouseShares([warehouse(1, 'Norte', 50, 0), warehouse(2, 'Sur', 100)])
+
+    expect(shares.find((w) => w.name === 'Norte')).toMatchObject({
+      share: 50,
+      measuredAgainstCapacity: false,
+    })
+  })
+})

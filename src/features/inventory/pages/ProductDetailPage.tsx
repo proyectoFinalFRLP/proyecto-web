@@ -293,9 +293,17 @@ export function ProductDetailPage() {
         />
 
         <Box sx={CONTENT_GRID}>
+          {/* El titular es `onHand` y no `totalStock`: las cubetas lo
+              descomponen —comprometido + disponible para prometer— y
+              `totalStock` es sólo la segunda, así que encabezar con él dejaba
+              la tarjeta sin cerrar. El en tránsito queda afuera a propósito:
+              esas unidades no están en ningún depósito todavía.
+              El epígrafe cuenta las posiciones y no `stocks`, porque un
+              depósito puede quedarse sin fila de stock y seguir teniendo
+              unidades vendidas sin despachar. */}
           <MasterStockCard
-            totalLabel={formatUnits(product.data.totalStock)}
-            caption={masterCopy.warehouseCount(product.data.stocks.length)}
+            totalLabel={formatUnits(product.data.onHand)}
+            caption={masterCopy.warehouseCount(distributionPositions(product.data).length)}
             buckets={buildBuckets(product.data)}
             onEditStock={() => setEditing('stock')}
           />

@@ -166,7 +166,11 @@ export function DashboardPage() {
               value={formatCount(storedUnits)}
               loading={warehousesLoading}
               icon={<Inventory2OutlinedIcon />}
-              note={warehousesLoading ? undefined : storedUnitsCopy.note(warehouses.length)}
+              note={
+                warehousesLoading || storedUnits === undefined
+                  ? undefined
+                  : storedUnitsCopy.note(warehouses.length)
+              }
             />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, md: 3 }}>

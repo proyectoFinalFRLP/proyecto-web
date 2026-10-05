@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useRef, useState } from 'react'
+import { activityKeys } from 'shared/api/activity'
 import type { ApiRequestError } from 'shared/api/types'
 
 import { createOrder, createOrderShipment, dispatchShipment } from '../api'
@@ -75,8 +76,13 @@ export function useConfirmDraftOrder({ onOrderCreated }: Options = {}) {
 
       return Promise.all([
         queryClient.invalidateQueries({ queryKey: orderKeys.all }),
-        // Literal y no la factory de inventario: una feature no importa otra.
+        // El alta abre un envío y deja su rastro en la campanita, así que el
+        // listado de envíos, los contadores de sus pestañas y el feed quedan
+        // viejos lo mismo que el listado de órdenes. `['shipments']` va literal
+        // porque es de otra feature; la actividad vive en `shared`.
         queryClient.invalidateQueries({ queryKey: ['inventory'] }),
+        queryClient.invalidateQueries({ queryKey: ['shipments'] }),
+        queryClient.invalidateQueries({ queryKey: activityKeys.all }),
       ])
     },
   })

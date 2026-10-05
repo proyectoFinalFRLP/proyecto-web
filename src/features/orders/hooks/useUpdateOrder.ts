@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { activityKeys } from 'shared/api/activity'
 import type { ApiRequestError } from 'shared/api/types'
 
 import { updateOrder } from '../api'
@@ -28,6 +29,9 @@ export function useUpdateOrder(id: number, version: string | null) {
         queryClient.invalidateQueries({ queryKey: orderKeys.all }),
         // Literal y no la factory de inventario: una feature no importa otra.
         queryClient.invalidateQueries({ queryKey: ['inventory'] }),
+        // Modificar una orden puede dejarla sin envío o cambiarle el destino.
+        queryClient.invalidateQueries({ queryKey: ['shipments'] }),
+        queryClient.invalidateQueries({ queryKey: activityKeys.all }),
       ]),
   })
 }

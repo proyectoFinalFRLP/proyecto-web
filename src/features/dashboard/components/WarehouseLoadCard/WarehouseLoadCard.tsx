@@ -55,7 +55,11 @@ export function WarehouseLoadCard({
       ) : (
         <>
           <Typography variant="labelSm" color="text.secondary">
-            {warehouses.length === 0 ? copy.empty : copy.caption(storedUnits)}
+            {storedUnits === undefined
+              ? copy.unavailable
+              : warehouses.length === 0
+                ? copy.empty
+                : copy.caption(storedUnits)}
           </Typography>
 
           <Rows>

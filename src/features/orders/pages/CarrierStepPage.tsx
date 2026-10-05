@@ -41,6 +41,13 @@ interface ConfirmedDraft {
   items: OrderDraftItem[]
   origin: OrderDraftOrigin
   destination: OrderDraftDestination
+  /**
+   * Cómo lo recibe el cliente, congelado junto con el resto. Se lee de la
+   * copia y no del store: `clearDraft` lo devuelve a su default `true` apenas
+   * la orden existe, y leerlo en vivo hacía que una venta de retiro saliera a
+   * pedirles precio a los couriers en mitad de la confirmación.
+   */
+  requiresShipping: boolean
 }
 
 /**
@@ -78,9 +85,9 @@ export function CarrierStepPage() {
   const live = useMemo(
     () =>
       customer !== null && items.length > 0 && origin !== null && destination !== null
-        ? { customer, items, origin, destination }
+        ? { customer, items, origin, destination, requiresShipping }
         : null,
-    [customer, items, origin, destination],
+    [customer, items, origin, destination, requiresShipping],
   )
   const draft = confirmed ?? live
 
@@ -88,10 +95,10 @@ export function CarrierStepPage() {
   // tampoco hay a quién preguntarle el precio (TESIS-162).
   const payload = useMemo(
     () =>
-      draft === null || !requiresShipping
-        ? null
-        : toDraftQuotePayload(draft.items, draft.origin, draft.destination),
-    [draft, requiresShipping],
+      draft?.requiresShipping
+        ? toDraftQuotePayload(draft.items, draft.origin, draft.destination)
+        : null,
+    [draft],
   )
   const quotes = useDraftQuotes(payload)
   const confirm = useConfirmDraftOrder({ onOrderCreated: clearDraft })
@@ -115,7 +122,7 @@ export function CarrierStepPage() {
 
   function confirmOrder() {
     // Con envío hace falta la opción elegida; con retiro, no hay ninguna.
-    if (draft === null || (requiresShipping && chosen === null)) return
+    if (draft === null || (draft.requiresShipping && chosen === null)) return
 
     setConfirmed(draft)
     confirm.mutate(
@@ -125,7 +132,7 @@ export function CarrierStepPage() {
           draft.items,
           draft.origin,
           draft.destination,
-          requiresShipping,
+          draft.requiresShipping,
         ),
         dispatch: chosen === null ? null : toDispatchPayload(chosen, draft.origin.warehouseId),
       },
@@ -188,17 +195,17 @@ export function CarrierStepPage() {
         >
           <FormSection
             icon={
-              requiresShipping ? (
+              draft.requiresShipping ? (
                 <LocalShippingOutlinedIcon aria-hidden />
               ) : (
                 <StorefrontOutlinedIcon aria-hidden />
               )
             }
-            title={requiresShipping ? carrier.options.groupLabel : carrier.pickup.title}
+            title={draft.requiresShipping ? carrier.options.groupLabel : carrier.pickup.title}
           >
             {/* Con retiro en el local no hay nada que cotizar: la venta se
                 registra y el cliente la busca (TESIS-162). */}
-            {requiresShipping ? (
+            {draft.requiresShipping ? (
               <QuoteOptionsPanel
                 quotes={quotes}
                 selectedId={chosen?.dispatchIntegrationId ?? null}
@@ -223,7 +230,7 @@ export function CarrierStepPage() {
               draft.destination.province,
               draft.destination.zipCode,
             )}
-            canConfirm={(chosen !== null || !requiresShipping) && !confirm.isPending}
+            canConfirm={(chosen !== null || !draft.requiresShipping) && !confirm.isPending}
             confirming={confirm.isPending}
             confirmLabel={
               createdOrderId === null ? carrier.summary.confirm : carrier.errors.retryDispatch

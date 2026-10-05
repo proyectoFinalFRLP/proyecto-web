@@ -150,7 +150,10 @@ function toOrder(order: ApiOrderSummary): OrderSummary {
     customerAddress: order.customer_address,
     customerZipCode: order.customer_zip_code,
     status: order.status,
-    requiresShipping: order.requires_shipping,
+    // `?? true`: si el front se despliega antes que el backend que agrega el
+    // campo, `undefined` es falsy y el listado marcaría **todas** las órdenes
+    // como retiro en el local.
+    requiresShipping: order.requires_shipping ?? true,
     // La columna sólo muestra el nombre, así que el dominio se queda con eso y
     // no arrastra el id de la integración hasta la tabla. Si alguna pantalla
     // necesita enlazar a la integración, el id está acá para levantarlo.
@@ -196,7 +199,7 @@ function toOrderDetail(data: ApiOrderDetail, version: string | null): OrderDetai
     customerCity: data.customer_city,
     customerProvince: data.customer_province,
     status: data.status,
-    requiresShipping: data.requires_shipping,
+    requiresShipping: data.requires_shipping ?? true,
     version,
     totalAmount: data.total_amount,
     lines: data.order_items.map((item) => ({
