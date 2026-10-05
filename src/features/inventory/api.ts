@@ -7,7 +7,6 @@ import type {
   LinkProductResult,
   Product,
   ProductMapping,
-  ProductCategory,
   ProductFilters,
   ProductPage,
   ProductSummary,
@@ -42,6 +41,7 @@ interface ApiStock {
   committed?: number
   warehouse_id: number
   warehouse: ApiWarehouse
+  stock_status: StockStatus
 }
 
 interface ApiProductSummary {
@@ -61,16 +61,19 @@ interface ApiProduct {
   sku: string
   name: string
   description: string | null
-  category: ProductCategory | null
+  category: string | null
   packaging: string | null
   technical_standard: string | null
   weight: number
   dimensions: string | null
+  total_stock: number
+  stock_status: StockStatus
+  in_transit_quantity: number
+  in_transit_by_warehouse: { warehouse_id: number; name: string; quantity: number }[]
   updated_at: string
   committed_quantity: number
   on_hand_quantity: number
   available_to_promise: number
-  in_transit_quantity: number
   committed_by_warehouse: { warehouse_id: number; name: string; quantity: number }[]
   stocks: ApiStock[]
 }
@@ -109,11 +112,24 @@ function toProduct(product: ApiProduct, version: string | null = null): Product 
     sku: product.sku,
     name: product.name,
     description: product.description,
-    category: product.category,
+    category: (product.category ?? null) as Product['category'],
     packaging: product.packaging,
     technicalStandard: product.technical_standard,
     weight: product.weight,
     dimensions: product.dimensions,
+    totalStock: product.total_stock,
+    stockStatus: product.stock_status,
+    inTransitQuantity: product.in_transit_quantity,
+    inTransitByWarehouse: (product.in_transit_by_warehouse ?? []).map((transit) => ({
+      warehouseId: transit.warehouse_id,
+      name: transit.name,
+      quantity: transit.quantity,
+    })),
+    committedByWarehouse: (product.committed_by_warehouse ?? []).map((row) => ({
+      warehouseId: row.warehouse_id,
+      name: row.name,
+      quantity: row.quantity,
+    })),
     updatedAt: product.updated_at,
     committed: product.committed_quantity,
     onHand: product.on_hand_quantity,
@@ -125,6 +141,7 @@ function toProduct(product: ApiProduct, version: string | null = null): Product 
       quantity: stock.quantity,
       committed: committedByWarehouse.get(stock.warehouse_id) ?? 0,
       warehouse: toWarehouse(stock.warehouse),
+      stockStatus: stock.stock_status,
     })),
   }
 }
@@ -248,6 +265,17 @@ export async function updateProduct(
  */
 export async function deleteProduct(id: number): Promise<void> {
   await client.delete(`/products/${id}`)
+}
+
+/**
+ * El vocabulario de categorías (`Product::CATEGORIES`). Sale del backend y no
+ * de una lista en el front: sumar una categoría es una línea en el modelo, y
+ * los selects de los modales la muestran sin tocar esta app.
+ */
+export async function fetchCategories(): Promise<string[]> {
+  const { data } = await client.get<{ data: string[] }>('/products/categories')
+
+  return data.data
 }
 
 interface ApiProductMapping {

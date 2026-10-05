@@ -2,7 +2,11 @@ import { useQuery } from '@tanstack/react-query'
 
 import { fetchTenantConfig } from '../api/tenant'
 import type { TenantConfig } from '../api/tenant'
+import type { ApiRequestError } from '../api/types'
 import { setTenantConfig, useTenantStore } from '../store/tenantStore'
+
+/** El status con el que la API dice que el slug no es de ninguna empresa. */
+const UNKNOWN_TENANT_STATUS = 404
 
 export const tenantKeys = {
   all: ['tenant'] as const,
@@ -16,7 +20,7 @@ export const tenantKeys = {
 export function useTenantConfig() {
   const slug = useTenantStore((state) => state.slug)
 
-  return useQuery<TenantConfig>({
+  return useQuery<TenantConfig, ApiRequestError>({
     queryKey: tenantKeys.config(slug),
     queryFn: async () => {
       const config = await fetchTenantConfig()
@@ -33,7 +37,8 @@ export function useTenantConfig() {
     // entera sin motivo.
     staleTime: Infinity,
     // Un slug inexistente responde 404 (§3 del contrato): reintentar sólo demora
-    // la pantalla de error sin cambiar el desenlace.
-    retry: false,
+    // la pantalla de error sin cambiar el desenlace. Cualquier otra falla (la
+    // API reiniciándose, la red) puede ser pasajera: se reintenta una vez.
+    retry: (failures, error) => error.status !== UNKNOWN_TENANT_STATUS && failures < 1,
   })
 }

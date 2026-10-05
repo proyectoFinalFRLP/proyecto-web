@@ -1,14 +1,8 @@
-import CheckIcon from '@mui/icons-material/Check'
-import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
-import WarningAmberOutlinedIcon from '@mui/icons-material/WarningAmberOutlined'
 import { Typography } from '@mui/material'
-import type { ReactNode } from 'react'
 import { ProgressIndicator } from 'shared/components'
-import type { ProgressTone } from 'shared/components'
 
 import { reportsCopy } from '../../content'
 import { formatPercent } from '../../utils/format'
-import { serviceLevelTone } from '../../utils/status'
 
 import {
   CardHeading,
@@ -23,22 +17,21 @@ import type { ServiceLevelCardProps } from './ServiceLevelCard.types'
 
 const { serviceLevel: copy } = reportsCopy
 
-// El ícono que acompaña al porcentaje, por tono (los del ProgressBar del DS).
-const TONE_ICONS: Record<ProgressTone, ReactNode> = {
-  primary: <CheckIcon />,
-  success: <CheckIcon />,
-  info: <CheckIcon />,
-  neutral: <CheckIcon />,
-  warning: <WarningAmberOutlinedIcon />,
-  error: <ErrorOutlineIcon />,
+/** Entregados sobre despachados, 0-100. Sin despachos no hay tasa. */
+function deliveredRate({ dispatched, delivered }: { dispatched: number; delivered: number }) {
+  return dispatched === 0 ? 0 : (delivered / dispatched) * 100
 }
 
 /**
- * «Nivel de servicio» de S14: la tasa de entregas en plazo de cada operador
- * logístico, como barra fina con su porcentaje. El tono lo decide la tasa (ver
- * `serviceLevelTone`), no el operador.
+ * La columna lateral de S14, con lo que el modelo puede afirmar: cuántos de
+ * los envíos que despachó cada operador en el período ya llegaron.
+ *
+ * El diseño muestra acá las entregas **en plazo**, que necesitan una fecha
+ * comprometida que los envíos no guardan. Un envío despachado ayer que todavía
+ * viaja no es un incumplimiento, así que la barra va en un solo tono: el color
+ * semántico del diseño diría «mal servicio» de algo que sólo está en camino.
  */
-export function ServiceLevelCard({ levels }: ServiceLevelCardProps) {
+export function ServiceLevelCard({ carriers }: ServiceLevelCardProps) {
   return (
     <ServiceCard>
       <CardHeading>
@@ -50,34 +43,34 @@ export function ServiceLevelCard({ levels }: ServiceLevelCardProps) {
         </Typography>
       </CardHeading>
 
-      <CarrierList as="ol">
-        {levels.map(({ carrier, onTimeRate }) => {
-          const tone = serviceLevelTone(onTimeRate)
-
-          return (
-            <CarrierRow as="li" key={carrier}>
+      {carriers.length === 0 ? (
+        <Typography variant="bodyMd" color="text.secondary">
+          {copy.empty}
+        </Typography>
+      ) : (
+        <CarrierList as="ol">
+          {carriers.map((row) => (
+            <CarrierRow as="li" key={row.carrier}>
               <CarrierHeader>
-                <Typography variant="bodyMd">{carrier}</Typography>
-                <CarrierRate tone={tone}>
-                  {TONE_ICONS[tone]}
-                  <RateValue>{formatPercent(onTimeRate)}</RateValue>
+                <Typography variant="bodyMd">{row.carrier}</Typography>
+                <CarrierRate tone="primary">
+                  <RateValue>{copy.delivered(row.delivered, row.dispatched)}</RateValue>
+                  <Typography variant="labelSm" color="text.secondary" component="span">
+                    {formatPercent(deliveredRate(row))}
+                  </Typography>
                 </CarrierRate>
               </CarrierHeader>
-              {/* Canal neutro: el tono codifica el estado de cada operador y el
-                  100% de referencia es el mismo en todas las filas, así las
-                  barras se comparan entre sí. El rótulo visible vive fuera de
-                  la barra, por eso el nombre accesible va explícito. */}
               <ProgressIndicator
                 size="thin"
                 track="neutral"
-                tone={tone}
-                value={onTimeRate}
-                ariaLabel={copy.barLabel(carrier)}
+                tone="primary"
+                value={deliveredRate(row)}
+                ariaLabel={copy.barLabel(row.carrier)}
               />
             </CarrierRow>
-          )
-        })}
-      </CarrierList>
+          ))}
+        </CarrierList>
+      )}
     </ServiceCard>
   )
 }

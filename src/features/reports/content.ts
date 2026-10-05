@@ -6,9 +6,9 @@ export const reportsCopy = {
   page: {
     title: 'Reportes',
     subtitle: 'Volumen, facturación y cumplimiento de la operación.',
-    /** Distintivo junto al título mientras la API no expone agregados. */
+    /** Distintivo junto al título para un dataset que no sale de la API. */
     sampleData: 'Datos de muestra',
-    sampleDataHint: 'La API todavía no expone agregados de reportes: los valores son ilustrativos.',
+    sampleDataHint: 'Los valores son ilustrativos: no salen de la operación de la empresa.',
     error: 'No pudimos cargar los reportes.',
   },
   period: {
@@ -32,6 +32,10 @@ export const reportsCopy = {
     onTimeDelivery: 'Cumplimiento de entregas',
     activeAnomalies: 'Anomalías activas',
     critical: 'Crítico',
+    /** Valor de una métrica que el modelo todavía no puede calcular. */
+    unavailable: '—',
+    onTimeUnavailable: 'Requiere la fecha de entrega comprometida, que el sistema no registra.',
+    anomaliesUnavailable: 'El sistema todavía no registra anomalías.',
   },
   curve: {
     title: 'Curva de despacho',
@@ -42,12 +46,15 @@ export const reportsCopy = {
       revenue: 'Facturación',
     },
     /** Descripción del gráfico para el lector de pantalla. */
-    chartLabel: (metric: string) => `Curva de despacho: ${metric.toLowerCase()} por día`,
+    chartLabel: (metric: string, granularity: 'day' | 'week') =>
+      `Curva de despacho: ${metric.toLowerCase()} por ${granularity === 'week' ? 'semana' : 'día'}`,
   },
   serviceLevel: {
-    title: 'Nivel de servicio',
-    subtitle: 'Entregas en plazo por operador logístico.',
-    barLabel: (carrier: string) => `Entregas en plazo de ${carrier}`,
+    title: 'Entregas por operador',
+    subtitle: 'Envíos despachados en el período que ya llegaron a destino.',
+    delivered: (delivered: number, dispatched: number) => `${delivered} de ${dispatched}`,
+    barLabel: (carrier: string) => `Envíos entregados de ${carrier}`,
+    empty: 'No se despacharon envíos en el período.',
   },
   anomalies: {
     title: 'Anomalías recientes',
@@ -68,5 +75,8 @@ export const reportsCopy = {
       resolved: 'Resuelto',
     },
     empty: 'No hay anomalías registradas en el período.',
+    /** El modelo no tiene anomalías: no es lo mismo que «ninguna en el período». */
+    unavailable:
+      'El sistema todavía no registra anomalías: esta tabla se completa cuando exista ese dato.',
   },
 } as const
