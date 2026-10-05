@@ -9,6 +9,8 @@ export interface EditProductModalProps {
   product: Product
   /** Depósitos de la empresa — alimentan el botón "Agregar depósito". */
   warehouses: Warehouse[]
+  /** Vocabulario de categorías (`GET /products/categories`). */
+  categories?: string[]
   /** Recibe el cuerpo ya armado para `PUT /api/v1/products/:id`. */
   onSubmit: (payload: UpdateProductPayload) => void
   onClose: () => void

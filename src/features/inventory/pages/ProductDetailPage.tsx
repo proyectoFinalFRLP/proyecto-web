@@ -17,15 +17,22 @@ import { SalesChannelsCard } from '../components/SalesChannelsCard'
 import { WarehouseDistributionCard } from '../components/WarehouseDistributionCard'
 import type { WarehouseDistributionRow } from '../components/WarehouseDistributionCard'
 import { inventoryCopy } from '../content'
-import { CONFLICT_STATUS, useProduct, useUpdateProduct, useWarehouses } from '../hooks/useInventory'
+import {
+  CONFLICT_STATUS,
+  useCategories,
+  useProduct,
+  useUpdateProduct,
+  useWarehouses,
+} from '../hooks/useInventory'
 import type { Product, UpdateProductPayload } from '../types'
 import { describeConflict } from '../utils/conflict'
 import { parseDimensions } from '../utils/dimensions'
 import { formatSpecTimestamp, formatUnits, formatWeight } from '../utils/format'
-import { STOCK_LEVEL_STATUS, sortByQuantityDesc, stockLevel, totalOnHand } from '../utils/stock'
+import { distributionPositions } from '../utils/stock'
+import { stockLabel, stockRowTone, stockVariant } from '../utils/stockStatus'
 
 const { detail, page } = inventoryCopy
-const { specs: specsCopy, master: masterCopy, distribution: distributionCopy, status } = detail
+const { specs: specsCopy, master: masterCopy, distribution: distributionCopy } = detail
 
 // Ruta del catálogo. Las rutas se registran en `app/router/routes.tsx`, capa que
 // una feature no puede importar (ver architecture.md §3.2), así que el destino
@@ -50,11 +57,13 @@ function buildSpecs(product: Product): ProductSpec[] {
   const hasDimensions = product.dimensions !== null && product.dimensions !== ''
 
   return [
-    // `products` no tiene columna de categoría (las cuatro de Product::CATEGORIES
-    // viven en el backend pero no llegan en el serializer), ni empaque, ni norma
-    // técnica. Se muestran los rótulos del diseño sin valor, en vez de omitir las
-    // celdas: así la ficha dice qué falta en lugar de disimularlo.
-    { id: 'category', label: specsCopy.fields.category, value: specsCopy.unknown, unknown: true },
+    // La categoría es opcional: los productos anteriores a TESIS-102 no tienen.
+    {
+      id: 'category',
+      label: specsCopy.fields.category,
+      value: product.category ?? specsCopy.unknown,
+      unknown: product.category === null,
+    },
     {
       id: 'weight',
       label: specsCopy.fields.weight,
@@ -74,6 +83,9 @@ function buildSpecs(product: Product): ProductSpec[] {
       mono: true,
       unknown: !hasDimensions,
     },
+    // Ni empaque ni norma técnica existen en el modelo. Se muestran los rótulos
+    // del diseño sin valor, en vez de omitir las celdas: así la ficha dice qué
+    // falta en lugar de disimularlo.
     { id: 'packaging', label: specsCopy.fields.packaging, value: specsCopy.unknown, unknown: true },
   ]
 }
@@ -94,13 +106,14 @@ function buildSecondarySpecs(product: Product): ProductSpec[] {
 }
 
 /**
- * Desglose por estado de reserva.
+ * Desglose del stock maestro.
  *
- * Las tres cubetas van sin dato: la API devuelve un solo número por depósito
- * (las unidades en depósito) y no modela reservas ni mercadería en tránsito.
- * Ver el encabezado de `utils/stock.ts`.
+ * Comprometido y disponible para prometer van sin dato: la API no modela
+ * reservas. El en tránsito sí existe, pero **no es una porción del total**:
+ * son unidades que salieron de un depósito y no llegaron a otro, y el backend
+ * las deja fuera de `total_stock`. Ver el encabezado de `utils/stock.ts`.
  */
-function buildBuckets(): StockBucket[] {
+function buildBuckets(product: Product): StockBucket[] {
   return [
     {
       id: 'committed',
@@ -112,9 +125,8 @@ function buildBuckets(): StockBucket[] {
     {
       id: 'inTransit',
       label: masterCopy.buckets.inTransit,
-      icon: <LocalShippingOutlinedIcon fontSize="small" color="disabled" />,
-      value: specsCopy.unknown,
-      unknown: true,
+      icon: <LocalShippingOutlinedIcon fontSize="small" color="action" />,
+      value: formatUnits(product.inTransitQuantity),
     },
     {
       id: 'availableToPromise',
@@ -127,23 +139,22 @@ function buildBuckets(): StockBucket[] {
   ]
 }
 
-/** Filas de la tabla, de mayor a menor cantidad como en el diseño. */
+/**
+ * Filas de la tabla, de mayor a menor cantidad como en el diseño. El estado de
+ * cada fila lo manda el backend; el resalte sigue el criterio del catálogo.
+ */
 function buildRows(product: Product): WarehouseDistributionRow[] {
-  return sortByQuantityDesc(product.stocks).map((stock) => {
-    const level = stockLevel(stock.quantity)
-
-    return {
-      id: stock.warehouseId,
-      name: stock.warehouse.name,
-      location: stock.warehouse.address,
-      committed: specsCopy.unknown,
-      inTransit: specsCopy.unknown,
-      onHand: formatUnits(stock.quantity),
-      statusLabel: status[level],
-      statusVariant: STOCK_LEVEL_STATUS[level],
-      critical: level === 'critical' || level === 'out',
-    }
-  })
+  return distributionPositions(product).map((position) => ({
+    id: position.warehouseId,
+    name: position.name,
+    location: position.location ?? specsCopy.unknown,
+    committed: specsCopy.unknown,
+    inTransit: formatUnits(position.incoming),
+    onHand: formatUnits(position.quantity),
+    statusLabel: stockLabel(position.stockStatus),
+    statusVariant: stockVariant(position.stockStatus),
+    critical: stockRowTone(position.stockStatus) === 'critical',
+  }))
 }
 
 /**
@@ -189,6 +200,7 @@ export function ProductDetailPage() {
 
   const product = useProduct(id)
   const warehouses = useWarehouses()
+  const categories = useCategories()
   const updateMutation = useUpdateProduct(id, product.data?.version ?? null)
 
   // El 412 llega con la versión ya invalidada: React Query refetchea el detalle
@@ -247,17 +259,14 @@ export function ProductDetailPage() {
     )
   }
 
-  const total = totalOnHand(product.data.stocks)
-  const level = stockLevel(total)
-
   return (
     <PageWrapper>
       <Stack spacing={2}>
         <ProductDetailHeader
           sku={product.data.sku}
           name={product.data.name}
-          statusLabel={status[level]}
-          statusVariant={STOCK_LEVEL_STATUS[level]}
+          statusLabel={stockLabel(product.data.stockStatus)}
+          statusVariant={stockVariant(product.data.stockStatus)}
           catalogPath={CATALOG_PATH}
           onEdit={() => setEditing(true)}
         />
@@ -270,9 +279,9 @@ export function ProductDetailPage() {
 
         <Box sx={CONTENT_GRID}>
           <MasterStockCard
-            totalLabel={formatUnits(total)}
+            totalLabel={formatUnits(product.data.totalStock)}
             caption={masterCopy.warehouseCount(product.data.stocks.length)}
-            buckets={buildBuckets()}
+            buckets={buildBuckets(product.data)}
             footnote={masterCopy.pending}
             onEditStock={() => setEditing(true)}
           />
@@ -304,6 +313,7 @@ export function ProductDetailPage() {
         open={editing}
         product={product.data}
         warehouses={warehouses.data}
+        categories={categories.data}
         submitting={updateMutation.isPending}
         conflict={conflict}
         onClose={() => {

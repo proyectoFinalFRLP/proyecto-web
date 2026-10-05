@@ -1,84 +1,111 @@
 import { describe, expect, it } from 'vitest'
 
-import type { ProductStock } from '../types'
+import type { Product, ProductStock } from '../types'
 
-import {
-  CRITICAL_STOCK_UNITS,
-  LOW_STOCK_UNITS,
-  sortByQuantityDesc,
-  stockLevel,
-  totalOnHand,
-} from './stock'
+import { distributionPositions, sortByQuantityDesc } from './stock'
 
 function stock(overrides: Partial<ProductStock> = {}): ProductStock {
   return {
     warehouseId: 1,
     quantity: 10,
     warehouse: { id: 1, name: 'CD Ezeiza', address: 'Autopista Riccheri km 33' },
+    stockStatus: 'low',
     ...overrides,
   }
 }
 
-describe('stockLevel', () => {
-  it('is out at zero', () => {
-    expect(stockLevel(0)).toBe('out')
-  })
+function product(overrides: Partial<Product> = {}): Product {
+  return {
+    id: 5,
+    sku: 'CAB-6-305',
+    name: 'Cable UTP Cat6',
+    description: null,
+    category: null,
+    weight: 12.4,
+    dimensions: null,
+    stocks: [],
+    totalStock: 0,
+    stockStatus: 'out_of_stock',
+    inTransitQuantity: 0,
+    inTransitByWarehouse: [],
+    updatedAt: '2026-08-30T12:00:00.000Z',
+    version: null,
+    ...overrides,
+  }
+}
 
-  it('is out for a negative quantity', () => {
-    expect(stockLevel(-5)).toBe('out')
-  })
-
-  it('is critical just above zero', () => {
-    expect(stockLevel(1)).toBe('critical')
-  })
-
-  // El límite que separa "crítico" de "bajo": la cantidad exacta del umbral
-  // todavía cuenta como crítico, no como el nivel siguiente.
-  it('is critical at the critical threshold', () => {
-    expect(stockLevel(CRITICAL_STOCK_UNITS)).toBe('critical')
-  })
-
-  it('is low just above the critical threshold', () => {
-    expect(stockLevel(CRITICAL_STOCK_UNITS + 1)).toBe('low')
-  })
-
-  it('is low at the low threshold', () => {
-    expect(stockLevel(LOW_STOCK_UNITS)).toBe('low')
-  })
-
-  it('is available just above the low threshold', () => {
-    expect(stockLevel(LOW_STOCK_UNITS + 1)).toBe('available')
-  })
+const central = stock({
+  warehouseId: 1,
+  quantity: 100,
+  warehouse: { id: 1, name: 'Central', address: 'Av. 7' },
 })
-
-describe('totalOnHand', () => {
-  it('is zero for an empty list', () => {
-    expect(totalOnHand([])).toBe(0)
-  })
-
-  it('sums the quantity of every position', () => {
-    const stocks = [stock({ quantity: 10 }), stock({ warehouseId: 2, quantity: 25 })]
-
-    expect(totalOnHand(stocks)).toBe(35)
-  })
+const satelite = stock({
+  warehouseId: 2,
+  quantity: 30,
+  warehouse: { id: 2, name: 'Satélite', address: 'Calle 25' },
 })
 
 describe('sortByQuantityDesc', () => {
-  it('orders positions from highest to lowest quantity', () => {
+  it('orders the positions from the largest to the smallest quantity', () => {
     const stocks = [stock({ quantity: 10 }), stock({ quantity: 40 }), stock({ quantity: 25 })]
 
     expect(sortByQuantityDesc(stocks).map((position) => position.quantity)).toEqual([40, 25, 10])
   })
 
-  // `sort` muta el array que recibe, y este llega desde la caché de React
-  // Query: mutarlo ahí rompería a cualquier otro consumidor de esa misma
-  // referencia sin que el bug se vea en esta pantalla.
+  // El array llega desde la caché de React Query: ordenarlo en el lugar
+  // reordenaría los datos de cualquier otro consumidor.
   it('does not mutate the array it receives', () => {
     const stocks = [stock({ quantity: 10 }), stock({ quantity: 40 })]
-    const original = [...stocks]
 
     sortByQuantityDesc(stocks)
 
-    expect(stocks).toEqual(original)
+    expect(stocks.map((position) => position.quantity)).toEqual([10, 40])
+  })
+})
+
+describe('distributionPositions', () => {
+  it('keeps the status the backend sent for each warehouse', () => {
+    const positions = distributionPositions(
+      product({ stocks: [stock({ quantity: 500, stockStatus: 'available' })] }),
+    )
+
+    expect(positions[0]?.stockStatus).toBe('available')
+  })
+
+  it('adds the incoming units to the warehouse they travel to', () => {
+    const positions = distributionPositions(
+      product({
+        stocks: [satelite, central],
+        inTransitByWarehouse: [{ warehouseId: 2, name: 'Satélite', quantity: 7 }],
+      }),
+    )
+
+    expect(positions.map((position) => [position.name, position.incoming])).toEqual([
+      ['Central', 0],
+      ['Satélite', 7],
+    ])
+  })
+
+  // La fila de stock del destino nace recién cuando se recibe la transferencia.
+  it('lists a warehouse that only receives units, after the stocked ones', () => {
+    const positions = distributionPositions(
+      product({
+        stocks: [central],
+        inTransitByWarehouse: [{ warehouseId: 9, name: 'Depósito Sur', quantity: 4 }],
+      }),
+    )
+
+    expect(positions[1]).toEqual({
+      warehouseId: 9,
+      name: 'Depósito Sur',
+      location: null,
+      quantity: 0,
+      incoming: 4,
+      stockStatus: 'out_of_stock',
+    })
+  })
+
+  it('answers no rows for a product with no stock and nothing in flight', () => {
+    expect(distributionPositions(product())).toEqual([])
   })
 })
