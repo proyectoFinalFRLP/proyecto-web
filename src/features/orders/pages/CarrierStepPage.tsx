@@ -1,6 +1,6 @@
 import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined'
 import { Alert, Box, Button, Stack } from '@mui/material'
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { PageWrapper } from 'shared/components'
 import { notify, useOrderDraftStore } from 'shared/store'
@@ -89,9 +89,6 @@ export function CarrierStepPage() {
   )
   const quotes = useDraftQuotes(payload)
   const confirm = useConfirmDraftOrder({ onOrderCreated: clearDraft })
-  const shipmentMissing =
-    confirm.createdOrderId !== null && confirm.createdShipmentId === null && !confirm.isSuccess
-  useLeaveWarning(shipmentMissing)
 
   // Sin cliente o sin líneas no hay orden que cotizar; sin origen o destino hay
   // que volver al paso 2. Se llegó por URL, recargando, o se canceló el
@@ -134,13 +131,10 @@ export function CarrierStepPage() {
           {createdOrderId === null ? carrier.errors.order : carrier.errors.dispatch(orderLabel)}{' '}
           {confirm.error.message}
         </span>
-        {createdOrderId === null ? null : (
-          <span>
-            {confirm.createdShipmentId === null
-              ? carrier.errors.shipmentMissing
-              : carrier.errors.dispatchLater}
-          </span>
-        )}
+        {/* Un solo mensaje: con la orden ya creada, el detalle termina el
+            envío tanto si no llegó a abrirse (TESIS-141) como si quedó
+            `pending` sin despachar (TESIS-134). */}
+        {createdOrderId === null ? null : <span>{carrier.errors.dispatchLater}</span>}
         {createdOrderId === null ? null : (
           <Button
             color="inherit"
@@ -204,20 +198,4 @@ export function CarrierStepPage() {
       </Stack>
     </PageWrapper>
   )
-}
-
-/**
- * Pide confirmación al recargar o cerrar la pestaña mientras `active`. Es lo que
- * el navegador permite: el texto del diálogo es el suyo, no uno propio.
- */
-function useLeaveWarning(active: boolean) {
-  useEffect(() => {
-    if (!active) return undefined
-
-    const warn = (event: BeforeUnloadEvent) => {
-      event.preventDefault()
-    }
-    window.addEventListener('beforeunload', warn)
-    return () => window.removeEventListener('beforeunload', warn)
-  }, [active])
 }

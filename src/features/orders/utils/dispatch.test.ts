@@ -2,7 +2,12 @@ import { describe, expect, it } from 'vitest'
 
 import type { OrderLine, OriginWarehouse, Shipment } from '../types'
 
-import { dispatchableShipment, originCandidates, toOrderQuotePayload } from './dispatch'
+import {
+  canOpenShipment,
+  dispatchableShipment,
+  originCandidates,
+  toOrderQuotePayload,
+} from './dispatch'
 
 const PENDING: Shipment = {
   id: 31,
@@ -59,6 +64,35 @@ describe('dispatchableShipment', () => {
     expect(dispatchableShipment('pending', { kind: 'duplicated', count: 2 })).toBeNull()
     expect(dispatchableShipment('pending', { kind: 'loading' })).toBeNull()
     expect(dispatchableShipment('pending', { kind: 'error', onRetry: () => undefined })).toBeNull()
+  })
+})
+
+describe('canOpenShipment', () => {
+  // El caso que motiva la card: una orden de webhook nace sin envío y hasta
+  // TESIS-141 no había forma de abrirlo desde la app.
+  it('lets an order with no shipment open one', () => {
+    expect(canOpenShipment('paid', { kind: 'none' })).toBe(true)
+  })
+
+  it('also lets a pending order open it, like the backend does', () => {
+    expect(canOpenShipment('pending', { kind: 'none' })).toBe(true)
+  })
+
+  // Misma exclusión que Shipments::CreateShipment::NON_SHIPPABLE_STATUSES.
+  it('refuses a cancelled order', () => {
+    expect(canOpenShipment('cancelled', { kind: 'none' })).toBe(false)
+  })
+
+  it('refuses an order that already has one', () => {
+    expect(canOpenShipment('paid', { kind: 'single', shipment: PENDING })).toBe(false)
+  })
+
+  // Que el envío no exista tiene que ser un hecho: sobre una consulta que
+  // todavía no resolvió o que falló, ofrecerlo invitaría a un 409.
+  it('refuses while the shipment is unknown', () => {
+    expect(canOpenShipment('paid', { kind: 'loading' })).toBe(false)
+    expect(canOpenShipment('paid', { kind: 'error', onRetry: () => undefined })).toBe(false)
+    expect(canOpenShipment('paid', { kind: 'duplicated', count: 2 })).toBe(false)
   })
 })
 

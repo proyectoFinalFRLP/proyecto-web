@@ -78,6 +78,15 @@ export const ordersCopy = {
       error: 'No pudimos cargar el envío de la orden.',
       retry: 'Reintentar',
     },
+    /** Abrir el envío de una orden que todavía no lo tiene (TESIS-141). */
+    openShipment: {
+      action: 'Crear envío',
+      creating: 'Creando…',
+      created: 'Envío creado. Ya se puede despachar.',
+      /** 409: lo abrió el asistente del alta, u otra pestaña. */
+      duplicated: 'La orden ya tenía un envío. Lo acabamos de traer.',
+      error: 'No pudimos crear el envío de la orden.',
+    },
     /** Despachar desde el detalle un envío que quedó sin despachar (TESIS-134). */
     dispatch: {
       action: 'Despachar',
@@ -368,12 +377,15 @@ export const ordersCopy = {
       /** La orden ya existe: lo que falló es el envío o el despacho. */
       dispatch: (orderLabel: string) =>
         `La orden ${orderLabel} se creó, pero no pudimos emitir el despacho.`,
-      /** El envío quedó `pending`: el detalle de la orden lo puede despachar (TESIS-134). */
+      /**
+       * Un solo mensaje para las dos fallas que dejan la orden creada: que no
+       * se haya abierto el envío y que no se haya podido despachar. Desde
+       * TESIS-141 las dos tienen la misma salida, porque el detalle de la orden
+       * abre el envío que falta (TESIS-141) y despacha el que quedó `pending`
+       * (TESIS-134). Antes eran dos textos porque sin envío no había a dónde ir.
+       */
       dispatchLater:
-        'Podés reintentarlo acá o, si salís de esta pantalla, despachar el envío desde el detalle de la orden.',
-      /** Ni siquiera se abrió el envío: ninguna otra pantalla lo abre, ésta es la única salida. */
-      shipmentMissing:
-        'Reintentalo antes de salir: la orden ya descontó el stock y todavía no tiene envío, y ninguna otra pantalla lo puede abrir.',
+        'Podés reintentarlo acá o, si salís de esta pantalla, terminar el envío desde el detalle de la orden.',
       retryDispatch: 'Reintentar el despacho',
       viewOrder: 'Ver la orden',
     },

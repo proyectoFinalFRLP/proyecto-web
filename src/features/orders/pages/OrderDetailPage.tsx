@@ -5,6 +5,7 @@ import PaymentsOutlinedIcon from '@mui/icons-material/PaymentsOutlined'
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline'
 import { Box, Button, Stack, Typography } from '@mui/material'
 import { useState } from 'react'
+import type { ReactNode } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ErrorFallback, LoadingSpinner, PageWrapper } from 'shared/components'
 import { notify } from 'shared/store'
@@ -21,9 +22,10 @@ import { ShipmentLifecycleCard } from '../components/ShipmentLifecycleCard'
 import { ShippingLabelField } from '../components/ShippingLabelField'
 import { TrackingNumberField } from '../components/TrackingNumberField'
 import { formatCount, ordersCopy } from '../content'
+import { useCreateOrderShipment } from '../hooks/useCreateOrderShipment'
 import { useOrder, useOrderShipment } from '../hooks/useOrderDetail'
 import type { OrderDetail, Shipment, ShipmentView } from '../types'
-import { dispatchableShipment } from '../utils/dispatch'
+import { canOpenShipment, dispatchableShipment } from '../utils/dispatch'
 import { formatMoney, formatOrderId, formatShortDate } from '../utils/format'
 import { paymentSummary, totalUnits } from '../utils/payment'
 import { deliveredAt, headerStatus } from '../utils/shipment'
@@ -38,6 +40,7 @@ const editPath = (id: number) => `/orders/edit/${id}`
 const productPath = (id: number) => `/inventory/${id}`
 
 const NOT_FOUND_STATUS = 404
+const CONFLICT_STATUS = 409
 
 // La grilla de S08: el cuerpo a la izquierda y una columna de 300px con los
 // paneles. En pantallas angostas los paneles bajan debajo del cuerpo.
@@ -128,6 +131,48 @@ const SHIPPING_FIELDS: InfoField[] = [
   { id: 'origin', label: detail.shipping.fields.origin, value: unknown, unknown: true },
 ]
 
+/**
+ * La acción de la tarjeta del envío. Son dos y excluyentes: abrir el envío
+ * cuando la orden no lo tiene (TESIS-141) y despacharlo cuando quedó `pending`
+ * (TESIS-134). Van separadas a propósito —el asistente del alta las encadena
+ * porque ahí la persona ya eligió courier en el mismo paso—, así que acá lo que
+ * sigue a crear el envío es que aparezca «Despachar».
+ */
+function shipmentAction({
+  dispatchable,
+  canOpen,
+  creating,
+  onDispatch,
+  onOpen,
+}: {
+  dispatchable: Shipment | null
+  canOpen: boolean
+  creating: boolean
+  onDispatch: (shipmentId: number) => void
+  onOpen: () => void
+}): ReactNode {
+  if (dispatchable !== null) {
+    return (
+      <Button
+        variant="contained"
+        size="small"
+        startIcon={<LocalShippingOutlinedIcon />}
+        onClick={() => onDispatch(dispatchable.id)}
+      >
+        {detail.dispatch.action}
+      </Button>
+    )
+  }
+
+  if (!canOpen) return undefined
+
+  return (
+    <Button variant="contained" size="small" disabled={creating} onClick={onOpen}>
+      {creating ? detail.openShipment.creating : detail.openShipment.action}
+    </Button>
+  )
+}
+
 function NotFound() {
   return (
     <PageWrapper>
@@ -150,7 +195,10 @@ function NotFound() {
  * propósito: si el envío no se puede leer, la orden se muestra igual.
  *
  * Un envío que quedó sin despachar —el despacho del alta falló y la pantalla se
- * cerró— se despacha desde acá (TESIS-134).
+ * cerró— se despacha desde acá (TESIS-134). Y una orden que todavía no tiene
+ * envío lo abre desde acá (TESIS-141): hasta entonces el único lugar que lo
+ * abría era el paso 3 del alta manual, así que las órdenes que entran por
+ * webhook no tenían forma de llegar al circuito logístico.
  */
 export function OrderDetailPage() {
   const { orderId } = useParams()
@@ -167,6 +215,7 @@ export function OrderDetailPage() {
   // refresca el detalle, y el diálogo no tiene que desmontarse con el resultado
   // todavía a la vista porque el envío dejó de estar pendiente.
   const [dispatchingId, setDispatchingId] = useState<number | null>(null)
+  const openShipment = useCreateOrderShipment()
 
   if (id === undefined || order.error?.status === NOT_FOUND_STATUS) return <NotFound />
 
@@ -184,7 +233,24 @@ export function OrderDetailPage() {
   const payment = paymentSummary(order.data, resolved?.shippingCost ?? null)
   const status = headerStatus(order.data.status, shipment.data)
   const dispatchable = dispatchableShipment(order.data.status, shipmentView)
+  const canOpen = canOpenShipment(order.data.status, shipmentView)
   const orderLabel = formatOrderId(order.data.externalOrderId, order.data.id)
+  // El id suelto y no `order.data.id` dentro del callback: el angostado de los
+  // returns de arriba no alcanza adentro de una función, que TypeScript no sabe
+  // cuándo se llama.
+  const loadedOrderId = order.data.id
+
+  // Un 409 no es un fallo que haya que reintentar: el envío ya existe (lo abrió
+  // el asistente, u otra pestaña) y la invalidación de `onSettled` ya lo trae.
+  function createShipment() {
+    openShipment.mutate(loadedOrderId, {
+      onSuccess: () => notify(detail.openShipment.created, 'success'),
+      onError: (failure) =>
+        failure.status === CONFLICT_STATUS
+          ? notify(detail.openShipment.duplicated)
+          : notify(detail.openShipment.error, 'error'),
+    })
+  }
 
   return (
     <PageWrapper>
@@ -204,18 +270,13 @@ export function OrderDetailPage() {
             <OrderItemsTable lines={order.data.lines} productPath={productPath} />
             <ShipmentLifecycleCard
               shipment={shipmentView}
-              action={
-                dispatchable === null ? undefined : (
-                  <Button
-                    variant="contained"
-                    size="small"
-                    startIcon={<LocalShippingOutlinedIcon />}
-                    onClick={() => setDispatchingId(dispatchable.id)}
-                  >
-                    {detail.dispatch.action}
-                  </Button>
-                )
-              }
+              action={shipmentAction({
+                dispatchable,
+                canOpen,
+                creating: openShipment.isPending,
+                onDispatch: setDispatchingId,
+                onOpen: createShipment,
+              })}
             />
           </Stack>
 
