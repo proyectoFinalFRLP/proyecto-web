@@ -12,6 +12,9 @@ export const shipmentKeys = {
   counts: () => [...shipmentKeys.all, 'count'] as const,
   // `status ?? 'all'`: sin esto, la clave de «todos» y la de un estado
   // indefinido serían la misma sólo por casualidad de serialización.
-  count: (status: ShipmentStatus | undefined) =>
-    [...shipmentKeys.counts(), status ?? 'all'] as const,
+  // El término entra en la clave del contador igual que en la del listado: si
+  // no, las pestañas seguirían contando la empresa entera mientras la tabla
+  // muestra lo buscado.
+  count: (status: ShipmentStatus | undefined, search: string) =>
+    [...shipmentKeys.counts(), status ?? 'all', search] as const,
 }

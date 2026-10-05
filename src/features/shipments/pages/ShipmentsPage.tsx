@@ -1,8 +1,10 @@
-import { Box, Stack, Typography } from '@mui/material'
+import SearchIcon from '@mui/icons-material/Search'
+import { Box, InputAdornment, Stack, TextField, Typography } from '@mui/material'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ErrorFallback, LoadingSpinner, PageWrapper } from 'shared/components'
 import type { DataTableTab } from 'shared/components'
+import { useDebouncedValue } from 'shared/hooks/useDebouncedValue'
 
 import { ShipmentsTable } from '../components/ShipmentsTable'
 import { formatCount, shipmentsCopy } from '../content'
@@ -10,7 +12,7 @@ import { SHIPMENT_TABS, useShipmentCounts, useShipmentPage } from '../hooks/useS
 import type { ShipmentTabId } from '../hooks/useShipments'
 import type { ShipmentSummary } from '../types'
 
-const { page: pageCopy, tabs: tabCopy, pagination } = shipmentsCopy
+const { page: pageCopy, tabs: tabCopy, table, pagination } = shipmentsCopy
 
 const PER_PAGE = 20
 
@@ -42,15 +44,33 @@ export function ShipmentsPage() {
   const navigate = useNavigate()
   const [tabId, setTabId] = useState<ShipmentTabId>('all')
   const [page, setPage] = useState(1)
+  const [search, setSearch] = useState('')
+
+  // Lo que se tipea actualiza el campo en el acto; lo que viaja a la API espera
+  // a que la persona deje de escribir.
+  const debouncedSearch = useDebouncedValue(search)
 
   const status = SHIPMENT_TABS.find((tab) => tab.id === tabId)?.status
-  const shipments = useShipmentPage({ page, perPage: PER_PAGE, status })
-  const counts = useShipmentCounts()
+  const shipments = useShipmentPage({
+    page,
+    perPage: PER_PAGE,
+    status,
+    search: debouncedSearch,
+  })
+  // El término también va a los contadores: si no, las pestañas seguirían
+  // diciendo cuántos envíos tiene la empresa mientras la tabla muestra tres.
+  const counts = useShipmentCounts(debouncedSearch)
 
-  // Cambiar de pestaña vuelve a la primera página: quedarse en la 7 de un
-  // filtro que ahora tiene 2 páginas deja la tabla vacía sin motivo visible.
+  // Cambiar de pestaña o de búsqueda vuelve a la primera página: quedarse en la
+  // 7 de un filtro que ahora tiene 2 páginas deja la tabla vacía sin motivo
+  // visible.
   function changeTab(nextTabId: string) {
     setTabId(nextTabId as ShipmentTabId)
+    setPage(1)
+  }
+
+  function changeSearch(value: string) {
+    setSearch(value)
     setPage(1)
   }
 
@@ -85,14 +105,41 @@ export function ShipmentsPage() {
   return (
     <PageWrapper sx={{ maxWidth: 1400 }}>
       <Stack spacing={3}>
-        <Box>
-          <Typography variant="h1" component="h1">
-            {pageCopy.title}
-          </Typography>
-          <Typography variant="bodyLg" sx={{ color: 'text.secondary' }}>
-            {pageCopy.subtitle}
-          </Typography>
-        </Box>
+        {/* `useFlexGap`: sin él `spacing` separa con `margin-left` y pisa el
+            `ml: 'auto'` que manda el buscador a la derecha (TESIS-132). */}
+        <Stack
+          direction={{ xs: 'column', md: 'row' }}
+          spacing={2}
+          useFlexGap
+          sx={{ alignItems: { md: 'flex-start' } }}
+        >
+          <Box>
+            <Typography variant="h1" component="h1">
+              {pageCopy.title}
+            </Typography>
+            <Typography variant="bodyLg" sx={{ color: 'text.secondary' }}>
+              {pageCopy.subtitle}
+            </Typography>
+          </Box>
+
+          <TextField
+            size="small"
+            value={search}
+            onChange={(event) => changeSearch(event.target.value)}
+            label={pageCopy.searchLabel}
+            placeholder={pageCopy.searchPlaceholder}
+            sx={{ ml: { md: 'auto' }, width: { xs: '100%', sm: 300 }, flexShrink: 0 }}
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon fontSize="small" />
+                  </InputAdornment>
+                ),
+              },
+            }}
+          />
+        </Stack>
 
         <ShipmentsTable
           shipments={rows}
@@ -100,6 +147,7 @@ export function ShipmentsPage() {
           activeTabId={tabId}
           onTabChange={changeTab}
           onView={openOrder}
+          emptyMessage={debouncedSearch ? table.emptySearch : table.empty}
           pagination={{
             page,
             pageCount,

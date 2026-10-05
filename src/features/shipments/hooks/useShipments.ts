@@ -46,11 +46,11 @@ export function useShipmentPage(filters: ShipmentFilters) {
  * Que uno falle no voltea la pantalla: la tabla se ve igual y esa pestaña queda
  * sin número.
  */
-export function useShipmentCounts() {
+export function useShipmentCounts(search = '') {
   return useQueries({
     queries: SHIPMENT_TABS.map(({ status }) => ({
-      queryKey: shipmentKeys.count(status),
-      queryFn: () => fetchShipmentCount(status),
+      queryKey: shipmentKeys.count(status, search),
+      queryFn: () => fetchShipmentCount(status, search),
     })),
     combine: (results) => results.map((result) => result.data),
   })
