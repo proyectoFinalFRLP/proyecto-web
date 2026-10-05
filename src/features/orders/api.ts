@@ -18,6 +18,7 @@ import type {
   UpdateOrderPayload,
 } from './types'
 import type { OrderQuotePayload } from './utils/dispatch'
+import { printableLabel } from './utils/shipment'
 import type { CreateOrderPayload, DispatchPayload, DraftQuotePayload } from './utils/shipping'
 
 // Frontera con la API Rails. Lo que entra en snake_case se traduce acá y sale
@@ -116,6 +117,7 @@ interface ApiShipment {
   status: ShipmentStatus
   tracking_number: string | null
   shipping_cost: number | null
+  shipping_label_url: string | null
   courier: ApiCourier | null
   events: ApiShipmentEvent[]
 }
@@ -256,6 +258,9 @@ function toShipment(shipment: ApiShipment): Shipment {
     status: shipment.status,
     trackingNumber: shipment.tracking_number,
     shippingCost: shipment.shipping_cost,
+    // Viene de la respuesta del courier, así que se acota a un enlace que se
+    // pueda abrir (ver `printableLabel`). La API lo guarda tal cual lo mandó.
+    labelUrl: printableLabel(shipment.shipping_label_url),
     courier: toCourier(shipment.courier),
     // El backend ya los ordena por `occurred_at` (con desempate por id): no se
     // reordenan acá para no tener dos definiciones del mismo orden.

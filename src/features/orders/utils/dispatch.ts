@@ -27,6 +27,23 @@ export function dispatchableShipment(
 }
 
 /**
+ * Si la orden puede abrir su envío desde el detalle (TESIS-141).
+ *
+ * El envío lo abría un solo lugar: el paso 3 del alta manual. Una orden que
+ * entra por webhook nace sin envío, y sin esta acción no llegaba nunca al
+ * circuito logístico desde la app: el detalle decía que no tenía envío y no
+ * ofrecía nada.
+ *
+ * Es la misma regla que aplica el backend (`Shipments::CreateShipment`): se
+ * excluyen las canceladas y nada más. Que el envío no exista tiene que ser un
+ * hecho y no una duda, así que mientras la consulta carga o falla no se ofrece:
+ * ofrecerlo sobre un envío que no se pudo leer invitaría a un 409.
+ */
+export function canOpenShipment(orderStatus: OrderStatus, view: ShipmentView): boolean {
+  return orderStatus !== 'cancelled' && view.kind === 'none'
+}
+
+/**
  * Los depósitos desde los que puede salir el envío.
  *
  * El envío no guarda su origen, pero cada línea sabe de qué depósito se
