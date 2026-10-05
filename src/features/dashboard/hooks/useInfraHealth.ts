@@ -1,9 +1,10 @@
 import { useCallback, useMemo } from 'react'
+import type { IntegrationService, ServiceType } from 'shared/api'
 import type { StatTone } from 'shared/components'
+import { useIntegrations } from 'shared/hooks/useIntegrations'
 
-import type { IntegrationNode, NodeSyncStatus, ServiceType } from '../types'
+import type { NodeSyncStatus } from '../types'
 
-import { useIntegrations } from './useIntegrations'
 import { useNow } from './useNow'
 
 // Ventana de frescura: una sync más vieja que esto se considera fuera de los
@@ -59,15 +60,13 @@ function resolveStatus(lastSyncedAt: string | null, now: number): NodeSyncStatus
   return now - syncedAt <= SYNC_STALE_THRESHOLD_MS ? 'online' : 'stale'
 }
 
-function toNode(integration: IntegrationNode, now: number): InfraNode {
-  const lastSyncedAt = integration.last_synced_at ?? null
-
+function toNode(integration: IntegrationService, now: number): InfraNode {
   return {
-    serviceId: integration.service_id,
-    name: integration.service_name,
+    serviceId: integration.serviceId,
+    name: integration.name,
     type: integration.type,
-    status: resolveStatus(lastSyncedAt, now),
-    lastSyncedAt,
+    status: resolveStatus(integration.lastSyncedAt, now),
+    lastSyncedAt: integration.lastSyncedAt,
   }
 }
 
@@ -97,7 +96,7 @@ export function useInfraHealth(): InfraHealth {
       (data ?? [])
         // El filtro que pide la card: solo services con integración existente y
         // activa. Los demás son servicios disponibles, no nodos de la empresa.
-        .filter((integration) => integration.configured && integration.is_active)
+        .filter((integration) => integration.configured && integration.isActive)
         .map((integration) => toNode(integration, now))
         .sort((a, b) => a.name.localeCompare(b.name, 'es-AR')),
     [data, now],

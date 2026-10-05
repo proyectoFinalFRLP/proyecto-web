@@ -99,7 +99,7 @@ export const inventoryCopy = {
         `${length} × ${width} × ${height} cm`,
       /** Marca de "sin dato" del DS, la misma que usa el dashboard. */
       unknown: '—',
-      pendingBackend: 'Categoría, empaque y norma técnica todavía no existen en la API.',
+      pendingBackend: 'Empaque y norma técnica todavía no existen en la API.',
     },
     master: {
       title: 'Stock maestro',
@@ -114,9 +114,10 @@ export const inventoryCopy = {
       },
       // Cubre las dos piezas del diseño que la API no puede alimentar: la barra
       // de capacidad ("71 % del umbral máximo de 6.000 unidades"), que necesita
-      // un techo por producto, y el desglose por estado de reserva.
+      // un techo por producto, y el desglose por reserva. Y aclara que el en
+      // tránsito, a diferencia del diseño, no es una porción del total.
       pending:
-        'El porcentaje de capacidad y el desglose por reserva esperan datos que la API todavía no expone.',
+        'El en tránsito no forma parte del total. La capacidad y las reservas esperan datos que la API todavía no expone.',
       edit: 'Editar stock',
     },
     distribution: {
@@ -131,16 +132,14 @@ export const inventoryCopy = {
         onHand: 'En depósito',
         status: 'Estado',
       },
+      // Cuenta también los depósitos que sólo esperan unidades en camino.
       footer: (count: number) =>
-        count === 1 ? '1 depósito con stock asignado' : `${count} depósitos con stock asignado`,
+        count === 1
+          ? '1 depósito con stock o en camino'
+          : `${count} depósitos con stock o en camino`,
       empty: 'Este producto no tiene stock asignado en ningún depósito.',
-      pending: 'Comprometido y en tránsito esperan que la API los modele.',
-    },
-    status: {
-      available: 'Disponible',
-      low: 'Stock bajo',
-      critical: 'Crítico',
-      out: 'Sin stock',
+      pending:
+        'En tránsito son las unidades que vienen hacia cada depósito. Comprometido espera que la API modele las reservas.',
     },
     notFound: 'No encontramos el producto que buscabas.',
     backToCatalog: 'Volver al catálogo',
@@ -194,6 +193,36 @@ export const inventoryCopy = {
     lastUpdated: (when: string) => `Última actualización ${when}`,
     cancel: 'Cancelar',
     submit: 'Guardar cambios',
+  },
+  // Canales de venta del detalle (TESIS-139): dónde está publicado el
+  // producto y con qué id. Sólo para las empresas con la feature `integrations`.
+  channels: {
+    title: 'Canales de venta',
+    subtitle: 'Publicaciones vinculadas: el stock de OneStock se publica en cada una.',
+    externalId: (id: string) => `ID de la publicación: ${id}`,
+    empty: 'Este producto todavía no está vinculado a ningún canal.',
+    noChannels: 'No hay canales conectados donde vincularlo.',
+    goToIntegrations: 'Ir a Integraciones',
+    channel: 'Canal',
+    externalIdLabel: 'ID de la publicación',
+    externalIdHelper: 'Dejalo vacío para buscarla por el SKU del producto.',
+    link: 'Vincular',
+    linking: 'Vinculando…',
+    unlink: 'Desvincular',
+    error: 'No pudimos cargar los canales del producto.',
+    linked: (channel: string) => `Vinculado con ${channel}. El stock ya se está publicando.`,
+    unlinked: (channel: string) => `Se desvinculó de ${channel}.`,
+    skuMismatch: 'El SKU de la publicación no coincide con el del producto. Revisalo en el canal.',
+    notFound: 'El canal no tiene una publicación con ese ID (o con el SKU del producto).',
+    alreadyLinked: 'Esa publicación ya está vinculada a otro producto.',
+    channelDown: 'El canal no respondió. Probá de nuevo en unos minutos.',
+    unlinkDialog: {
+      title: (channel: string) => `Desvincular de ${channel}`,
+      description: 'OneStock deja de publicar el stock de este producto en ese canal.',
+      confirm: 'Desvincular',
+      cancel: 'Cancelar',
+      close: 'Cerrar',
+    },
   },
   createModal: {
     open: 'Nuevo producto',

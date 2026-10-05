@@ -1,4 +1,4 @@
-import { fireEvent, screen, waitFor } from '@testing-library/react'
+import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -21,11 +21,65 @@ const PRODUCT: Product = {
   sku: 'NOR-007',
   name: 'Cable UTP Cat6 100m',
   description: null,
+  category: null,
   weight: 4.5,
   dimensions: null,
   stocks: [],
+  totalStock: 0,
+  stockStatus: 'out_of_stock',
+  inTransitQuantity: 0,
+  inTransitByWarehouse: [],
   updatedAt: '2026-09-01T10:00:00Z',
   version: 'W/"1"',
+}
+
+// NOR-003 de los seeds: 100 en Central + 30 en Satélite = 130. El catálogo lo
+// muestra «Disponible» (130 > 100); el detalle lo mostraba «Crítico» porque
+// calculaba el badge con umbrales propios (≤ 200).
+const SEEDED_MOUSE: Product = {
+  ...PRODUCT,
+  sku: 'NOR-003',
+  name: 'Mouse Inalámbrico Logitech',
+  category: 'Electronics',
+  stocks: [
+    {
+      warehouseId: 1,
+      quantity: 100,
+      warehouse: { id: 1, name: 'Depósito Central', address: 'Av. 7 N° 1234' },
+      stockStatus: 'low',
+    },
+    {
+      warehouseId: 2,
+      quantity: 30,
+      warehouse: { id: 2, name: 'Depósito Satélite Norte', address: 'Calle 25 N° 456' },
+      stockStatus: 'low',
+    },
+  ],
+  totalStock: 130,
+  stockStatus: 'available',
+  inTransitQuantity: 12,
+  inTransitByWarehouse: [
+    { warehouseId: 2, name: 'Depósito Satélite Norte', quantity: 5 },
+    { warehouseId: 3, name: 'Depósito Sur', quantity: 7 },
+  ],
+}
+
+function showProduct(product: Product) {
+  vi.mocked(useProduct).mockReturnValue({
+    data: product,
+    isPending: false,
+    isError: false,
+    isFetching: false,
+    refetch: vi.fn(),
+  } as never)
+}
+
+/** La fila de la tabla de distribución que nombra a un depósito. */
+function distributionRow(warehouse: string) {
+  const cell = screen.getByText(warehouse)
+  const row = cell.closest('tr')
+  if (row === null) throw new Error(`no row for ${warehouse}`)
+  return within(row)
 }
 
 const editForm = () => screen.queryByText(`Editar producto: ${PRODUCT.name}`)
@@ -103,5 +157,70 @@ describe('ProductDetailPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Cerrar' }))
 
     await waitFor(() => expect(editForm()).not.toBeInTheDocument())
+  })
+
+  describe('the data that comes from the backend', () => {
+    it('shows the badge the catalog shows for the same product', () => {
+      showProduct(SEEDED_MOUSE)
+      renderDetail()
+
+      expect(screen.getAllByText('Disponible').length).toBeGreaterThan(0)
+      expect(screen.queryByText('Crítico')).not.toBeInTheDocument()
+    })
+
+    it('shows the status the backend sent for each warehouse', () => {
+      showProduct(SEEDED_MOUSE)
+      renderDetail()
+
+      expect(distributionRow('Depósito Central').getByText('Stock bajo')).toBeInTheDocument()
+      expect(distributionRow('Depósito Satélite Norte').getByText('Stock bajo')).toBeInTheDocument()
+    })
+
+    it('shows the category of the product', () => {
+      showProduct(SEEDED_MOUSE)
+      renderDetail()
+
+      expect(screen.getByText('Electronics')).toBeInTheDocument()
+    })
+
+    it('shows the no-data mark for a product with no category', () => {
+      renderDetail()
+
+      expect(screen.getByText('Categoría').parentElement).toHaveTextContent('—')
+    })
+
+    it('takes the master total from the API instead of adding the rows', () => {
+      showProduct({ ...SEEDED_MOUSE, totalStock: 131 })
+      renderDetail()
+
+      expect(screen.getByText('131')).toBeInTheDocument()
+    })
+
+    // El en tránsito queda fuera del total: 130 sigue siendo 130.
+    it('shows the units in flight apart from the total', () => {
+      showProduct(SEEDED_MOUSE)
+      renderDetail()
+
+      expect(
+        screen.getByText('En tránsito', { selector: 'p, span' }).parentElement?.parentElement,
+      ).toHaveTextContent('12')
+      expect(screen.getByText('130')).toBeInTheDocument()
+    })
+
+    it('puts the incoming units on the row of their destination', () => {
+      showProduct(SEEDED_MOUSE)
+      renderDetail()
+
+      expect(distributionRow('Depósito Satélite Norte').getByText('5')).toBeInTheDocument()
+    })
+
+    // Depósito Sur no tiene fila en `stocks`: la nace al recibir la transferencia.
+    it('lists a warehouse that only waits for units in flight', () => {
+      showProduct(SEEDED_MOUSE)
+      renderDetail()
+
+      expect(distributionRow('Depósito Sur').getByText('7')).toBeInTheDocument()
+      expect(distributionRow('Depósito Sur').getByText('Sin stock')).toBeInTheDocument()
+    })
   })
 })
