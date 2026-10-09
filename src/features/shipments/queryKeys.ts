@@ -10,11 +10,13 @@ export const shipmentKeys = {
   lists: () => [...shipmentKeys.all, 'list'] as const,
   list: (filters: ShipmentFilters) => [...shipmentKeys.lists(), filters] as const,
   counts: () => [...shipmentKeys.all, 'count'] as const,
+  // Las cinco pestañas en una respuesta (TESIS-165). El término entra en la
+  // clave igual que en la del listado: si no, las pestañas seguirían contando
+  // la empresa entera mientras la tabla muestra lo buscado.
+  tabCounts: (search: string) => [...shipmentKeys.counts(), 'tabs', search] as const,
   // `status ?? 'all'`: sin esto, la clave de «todos» y la de un estado
-  // indefinido serían la misma sólo por casualidad de serialización.
-  // El término entra en la clave del contador igual que en la del listado: si
-  // no, las pestañas seguirían contando la empresa entera mientras la tabla
-  // muestra lo buscado.
+  // indefinido serían la misma sólo por casualidad de serialización. Queda
+  // para el KPI del panel, que pide un número suelto.
   count: (status: ShipmentStatus | undefined, search: string) =>
     [...shipmentKeys.counts(), status ?? 'all', search] as const,
 }

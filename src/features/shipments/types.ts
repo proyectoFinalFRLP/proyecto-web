@@ -46,3 +46,18 @@ export interface ShipmentFilters {
   /** Número de seguimiento o id del canal. Vacío es «sin buscar». */
   search?: string
 }
+
+/**
+ * Cuántos envíos cae en cada pestaña del listado (`GET /shipments/counts`).
+ *
+ * Una clave por pestaña y no un array por índice: la pantalla las lee por
+ * nombre, así que agregar un estado al ciclo de vida no puede correr un
+ * contador de lugar.
+ */
+export interface ShipmentCounts {
+  all: number
+  pending: number
+  ready_to_ship: number
+  in_transit: number
+  delivered: number
+}
