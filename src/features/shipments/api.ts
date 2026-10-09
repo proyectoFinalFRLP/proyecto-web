@@ -1,7 +1,13 @@
 import { client } from 'shared/api/client'
 import { fetchCount } from 'shared/api/count'
 
-import type { ShipmentFilters, ShipmentPage, ShipmentStatus, ShipmentSummary } from './types'
+import type {
+  ShipmentCounts,
+  ShipmentFilters,
+  ShipmentPage,
+  ShipmentStatus,
+  ShipmentSummary,
+} from './types'
 
 // Frontera con Rails del listado de envíos. Único lugar de la feature que
 // conoce el endpoint y el snake_case.
@@ -79,13 +85,29 @@ export async function fetchShipmentPage(filters: ShipmentFilters): Promise<Shipm
 /**
  * Cuántos envíos matchean un estado, sin traerlos.
  *
- * Alimenta los contadores de las pestañas: pide una sola fila y lee nada más
- * que el `meta.total`, que el backend cuenta sobre el scope ya filtrado. Es el
- * mismo `fetchCount` que usan el panel y el catálogo.
+ * Pide una sola fila y lee nada más que el `meta.total`, que el backend cuenta
+ * sobre el scope ya filtrado. Lo usa el KPI de envíos activos del panel, que
+ * necesita un número suelto y no las cinco pestañas.
  */
 export function fetchShipmentCount(status?: ShipmentStatus, search = ''): Promise<number> {
   return fetchCount('/shipments', {
     ...(status === undefined ? {} : { status }),
     ...(search ? { search } : {}),
   })
+}
+
+/**
+ * Cuántos envíos cae en cada pestaña del listado (`GET /shipments/counts`).
+ *
+ * Eran cinco requests, uno por pestaña, cada uno pidiendo una fila sólo para
+ * leer su `meta.total`. El backend los devuelve juntos desde TESIS-165,
+ * respetando el mismo buscador que el listado: si no lo hiciera, buscar un
+ * seguimiento dejaría la tabla con una fila y la pestaña diciendo «Todos (20)».
+ */
+export async function fetchShipmentCounts(search = ''): Promise<ShipmentCounts> {
+  const { data } = await client.get<{ data: ShipmentCounts }>('/shipments/counts', {
+    params: search ? { search } : {},
+  })
+
+  return data.data
 }

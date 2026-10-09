@@ -2,7 +2,7 @@ import type { AxiosResponse } from 'axios'
 import { client } from 'shared/api/client'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { fetchShipmentCount, fetchShipmentPage } from './api'
+import { fetchShipmentCount, fetchShipmentCounts, fetchShipmentPage } from './api'
 
 // Sólo el `data` importa: la frontera no lee headers ni status de estas respuestas.
 function respond(data: unknown): AxiosResponse {
@@ -65,5 +65,53 @@ describe('fetchShipmentCount', () => {
     await fetchShipmentCount('pending')
 
     expect(sent[0]).not.toHaveProperty('search')
+  })
+})
+
+// TESIS-165: eran cinco requests, uno por pestaña, cada uno pidiendo una fila
+// sólo para leer su `meta.total`.
+describe('fetchShipmentCounts', () => {
+  const COUNTS = { all: 20, pending: 2, ready_to_ship: 1, in_transit: 6, delivered: 11 }
+
+  function respondCounts() {
+    const sent: (Record<string, unknown> | undefined)[] = []
+    vi.spyOn(client, 'get').mockImplementation((_url: string, config?: unknown) => {
+      sent.push((config as { params?: Record<string, unknown> }).params)
+
+      return Promise.resolve(respond({ data: COUNTS }))
+    })
+
+    return sent
+  }
+
+  it('asks the counts endpoint once and unwraps its data', async () => {
+    respondCounts()
+
+    await expect(fetchShipmentCounts()).resolves.toEqual(COUNTS)
+    expect(client.get).toHaveBeenCalledTimes(1)
+  })
+
+  it('hits the counts route and not a page of the listing', async () => {
+    respondCounts()
+    await fetchShipmentCounts()
+
+    expect(client.get).toHaveBeenCalledWith('/shipments/counts', expect.anything())
+  })
+
+  // Si el contador ignorara el término, la pestaña seguiría contando la empresa
+  // entera mientras la tabla muestra lo buscado.
+  it('passes the term along', async () => {
+    const sent = respondCounts()
+    await fetchShipmentCounts('AND-99')
+
+    expect(sent[0]).toEqual({ search: 'AND-99' })
+  })
+
+  // No pagina: mandarle una página sería decirle que cuente una porción.
+  it('sends no pagination at all when there is no term', async () => {
+    const sent = respondCounts()
+    await fetchShipmentCounts()
+
+    expect(sent[0]).toEqual({})
   })
 })
