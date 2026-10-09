@@ -1,37 +1,16 @@
 import { describe, expect, it } from 'vitest'
 
+// Los ejemplos de «formatMoney» viven en `shared/utils/number.test.ts` desde
+// TESIS-166: era el formateador compartido, no una regla de esta feature.
+
 import {
   formatEventTimestamp,
-  formatMoney,
   formatOrderDate,
   formatOrderId,
   formatOrderTime,
   formatShortDate,
   formatWeight,
 } from './format'
-
-describe('formatMoney', () => {
-  it('groups thousands with a dot', () => {
-    expect(formatMoney(1478300)).toContain('1.478.300')
-  })
-
-  /**
-   * El diseño muestra los importes sin decimales, pero esta columna es plata
-   * facturada: redondear en pantalla muestra un número que no es el de la
-   * orden. Este ejemplo fija la decisión de apartarse del mock.
-   */
-  it('keeps the cents instead of rounding them away', () => {
-    expect(formatMoney(1478300.49)).toContain('1.478.300,49')
-  })
-
-  it('always shows two decimals, even on a round amount', () => {
-    expect(formatMoney(1000)).toContain('1.000,00')
-  })
-
-  it('formats zero without falling back to an empty cell', () => {
-    expect(formatMoney(0)).toContain('0,00')
-  })
-})
 
 describe('formatOrderDate', () => {
   it('renders day, short month and year', () => {

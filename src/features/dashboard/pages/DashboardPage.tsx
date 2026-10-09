@@ -5,6 +5,7 @@ import WarningAmberOutlinedIcon from '@mui/icons-material/WarningAmberOutlined'
 import { Alert, Box, Button, Grid, Stack, Typography } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
 import { PageWrapper, StatCard } from 'shared/components'
+import { formatInteger } from 'shared/utils'
 
 import { RecentOrdersTable } from '../components/RecentOrdersTable'
 import { RecentShipmentsCard } from '../components/RecentShipmentsCard'
@@ -58,12 +59,10 @@ function noteFor(breakdown: { low: number; outOfStock: number } | undefined): st
 
 // `StatCard` recibe el valor ya formateado: el componente del DS no decide
 // separadores ni unidades.
-const NUMBER_FORMAT = new Intl.NumberFormat('es-AR')
-
 // Un conteo que no llegó (consulta fallida) se muestra como "—", nunca como 0:
 // un cero es un dato real —no hay órdenes pendientes— y acá no lo sabemos.
 function formatCount(count: number | undefined): string {
-  return count === undefined ? metrics.unknownValue : NUMBER_FORMAT.format(count)
+  return count === undefined ? metrics.unknownValue : formatInteger(count)
 }
 
 export function DashboardPage() {

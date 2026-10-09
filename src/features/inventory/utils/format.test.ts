@@ -1,27 +1,11 @@
 import { formatDate } from 'shared/utils'
 import { describe, expect, it } from 'vitest'
 
-import { formatSpecTimestamp, formatUnits, formatWeight } from './format'
+import { formatSpecTimestamp } from './format'
 
-describe('formatUnits', () => {
-  it('uses a thousands separator, as the design writes it', () => {
-    expect(formatUnits(4280)).toBe('4.280')
-  })
-
-  it('has no separator below one thousand', () => {
-    expect(formatUnits(280)).toBe('280')
-  })
-})
-
-describe('formatWeight', () => {
-  it('formats with a comma decimal separator', () => {
-    expect(formatWeight(1.45)).toBe('1,45')
-  })
-
-  it('pads to two decimals', () => {
-    expect(formatWeight(2)).toBe('2,00')
-  })
-})
+// Los ejemplos de `formatUnits` y `formatWeight` viven en
+// `shared/utils/number.test.ts` desde TESIS-166: eran el formateador
+// compartido, no una regla de esta feature.
 
 describe('formatSpecTimestamp', () => {
   it('returns null for an invalid date', () => {
@@ -38,18 +22,5 @@ describe('formatSpecTimestamp', () => {
     const expectedTime = formatDate(isoDate, { hour: '2-digit', minute: '2-digit' })
 
     expect(formatSpecTimestamp(isoDate)).toBe(`${expectedDate} · ${expectedTime}`)
-  })
-})
-
-// Lo que la API manda es lo que la pantalla imprime, y si una versión vieja no
-// manda un campo que esta pantalla ya lee, `Intl` escribe `NaN`.
-describe('formatUnits with something that is not a number', () => {
-  it('says there is no data instead of printing NaN', () => {
-    expect(formatUnits(undefined as unknown as number)).toBe('—')
-    expect(formatUnits(Number.NaN)).toBe('—')
-  })
-
-  it('still formats a zero, which is a number like any other', () => {
-    expect(formatUnits(0)).toBe('0')
   })
 })

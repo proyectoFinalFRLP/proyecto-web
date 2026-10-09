@@ -1,14 +1,9 @@
 import type { StatusVariant } from 'shared/components'
+import { formatInteger } from 'shared/utils'
 
 import type { FailedEventDirection, FailedEventStatus } from './types'
 
 // Copy centralizado de la feature — sin literales sueltos en el JSX.
-
-const numberFormat = new Intl.NumberFormat('es-AR')
-
-export function formatCount(value: number): string {
-  return numberFormat.format(value)
-}
 
 /**
  * Nombre legible de cada tipo de evento (`Webhooks::ReplayRegistry`). Un tipo
@@ -102,6 +97,6 @@ export const failedEventsCopy = {
     next: 'Página siguiente',
     page: (page: number) => `Ir a la página ${page}`,
     summary: (from: number, to: number, total: number) =>
-      `Mostrando ${from} a ${to} de ${formatCount(total)} ${total === 1 ? 'evento' : 'eventos'}`,
+      `Mostrando ${from} a ${to} de ${formatInteger(total)} ${total === 1 ? 'evento' : 'eventos'}`,
   },
 }

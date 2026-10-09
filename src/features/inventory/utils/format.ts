@@ -7,34 +7,6 @@
 
 import { formatDate } from 'shared/utils'
 
-// La marca de «sin dato» del DS, la misma que usa el resto del producto.
-const UNKNOWN_VALUE = '—'
-
-const integerFormatter = new Intl.NumberFormat('es-AR', { maximumFractionDigits: 0 })
-
-const decimalFormatter = new Intl.NumberFormat('es-AR', {
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-})
-
-/**
- * Cantidad de unidades: `4280` → `"4.280"`.
- *
- * Un valor que no es un número finito sale como «—» y no como `NaN`.
- * TypeScript dice que no puede pasar, pero el dato viene de la API: si una
- * versión más vieja no manda un campo que esta pantalla ya lee —un front
- * desplegado antes que su backend—, `Intl` imprime `NaN` en la cara del
- * operador. «—» dice lo mismo que diría cualquier otro dato que falta.
- */
-export function formatUnits(value: number): string {
-  return Number.isFinite(value) ? integerFormatter.format(value) : UNKNOWN_VALUE
-}
-
-/** Peso en kg con dos decimales: `1.45` → `"1,45"`. */
-export function formatWeight(value: number): string {
-  return decimalFormatter.format(value)
-}
-
 /**
  * Marca temporal de la ficha: `"24 ago 2026 · 09:14"`.
  *

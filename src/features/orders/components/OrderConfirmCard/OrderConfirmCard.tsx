@@ -2,9 +2,10 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import { Alert, Button, Divider, Stack, Typography } from '@mui/material'
 import { useId } from 'react'
+import { formatMoney } from 'shared/utils'
 
 import { ordersCopy } from '../../content'
-import { formatMoney, formatWeight } from '../../utils/format'
+import { formatWeight } from '../../utils/format'
 import { totalWithShipping } from '../../utils/shipping'
 
 import { ConfirmCardRoot, SummaryLine, TotalValue } from './OrderConfirmCard.styles'

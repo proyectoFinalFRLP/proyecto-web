@@ -2,13 +2,11 @@
 // idea que `content.ts` de design-system: si mañana sumamos i18n, este módulo es
 // el único punto a migrar a claves de traducción).
 
+import { formatInteger } from 'shared/utils'
+
 // Lo que muestra una tarjeta cuando el dato no está: falló la consulta o no hay
 // con qué calcularlo. Nunca un 0, que se leería como un dato real.
 const UNKNOWN_VALUE = '—'
-
-// Separadores de miles del locale, para las unidades del widget de depósitos.
-// El componente del DS recibe el valor ya formateado.
-const UNITS_FORMAT = new Intl.NumberFormat('es-AR')
 
 export const dashboardCopy = {
   pageTitle: 'Panel de operación',
@@ -43,8 +41,8 @@ export const dashboardCopy = {
       // umbral no son lo mismo y se trabajan distinto, pero los dos son alerta.
       note: (outOfStock: number, low: number) =>
         outOfStock === 0
-          ? `${UNITS_FORMAT.format(low)} por debajo del umbral`
-          : `${UNITS_FORMAT.format(outOfStock)} sin stock · ${UNITS_FORMAT.format(low)} por debajo del umbral`,
+          ? `${formatInteger(low)} por debajo del umbral`
+          : `${formatInteger(outOfStock)} sin stock · ${formatInteger(low)} por debajo del umbral`,
       // Sin productos en alerta la tarjeta no grita: el borde rojo y el chip
       // «Crítico» afirmarían un problema que no existe.
       calmNote: 'Sin productos en alerta de stock',
@@ -65,16 +63,16 @@ export const dashboardCopy = {
   warehouses: {
     title: 'Carga por depósito',
     caption: (units: number) =>
-      `${UNITS_FORMAT.format(units)} ${units === 1 ? 'unidad guardada' : 'unidades guardadas'}`,
-    units: (units: number) => `${UNITS_FORMAT.format(units)} u`,
+      `${formatInteger(units)} ${units === 1 ? 'unidad guardada' : 'unidades guardadas'}`,
+    units: (units: number) => `${formatInteger(units)} u`,
     // Con capacidad declarada (TESIS-162) se muestra la ocupación; sin ella, lo
     // guardado a secas. El rótulo accesible dice contra qué se mide, porque las
     // dos barras se ven igual y significan cosas distintas.
     occupancy: (percentage: number) => `${Math.round(percentage)} % de su capacidad`,
     barLabel: (name: string, units: number) =>
-      `${name}: ${UNITS_FORMAT.format(units)} ${units === 1 ? 'unidad' : 'unidades'}`,
+      `${name}: ${formatInteger(units)} ${units === 1 ? 'unidad' : 'unidades'}`,
     barLabelWithCapacity: (name: string, units: number, capacity: number) =>
-      `${name}: ${UNITS_FORMAT.format(units)} de ${UNITS_FORMAT.format(capacity)} unidades de capacidad`,
+      `${name}: ${formatInteger(units)} de ${formatInteger(capacity)} unidades de capacidad`,
     // Las dos barras se ven igual y miden cosas distintas: una la ocupación
     // declarada y la otra la comparación contra el depósito más cargado. El
     // rótulo accesible lo dice por fila; esto lo dice para quien mira.

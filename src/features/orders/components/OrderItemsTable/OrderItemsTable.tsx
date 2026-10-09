@@ -2,10 +2,10 @@ import { Link, Typography } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
 import { DataTable } from 'shared/components'
 import type { DataTableColumn } from 'shared/components'
+import { formatInteger, formatMoney } from 'shared/utils'
 
-import { formatCount, ordersCopy } from '../../content'
+import { ordersCopy } from '../../content'
 import type { OrderLine } from '../../types'
-import { formatMoney } from '../../utils/format'
 import { lineSubtotal, totalUnits } from '../../utils/payment'
 
 import type { OrderItemsTableProps } from './OrderItemsTable.types'
@@ -61,7 +61,7 @@ function buildColumns(
       header: itemsCopy.columns.quantity,
       align: 'right',
       width: 90,
-      render: (line) => <Typography variant="dataMono">{formatCount(line.quantity)}</Typography>,
+      render: (line) => <Typography variant="dataMono">{formatInteger(line.quantity)}</Typography>,
     },
     {
       id: 'subtotal',

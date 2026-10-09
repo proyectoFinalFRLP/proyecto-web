@@ -1,30 +1,10 @@
 import { describe, expect, it } from 'vitest'
 
-import { formatMoney, formatOrderId, formatShortDate, formatTime } from './recentOrders'
+import { formatOrderId, formatShortDate, formatTime } from './recentOrders'
 
 // `toContain` y no `toBe`: entre el símbolo y el número, `Intl` mete un espacio
 // duro (U+00A0) que en la comparación no se distingue de uno común y deja un
 // diff ilegible — «expected '$ 0,00' to be '$ 0,00'».
-describe('formatMoney', () => {
-  // Criterio de finalización de la card: el monto se formatea como moneda.
-  it('writes the amount with the thousands separators of the locale', () => {
-    expect(formatMoney(1478300.49)).toContain('1.478.300,49')
-  })
-
-  it('leads with the currency symbol', () => {
-    expect(formatMoney(1478300.49)).toMatch(/^\$/)
-  })
-
-  // Redondear en pantalla sería mostrar un número que no es el de la orden.
-  it('never drops the cents, even when they are zero', () => {
-    expect(formatMoney(890050)).toContain('890.050,00')
-  })
-
-  it('handles an order that adds up to nothing', () => {
-    expect(formatMoney(0)).toContain('0,00')
-  })
-})
-
 describe('formatOrderId', () => {
   it('prefers the id of the external channel, which is how the operator knows it', () => {
     expect(formatOrderId('ORD-8829-X', 412)).toBe('#ORD-8829-X')

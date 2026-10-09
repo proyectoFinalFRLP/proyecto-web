@@ -11,15 +11,9 @@ import {
 } from 'shared/components'
 import type { DataTableColumn, DataTableTab } from 'shared/components'
 import { notify } from 'shared/store'
-import { formatRelativeTime } from 'shared/utils'
+import { formatRelativeTime, formatInteger } from 'shared/utils'
 
-import {
-  DIRECTION_LABELS,
-  STATUS_LABELS,
-  STATUS_VARIANTS,
-  failedEventsCopy,
-  formatCount,
-} from '../content'
+import { DIRECTION_LABELS, STATUS_LABELS, STATUS_VARIANTS, failedEventsCopy } from '../content'
 import {
   NOT_REQUEUEABLE_STATUS,
   QUEUE_TABS,
@@ -175,7 +169,7 @@ export function FailedEventsPage() {
     return {
       id,
       label: tabCopy[id],
-      ...(count === undefined ? {} : { count: formatCount(count) }),
+      ...(count === undefined ? {} : { count: formatInteger(count) }),
     }
   })
 

@@ -1,11 +1,5 @@
 // Copy centralizado de la feature — sin literales sueltos en el JSX.
 
-const numberFormat = new Intl.NumberFormat('es-AR')
-
-export function formatUnits(value: number): string {
-  return numberFormat.format(value)
-}
-
 export const warehousesCopy = {
   page: {
     title: 'Depósitos',

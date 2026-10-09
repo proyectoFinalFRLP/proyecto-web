@@ -3,10 +3,11 @@ import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined'
 import { Link, Typography } from '@mui/material'
 import { DataTable, StackedCell, StatusBadge } from 'shared/components'
 import type { DataTableAction, DataTableColumn } from 'shared/components'
+import { formatMoney } from 'shared/utils'
 
 import { ordersCopy } from '../../content'
 import type { OrderSummary } from '../../types'
-import { formatMoney, formatOrderDate, formatOrderId, formatOrderTime } from '../../utils/format'
+import { formatOrderDate, formatOrderId, formatOrderTime } from '../../utils/format'
 import { statusLabel, statusRowTone, statusVariant } from '../../utils/status'
 
 import { CarrierCell } from './CarrierCell'
