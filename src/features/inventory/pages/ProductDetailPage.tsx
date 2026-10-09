@@ -163,7 +163,9 @@ function buildRows(product: Product): WarehouseDistributionRow[] {
     location: position.location ?? specsCopy.unknown,
     committed: formatUnits(position.committed),
     inTransit: formatUnits(position.incoming),
-    onHand: formatUnits(position.quantity),
+    // Lo físico del depósito, no lo libre: es la misma definición que el
+    // encabezado, y por eso las filas suman el titular (TESIS-162).
+    onHand: formatUnits(position.onHand),
     statusLabel: stockLabel(position.stockStatus),
     statusVariant: stockVariant(position.stockStatus),
     critical: stockRowTone(position.stockStatus) === 'critical',

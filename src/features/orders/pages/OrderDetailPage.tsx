@@ -288,23 +288,30 @@ export function OrderDetailPage() {
               fields={customerFields(order.data)}
               footnote={detail.customer.footnote}
             />
-            <InfoPanel
-              title={detail.shipping.title}
-              icon={<LocalShippingOutlinedIcon aria-hidden />}
-              fields={SHIPPING_FIELDS}
-              footnote={detail.shipping.footnote}
-            >
-              {/* Sin envío resuelto el tracking tampoco existe: el panel dice
-                  «Pendiente de despacho», que es lo mismo que ve el operador
-                  mientras el courier no confirma. La etiqueta sigue el mismo
-                  criterio: la emite el courier al despachar (RF-23). */}
-              <TrackingNumberField trackingNumber={resolved?.trackingNumber ?? null} />
-              <ShippingLabelField shipment={resolved} />
-            </InfoPanel>
+            {/* En un retiro el panel entero habla de algo que no va a existir:
+                decía «Pendiente de despacho» y «Se emite al despachar» de un
+                envío que la orden no lleva. No se muestra, y la tarjeta del
+                ciclo de vida es la que explica por qué (TESIS-162). */}
+            {order.data.requiresShipping ? (
+              <InfoPanel
+                title={detail.shipping.title}
+                icon={<LocalShippingOutlinedIcon aria-hidden />}
+                fields={SHIPPING_FIELDS}
+                footnote={detail.shipping.footnote}
+              >
+                {/* Sin envío resuelto el tracking tampoco existe: el panel dice
+                    «Pendiente de despacho», que es lo mismo que ve el operador
+                    mientras el courier no confirma. La etiqueta sigue el mismo
+                    criterio: la emite el courier al despachar (RF-23). */}
+                <TrackingNumberField trackingNumber={resolved?.trackingNumber ?? null} />
+                <ShippingLabelField shipment={resolved} />
+              </InfoPanel>
+            ) : null}
             <PaymentSummaryCard
               subtotal={formatMoney(payment.subtotal)}
               shipping={payment.shipping === null ? null : formatMoney(payment.shipping)}
               total={formatMoney(payment.total)}
+              pickup={!order.data.requiresShipping}
             />
           </Stack>
         </Box>

@@ -188,6 +188,8 @@ export const ordersCopy = {
       shipping: 'Envío',
       /** El envío todavía no tiene costo: no es gratis, falta cotizarlo. */
       shippingPending: 'Sin cotizar',
+      /** Un retiro no se va a cotizar nunca: no lleva envío (TESIS-162). */
+      shippingPickup: 'Retiro en el local',
       total: 'Total',
       invoice: 'Descargar factura',
       invoicePending: 'La factura todavía no se puede generar desde el sistema.',

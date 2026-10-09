@@ -28,11 +28,21 @@ export interface DistributionPosition {
   name: string
   /** `null` si el depósito sólo aparece por unidades entrantes (sin fila de stock). */
   location: string | null
+  /** Libres: lo que queda en `stocks` después de descontar lo vendido. */
   quantity: number
   /** Unidades en vuelo hacia este depósito. */
   incoming: number
   /** Vendido y todavía en este depósito, sin despachar (TESIS-162). */
   committed: number
+  /**
+   * Lo que hay físicamente en el estante: libres más comprometidas.
+   *
+   * Es la misma definición que el encabezado de la pantalla —«En depósito
+   * (físico)» de TESIS-162— y por eso las filas suman el titular. Mostrar acá
+   * sólo las libres hacía que la columna y el encabezado usaran la misma
+   * palabra para dos cosas distintas, y las filas no cerraban: 40 contra 44.
+   */
+  onHand: number
   stockStatus: StockStatus
 }
 
@@ -68,6 +78,7 @@ export function distributionPositions(product: Product): DistributionPosition[] 
     quantity: stock.quantity,
     incoming: incoming.get(stock.warehouseId) ?? 0,
     committed: stock.committed,
+    onHand: stock.quantity + stock.committed,
     stockStatus: stock.stockStatus,
   }))
 
@@ -102,6 +113,9 @@ export function distributionPositions(product: Product): DistributionPosition[] 
     quantity: 0,
     incoming: fila.incoming,
     committed: fila.committed,
+    // Sin fila de stock no quedan libres, pero lo vendido sin despachar sigue
+    // en el estante: ése es todo su físico.
+    onHand: fila.committed,
     stockStatus: 'out_of_stock' as const,
   }))
 

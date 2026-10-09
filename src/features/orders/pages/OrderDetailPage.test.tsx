@@ -272,6 +272,35 @@ describe('OrderDetailPage', () => {
     expect(screen.getByRole('button', { name: 'Crear envío' })).toBeInTheDocument()
   })
 
+  // El panel entero hablaba de un envío que la orden no lleva: «Pendiente de
+  // despacho» y «Se emite al despachar» de algo que no va a existir.
+  it('hides the shipping panel of an order picked up at the store', () => {
+    mockQueries({ data: { ...ORDER, requiresShipping: false } }, { data: { kind: 'none' } })
+
+    renderAt('/orders/8829')
+
+    expect(screen.queryByText('Datos del envío')).not.toBeInTheDocument()
+    expect(screen.queryByText('Pendiente de despacho')).not.toBeInTheDocument()
+  })
+
+  it('keeps the shipping panel for an order that ships', () => {
+    mockQueries({ data: ORDER }, { data: { kind: 'none' } })
+
+    renderAt('/orders/8829')
+
+    expect(screen.getByText('Datos del envío')).toBeInTheDocument()
+  })
+
+  // Un retiro no está «sin cotizar»: no se va a cotizar nunca.
+  it('says the pickup has no shipping cost instead of leaving it unquoted', () => {
+    mockQueries({ data: { ...ORDER, requiresShipping: false } }, { data: { kind: 'none' } })
+
+    renderAt('/orders/8829')
+
+    expect(screen.getByText('Retiro en el local')).toBeInTheDocument()
+    expect(screen.queryByText('Sin cotizar')).not.toBeInTheDocument()
+  })
+
   it('still says the shipment is missing for an order that is shipped', () => {
     mockQueries({ data: ORDER }, { data: { kind: 'none' } })
 

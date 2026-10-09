@@ -110,6 +110,7 @@ describe('distributionPositions', () => {
       quantity: 0,
       incoming: 4,
       committed: 0,
+      onHand: 0,
       stockStatus: 'out_of_stock',
     })
   })
@@ -132,6 +133,9 @@ describe('distributionPositions', () => {
       quantity: 0,
       incoming: 0,
       committed: 6,
+      // Sin fila de stock no quedan libres, pero las seis vendidas están en su
+      // estante: ése es todo su físico.
+      onHand: 6,
       stockStatus: 'out_of_stock',
     })
   })
@@ -163,6 +167,33 @@ describe('distributionPositions', () => {
 
     expect(positions).toHaveLength(1)
     expect(positions[0]).toMatchObject({ warehouseId: 1, committed: 3 })
+  })
+
+  // El encabezado de la pantalla dice «En depósito (físico)» y lo define como
+  // libre + comprometido. La columna de la tabla lleva el mismo rótulo, así que
+  // tiene que contar lo mismo: con 15 libres y 4 vendidas sin despachar, en el
+  // estante hay 19, no 15.
+  it('counts the physical units of a warehouse, not just the free ones', () => {
+    const positions = distributionPositions(
+      product({ stocks: [{ ...central, quantity: 15, committed: 4 }] }),
+    )
+
+    expect(positions[0]).toMatchObject({ quantity: 15, committed: 4, onHand: 19 })
+  })
+
+  // El titular de la tarjeta es on hand y las filas tienen que sumarlo: antes
+  // daban 40 contra un encabezado de 44.
+  it('adds its rows up to the on-hand figure of the product', () => {
+    const positions = distributionPositions(
+      product({
+        stocks: [
+          { ...central, quantity: 15, committed: 4 },
+          { ...central, warehouseId: 2, quantity: 25, committed: 0 },
+        ],
+      }),
+    )
+
+    expect(positions.reduce((total, position) => total + position.onHand, 0)).toBe(44)
   })
 
   it('answers no rows for a product with no stock and nothing in flight', () => {

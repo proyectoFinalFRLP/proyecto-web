@@ -19,8 +19,14 @@ const paymentCopy = ordersCopy.detail.payment
  * «Resumen de pago» de S08: productos, envío y total. Presentacional — los
  * montos llegan ya calculados (`paymentSummary`) y formateados.
  */
-export function PaymentSummaryCard({ subtotal, shipping, total }: PaymentSummaryCardProps) {
+export function PaymentSummaryCard({
+  subtotal,
+  shipping,
+  total,
+  pickup = false,
+}: PaymentSummaryCardProps) {
   const titleId = useId()
+  const missingShipping = pickup ? paymentCopy.shippingPickup : paymentCopy.shippingPending
 
   return (
     <SummaryCard component="section" aria-labelledby={titleId}>
@@ -43,7 +49,7 @@ export function PaymentSummaryCard({ subtotal, shipping, total }: PaymentSummary
           {paymentCopy.shipping}
         </Typography>
         <Amount variant="dataMono" pending={shipping === null}>
-          {shipping ?? paymentCopy.shippingPending}
+          {shipping ?? missingShipping}
         </Amount>
       </SummaryRow>
 
