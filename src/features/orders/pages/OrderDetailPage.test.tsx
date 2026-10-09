@@ -251,6 +251,27 @@ describe('OrderDetailPage', () => {
     ).toBeInTheDocument()
   })
 
+  // El criterio de la card: «una orden con retiro en local no ofrece crear
+  // envío». El botón lo trajo TESIS-141, que mira el estado y si el envío
+  // existe, y git no marcó conflicto porque cada rama tocó líneas distintas.
+  // Crearlo responde 422 (PickupOrderError), así que era un botón que sólo
+  // sabía fallar.
+  it('does not offer to create a shipment for an order picked up at the store', () => {
+    mockQueries({ data: { ...ORDER, requiresShipping: false } }, { data: { kind: 'none' } })
+
+    renderAt('/orders/8829')
+
+    expect(screen.queryByRole('button', { name: 'Crear envío' })).not.toBeInTheDocument()
+  })
+
+  it('still offers it for an order that ships', () => {
+    mockQueries({ data: ORDER }, { data: { kind: 'none' } })
+
+    renderAt('/orders/8829')
+
+    expect(screen.getByRole('button', { name: 'Crear envío' })).toBeInTheDocument()
+  })
+
   it('still says the shipment is missing for an order that is shipped', () => {
     mockQueries({ data: ORDER }, { data: { kind: 'none' } })
 

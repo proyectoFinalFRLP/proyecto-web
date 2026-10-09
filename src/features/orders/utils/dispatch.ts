@@ -35,12 +35,22 @@ export function dispatchableShipment(
  * ofrecía nada.
  *
  * Es la misma regla que aplica el backend (`Shipments::CreateShipment`): se
- * excluyen las canceladas y nada más. Que el envío no exista tiene que ser un
- * hecho y no una duda, así que mientras la consulta carga o falla no se ofrece:
- * ofrecerlo sobre un envío que no se pudo leer invitaría a un 409.
+ * excluyen las canceladas y los retiros en local. Que el envío no exista tiene
+ * que ser un hecho y no una duda, así que mientras la consulta carga o falla no
+ * se ofrece: ofrecerlo sobre un envío que no se pudo leer invitaría a un 409.
+ *
+ * El retiro entra acá y no en la pantalla porque las dos exclusiones son la
+ * misma regla del backend: una cancelada responde `CancelledOrderError` y un
+ * retiro `PickupOrderError` (TESIS-162), los dos 422. Sin esta condición el
+ * detalle ofrecía «Crear envío» sobre una orden de retiro y el operador se
+ * comía el error genérico al apretarlo.
  */
-export function canOpenShipment(orderStatus: OrderStatus, view: ShipmentView): boolean {
-  return orderStatus !== 'cancelled' && view.kind === 'none'
+export function canOpenShipment(
+  orderStatus: OrderStatus,
+  view: ShipmentView,
+  requiresShipping: boolean,
+): boolean {
+  return requiresShipping && orderStatus !== 'cancelled' && view.kind === 'none'
 }
 
 /**
