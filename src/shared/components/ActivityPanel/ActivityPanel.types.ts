@@ -8,7 +8,10 @@ export interface ActivityPanelProps {
    */
   paths: {
     order: (id: number) => string
-    /** Todavía no existe esa pantalla (TESIS-147): sin ella, la fila no enlaza. */
+    /**
+     * La cola de reintentos. Con ella, la fila de un evento caído enlaza y el
+     * pie del panel muestra un acceso fijo; sin ella, ninguna de las dos cosas.
+     */
     failedEvents?: string
   }
 }

@@ -42,10 +42,12 @@ export function activityLabel(entry: ActivityEntry): string {
  * detalle. Las rutas llegan desde afuera: `shared/` no puede importar el router
  * (architecture.md §3.2).
  *
- * `failedEvents` es opcional porque esa pantalla todavía no existe (la trae
- * TESIS-147). Sin ella la fila se muestra igual y no enlaza, en vez de llevar a
- * una ruta que el catch-all redirige al panel: el hecho importa aunque no haya
- * a dónde ir a verlo. Cuando la pantalla entre, alcanza con pasar la ruta.
+ * `failedEvents` sigue siendo opcional, pero ya no porque falte la pantalla:
+ * existe desde TESIS-147 y el Header se la pasa desde TESIS-171. Es opcional
+ * porque este módulo vive en `shared/` y no puede conocer el router, así que
+ * quien lo monte decide si tiene a dónde mandar. Sin ella la fila se muestra
+ * igual y no enlaza, en vez de llevar a una ruta que el catch-all redirige al
+ * panel: el hecho importa aunque no haya a dónde ir a verlo.
  */
 export function activityPath(
   entry: ActivityEntry,

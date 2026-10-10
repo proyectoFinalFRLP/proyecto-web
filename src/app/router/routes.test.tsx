@@ -12,15 +12,14 @@ describe('navRoutes', () => {
   })
 
   it('lists the sections of the product, and only those', () => {
-    expect(paths).toEqual([
-      '/',
-      '/orders',
-      '/shipments',
-      '/inventory',
-      '/warehouses',
-      '/failed-events',
-      '/reports',
-    ])
+    expect(paths).toEqual(['/', '/orders', '/shipments', '/inventory', '/warehouses', '/reports'])
+  })
+
+  // TESIS-171: la pantalla sigue existiendo y resolviendo por su ruta, pero no
+  // ocupa un lugar fijo del menú al lado de Órdenes o Inventario. Se entra
+  // desde la fila del evento caído de la campanita.
+  it('does not offer a section for the queue of failed events', () => {
+    expect(paths).not.toContain('/failed-events')
   })
 
   // Integraciones se sacó en TESIS-140: las conexiones las administra el
