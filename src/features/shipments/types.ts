@@ -48,16 +48,15 @@ export interface ShipmentFilters {
 }
 
 /**
- * Cuántos envíos cae en cada pestaña del listado (`GET /shipments/counts`).
+ * Cuántos envíos caen en cada pestaña del listado (`GET /shipments/counts`).
  *
  * Una clave por pestaña y no un array por índice: la pantalla las lee por
  * nombre, así que agregar un estado al ciclo de vida no puede correr un
  * contador de lugar.
+ *
+ * Se deriva de `ShipmentStatus` en vez de repetir los cuatro estados: sumar uno
+ * al ciclo de vida lo pide acá solo, y la respuesta de la API lo trae porque el
+ * backend arma las pestañas sobre `Shipment::STATUSES`. `all` es la pestaña sin
+ * filtro, que no es un estado.
  */
-export interface ShipmentCounts {
-  all: number
-  pending: number
-  ready_to_ship: number
-  in_transit: number
-  delivered: number
-}
+export type ShipmentCounts = Record<ShipmentStatus | 'all', number>
