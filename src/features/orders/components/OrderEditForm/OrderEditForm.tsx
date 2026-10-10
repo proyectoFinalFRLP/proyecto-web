@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined'
 import { Alert, Box, Button, Stack } from '@mui/material'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import { useDebouncedValue } from 'shared/hooks/useDebouncedValue'
@@ -135,17 +135,29 @@ export function OrderEditForm({
     errors: destinationErrors,
   } = destination.formState
 
+  // En cuanto se toca el domicilio pasa a validarse entero: sin esto, el modo
+  // `onChange` sólo marca el campo que se editó, y una ciudad o provincia que
+  // faltaban de antes apagaban el guardado sin decir por qué.
+  const { trigger: validateDestination } = destination
+  useEffect(() => {
+    if (destinationDirty) void validateDestination()
+  }, [destinationDirty, validateDestination])
+
   const locked = lockReason(order, shipment)
   const readOnly = locked !== null
   const removed = original.filter((line) => !lines.some((current) => current.key === line.key))
   const shortfalls = stockShortfalls(lines, removed, stocks.stocks)
   const changed = linesChanged(original, lines)
   const dirty = changed || contextDirty || destinationDirty
+  // El domicilio se valida sólo si el operador lo tocó: las órdenes de webhook
+  // no traen ciudad ni provincia, y exigirlas dejaba el guardado apagado —sin
+  // ningún campo en rojo— aunque sólo se quisiera cambiar el estado (hallazgo
+  // de auditoría, TESIS-89). Sin tocarlo, tampoco viaja (`toUpdatePayload`).
   const canSave =
     !readOnly &&
     dirty &&
     contextValid &&
-    destinationValid &&
+    (destinationDirty ? destinationValid : true) &&
     lines.length > 0 &&
     lines.every((line) => isQuantityValid(line.quantity)) &&
     shortfalls.length === 0
@@ -181,6 +193,7 @@ export function OrderEditForm({
       { ...context.getValues(), ...destination.getValues() },
       lines,
       changed,
+      destinationDirty,
     )
     update.mutate(payload, {
       onSuccess: () => {

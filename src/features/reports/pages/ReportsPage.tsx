@@ -2,7 +2,6 @@ import { Box, Stack } from '@mui/material'
 import { useState } from 'react'
 import { ErrorFallback, LoadingSpinner, PageWrapper } from 'shared/components'
 
-import { REPORTS_DATA_IS_SAMPLE } from '../api'
 import { AnomaliesTable } from '../components/AnomaliesTable'
 import { DispatchCurveCard } from '../components/DispatchCurveCard'
 import { ReportMetrics } from '../components/ReportMetrics'
@@ -22,9 +21,9 @@ const SIDE_COLUMN_WIDTH = 320
  * Reportes — analítica de la operación (S14, TESIS-64): métricas del período,
  * curva de despacho, nivel de servicio por operador y anomalías recientes.
  *
- * Los agregados salen de una sola consulta por período (`useReportsOverview`).
- * Hoy la resuelve un dataset de muestra porque el endpoint no existe: la
- * pantalla lo avisa junto al título y `api.ts` explica por qué.
+ * Los agregados salen de una sola consulta por período (`useReportsOverview`)
+ * contra `GET /reports/overview`. Lo que el modelo no puede calcular
+ * —cumplimiento de plazo, anomalías— se muestra sin dato y dice por qué.
  */
 export function ReportsPage() {
   const [period, setPeriod] = useState<ReportPeriod>(DEFAULT_PERIOD)
@@ -42,20 +41,16 @@ export function ReportsPage() {
     )
   }
 
-  const { kpis, curve, serviceLevels, anomalies } = overview.data
+  const { kpis, granularity, curve, carriers, anomalies } = overview.data
 
   return (
     <PageWrapper>
       <Stack spacing={3}>
-        <ReportsHeader
-          period={period}
-          onPeriodChange={setPeriod}
-          sampleData={REPORTS_DATA_IS_SAMPLE}
-        />
+        <ReportsHeader period={period} onPeriodChange={setPeriod} />
 
         <ReportMetrics kpis={kpis} />
 
-        {/* La curva toma el ancho sobrante y el nivel de servicio su columna
+        {/* La curva toma el ancho sobrante y las entregas por operador su columna
             fija, como en el diseño; en pantallas angostas se apilan. */}
         <Box
           sx={{
@@ -64,8 +59,8 @@ export function ReportsPage() {
             gap: 3,
           }}
         >
-          <DispatchCurveCard points={curve} />
-          <ServiceLevelCard levels={serviceLevels} />
+          <DispatchCurveCard points={curve} granularity={granularity} />
+          <ServiceLevelCard carriers={carriers} />
         </Box>
 
         <AnomaliesTable anomalies={anomalies} />

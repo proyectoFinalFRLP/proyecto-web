@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom'
 import { PageWrapper } from 'shared/components'
 import { useDebouncedValue } from 'shared/hooks/useDebouncedValue'
 import { useOrderDraftStore } from 'shared/store'
+import { formatMoney } from 'shared/utils'
 
 import { CustomerFieldsCard, customerSchema } from '../components/CustomerFieldsCard'
 import type { CustomerFormData } from '../components/CustomerFieldsCard'
@@ -18,7 +19,7 @@ import { ProductPicker } from '../components/ProductPicker'
 import { ordersCopy } from '../content'
 import { useCatalogProducts } from '../hooks/useCatalogProducts'
 import { canProceed, draftSubtotal, draftWeight } from '../utils/draft'
-import { formatMoney, formatWeight } from '../utils/format'
+import { formatWeight } from '../utils/format'
 
 const { wizard, draft } = ordersCopy
 

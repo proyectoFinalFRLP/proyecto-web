@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { activityKeys } from 'shared/api/activity'
 import type { ApiRequestError } from 'shared/api/types'
 
 import { dispatchShipment } from '../api'
@@ -26,6 +27,15 @@ export function useDispatchShipment() {
     // También si falló: un 409 quiere decir que otro lo despachó mientras tanto,
     // y el detalle tiene que dejar de ofrecerlo. Invalidar el dominio entero
     // refresca además el courier que muestra el listado.
-    onSettled: () => queryClient.invalidateQueries({ queryKey: orderKeys.all }),
+    onSettled: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: orderKeys.all }),
+        // Despachar cambia el estado del envío: el listado de /shipments, los
+        // contadores de sus pestañas y la campanita lo muestran y no se enteran
+        // por el dominio de órdenes. Literales porque una feature no importa
+        // las claves de otra.
+        queryClient.invalidateQueries({ queryKey: ['shipments'] }),
+        queryClient.invalidateQueries({ queryKey: activityKeys.all }),
+      ]),
   })
 }

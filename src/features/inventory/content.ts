@@ -2,6 +2,8 @@
 // Mismo criterio que `features/design-system/content.ts`: si más adelante entra
 // i18n, este módulo es el único punto a migrar a claves de traducción (ADR-007).
 
+import { formatInteger } from 'shared/utils'
+
 export const inventoryCopy = {
   page: {
     title: 'Inventario',
@@ -38,7 +40,7 @@ export const inventoryCopy = {
     noCategory: 'Sin categoría',
     /** Un producto sin unidades en ningún depósito no tiene nodo que mostrar. */
     noWarehouse: 'Sin asignar',
-    inTransit: (units: number) => `+${formatUnits(units)} en tránsito`,
+    inTransit: (units: number) => `+${formatInteger(units)} en tránsito`,
     /** "en 3 depósitos" cuando hay más de uno además del principal. */
     moreWarehouses: (count: number) => `en ${count} depósitos`,
   },
@@ -65,7 +67,7 @@ export const inventoryCopy = {
     next: 'Página siguiente',
     page: (page: number) => `Ir a la página ${page}`,
     summary: (from: number, to: number, total: number) =>
-      `Mostrando ${from} a ${to} de ${formatUnits(total)} ${total === 1 ? 'producto' : 'productos'}`,
+      `Mostrando ${from} a ${to} de ${formatInteger(total)} ${total === 1 ? 'producto' : 'productos'}`,
   },
   detail: {
     breadcrumb: {
@@ -99,7 +101,6 @@ export const inventoryCopy = {
         `${length} × ${width} × ${height} cm`,
       /** Marca de "sin dato" del DS, la misma que usa el dashboard. */
       unknown: '—',
-      pendingBackend: 'Categoría, empaque y norma técnica todavía no existen en la API.',
     },
     master: {
       title: 'Stock maestro',
@@ -112,11 +113,6 @@ export const inventoryCopy = {
         inTransit: 'En tránsito',
         availableToPromise: 'Disponible para prometer',
       },
-      // Cubre las dos piezas del diseño que la API no puede alimentar: la barra
-      // de capacidad ("71 % del umbral máximo de 6.000 unidades"), que necesita
-      // un techo por producto, y el desglose por estado de reserva.
-      pending:
-        'El porcentaje de capacidad y el desglose por reserva esperan datos que la API todavía no expone.',
       edit: 'Editar stock',
     },
     distribution: {
@@ -131,10 +127,15 @@ export const inventoryCopy = {
         onHand: 'En depósito',
         status: 'Estado',
       },
+      // Cuenta también los depósitos que sólo esperan unidades en camino.
       footer: (count: number) =>
-        count === 1 ? '1 depósito con stock asignado' : `${count} depósitos con stock asignado`,
+        count === 1
+          ? '1 depósito con stock o en camino'
+          : `${count} depósitos con stock o en camino`,
       empty: 'Este producto no tiene stock asignado en ningún depósito.',
-      pending: 'Comprometido y en tránsito esperan que la API los modele.',
+      // En tránsito **por depósito** llega con TESIS-144; el total del producto
+      // ya se muestra en el encabezado. Comprometido sí está, por depósito.
+      pendingInTransit: 'El en tránsito por depósito llega con el detalle de stock por nodo.',
     },
     status: {
       available: 'Disponible',
@@ -148,6 +149,8 @@ export const inventoryCopy = {
   modal: {
     /** El título lleva el nombre del producto; el subtítulo, el SKU. */
     title: (productName: string) => `Editar producto: ${productName}`,
+    /** Con alcance `stock`: el modal muestra sólo las cantidades por depósito. */
+    stockTitle: (productName: string) => `Editar stock: ${productName}`,
     subtitle: (sku: string) => `Actualizá especificaciones y stock del SKU: ${sku}`,
     close: 'Cerrar',
     conflict: {
@@ -186,7 +189,8 @@ export const inventoryCopy = {
       available: 'Disponible',
     },
     skuHelper: 'El SKU identifica al producto y no se edita.',
-    categoryHelper: 'Pendiente de backend: el producto todavía no tiene categoría.',
+    categoryHelper: 'Se usa para agrupar y filtrar el catálogo.',
+    noCategory: 'Sin categoría',
     addWarehouse: 'Agregar depósito',
     removeWarehouse: (warehouseName: string) => `Quitar ${warehouseName}`,
     noWarehouses: 'Este producto no tiene stock asignado en ningún depósito.',
@@ -194,6 +198,36 @@ export const inventoryCopy = {
     lastUpdated: (when: string) => `Última actualización ${when}`,
     cancel: 'Cancelar',
     submit: 'Guardar cambios',
+  },
+  // Canales de venta del detalle (TESIS-139): dónde está publicado el
+  // producto y con qué id. Sólo para las empresas con la feature `integrations`.
+  channels: {
+    title: 'Canales de venta',
+    subtitle: 'Publicaciones vinculadas: el stock de OneStock se publica en cada una.',
+    externalId: (id: string) => `ID de la publicación: ${id}`,
+    empty: 'Este producto todavía no está vinculado a ningún canal.',
+    noChannels:
+      'No hay canales conectados donde vincularlo. Las conexiones las configura el equipo de OneStock: escribinos para sumar uno.',
+    channel: 'Canal',
+    externalIdLabel: 'ID de la publicación',
+    externalIdHelper: 'Dejalo vacío para buscarla por el SKU del producto.',
+    link: 'Vincular',
+    linking: 'Vinculando…',
+    unlink: 'Desvincular',
+    error: 'No pudimos cargar los canales del producto.',
+    linked: (channel: string) => `Vinculado con ${channel}. El stock ya se está publicando.`,
+    unlinked: (channel: string) => `Se desvinculó de ${channel}.`,
+    skuMismatch: 'El SKU de la publicación no coincide con el del producto. Revisalo en el canal.',
+    notFound: 'El canal no tiene una publicación con ese ID (o con el SKU del producto).',
+    alreadyLinked: 'Esa publicación ya está vinculada a otro producto.',
+    channelDown: 'El canal no respondió. Probá de nuevo en unos minutos.',
+    unlinkDialog: {
+      title: (channel: string) => `Desvincular de ${channel}`,
+      description: 'OneStock deja de publicar el stock de este producto en ese canal.',
+      confirm: 'Desvincular',
+      cancel: 'Cancelar',
+      close: 'Cerrar',
+    },
   },
   createModal: {
     open: 'Nuevo producto',
@@ -223,7 +257,8 @@ export const inventoryCopy = {
       width: 'A',
       height: 'H',
     },
-    categoryHelper: 'Pendiente de backend: el producto todavía no tiene categoría.',
+    categoryHelper: 'Se usa para agrupar y filtrar el catálogo.',
+    noCategory: 'Sin categoría',
     addWarehouse: 'Agregar depósito',
     removeRow: (position: number) => `Quitar la fila ${position}`,
     noWarehouses: 'La empresa todavía no tiene depósitos cargados.',
@@ -246,8 +281,3 @@ export const inventoryCopy = {
     duplicateWarehouse: 'No repitas el mismo depósito en dos filas',
   },
 } as const
-
-/** Miles con punto, como el resto de los números de la pantalla. */
-export function formatUnits(value: number): string {
-  return new Intl.NumberFormat('es-AR').format(value)
-}

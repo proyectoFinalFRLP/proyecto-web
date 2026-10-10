@@ -19,6 +19,4 @@ export interface WarehouseDistributionRow {
 
 export interface WarehouseDistributionCardProps {
   rows: WarehouseDistributionRow[]
-  /** Aclaración al pie sobre las columnas que la API todavía no expone. */
-  footnote?: string
 }

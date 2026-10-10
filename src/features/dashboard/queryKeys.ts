@@ -2,11 +2,6 @@
 // solo lugar (nunca literales sueltos en los hooks) para que las invalidaciones
 // sean consistentes. Patrón por feature (ver architecture.md §4.3).
 
-export const integrationKeys = {
-  all: ['integrations'] as const,
-  lists: () => [...integrationKeys.all, 'list'] as const,
-}
-
 // Los KPIs cuelgan de la raíz del recurso que cuentan —la misma `['orders']`
 // que usa `features/orders`— y no de una raíz propia del panel: así una
 // mutación de órdenes que invalide su dominio entero refresca también el
@@ -23,6 +18,9 @@ export const orderKeys = {
 export const shipmentKeys = {
   all: ['shipments'] as const,
   kpi: (status: string) => [...shipmentKeys.all, 'kpi', status] as const,
+  // Mismo criterio que `orderKeys.recent`: despachar un envío invalida el
+  // dominio y refresca también la tarjeta del panel.
+  recent: (size: number) => [...shipmentKeys.all, 'recent', size] as const,
 }
 
 // Misma regla que los KPIs de órdenes y envíos: la key cuelga de la raíz del

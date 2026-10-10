@@ -5,20 +5,11 @@ import type { OrderStatus } from '../types'
 
 // Formato y vocabulario de la tabla de órdenes recientes del panel.
 //
-// Sí, esto también existe en `features/orders/utils`. No se importa de ahí
-// porque una feature no puede depender de otra (architecture.md §3.2), y no se
-// sube a `shared/` en esta card por una razón concreta: TESIS-61 está
-// reescribiendo esos archivos en paralelo, y moverlos ahora garantiza un
-// conflicto en el trabajo de otro. Cuando esa card entre, converger las dos
-// copias es una card de seguimiento — hasta entonces, las etiquetas de estado
-// son las mismas de los dos lados a propósito y este comentario es el recordatorio.
-
-const MONEY = new Intl.NumberFormat('es-AR', {
-  style: 'currency',
-  currency: 'ARS',
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-})
+// El importe y las unidades salen de `shared/utils`: eran la misma cuenta que
+// en `features/orders/utils`, y una feature no puede importar de otra
+// (architecture.md §3.2). Converger las dos copias era la card de seguimiento
+// que ese comentario anunciaba, y es TESIS-166. Las etiquetas de estado siguen
+// repetidas a propósito: son vocabulario de pantalla, no formato.
 
 const DATE = new Intl.DateTimeFormat('es-AR', { day: 'numeric', month: 'short' })
 
@@ -50,17 +41,6 @@ export function statusVariant(status: OrderStatus): StatusVariant {
 
 export function statusLabel(status: OrderStatus): string {
   return LABELS[status]
-}
-
-/**
- * Importe de la orden, con dos decimales siempre.
- *
- * El criterio de finalización de la card es exactamente éste: la columna es
- * plata facturada, y redondear $ 1.478.300,49 a $ 1.478.300 en pantalla es
- * mostrar un número que no es el de la orden.
- */
-export function formatMoney(amount: number): string {
-  return MONEY.format(amount)
 }
 
 /** "24 ago" — la línea principal de la columna de fecha, sin año como el diseño. */

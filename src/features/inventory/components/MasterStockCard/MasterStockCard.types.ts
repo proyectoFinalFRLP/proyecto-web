@@ -19,7 +19,5 @@ export interface MasterStockCardProps {
   /** Epígrafe bajo el total (en cuántos depósitos está repartido). */
   caption: string
   buckets: StockBucket[]
-  /** Aclaración del desglose que la API todavía no expone. */
-  footnote?: string
   onEditStock: () => void
 }

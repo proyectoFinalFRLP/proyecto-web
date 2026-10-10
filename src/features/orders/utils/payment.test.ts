@@ -27,6 +27,7 @@ function order(overrides: Partial<OrderDetail> = {}): OrderDetail {
     customerCity: null,
     customerProvince: null,
     status: 'paid',
+    requiresShipping: true,
     version: null,
     totalAmount: 1420000,
     lines: [line(120000, 8), line(150000, 2), line(3313, 57)],

@@ -2,9 +2,9 @@ import CalculateOutlinedIcon from '@mui/icons-material/CalculateOutlined'
 import { Divider, Stack, Typography } from '@mui/material'
 import { StatusBadge } from 'shared/components'
 import type { StatusVariant } from 'shared/components'
+import { formatMoney } from 'shared/utils'
 
 import { ordersCopy } from '../content'
-import { formatMoney } from '../utils/format'
 
 import { FormSection } from './FormSection'
 

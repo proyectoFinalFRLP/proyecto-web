@@ -31,6 +31,12 @@ export interface OrderSummary {
   customerAddress: string | null
   customerZipCode: string | null
   status: OrderStatus
+  /**
+   * Si la orden se despacha o la retira el cliente en el local (TESIS-162).
+   * El listado lo marca para que se vea sin entrar: una orden de retiro no
+   * espera envío, y hasta ahora no se distinguía de una a la que le falta.
+   */
+  requiresShipping: boolean
   carrier: string | null
   totalAmount: number | null
   itemCount: number
@@ -77,6 +83,8 @@ export interface OrderDetail {
   customerCity: string | null
   customerProvince: string | null
   status: OrderStatus
+  /** Si se despacha o la retira el cliente en el local (TESIS-162). */
+  requiresShipping: boolean
   /**
    * La versión de la orden, tal como vino en el `ETag` del detalle (TESIS-126).
    * Viaja de vuelta en `If-Match` al guardar la modificación. `null` si el
@@ -140,6 +148,12 @@ export interface Shipment {
   shippingCost: number | null
   /** Null hasta que se asigna el courier al confirmar el despacho. */
   courier: Courier | null
+  /**
+   * El rótulo imprimible que emite el courier al despachar (RF-23): el PDF con
+   * el código de barras que se pega al paquete. Null hasta el despacho, y
+   * también después si el courier no lo devolvió.
+   */
+  labelUrl: string | null
   /** Ordenados por `occurredAt`, del más viejo al más nuevo. */
   events: ShipmentEvent[]
 }
@@ -231,10 +245,15 @@ export interface UpdateOrderPayload {
   order: {
     customer_name: string
     customer_document: string
-    customer_address: string
-    customer_city: string
-    customer_province: string
-    customer_zip_code: string
+    /**
+     * El domicilio viaja sólo si el operador lo tocó (ver `toUpdatePayload`):
+     * las órdenes de webhook no traen ciudad ni provincia, y mandarlas vacías
+     * haría que la API las rechace.
+     */
+    customer_address?: string
+    customer_city?: string
+    customer_province?: string
+    customer_zip_code?: string
     status: EditableOrderStatus
     items?: (
       | { id: number; quantity: number }

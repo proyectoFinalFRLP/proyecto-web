@@ -59,17 +59,37 @@ describe('ReportsPage', () => {
     expect(screen.getByText('Cumplimiento de entregas')).toBeInTheDocument()
     expect(screen.getByText('Anomalías activas')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Curva de despacho' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Nivel de servicio' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Entregas por operador' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Anomalías recientes' })).toBeInTheDocument()
   })
 
-  // Mientras la API no exponga agregados, la pantalla lo dice.
-  it('flags the numbers as sample data', () => {
+  // Los números salen de la API: el distintivo de muestra ya no corresponde.
+  it('no longer flags the numbers as sample data', () => {
     useReportsOverviewMock.mockReturnValue(query({ data: SAMPLE_OVERVIEW }))
 
     renderWithTheme(<ReportsPage />)
 
-    expect(screen.getByText('Datos de muestra')).toBeInTheDocument()
+    expect(screen.queryByText('Datos de muestra')).not.toBeInTheDocument()
+  })
+
+  // Lo que el modelo no puede calcular llega en `null`: la tarjeta queda y lo
+  // dice, en vez de un número inventado o un cero que se leería como dato.
+  it('shows without value and explains what the model cannot compute', () => {
+    useReportsOverviewMock.mockReturnValue(
+      query({
+        data: {
+          ...SAMPLE_OVERVIEW,
+          kpis: { ...SAMPLE_OVERVIEW.kpis, onTimeDeliveryRate: null, activeAnomalies: null },
+          anomalies: null,
+        },
+      }),
+    )
+
+    renderWithTheme(<ReportsPage />)
+
+    expect(screen.getByText(/Requiere la fecha de entrega comprometida/)).toBeInTheDocument()
+    expect(screen.getByText('El sistema todavía no registra anomalías.')).toBeInTheDocument()
+    expect(screen.getByText(/esta tabla se completa cuando exista ese dato/)).toBeInTheDocument()
   })
 
   it('asks for the last 30 days by default and refetches when the period changes', () => {

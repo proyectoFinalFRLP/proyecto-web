@@ -189,6 +189,12 @@ describe('toUpdatePayload', () => {
     ])
   })
 
+  it('leaves the address out when it was not touched', () => {
+    const payload = toUpdatePayload(HEADER, [line()], false, false)
+
+    expect(Object.keys(payload.order)).toEqual(['customer_name', 'customer_document', 'status'])
+  })
+
   it('refuses to send a new line without a warehouse instead of inventing one', () => {
     expect(() => toUpdatePayload(HEADER, [added({ warehouseId: null })], true)).toThrow(
       /has no warehouse/,

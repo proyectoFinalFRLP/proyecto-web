@@ -5,7 +5,7 @@ import StraightenOutlinedIcon from '@mui/icons-material/StraightenOutlined'
 import WarehouseOutlinedIcon from '@mui/icons-material/WarehouseOutlined'
 import { Alert, Button, Divider, MenuItem, TextField, Typography } from '@mui/material'
 import { useEffect } from 'react'
-import { useFieldArray, useForm } from 'react-hook-form'
+import { Controller, useFieldArray, useForm } from 'react-hook-form'
 import {
   LabeledField,
   ModalBody,
@@ -17,6 +17,7 @@ import {
 
 import { inventoryCopy } from '../../content'
 import { buildCreatePayload } from '../../utils/payload'
+import { CategoryField } from '../CategoryField'
 
 import { createProductSchema } from './CreateProductModal.schema'
 import type { CreateProductFormData } from './CreateProductModal.schema'
@@ -51,6 +52,7 @@ function isSkuConflict(message: string) {
 const EMPTY_FORM: CreateProductFormData = {
   name: '',
   sku: '',
+  category: '',
   weight: 0,
   length: 0,
   width: 0,
@@ -68,6 +70,7 @@ const EMPTY_FORM: CreateProductFormData = {
 export function CreateProductModal({
   open,
   warehouses,
+  categories = [],
   onSubmit,
   onClose,
   submitting = false,
@@ -154,9 +157,20 @@ export function CreateProductModal({
                 />
               </LabeledField>
 
-              <LabeledField label={copy.fields.category} helperText={copy.categoryHelper}>
-                <TextField value="—" fullWidth disabled />
-              </LabeledField>
+              <Controller
+                name="category"
+                control={control}
+                render={({ field }) => (
+                  <CategoryField
+                    value={field.value}
+                    onChange={field.onChange}
+                    categories={categories}
+                    label={copy.fields.category}
+                    helperText={copy.categoryHelper}
+                    noneLabel={copy.noCategory}
+                  />
+                )}
+              />
             </BasicGrid>
           </SectionRoot>
 

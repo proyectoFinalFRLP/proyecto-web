@@ -30,7 +30,6 @@ export function MasterStockCard({
   totalLabel,
   caption,
   buckets,
-  footnote,
   onEditStock,
 }: MasterStockCardProps) {
   return (
@@ -74,12 +73,6 @@ export function MasterStockCard({
           )
         })}
       </BucketList>
-
-      {footnote === undefined ? null : (
-        <Typography variant="labelSm" color="text.secondary">
-          {footnote}
-        </Typography>
-      )}
 
       <CardFooter>
         <Button

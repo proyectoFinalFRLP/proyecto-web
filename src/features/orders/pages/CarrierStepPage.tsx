@@ -1,6 +1,7 @@
 import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined'
-import { Alert, Box, Button, Stack } from '@mui/material'
-import { useEffect, useMemo, useState } from 'react'
+import StorefrontOutlinedIcon from '@mui/icons-material/StorefrontOutlined'
+import { Alert, Box, Button, Stack, Typography } from '@mui/material'
+import { useMemo, useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { PageWrapper } from 'shared/components'
 import { notify, useOrderDraftStore } from 'shared/store'
@@ -40,6 +41,13 @@ interface ConfirmedDraft {
   items: OrderDraftItem[]
   origin: OrderDraftOrigin
   destination: OrderDraftDestination
+  /**
+   * Cómo lo recibe el cliente, congelado junto con el resto. Se lee de la
+   * copia y no del store: `clearDraft` lo devuelve a su default `true` apenas
+   * la orden existe, y leerlo en vivo hacía que una venta de retiro saliera a
+   * pedirles precio a los couriers en mitad de la confirmación.
+   */
+  requiresShipping: boolean
 }
 
 /**
@@ -68,6 +76,7 @@ export function CarrierStepPage() {
   const items = useOrderDraftStore((state) => state.items)
   const origin = useOrderDraftStore((state) => state.origin)
   const destination = useOrderDraftStore((state) => state.destination)
+  const requiresShipping = useOrderDraftStore((state) => state.requiresShipping)
   const clearDraft = useOrderDraftStore((state) => state.clearDraft)
 
   const [confirmed, setConfirmed] = useState<ConfirmedDraft | null>(null)
@@ -76,22 +85,23 @@ export function CarrierStepPage() {
   const live = useMemo(
     () =>
       customer !== null && items.length > 0 && origin !== null && destination !== null
-        ? { customer, items, origin, destination }
+        ? { customer, items, origin, destination, requiresShipping }
         : null,
-    [customer, items, origin, destination],
+    [customer, items, origin, destination, requiresShipping],
   )
   const draft = confirmed ?? live
 
+  // Con retiro en el local no se cotiza: no hay envío que despachar, así que
+  // tampoco hay a quién preguntarle el precio (TESIS-162).
   const payload = useMemo(
     () =>
-      draft === null ? null : toDraftQuotePayload(draft.items, draft.origin, draft.destination),
+      draft?.requiresShipping
+        ? toDraftQuotePayload(draft.items, draft.origin, draft.destination)
+        : null,
     [draft],
   )
   const quotes = useDraftQuotes(payload)
   const confirm = useConfirmDraftOrder({ onOrderCreated: clearDraft })
-  const shipmentMissing =
-    confirm.createdOrderId !== null && confirm.createdShipmentId === null && !confirm.isSuccess
-  useLeaveWarning(shipmentMissing)
 
   // Sin cliente o sin líneas no hay orden que cotizar; sin origen o destino hay
   // que volver al paso 2. Se llegó por URL, recargando, o se canceló el
@@ -108,17 +118,30 @@ export function CarrierStepPage() {
   const orderLabel = createdOrderId === null ? '' : formatOrderId(null, createdOrderId)
 
   function confirmOrder() {
-    if (draft === null || chosen === null) return
+    // Con envío hace falta la opción elegida; con retiro, no hay ninguna.
+    if (draft === null || (draft.requiresShipping && chosen === null)) return
 
     setConfirmed(draft)
     confirm.mutate(
       {
-        order: toCreateOrderPayload(draft.customer, draft.items, draft.origin, draft.destination),
-        dispatch: toDispatchPayload(chosen, draft.origin.warehouseId),
+        order: toCreateOrderPayload(
+          draft.customer,
+          draft.items,
+          draft.origin,
+          draft.destination,
+          draft.requiresShipping,
+        ),
+        dispatch: chosen === null ? null : toDispatchPayload(chosen, draft.origin.warehouseId),
       },
       {
         onSuccess: (orderId) => {
-          notify(carrier.confirmed(formatOrderId(null, orderId), chosen.providerName), 'success')
+          const label = formatOrderId(null, orderId)
+          notify(
+            chosen === null
+              ? carrier.confirmedPickup(label)
+              : carrier.confirmed(label, chosen.providerName),
+            'success',
+          )
           void navigate(ORDERS_PATH)
         },
       },
@@ -134,13 +157,10 @@ export function CarrierStepPage() {
           {createdOrderId === null ? carrier.errors.order : carrier.errors.dispatch(orderLabel)}{' '}
           {confirm.error.message}
         </span>
-        {createdOrderId === null ? null : (
-          <span>
-            {confirm.createdShipmentId === null
-              ? carrier.errors.shipmentMissing
-              : carrier.errors.dispatchLater}
-          </span>
-        )}
+        {/* Un solo mensaje: con la orden ya creada, el detalle termina el
+            envío tanto si no llegó a abrirse (TESIS-141) como si quedó
+            `pending` sin despachar (TESIS-134). */}
+        {createdOrderId === null ? null : <span>{carrier.errors.dispatchLater}</span>}
         {createdOrderId === null ? null : (
           <Button
             color="inherit"
@@ -168,16 +188,30 @@ export function CarrierStepPage() {
           }}
         >
           <FormSection
-            icon={<LocalShippingOutlinedIcon aria-hidden />}
-            title={carrier.options.groupLabel}
+            icon={
+              draft.requiresShipping ? (
+                <LocalShippingOutlinedIcon aria-hidden />
+              ) : (
+                <StorefrontOutlinedIcon aria-hidden />
+              )
+            }
+            title={draft.requiresShipping ? carrier.options.groupLabel : carrier.pickup.title}
           >
-            <QuoteOptionsPanel
-              quotes={quotes}
-              selectedId={chosen?.dispatchIntegrationId ?? null}
-              disabled={confirm.isPending}
-              onSelect={(quote) => setSelectedId(quote.dispatchIntegrationId)}
-              onReview={() => void navigate(SHIPPING_STEP_PATH)}
-            />
+            {/* Con retiro en el local no hay nada que cotizar: la venta se
+                registra y el cliente la busca (TESIS-162). */}
+            {draft.requiresShipping ? (
+              <QuoteOptionsPanel
+                quotes={quotes}
+                selectedId={chosen?.dispatchIntegrationId ?? null}
+                disabled={confirm.isPending}
+                onSelect={(quote) => setSelectedId(quote.dispatchIntegrationId)}
+                onReview={() => void navigate(SHIPPING_STEP_PATH)}
+              />
+            ) : (
+              <Typography variant="bodyMd" color="text.secondary">
+                {carrier.pickup.body(draft.origin.name)}
+              </Typography>
+            )}
           </FormSection>
 
           <OrderConfirmCard
@@ -190,7 +224,7 @@ export function CarrierStepPage() {
               draft.destination.province,
               draft.destination.zipCode,
             )}
-            canConfirm={chosen !== null && !confirm.isPending}
+            canConfirm={(chosen !== null || !draft.requiresShipping) && !confirm.isPending}
             confirming={confirm.isPending}
             confirmLabel={
               createdOrderId === null ? carrier.summary.confirm : carrier.errors.retryDispatch
@@ -204,20 +238,4 @@ export function CarrierStepPage() {
       </Stack>
     </PageWrapper>
   )
-}
-
-/**
- * Pide confirmación al recargar o cerrar la pestaña mientras `active`. Es lo que
- * el navegador permite: el texto del diálogo es el suyo, no uno propio.
- */
-function useLeaveWarning(active: boolean) {
-  useEffect(() => {
-    if (!active) return undefined
-
-    const warn = (event: BeforeUnloadEvent) => {
-      event.preventDefault()
-    }
-    window.addEventListener('beforeunload', warn)
-    return () => window.removeEventListener('beforeunload', warn)
-  }, [active])
 }

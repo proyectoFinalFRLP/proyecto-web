@@ -10,6 +10,7 @@ function createForm(overrides: Partial<CreateProductFormData> = {}): CreateProdu
   return {
     name: 'Cable UTP Cat6',
     sku: 'CAB-6-305',
+    category: '',
     weight: 12.4,
     length: 45,
     width: 30,
@@ -22,6 +23,7 @@ function createForm(overrides: Partial<CreateProductFormData> = {}): CreateProdu
 function editForm(overrides: Partial<EditProductFormData> = {}): EditProductFormData {
   return {
     name: 'Cable UTP Cat6',
+    category: 'Cabling',
     weight: 12.4,
     length: 45,
     width: 30,
@@ -44,13 +46,32 @@ function product(overrides: Partial<Product> = {}): Product {
     sku: 'CAB-6-305',
     name: 'Cable UTP Cat6',
     description: 'Rollo de 305 metros',
+    category: null,
+    packaging: null,
+    technicalStandard: null,
     weight: 12.4,
     dimensions: '45x30x20',
+    committed: 0,
+    onHand: 10,
+    availableToPromise: 10,
+    inTransit: 0,
+    totalStock: 10,
+    stockStatus: 'low',
+    inTransitQuantity: 0,
+    inTransitByWarehouse: [],
+    committedByWarehouse: [],
     stocks: [
       {
         warehouseId: 1,
         quantity: 10,
-        warehouse: { id: 1, name: 'CD Ezeiza', address: 'Autopista Riccheri km 33' },
+        committed: 0,
+        warehouse: {
+          id: 1,
+          name: 'CD Ezeiza',
+          address: 'Autopista Riccheri km 33',
+          capacity: null,
+        },
+        stockStatus: 'low',
       },
     ],
     updatedAt: '2026-08-30T12:00:00.000Z',
@@ -68,6 +89,7 @@ describe('buildCreatePayload', () => {
         sku: 'CAB-6-305',
         name: 'Cable UTP Cat6',
         description: null,
+        category: null,
         weight: 12.4,
         dimensions: '45x30x20',
         stocks: [{ warehouse_id: 1, quantity: 10 }],
@@ -103,6 +125,7 @@ describe('buildUpdatePayload', () => {
       product: {
         name: 'Cable UTP Cat6',
         description: 'Rollo de 305 metros',
+        category: 'Cabling',
         weight: 12.4,
         dimensions: '45x30x20',
         stocks: [{ warehouse_id: 1, quantity: 10 }],
@@ -119,7 +142,9 @@ describe('buildUpdatePayload', () => {
         {
           warehouseId: 2,
           quantity: 40,
-          warehouse: { id: 2, name: 'CD Córdoba', address: 'Ruta 9 km 695' },
+          committed: 0,
+          warehouse: { id: 2, name: 'CD Córdoba', address: 'Ruta 9 km 695', capacity: null },
+          stockStatus: 'low',
         },
       ],
     })
@@ -157,5 +182,20 @@ describe('buildUpdatePayload', () => {
     const stored = product({ dimensions: 'grande' })
 
     expect(buildUpdatePayload(stored, editForm()).product.dimensions).toBe('45x30x20')
+  })
+})
+
+describe('the category', () => {
+  // Un `<select>` no tiene `null`: el formulario usa `''` para «sin categoría».
+  it('sends no category as null', () => {
+    expect(buildCreatePayload(createForm({ category: '' })).product.category).toBeNull()
+  })
+
+  it('sends the chosen category', () => {
+    expect(buildCreatePayload(createForm({ category: 'Power' })).product.category).toBe('Power')
+  })
+
+  it('lets the edition clear the category', () => {
+    expect(buildUpdatePayload(product(), editForm({ category: '' })).product.category).toBeNull()
   })
 })

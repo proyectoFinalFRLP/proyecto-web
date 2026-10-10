@@ -25,6 +25,11 @@ function seededClient() {
   queryClient.setQueryData(orderKeys.detail(8829), {})
   queryClient.setQueryData(orderKeys.shipment(8829), { kind: 'none' })
   queryClient.setQueryData(quoteKeys.order(8829, 1), [])
+  // El listado de envíos, el contador de una pestaña y la campanita: tres
+  // consumidores de fuera de esta feature que el despacho deja viejos.
+  queryClient.setQueryData(['shipments', 'list', {}], [])
+  queryClient.setQueryData(['shipments', 'count', 'in_transit', ''], 0)
+  queryClient.setQueryData(['activity', 'list'], [])
   return queryClient
 }
 
@@ -61,6 +66,24 @@ describe('useDispatchShipment', () => {
     expect(queryClient.getQueryState(orderKeys.detail(8829))?.isInvalidated).toBe(true)
     expect(queryClient.getQueryState(orderKeys.shipment(8829))?.isInvalidated).toBe(true)
     expect(queryClient.getQueryState(quoteKeys.order(8829, 1))?.isInvalidated).toBe(false)
+  })
+
+  // El envío que se acaba de despachar cambia de estado y de courier. Quien lo
+  // muestra no es sólo el detalle de la orden: están el listado de /shipments,
+  // los contadores de sus pestañas y el historial de la campanita, y ninguno se
+  // entera por el dominio de órdenes.
+  it('refreshes the shipments listing and the activity feed', async () => {
+    vi.spyOn(api, 'dispatchShipment').mockResolvedValue(SHIPMENT)
+    const queryClient = seededClient()
+    const { result } = renderFor(queryClient)
+
+    await act(() => result.current.mutateAsync(INPUT))
+
+    expect(queryClient.getQueryState(['shipments', 'list', {}])?.isInvalidated).toBe(true)
+    expect(queryClient.getQueryState(['shipments', 'count', 'in_transit', ''])?.isInvalidated).toBe(
+      true,
+    )
+    expect(queryClient.getQueryState(['activity', 'list'])?.isInvalidated).toBe(true)
   })
 
   // Un 409 es que otro lo despachó mientras tanto: el detalle tiene que dejar de

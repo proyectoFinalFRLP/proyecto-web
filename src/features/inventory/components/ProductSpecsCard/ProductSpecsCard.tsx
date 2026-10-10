@@ -29,7 +29,7 @@ function SpecCell({ label, value, mono = false, unknown = false }: ProductSpec) 
 }
 
 /** Tarjeta "Especificaciones" de S12: datos técnicos y categoría del producto. */
-export function ProductSpecsCard({ specs, secondarySpecs, footnote }: ProductSpecsCardProps) {
+export function ProductSpecsCard({ specs, secondarySpecs }: ProductSpecsCardProps) {
   return (
     <SpecsCard>
       <CardHeading>
@@ -54,12 +54,6 @@ export function ProductSpecsCard({ specs, secondarySpecs, footnote }: ProductSpe
           <SpecCell key={spec.id} {...spec} />
         ))}
       </SecondaryRow>
-
-      {footnote === undefined ? null : (
-        <Typography variant="labelSm" color="text.secondary">
-          {footnote}
-        </Typography>
-      )}
     </SpecsCard>
   )
 }

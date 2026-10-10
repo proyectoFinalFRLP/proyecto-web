@@ -7,14 +7,16 @@ import { ErrorFallback, LoadingSpinner, PageWrapper } from 'shared/components'
 import type { DataTableTab } from 'shared/components'
 import { useDebouncedValue } from 'shared/hooks/useDebouncedValue'
 import { notify } from 'shared/store'
+import { formatInteger } from 'shared/utils'
 
 import { CreateProductModal } from '../components/CreateProductModal'
 import { DeleteProductDialog } from '../components/DeleteProductDialog'
 import { InventoryTable } from '../components/InventoryTable'
-import { formatUnits, inventoryCopy } from '../content'
+import { inventoryCopy } from '../content'
 import {
   CATALOG_TABS,
   RESTRICTED_STATUS,
+  useCategories,
   useCreateProduct,
   useDeleteProduct,
   useProductCounts,
@@ -81,6 +83,7 @@ export function InventoryPage() {
   })
   const counts = useProductCounts(debouncedSearch)
   const warehouses = useWarehouses()
+  const categories = useCategories()
   const createMutation = useCreateProduct()
   const deleteMutation = useDeleteProduct()
 
@@ -156,12 +159,12 @@ export function InventoryPage() {
   const from = total === 0 ? 0 : (pageNumber - 1) * PER_PAGE + 1
   const to = Math.min(pageNumber * PER_PAGE, total)
 
-  const tabs: DataTableTab[] = CATALOG_TABS.map(({ id }, index) => ({
+  const tabs: DataTableTab[] = CATALOG_TABS.map(({ id }) => ({
     id,
     label: TAB_LABELS[id],
     // Un contador que todavía no resolvió no muestra cero: mostraría un número
     // falso durante el primer render y luego saltaría al real.
-    count: counts[index] === undefined ? undefined : formatUnits(counts[index]),
+    count: counts.data === undefined ? undefined : formatInteger(counts.data[id]),
   }))
 
   return (
@@ -232,6 +235,7 @@ export function InventoryPage() {
       <CreateProductModal
         open={creating}
         warehouses={warehouses.data}
+        categories={categories.data}
         submitting={createMutation.isPending}
         // Un SKU repetido vuelve como 409: el modal queda abierto y marca el
         // campo en conflicto en vez de perder lo que el usuario cargó.

@@ -1,4 +1,4 @@
-import { Box, CircularProgress, Stack, Typography } from '@mui/material'
+import { Box, Button, CircularProgress, Stack, Typography } from '@mui/material'
 import { displayNameFromSlug } from 'app/theme/branding'
 import type { ReactNode } from 'react'
 import { useTenantConfig } from 'shared/hooks/useTenantConfig'
@@ -13,7 +13,18 @@ const tenantGateContent = {
     // nada y es lo único que le sirve a quien tiene que corregir el enlace.
     attempted: (slug: string) => `Identificador buscado: ${slug}`,
   },
+  // Cualquier otra falla de `/tenant-config` (la API reiniciándose, un corte de
+  // red): no dice nada sobre si la empresa existe, así que no es «no la
+  // encontramos».
+  unavailable: {
+    title: 'No pudimos conectarnos',
+    body: 'No logramos cargar la configuración de tu empresa. Revisá tu conexión y volvé a intentar.',
+    retry: 'Reintentar',
+  },
 } as const
+
+/** El único status que dice que el slug no corresponde a una empresa (§3 del contrato). */
+const UNKNOWN_TENANT_STATUS = 404
 
 function FullScreen({ children }: { children: ReactNode }) {
   return (
@@ -68,6 +79,22 @@ function UnknownTenant({ slug }: { slug: string | null }) {
   )
 }
 
+function TenantUnavailable({ retrying, onRetry }: { retrying: boolean; onRetry: () => void }) {
+  return (
+    <FullScreen>
+      <Stack spacing={2} alignItems="center" sx={{ maxWidth: 480, textAlign: 'center' }}>
+        <Typography variant="h1">{tenantGateContent.unavailable.title}</Typography>
+        <Typography variant="bodyLg" color="text.secondary">
+          {tenantGateContent.unavailable.body}
+        </Typography>
+        <Button variant="contained" onClick={onRetry} disabled={retrying}>
+          {tenantGateContent.unavailable.retry}
+        </Button>
+      </Stack>
+    </FullScreen>
+  )
+}
+
 /**
  * Gate de arranque: nada de la app se monta antes de saber para qué empresa se
  * está sirviendo.
@@ -76,9 +103,10 @@ function UnknownTenant({ slug }: { slug: string | null }) {
  *
  * - Sin slug resoluble, o `/tenant-config` que responde 404 → pantalla explícita
  *   de tenant desconocido.
+ * - Config disponible (también la guardada) → la app, aunque el request falle.
+ * - Cualquier otra falla sin config → pantalla de error con reintento.
  * - Config en vuelo → splash con la identidad mínima derivada del slug, nunca el
  *   tema base genérico.
- * - Config disponible → la app.
  *
  * La config rehidratada de `localStorage` cuenta como disponible, así que un
  * reload no vuelve a pasar por el splash: el request igual sale y actualiza el
@@ -87,10 +115,19 @@ function UnknownTenant({ slug }: { slug: string | null }) {
 export function TenantGate({ children }: { children: ReactNode }) {
   const slug = useTenantStore((state) => state.slug)
   const config = useTenantStore((state) => state.config)
-  const { isError } = useTenantConfig()
+  const { error, isError, isFetching, refetch } = useTenantConfig()
 
-  if (slug === null || isError) return <UnknownTenant slug={slug} />
-  if (!config) return <TenantSplash name={displayNameFromSlug(slug)} />
+  // Sólo el 404 dice que la empresa no existe. Antes cualquier falla —un 500,
+  // la red, una respuesta que no valida— tapaba la app entera con «No
+  // encontramos esta empresa», incluso con una config válida guardada y sin
+  // forma de reintentar (hallazgo de auditoría, TESIS-89).
+  if (slug === null || error?.status === UNKNOWN_TENANT_STATUS) return <UnknownTenant slug={slug} />
+  // Con la config rehidratada se sigue: el branding guardado es del mismo slug,
+  // y la próxima carga lo vuelve a pedir.
+  if (config) return children
+  if (isError) {
+    return <TenantUnavailable retrying={isFetching} onRetry={() => void refetch()} />
+  }
 
-  return children
+  return <TenantSplash name={displayNameFromSlug(slug)} />
 }

@@ -9,6 +9,7 @@ import {
   headerStatus,
   lifecycleProgress,
   SHIPMENT_STAGES,
+  printableLabel,
 } from './shipment'
 
 let nextEventId = 1
@@ -33,6 +34,7 @@ function shipment(status: ShipmentStatus, events: ShipmentEvent[] = []): Shipmen
     trackingNumber: null,
     shippingCost: null,
     courier: null,
+    labelUrl: null,
     events,
   }
 }
@@ -150,5 +152,35 @@ describe('eventsNewestFirst', () => {
     // El envío viene de la caché de React Query: invertirlo en el lugar
     // cambiaría el orden para cualquier otro que lo lea.
     expect(source.events.map((item) => item.internalStatus)).toEqual(['pending', 'in_transit'])
+  })
+})
+
+describe('printableLabel', () => {
+  it('keeps the https link the courier returned', () => {
+    expect(printableLabel('https://andreani.test/etiquetas/AND-9920.pdf')).toBe(
+      'https://andreani.test/etiquetas/AND-9920.pdf',
+    )
+  })
+
+  it('keeps an http one too: some carriers still serve the pdf without tls', () => {
+    expect(printableLabel('http://oca.test/label/123')).toBe('http://oca.test/label/123')
+  })
+
+  it('has nothing to show without a label', () => {
+    expect(printableLabel(null)).toBeNull()
+    expect(printableLabel('   ')).toBeNull()
+  })
+
+  // La URL la devuelve el courier y la plantilla la mapea tal cual: un `href`
+  // con `javascript:` corre al hacer clic, en el navegador del operador.
+  it('refuses a link that is not a web address', () => {
+    expect(printableLabel('javascript:alert(document.cookie)')).toBeNull()
+    expect(printableLabel('data:text/html,<script>alert(1)</script>')).toBeNull()
+  })
+
+  // Una relativa apuntaría a nuestro sitio, y el destino es el del courier.
+  it('refuses something that is not an absolute url', () => {
+    expect(printableLabel('/etiquetas/AND-9920.pdf')).toBeNull()
+    expect(printableLabel('no es una url')).toBeNull()
   })
 })

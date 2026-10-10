@@ -24,7 +24,7 @@ const AXIS_FORMAT: Record<CurveMetric, (value: number) => string> = {
  * para alternar entre órdenes y facturación. Los puntos traen las dos series;
  * cuál se dibuja es estado de la tarjeta y de nadie más.
  */
-export function DispatchCurveCard({ points }: DispatchCurveCardProps) {
+export function DispatchCurveCard({ points, granularity = 'day' }: DispatchCurveCardProps) {
   const [metric, setMetric] = useState<CurveMetric>('orders')
 
   // El segmentado es exclusivo: soltar la opción activa devuelve `null`, y una
@@ -54,7 +54,7 @@ export function DispatchCurveCard({ points }: DispatchCurveCardProps) {
         values={points.map((point) => point[metric])}
         labels={points.map((point) => point.label)}
         formatValue={AXIS_FORMAT[metric]}
-        ariaLabel={copy.chartLabel(copy.metrics[metric])}
+        ariaLabel={copy.chartLabel(copy.metrics[metric], granularity)}
       />
     </CurveCard>
   )

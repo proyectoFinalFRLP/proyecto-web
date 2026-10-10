@@ -2,7 +2,7 @@ export { ReportsPage } from './pages/ReportsPage'
 export { useReportsOverview } from './hooks/useReportsOverview'
 export type {
   AnomalyStatus,
-  CarrierServiceLevel,
+  CarrierDeliveries,
   CurveMetric,
   CurvePoint,
   RegionalAnomaly,

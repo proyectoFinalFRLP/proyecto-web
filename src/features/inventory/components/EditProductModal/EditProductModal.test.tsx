@@ -12,13 +12,32 @@ function product(overrides: Partial<Product> = {}): Product {
     sku: 'CAB-6-305',
     name: 'Cable UTP Cat6',
     description: 'Rollo de 305 metros',
+    category: null,
+    packaging: null,
+    technicalStandard: null,
     weight: 12.4,
     dimensions: '45x30x20',
+    committed: 0,
+    onHand: 10,
+    availableToPromise: 10,
+    inTransit: 0,
+    totalStock: 10,
+    stockStatus: 'low',
+    inTransitQuantity: 0,
+    inTransitByWarehouse: [],
+    committedByWarehouse: [],
     stocks: [
       {
         warehouseId: 1,
         quantity: 10,
-        warehouse: { id: 1, name: 'CD Ezeiza', address: 'Autopista Riccheri km 33' },
+        committed: 0,
+        warehouse: {
+          id: 1,
+          name: 'CD Ezeiza',
+          address: 'Autopista Riccheri km 33',
+          capacity: null,
+        },
+        stockStatus: 'low',
       },
     ],
     updatedAt: '2026-08-30T12:00:00.000Z',
@@ -31,6 +50,7 @@ function renderModal(initial: Product) {
   const props = {
     open: true,
     warehouses: [],
+    categories: ['Electronics', 'Cabling', 'Power'],
     onSubmit: vi.fn(),
     onClose: vi.fn(),
   }
@@ -43,6 +63,47 @@ function renderModal(initial: Product) {
     show: (next: Product) => view.rerender(<EditProductModal {...props} product={next} />),
   }
 }
+
+// TESIS-163: «Editar stock» abría el formulario entero del producto. El modal
+// mantiene un solo guardado y cambia de alcance.
+describe('EditProductModal · scope', () => {
+  function renderStockScope() {
+    renderWithTheme(
+      <EditProductModal
+        open
+        scope="stock"
+        warehouses={[]}
+        product={product()}
+        onSubmit={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    )
+  }
+
+  it('edits only the quantities when it is opened from «Editar stock»', () => {
+    renderStockScope()
+
+    expect(screen.getByText('Asignación de stock')).toBeInTheDocument()
+    // El nombre del producto es lo que el formulario entero deja editar: con
+    // alcance de stock no está, y el valor tampoco aparece en ningún input.
+    expect(screen.queryByDisplayValue('Cable UTP Cat6')).not.toBeInTheDocument()
+    expect(screen.queryByText('Información básica')).not.toBeInTheDocument()
+    expect(screen.queryByText('Especificaciones técnicas')).not.toBeInTheDocument()
+  })
+
+  it('says in its title that it is editing stock', () => {
+    renderStockScope()
+
+    expect(screen.getByText('Editar stock: Cable UTP Cat6')).toBeInTheDocument()
+  })
+
+  it('still edits everything with the default scope', () => {
+    renderModal(product())
+
+    expect(screen.getByDisplayValue('Cable UTP Cat6')).toBeInTheDocument()
+    expect(screen.getByText('Información básica')).toBeInTheDocument()
+  })
+})
 
 describe('EditProductModal', () => {
   it('fills the form with the values of the product it receives', () => {
@@ -176,6 +237,55 @@ describe('EditProductModal', () => {
 
       expect(screen.queryByRole('button', { name: 'Guardar cambios' })).not.toBeInTheDocument()
       expect(screen.getAllByRole('button', { name: /guardar/i })).toHaveLength(1)
+    })
+  })
+
+  describe('the category', () => {
+    const categorySelect = () => screen.getByRole('combobox', { name: 'Categoría' })
+
+    async function choose(option: string) {
+      fireEvent.mouseDown(categorySelect())
+      fireEvent.click(await screen.findByRole('option', { name: option }))
+    }
+
+    async function submittedCategory(props: { onSubmit: ReturnType<typeof vi.fn> }) {
+      fireEvent.click(screen.getByRole('button', { name: 'Guardar cambios' }))
+      await waitFor(() => expect(props.onSubmit).toHaveBeenCalled())
+      return (props.onSubmit.mock.calls[0]?.[0] as { product: { category: string | null } }).product
+        .category
+    }
+
+    it('opens with the category of the product', () => {
+      renderModal(product({ category: 'Cabling' }))
+
+      expect(categorySelect()).toHaveTextContent('Cabling')
+    })
+
+    it('offers the vocabulary of the API plus no category', () => {
+      renderModal(product())
+
+      fireEvent.mouseDown(categorySelect())
+
+      expect(screen.getAllByRole('option').map((option) => option.textContent)).toEqual([
+        'Sin categoría',
+        'Electronics',
+        'Cabling',
+        'Power',
+      ])
+    })
+
+    it('sends the category the user chose', async () => {
+      const { props } = renderModal(product({ category: 'Cabling' }))
+      await choose('Power')
+
+      expect(await submittedCategory(props)).toBe('Power')
+    })
+
+    it('lets the user clear it', async () => {
+      const { props } = renderModal(product({ category: 'Cabling' }))
+      await choose('Sin categoría')
+
+      expect(await submittedCategory(props)).toBeNull()
     })
   })
 })

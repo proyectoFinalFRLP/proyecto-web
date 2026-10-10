@@ -4,10 +4,11 @@ import ScheduleOutlinedIcon from '@mui/icons-material/ScheduleOutlined'
 import WarningAmberOutlinedIcon from '@mui/icons-material/WarningAmberOutlined'
 import { StatCard } from 'shared/components'
 import type { StatTrend } from 'shared/components'
+import { formatInteger } from 'shared/utils'
 
 import { reportsCopy } from '../../content'
 import type { TrendedValue } from '../../types'
-import { formatCompactMoney, formatInteger, formatPercent } from '../../utils/format'
+import { formatCompactMoney, formatPercent } from '../../utils/format'
 
 import { MetricsGrid } from './ReportMetrics.styles'
 import type { ReportMetricsProps } from './ReportMetrics.types'
@@ -50,23 +51,43 @@ export function ReportMetrics({ kpis }: ReportMetricsProps) {
         trend={trendOf(revenue)}
         icon={<PaymentsOutlinedIcon />}
       />
-      <StatCard
-        label={copy.onTimeDelivery}
-        value={formatPercent(onTimeDeliveryRate.value)}
-        trend={trendOf(onTimeDeliveryRate)}
-        icon={<ScheduleOutlinedIcon />}
-      />
+      {/* Sin fecha comprometida no hay cumplimiento que medir: la tarjeta del
+          diseño queda, sin valor y diciendo por qué, en vez de un número. */}
+      {onTimeDeliveryRate === null ? (
+        <StatCard
+          label={copy.onTimeDelivery}
+          value={copy.unavailable}
+          note={copy.onTimeUnavailable}
+          icon={<ScheduleOutlinedIcon />}
+        />
+      ) : (
+        <StatCard
+          label={copy.onTimeDelivery}
+          value={formatPercent(onTimeDeliveryRate.value)}
+          trend={trendOf(onTimeDeliveryRate)}
+          icon={<ScheduleOutlinedIcon />}
+        />
+      )}
       {/* Con una anomalía crítica la tarjeta entera pasa a alerta: borde,
           ícono y chip, como el `critical` del MetricCard del diseño. */}
-      <StatCard
-        label={copy.activeAnomalies}
-        value={formatInteger(activeAnomalies.count)}
-        tone={activeAnomalies.critical ? 'error' : 'primary'}
-        tag={activeAnomalies.critical ? copy.critical : undefined}
-        tagTone="error"
-        tagIcon={<WarningAmberOutlinedIcon />}
-        icon={<WarningAmberOutlinedIcon />}
-      />
+      {activeAnomalies === null ? (
+        <StatCard
+          label={copy.activeAnomalies}
+          value={copy.unavailable}
+          note={copy.anomaliesUnavailable}
+          icon={<WarningAmberOutlinedIcon />}
+        />
+      ) : (
+        <StatCard
+          label={copy.activeAnomalies}
+          value={formatInteger(activeAnomalies.count)}
+          tone={activeAnomalies.critical ? 'error' : 'primary'}
+          tag={activeAnomalies.critical ? copy.critical : undefined}
+          tagTone="error"
+          tagIcon={<WarningAmberOutlinedIcon />}
+          icon={<WarningAmberOutlinedIcon />}
+        />
+      )}
     </MetricsGrid>
   )
 }

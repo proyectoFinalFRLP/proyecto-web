@@ -1,56 +1,40 @@
-// Tipo de servicio externo (`services.type`, con check constraint en la DB).
-export type ServiceType = 'ecommerce' | 'courier'
-
-// Fila de `GET /api/v1/integrations`.
-//
-// Ojo con el nombre: el endpoint NO devuelve `company_integrations`. Devuelve
-// TODOS los `services` y le mergea encima el estado de la integración de la
-// empresa del token (`IntegrationStatusSerializer`). Por eso el identificador
-// es `service_id` y no `id`, y por eso el filtro de "nodo activo" que pide la
-// card se resuelve en el cliente con `configured && is_active`.
-export interface IntegrationNode {
-  service_id: number
-  service_name: string
-  type: ServiceType
-  uri: string
-  http_method: string
-  /** La empresa del token tiene una `company_integration` para este service. */
-  configured: boolean
-  /** `is_active` de esa integración. `false` si no está configurada. */
-  is_active: boolean
-  integration_id: number | null
-  /**
-   * Marca de la última sincronización exitosa.
-   *
-   * Hoy el backend NO lo manda: `company_integrations` no tiene la columna y
-   * `IntegrationStatusSerializer` no serializa ninguna fecha. Queda opcional a
-   * propósito para que el widget ya esté cableado contra el contrato final y se
-   * encienda solo cuando el worker de sync (TESIS-35) empiece a registrarla.
-   * Mientras llegue `undefined`/`null`, el nodo se muestra en estado `unknown`
-   * en vez de asumir que está sano.
-   */
-  last_synced_at?: string | null
-}
-
-// Estado de frescura derivado de `last_synced_at`:
-// - `online`  → sincronizó dentro de la ventana esperada (ícono `check_circle`)
-// - `stale`   → la última sync quedó fuera de la ventana (ícono `error`)
-// - `unknown` → no hay marca de sync: no afirmamos nada (ícono neutro)
-export type NodeSyncStatus = 'online' | 'stale' | 'unknown'
-
 /**
  * Un depósito y las unidades que guarda, para el widget de carga del panel
  * (TESIS-55).
  *
- * No hay porcentaje de ocupación y no es un olvido: `warehouses` no tiene
- * ninguna capacidad máxima contra la cual medirlo. La barra del widget compara
- * los depósitos entre sí, y de eso se encarga `warehouseShares`.
+ * Desde TESIS-162 el depósito puede declarar su capacidad, y entonces la barra
+ * mide ocupación de verdad. Sin capacidad declarada sigue comparando los
+ * depósitos entre sí, que es la única comparación real que queda.
  */
 export interface WarehouseLoad {
   id: number
   name: string
   /** Suma de las unidades en stock del depósito. Cero es un dato, no un faltante. */
   storedUnits: number
+  /**
+   * Capacidad declarada, en unidades. `null` cuando nadie la cargó: no es cero,
+   * que diría que no entra nada.
+   */
+  capacity: number | null
+}
+
+/** Los cuatro estados del envío (`Shipment::STATUSES`). */
+export type ShipmentStatus = 'pending' | 'ready_to_ship' | 'in_transit' | 'delivered'
+
+/**
+ * Una fila de la tarjeta «Últimos envíos» del panel (TESIS-163).
+ *
+ * Reemplaza a la tarjeta de Integraciones, que mostraba la salud de los nodos.
+ * `trackingNumber` y `courier` llegan vacíos mientras el envío está `pending`:
+ * los dos los asigna el courier al confirmar el despacho (TESIS-47).
+ */
+export interface DispatchedShipment {
+  id: number
+  orderId: number
+  status: ShipmentStatus
+  trackingNumber: string | null
+  courier: string | null
+  createdAt: string
 }
 
 /** Los tres estados que el backend acepta (`Order::STATUSES`). */

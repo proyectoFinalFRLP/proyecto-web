@@ -9,6 +9,7 @@ import {
   dispatchShipment,
   fetchCatalogProducts,
   fetchOrder,
+  fetchOrderPage,
   fetchOrderShipment,
   fetchProductStocks,
   fetchProvinces,
@@ -32,6 +33,7 @@ const SHIPMENT = {
   status: 'in_transit',
   tracking_number: 'AND-9920-X8829-Z',
   shipping_cost: 58300,
+  shipping_label_url: 'https://andreani.test/etiquetas/AND-9920.pdf',
   courier: { id: 4, service_id: 7, name: 'Andreani' },
   events: [
     {
@@ -125,6 +127,7 @@ describe('fetchOrderShipment', () => {
         status: 'in_transit',
         trackingNumber: 'AND-9920-X8829-Z',
         shippingCost: 58300,
+        labelUrl: 'https://andreani.test/etiquetas/AND-9920.pdf',
         courier: { id: 4, serviceId: 7, name: 'Andreani' },
         events: [
           {
@@ -147,6 +150,7 @@ const ORDER = {
   customer_document: '30-71234567-8',
   customer_address: 'Av. Corrientes 3247',
   customer_zip_code: 'C1193',
+  requires_shipping: true,
   customer_city: null,
   customer_province: null,
   status: 'paid',
@@ -164,6 +168,7 @@ describe('fetchOrder', () => {
         customer_document: '30-71234567-8',
         customer_address: 'Av. Corrientes 3247',
         customer_zip_code: 'C1193',
+        requires_shipping: true,
         status: 'paid',
         total_amount: 960000,
         created_at: '2026-08-12T12:42:00Z',
@@ -195,6 +200,19 @@ describe('fetchOrder', () => {
     ])
   })
 
+  // Si el front se despliega antes que el backend que agrega el campo,
+  // `undefined` es falsy y el detalle trataría la orden como retiro en el
+  // local: ocultaría el envío y el despacho de una venta que sí los lleva.
+  it('treats an order whose API does not send requires_shipping as one that ships', async () => {
+    const { requires_shipping: omitido, ...sinElCampo } = ORDER
+    expect(omitido).toBe(true)
+    vi.spyOn(client, 'get').mockResolvedValueOnce(respond({ ...sinElCampo, order_items: [] }))
+
+    const order = await fetchOrder(8829)
+
+    expect(order.requiresShipping).toBe(true)
+  })
+
   it('keeps the version from the ETag as it came', async () => {
     vi.spyOn(client, 'get').mockResolvedValueOnce(
       respond({ ...ORDER, order_items: [] }, { etag: 'W/"abc123"' }),
@@ -219,6 +237,7 @@ describe('updateOrder', () => {
       customer_city: 'CABA',
       customer_province: 'Ciudad Autónoma de Buenos Aires',
       customer_zip_code: '1193',
+      requires_shipping: true,
       status: 'paid' as const,
     },
   }
@@ -385,6 +404,7 @@ describe('the confirmation of a manual order', () => {
         customer_city: 'CABA',
         customer_province: 'Ciudad Autónoma de Buenos Aires',
         customer_zip_code: '1193',
+        requires_shipping: true,
         items: [{ product_id: 12, warehouse_id: 3, quantity: 4, unit_price: 120000 }],
       },
     }
@@ -414,5 +434,22 @@ describe('the confirmation of a manual order', () => {
 
     expect(post).toHaveBeenCalledWith('/shipments/31/dispatch', payload)
     expect(shipment.trackingNumber).toBe('AND-9920-X8829-Z')
+  })
+})
+
+// El mismo riesgo que en el detalle, en el otro mapeo: el listado marca con un
+// chip las ventas que se retiran en el local, y sin el campo las marcaría
+// todas.
+describe('fetchOrderPage and a backend that does not send requires_shipping', () => {
+  it('treats every order as one that ships', async () => {
+    const { requires_shipping: omitido, ...sinElCampo } = ORDER
+    expect(omitido).toBe(true)
+    vi.spyOn(client, 'get').mockResolvedValueOnce(
+      respond({ data: [sinElCampo], meta: { page: 1, per_page: 20, total: 1 } }),
+    )
+
+    const page = await fetchOrderPage({ page: 1, perPage: 20, search: '' })
+
+    expect(page.orders[0].requiresShipping).toBe(true)
   })
 })

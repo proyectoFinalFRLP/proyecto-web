@@ -73,8 +73,11 @@ aparte.
 - **El panel de operación es una sola pantalla** y las cards TESIS-53 a TESIS-56 piden cuatro
   (KPIs, salud de infraestructura, capacidad de stock, actividad reciente). Hay que recortar esas
   cards a una o pedir las tres restantes al diseño.
-- **No hay pantalla para cargar las credenciales de una integración** (RF-05). Hoy esa operación
-  sólo es accesible por API.
+- **La pantalla de integraciones y la tarjeta «Canales de venta» del detalle de producto se
+  construyeron sin maqueta** (RF-05, TESIS-139), con componentes del DS (`ModalFrame`,
+  `LabeledField`, `StatusBadge`, `ConfirmDialog`). La de integraciones es de sólo lectura: las
+  credenciales las carga el equipo de OneStock desde el backoffice (ADR-018 del backend). Falta la
+  revisión de diseño de las dos.
 - **No hay pantalla de transferencias entre depósitos**, que el backend ya modela (TESIS-103).
 
 ## Vocabulario del producto, tal como está en el diseño

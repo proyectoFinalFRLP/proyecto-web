@@ -7,23 +7,6 @@
 
 import { formatDate } from 'shared/utils'
 
-const integerFormatter = new Intl.NumberFormat('es-AR', { maximumFractionDigits: 0 })
-
-const decimalFormatter = new Intl.NumberFormat('es-AR', {
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-})
-
-/** Cantidad de unidades: `4280` → `"4.280"`. */
-export function formatUnits(value: number): string {
-  return integerFormatter.format(value)
-}
-
-/** Peso en kg con dos decimales: `1.45` → `"1,45"`. */
-export function formatWeight(value: number): string {
-  return decimalFormatter.format(value)
-}
-
 /**
  * Marca temporal de la ficha: `"24 ago 2026 · 09:14"`.
  *

@@ -68,6 +68,8 @@ export interface CreateOrderPayload {
     customer_city: string
     customer_province: string
     customer_zip_code: string
+    /** Si la venta se despacha o la retira el cliente (TESIS-162). */
+    requires_shipping: boolean
     items: {
       product_id: number
       warehouse_id: number
@@ -88,6 +90,7 @@ export function toCreateOrderPayload(
   items: OrderDraftItem[],
   origin: OrderDraftOrigin,
   destination: OrderDraftDestination,
+  requiresShipping = true,
 ): CreateOrderPayload {
   return {
     order: {
@@ -97,6 +100,10 @@ export function toCreateOrderPayload(
       customer_city: destination.city.trim(),
       customer_province: destination.province,
       customer_zip_code: destination.zipCode.trim(),
+      // El backend asume `true` si no viaja (TESIS-162); se manda igual, para
+      // que el cuerpo diga lo que el operador eligió y no lo que el default
+      // deduce.
+      requires_shipping: requiresShipping,
       items: items.map((item) => ({
         product_id: item.productId,
         warehouse_id: origin.warehouseId,

@@ -2,6 +2,8 @@
 // criterio que `features/inventory/content.ts`: si más adelante entra i18n,
 // este módulo es el único punto a migrar a claves de traducción.
 
+import { formatInteger } from 'shared/utils'
+
 export const ordersCopy = {
   page: {
     title: 'Órdenes',
@@ -73,10 +75,22 @@ export const ordersCopy = {
     },
     shipmentState: {
       none: 'La orden todavía no tiene un envío creado.',
+      // Distinto de `none`: a esta orden no le falta el envío, es que no lleva
+      // (TESIS-162). Hasta ahora las dos se veían igual.
+      pickup: 'El cliente retira esta orden en el local. No lleva envío.',
       duplicated: (count: number) =>
         `La orden tiene ${count} envíos registrados y debería tener uno solo. No se muestra ninguno hasta que se corrija.`,
       error: 'No pudimos cargar el envío de la orden.',
       retry: 'Reintentar',
+    },
+    /** Abrir el envío de una orden que todavía no lo tiene (TESIS-141). */
+    openShipment: {
+      action: 'Crear envío',
+      creating: 'Creando…',
+      created: 'Envío creado. Ya se puede despachar.',
+      /** 409: lo abrió el asistente del alta, u otra pestaña. */
+      duplicated: 'La orden ya tenía un envío. Lo acabamos de traer.',
+      error: 'No pudimos crear el envío de la orden.',
     },
     /** Despachar desde el detalle un envío que quedó sin despachar (TESIS-134). */
     dispatch: {
@@ -121,7 +135,7 @@ export const ordersCopy = {
       /** La orden no registra cómo se pagó. */
       paymentMethodUnknown: 'Medio de pago sin registrar',
       units: 'Unidades',
-      lines: (count: number) => `${formatCount(count)} ${count === 1 ? 'línea' : 'líneas'}`,
+      lines: (count: number) => `${formatInteger(count)} ${count === 1 ? 'línea' : 'líneas'}`,
       carrier: 'Operador logístico',
       /** El courier se asigna al confirmar el despacho. */
       noCarrier: 'Sin asignar',
@@ -155,6 +169,15 @@ export const ordersCopy = {
         copied: 'Número de seguimiento copiado.',
         copyFailed: 'No se pudo copiar. Seleccioná el número y copialo a mano.',
       },
+      /** El rótulo que emite el courier al despachar (RF-23). */
+      label: {
+        title: 'Etiqueta de envío',
+        action: 'Imprimir etiqueta',
+        /** Sin despachar no hay etiqueta: la emite el courier (TESIS-47). */
+        pending: 'Se emite al despachar.',
+        /** Despachado y sin etiqueta: el courier no la devolvió. */
+        missing: 'El operador no devolvió la etiqueta.',
+      },
       fields: {
         serviceType: 'Tipo de servicio',
         origin: 'Depósito de origen',
@@ -167,6 +190,8 @@ export const ordersCopy = {
       shipping: 'Envío',
       /** El envío todavía no tiene costo: no es gratis, falta cotizarlo. */
       shippingPending: 'Sin cotizar',
+      /** Un retiro no se va a cotizar nunca: no lleva envío (TESIS-162). */
+      shippingPickup: 'Retiro en el local',
       total: 'Total',
       invoice: 'Descargar factura',
       invoicePending: 'La factura todavía no se puede generar desde el sistema.',
@@ -183,7 +208,7 @@ export const ordersCopy = {
       empty: 'La orden no tiene líneas.',
       /** "3 líneas · 67 unidades". */
       footer: (lines: number, units: number) =>
-        `${formatCount(lines)} ${lines === 1 ? 'línea' : 'líneas'} · ${formatCount(units)} ${
+        `${formatInteger(lines)} ${lines === 1 ? 'línea' : 'líneas'} · ${formatInteger(units)} ${
           units === 1 ? 'unidad' : 'unidades'
         }`,
     },
@@ -257,7 +282,7 @@ export const ordersCopy = {
       empty: 'Buscá un producto y agregalo para armar la orden.',
       /** "3 SKU seleccionados · las cantidades ajustan el peso estimado". */
       footer: (count: number) =>
-        `${formatCount(count)} SKU ${count === 1 ? 'seleccionado' : 'seleccionados'} · las cantidades ajustan el peso estimado`,
+        `${formatInteger(count)} SKU ${count === 1 ? 'seleccionado' : 'seleccionados'} · las cantidades ajustan el peso estimado`,
     },
     summary: {
       subtotal: 'Subtotal de productos',
@@ -282,7 +307,7 @@ export const ordersCopy = {
         loading: 'Calculando stock…',
         full: 'Stock suficiente',
         /** "Falta stock de 1 SKU". */
-        partial: (count: number) => `Falta stock de ${formatCount(count)} SKU`,
+        partial: (count: number) => `Falta stock de ${formatInteger(count)} SKU`,
         none: 'Sin stock para la orden',
       },
       /** Por qué un depósito está deshabilitado, para el lector de pantalla. */
@@ -290,8 +315,19 @@ export const ordersCopy = {
       noneCovers:
         'Ningún depósito tiene stock para toda la orden. Volvé al paso anterior y ajustá las cantidades.',
     },
+    // Cómo llega la orden al cliente (TESIS-162). Va antes del domicilio
+    // porque decide si hace falta cargarlo.
+    fulfillment: {
+      title: 'Cómo la recibe el cliente',
+      shipped: 'Envío a domicilio',
+      shippedHint: 'Se cotiza con los operadores conectados y se despacha.',
+      pickup: 'Retiro en el local',
+      pickupHint: 'El cliente la busca por el depósito. No se cotiza ni se despacha.',
+    },
     destination: {
       title: 'Domicilio de entrega',
+      /** Con retiro en el local el domicilio deja de exigirse. */
+      optionalTitle: 'Domicilio del cliente (opcional)',
       fields: {
         address: 'Calle y número',
         city: 'Ciudad',
@@ -325,7 +361,7 @@ export const ordersCopy = {
       cheapest: 'Más económico',
       priceCaption: 'Tarifa',
       /** "Entrega en 3 días" · "Entrega en 1 día". */
-      eta: (days: number) => `Entrega en ${formatCount(days)} ${days === 1 ? 'día' : 'días'}`,
+      eta: (days: number) => `Entrega en ${formatInteger(days)} ${days === 1 ? 'día' : 'días'}`,
       noEta: 'Plazo no informado',
       error: 'No pudimos cotizar el envío.',
       empty:
@@ -354,17 +390,30 @@ export const ordersCopy = {
     /** "Orden #8829 creada y despachada con Andreani." */
     confirmed: (orderLabel: string, carrier: string) =>
       `Orden ${orderLabel} creada y despachada con ${carrier}.`,
+    // Lo que ocupa el lugar de las cotizaciones cuando la venta se retira en
+    // el local: no hay operador que elegir (TESIS-162).
+    pickup: {
+      title: 'Retiro en el local',
+      body: (warehouse: string) =>
+        `El cliente retira la orden en ${warehouse}. No se cotiza ni se despacha ningún envío.`,
+    },
+    /** Con retiro en el local no hay despacho que anunciar (TESIS-162). */
+    confirmedPickup: (orderLabel: string) =>
+      `Orden ${orderLabel} creada. El cliente la retira en el local.`,
     errors: {
       order: 'No pudimos crear la orden.',
       /** La orden ya existe: lo que falló es el envío o el despacho. */
       dispatch: (orderLabel: string) =>
         `La orden ${orderLabel} se creó, pero no pudimos emitir el despacho.`,
-      /** El envío quedó `pending`: el detalle de la orden lo puede despachar (TESIS-134). */
+      /**
+       * Un solo mensaje para las dos fallas que dejan la orden creada: que no
+       * se haya abierto el envío y que no se haya podido despachar. Desde
+       * TESIS-141 las dos tienen la misma salida, porque el detalle de la orden
+       * abre el envío que falta (TESIS-141) y despacha el que quedó `pending`
+       * (TESIS-134). Antes eran dos textos porque sin envío no había a dónde ir.
+       */
       dispatchLater:
-        'Podés reintentarlo acá o, si salís de esta pantalla, despachar el envío desde el detalle de la orden.',
-      /** Ni siquiera se abrió el envío: ninguna otra pantalla lo abre, ésta es la única salida. */
-      shipmentMissing:
-        'Reintentalo antes de salir: la orden ya descontó el stock y todavía no tiene envío, y ninguna otra pantalla lo puede abrir.',
+        'Podés reintentarlo acá o, si salís de esta pantalla, terminar el envío desde el detalle de la orden.',
       retryDispatch: 'Reintentar el despacho',
       viewOrder: 'Ver la orden',
     },
@@ -448,16 +497,16 @@ export const ordersCopy = {
        * "Las 2 líneas de PRO-2294-K piden 3 unidades más de las que hay en CD Ezeiza."
        */
       overStock: (sku: string, warehouse: string, missing: number, lines: number) =>
-        `${lines === 1 ? sku : `Las ${formatCount(lines)} líneas de ${sku}`} ${
+        `${lines === 1 ? sku : `Las ${formatInteger(lines)} líneas de ${sku}`} ${
           lines === 1 ? 'pide' : 'piden'
-        } ${formatCount(missing)} ${missing === 1 ? 'unidad más' : 'unidades más'} de las que hay en ${warehouse}.`,
+        } ${formatInteger(missing)} ${missing === 1 ? 'unidad más' : 'unidades más'} de las que hay en ${warehouse}.`,
       stockError:
         'No pudimos cargar el stock de los productos: la validación queda para el guardado.',
       add: {
         warehouse: 'Depósito de la línea nueva',
         warehousePlaceholder: 'Elegí un depósito',
       },
-      footer: (count: number) => `${formatCount(count)} ${count === 1 ? 'línea' : 'líneas'}`,
+      footer: (count: number) => `${formatInteger(count)} ${count === 1 ? 'línea' : 'líneas'}`,
     },
     recalc: {
       title: 'Recálculo',
@@ -478,6 +527,8 @@ export const ordersCopy = {
     menuFor: (orderId: string) => `Acciones de la orden ${orderId}`,
   },
   cells: {
+    /** La orden no espera courier: la retira el cliente (TESIS-162). */
+    pickup: 'Retiro en el local',
     /** El courier se asigna al confirmar el despacho: antes de eso no hay. */
     noCarrier: 'Sin asignar',
     /** Una venta cargada a mano puede no tener dirección. */
@@ -490,11 +541,6 @@ export const ordersCopy = {
     page: (page: number) => `Ir a la página ${page}`,
     /** "Mostrando 1 a 20 de 4.829 órdenes". */
     summary: (from: number, to: number, total: number) =>
-      `Mostrando ${from} a ${to} de ${formatCount(total)} ${total === 1 ? 'orden' : 'órdenes'}`,
+      `Mostrando ${from} a ${to} de ${formatInteger(total)} ${total === 1 ? 'orden' : 'órdenes'}`,
   },
-}
-
-/** Miles con punto, como el resto de los números de la pantalla. */
-export function formatCount(value: number): string {
-  return new Intl.NumberFormat('es-AR').format(value)
 }

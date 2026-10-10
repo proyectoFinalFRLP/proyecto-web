@@ -112,6 +112,16 @@ describe('origin and destination', () => {
 
     expect(stored.state.destination).toEqual(DESTINATION)
   })
+
+  // Sin persistirlo, recargar lo devuelve a su default `true` y el retiro se
+  // convierte en un envío sin que nadie lo haya pedido.
+  it('remembers that the sale is picked up at the store across a reload', () => {
+    useOrderDraftStore.getState().setRequiresShipping(false)
+
+    const stored = JSON.parse(sessionStorage.getItem('order-draft-store') ?? '{}')
+
+    expect(stored.state.requiresShipping).toBe(false)
+  })
 })
 
 describe('clearDraft', () => {

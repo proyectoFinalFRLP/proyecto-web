@@ -7,12 +7,11 @@ import { AppBar, Badge, Box, IconButton, Stack, Toolbar, Tooltip } from '@mui/ma
 import { Link } from 'react-router-dom'
 
 import { topNavContent } from './content'
-import { NavSearch } from './NavSearch'
 import { BrandLink, OrganizationName } from './TopNavBar.styles'
 import type { TopNavBarProps } from './TopNavBar.types'
 import { UserMenu } from './UserMenu'
 
-// Shell de navegación global (brand + búsqueda + acciones + usuario). Fixed,
+// Shell de navegación global (brand + acciones + usuario). Fixed,
 // full-width y por encima del drawer: intrínseco al componente vía el tema
 // (MuiAppBar en app/theme/components/appBar.ts), no configurable por props.
 export function TopNavBar({
@@ -25,8 +24,8 @@ export function TopNavBar({
   onNotificationsClick,
   settingsTo,
   user,
-  onProfileClick,
   onLogout,
+  children,
 }: TopNavBarProps) {
   return (
     <AppBar>
@@ -47,8 +46,6 @@ export function TopNavBar({
         {organization ? <OrganizationName>{organization}</OrganizationName> : null}
 
         <Box sx={{ flexGrow: 1 }} />
-
-        <NavSearch />
 
         <Stack direction="row" alignItems="center" spacing={0.5}>
           {onToggleTheme ? (
@@ -73,7 +70,7 @@ export function TopNavBar({
 
           <Tooltip title={topNavContent.notificationsAriaLabel}>
             <IconButton
-              onClick={onNotificationsClick}
+              onClick={(event) => onNotificationsClick?.(event.currentTarget)}
               aria-label={topNavContent.notificationsAriaLabel}
               sx={{ color: 'text.secondary' }}
             >
@@ -102,8 +99,9 @@ export function TopNavBar({
           ) : null}
         </Stack>
 
-        <UserMenu user={user} onProfileClick={onProfileClick} onLogout={onLogout} />
+        <UserMenu user={user} onLogout={onLogout} />
       </Toolbar>
+      {children}
     </AppBar>
   )
 }

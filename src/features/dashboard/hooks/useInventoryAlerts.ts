@@ -17,8 +17,12 @@ export interface InventoryOverview {
   breakdown: StockAlertCounts | undefined
   /** Depósitos ordenados de más a menos cargado, con el ancho de su barra. */
   warehouses: WarehouseShare[]
-  /** Unidades guardadas entre todos los depósitos. */
-  storedUnits: number
+  /**
+   * Unidades guardadas entre todos los depósitos, o `undefined` si el listado
+   * no llegó. Sumar sobre una lista vacía daría 0, que es un dato real —la
+   * empresa no guarda nada— y acá no lo sabemos.
+   */
+  storedUnits: number | undefined
   warehousesLoading: boolean
   /** Alguna de las dos consultas falló. */
   isError: boolean
@@ -78,7 +82,7 @@ export function useInventoryAlerts(): InventoryOverview {
     },
     breakdown: alerts.data,
     warehouses: warehouseShares(loads),
-    storedUnits: totalStoredUnits(loads),
+    storedUnits: warehouses.data === undefined ? undefined : totalStoredUnits(warehouses.data),
     warehousesLoading: warehouses.isLoading,
     isError: alerts.isError || warehouses.isError,
     refetch,

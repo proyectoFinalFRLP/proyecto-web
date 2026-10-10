@@ -1,5 +1,5 @@
-import type { CarrierServiceLevel } from '../../types'
+import type { CarrierDeliveries } from '../../types'
 
 export interface ServiceLevelCardProps {
-  levels: CarrierServiceLevel[]
+  carriers: CarrierDeliveries[]
 }

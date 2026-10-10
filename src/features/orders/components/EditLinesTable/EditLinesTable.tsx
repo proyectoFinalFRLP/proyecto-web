@@ -4,11 +4,11 @@ import WarningAmberIcon from '@mui/icons-material/WarningAmber'
 import { Box, IconButton, Stack, Tooltip, Typography } from '@mui/material'
 import { DataTable } from 'shared/components'
 import type { DataTableColumn } from 'shared/components'
+import { formatMoney } from 'shared/utils'
 
 import { ordersCopy } from '../../content'
 import { isLocked, isQuantityValid } from '../../utils/edit'
 import type { EditLine, StockShortfall } from '../../utils/edit'
-import { formatMoney } from '../../utils/format'
 import { lineSubtotal } from '../../utils/payment'
 
 import { StockWarnings } from './EditLinesTable.styles'

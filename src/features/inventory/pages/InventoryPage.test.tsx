@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { renderWithTheme } from '../../../test/renderWithTheme'
 import type * as inventoryHooks from '../hooks/useInventory'
 import {
+  useCategories,
   useCreateProduct,
   useDeleteProduct,
   useProductCounts,
@@ -21,6 +22,7 @@ vi.mock('../hooks/useInventory', async (importOriginal) => ({
   useProductPage: vi.fn(),
   useProductCounts: vi.fn(),
   useWarehouses: vi.fn(),
+  useCategories: vi.fn(),
   useCreateProduct: vi.fn(),
   useDeleteProduct: vi.fn(),
 }))
@@ -53,6 +55,7 @@ beforeEach(() => {
     isError: false,
   } as never)
   vi.mocked(useProductCounts).mockReturnValue([0, 0, 0, 0] as never)
+  vi.mocked(useCategories).mockReturnValue({ data: ['Electronics', 'Power'] } as never)
   vi.mocked(useWarehouses).mockReturnValue({
     data: [],
     isPending: false,

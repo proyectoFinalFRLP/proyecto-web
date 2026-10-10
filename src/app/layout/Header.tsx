@@ -1,7 +1,10 @@
-import { TopNavBar } from 'shared/components'
+import { useState } from 'react'
+import { ActivityPanel, TopNavBar } from 'shared/components'
 import type { TopNavUser } from 'shared/components'
 import { useAuthStore, useTenantName, useUiStore } from 'shared/store'
 import { useThemeMode } from 'shared/store/uiStore'
+
+import { ACTIVITY_PATHS } from './activityPaths'
 
 export function Header() {
   // Selectores individuales (no el store completo): Header está en todas las
@@ -13,6 +16,8 @@ export function Header() {
   const sessionUser = useAuthStore((state) => state.user)
   const logout = useAuthStore((state) => state.logout)
   const organization = useTenantName()
+  // El botón que abrió el panel: el Popover se ancla a él, y `null` lo cierra.
+  const [bell, setBell] = useState<HTMLElement | null>(null)
 
   // `sessionUser` es null hasta que `GET /me` contesta, también al recargar la
   // página con sesión abierta. El menú de cuenta cae a su nombre genérico
@@ -30,6 +35,9 @@ export function Header() {
       onToggleTheme={toggleTheme}
       user={user}
       onLogout={logout}
-    />
+      onNotificationsClick={setBell}
+    >
+      <ActivityPanel anchorEl={bell} onClose={() => setBell(null)} paths={ACTIVITY_PATHS} />
+    </TopNavBar>
   )
 }

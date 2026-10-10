@@ -39,9 +39,13 @@ export function DestinationFieldsCard({
   provincesLoading,
   provincesError,
   readOnly = false,
+  optional = false,
 }: DestinationFieldsCardProps) {
   return (
-    <FormSection icon={<LocationOnOutlinedIcon aria-hidden />} title={copy.title}>
+    <FormSection
+      icon={<LocationOnOutlinedIcon aria-hidden />}
+      title={optional ? copy.optionalTitle : copy.title}
+    >
       <LabeledField label={copy.fields.address} error={errors.address?.message} fullWidth>
         <TextField
           {...register('address')}

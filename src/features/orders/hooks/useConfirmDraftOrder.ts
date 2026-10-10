@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useRef, useState } from 'react'
+import { activityKeys } from 'shared/api/activity'
 import type { ApiRequestError } from 'shared/api/types'
 
 import { createOrder, createOrderShipment, dispatchShipment } from '../api'
@@ -8,7 +9,11 @@ import type { CreateOrderPayload, DispatchPayload } from '../utils/shipping'
 
 export interface ConfirmDraftOrderInput {
   order: CreateOrderPayload
-  dispatch: DispatchPayload
+  /**
+   * `null` cuando la venta se retira en el local (TESIS-162): no hay envío que
+   * abrir ni courier que despachar, así que la confirmación termina en el alta.
+   */
+  dispatch: DispatchPayload | null
 }
 
 interface Progress {
@@ -31,15 +36,15 @@ interface Options {
  * volver a crearla sería una segunda venta. `createdOrderId` le dice a la
  * pantalla si eso pasó.
  *
- * `createdShipmentId` le dice si el envío también llegó a abrirse: con envío
- * `pending`, lo que falte se puede despachar desde el detalle de la orden
- * (TESIS-134); sin envío, este paso sigue siendo el único lugar que lo abre.
+ * No hace falta distinguir hasta dónde llegó: con la orden creada, el detalle
+ * termina el envío de las dos maneras —lo abre si no llegó a abrirse (TESIS-141)
+ * y lo despacha si quedó `pending` (TESIS-134)—. `progress` sí lleva la cuenta,
+ * pero puertas adentro, para que el reintento no repita lo que ya salió bien.
  */
 export function useConfirmDraftOrder({ onOrderCreated }: Options = {}) {
   const queryClient = useQueryClient()
   const progress = useRef<Progress>({ orderId: null, shipmentId: null })
   const [createdOrderId, setCreatedOrderId] = useState<number | null>(null)
-  const [createdShipmentId, setCreatedShipmentId] = useState<number | null>(null)
 
   const mutation = useMutation<number, ApiRequestError, ConfirmDraftOrderInput>({
     mutationFn: async ({ order, dispatch }) => {
@@ -51,10 +56,11 @@ export function useConfirmDraftOrder({ onOrderCreated }: Options = {}) {
       }
       const orderId = progress.current.orderId
 
+      // Retiro en el local: la venta queda registrada y ahí termina.
+      if (dispatch === null) return orderId
+
       if (progress.current.shipmentId === null) {
-        const shipment = await createOrderShipment(orderId)
-        progress.current.shipmentId = shipment.id
-        setCreatedShipmentId(shipment.id)
+        progress.current.shipmentId = (await createOrderShipment(orderId)).id
       }
 
       await dispatchShipment(progress.current.shipmentId, dispatch)
@@ -68,11 +74,16 @@ export function useConfirmDraftOrder({ onOrderCreated }: Options = {}) {
 
       return Promise.all([
         queryClient.invalidateQueries({ queryKey: orderKeys.all }),
-        // Literal y no la factory de inventario: una feature no importa otra.
+        // El alta abre un envío y deja su rastro en la campanita, así que el
+        // listado de envíos, los contadores de sus pestañas y el feed quedan
+        // viejos lo mismo que el listado de órdenes. `['shipments']` va literal
+        // porque es de otra feature; la actividad vive en `shared`.
         queryClient.invalidateQueries({ queryKey: ['inventory'] }),
+        queryClient.invalidateQueries({ queryKey: ['shipments'] }),
+        queryClient.invalidateQueries({ queryKey: activityKeys.all }),
       ])
     },
   })
 
-  return { ...mutation, createdOrderId, createdShipmentId }
+  return { ...mutation, createdOrderId }
 }

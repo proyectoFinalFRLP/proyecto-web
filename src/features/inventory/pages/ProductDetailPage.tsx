@@ -5,31 +5,43 @@ import { Box, Button, Stack, Typography } from '@mui/material'
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { ErrorFallback, LoadingSpinner, PageWrapper } from 'shared/components'
-import { notify } from 'shared/store'
+import { notify, useTenantFeature } from 'shared/store'
+import { formatDecimal, formatInteger } from 'shared/utils'
 
 import { EditProductModal } from '../components/EditProductModal'
+import type { EditScope } from '../components/EditProductModal'
 import { MasterStockCard } from '../components/MasterStockCard'
 import type { StockBucket } from '../components/MasterStockCard'
 import { ProductDetailHeader } from '../components/ProductDetailHeader'
 import { ProductSpecsCard } from '../components/ProductSpecsCard'
 import type { ProductSpec } from '../components/ProductSpecsCard'
+import { SalesChannelsCard } from '../components/SalesChannelsCard'
 import { WarehouseDistributionCard } from '../components/WarehouseDistributionCard'
 import type { WarehouseDistributionRow } from '../components/WarehouseDistributionCard'
 import { inventoryCopy } from '../content'
-import { CONFLICT_STATUS, useProduct, useUpdateProduct, useWarehouses } from '../hooks/useInventory'
+import {
+  CONFLICT_STATUS,
+  useCategories,
+  useProduct,
+  useUpdateProduct,
+  useWarehouses,
+} from '../hooks/useInventory'
 import type { Product, UpdateProductPayload } from '../types'
 import { describeConflict } from '../utils/conflict'
 import { parseDimensions } from '../utils/dimensions'
-import { formatSpecTimestamp, formatUnits, formatWeight } from '../utils/format'
-import { STOCK_LEVEL_STATUS, sortByQuantityDesc, stockLevel, totalOnHand } from '../utils/stock'
+import { formatSpecTimestamp } from '../utils/format'
+import { distributionPositions } from '../utils/stock'
+import { stockLabel, stockRowTone, stockVariant } from '../utils/stockStatus'
 
 const { detail, page } = inventoryCopy
-const { specs: specsCopy, master: masterCopy, distribution: distributionCopy, status } = detail
+const { specs: specsCopy, master: masterCopy } = detail
 
 // Ruta del catálogo. Las rutas se registran en `app/router/routes.tsx`, capa que
 // una feature no puede importar (ver architecture.md §3.2), así que el destino
 // del breadcrumb se declara acá.
 const CATALOG_PATH = '/inventory'
+// Misma razón: la pantalla de integraciones, a la que manda la tarjeta de
+// canales cuando no hay ninguno conectado.
 
 // La grilla del diseño: columna fija para el stock maestro y el resto para la
 // distribución. En pantallas angostas se apilan.
@@ -46,15 +58,20 @@ function buildSpecs(product: Product): ProductSpec[] {
   const hasDimensions = product.dimensions !== null && product.dimensions !== ''
 
   return [
-    // `products` no tiene columna de categoría (las cuatro de Product::CATEGORIES
-    // viven en el backend pero no llegan en el serializer), ni empaque, ni norma
-    // técnica. Se muestran los rótulos del diseño sin valor, en vez de omitir las
-    // celdas: así la ficha dice qué falta en lugar de disimularlo.
-    { id: 'category', label: specsCopy.fields.category, value: specsCopy.unknown, unknown: true },
+    // Los tres salen de la API: categoría de TESIS-150, empaque y norma de
+    // TESIS-162. Un producto puede no tenerlos cargados, y ahí sí va el «—»: la
+    // diferencia es que ahora es un dato que falta y no una columna que no
+    // existe.
+    {
+      id: 'category',
+      label: specsCopy.fields.category,
+      value: product.category ?? specsCopy.unknown,
+      unknown: product.category === null,
+    },
     {
       id: 'weight',
       label: specsCopy.fields.weight,
-      value: specsCopy.weightValue(formatWeight(product.weight)),
+      value: specsCopy.weightValue(formatDecimal(product.weight)),
       mono: true,
     },
     {
@@ -62,15 +79,20 @@ function buildSpecs(product: Product): ProductSpec[] {
       label: specsCopy.fields.dimensions,
       value: hasDimensions
         ? specsCopy.dimensionsValue(
-            formatUnits(dimensions.length),
-            formatUnits(dimensions.width),
-            formatUnits(dimensions.height),
+            formatInteger(dimensions.length),
+            formatInteger(dimensions.width),
+            formatInteger(dimensions.height),
           )
         : specsCopy.unknown,
       mono: true,
       unknown: !hasDimensions,
     },
-    { id: 'packaging', label: specsCopy.fields.packaging, value: specsCopy.unknown, unknown: true },
+    {
+      id: 'packaging',
+      label: specsCopy.fields.packaging,
+      value: product.packaging ?? specsCopy.unknown,
+      unknown: product.packaging === null,
+    },
   ]
 }
 
@@ -79,7 +101,12 @@ function buildSecondarySpecs(product: Product): ProductSpec[] {
   const updatedAt = formatSpecTimestamp(product.updatedAt)
 
   return [
-    { id: 'standard', label: specsCopy.fields.standard, value: specsCopy.unknown, unknown: true },
+    {
+      id: 'standard',
+      label: specsCopy.fields.standard,
+      value: product.technicalStandard ?? specsCopy.unknown,
+      unknown: product.technicalStandard === null,
+    },
     {
       id: 'updatedAt',
       label: specsCopy.fields.updatedAt,
@@ -90,65 +117,71 @@ function buildSecondarySpecs(product: Product): ProductSpec[] {
 }
 
 /**
- * Desglose por estado de reserva.
+ * Desglose por estado de reserva, con los números que calcula la API desde
+ * TESIS-162.
  *
- * Las tres cubetas van sin dato: la API devuelve un solo número por depósito
- * (las unidades en depósito) y no modela reservas ni mercadería en tránsito.
- * Ver el encabezado de `utils/stock.ts`.
+ * Las tres cubetas mostraban «—» con la aclaración de que el modelo no las
+ * registraba. Ahora muestran dato, y **cero cuando el valor es cero**: un
+ * producto que nadie reservó tiene 0 comprometido, que es un hecho y no una
+ * carencia. Ninguna se deriva acá: `onHand` no es la suma de `stocks[]`, porque
+ * lo vendido sin despachar ya salió de esas filas y sigue en el estante.
+ *
+ * El en tránsito sigue **fuera** del total: son unidades que salieron de un
+ * depósito y no llegaron a otro, y el backend las deja fuera de `total_stock`.
  */
-function buildBuckets(): StockBucket[] {
+function buildBuckets(product: Product): StockBucket[] {
   return [
     {
       id: 'committed',
       label: masterCopy.buckets.committed,
-      icon: <LockOutlinedIcon fontSize="small" color="disabled" />,
-      value: specsCopy.unknown,
-      unknown: true,
+      icon: <LockOutlinedIcon fontSize="small" color="action" />,
+      value: formatInteger(product.committed),
     },
     {
       id: 'inTransit',
       label: masterCopy.buckets.inTransit,
-      icon: <LocalShippingOutlinedIcon fontSize="small" color="disabled" />,
-      value: specsCopy.unknown,
-      unknown: true,
+      icon: <LocalShippingOutlinedIcon fontSize="small" color="action" />,
+      value: formatInteger(product.inTransitQuantity),
     },
     {
       id: 'availableToPromise',
       label: masterCopy.buckets.availableToPromise,
-      icon: <CheckCircleOutlineIcon fontSize="small" color="disabled" />,
-      value: specsCopy.unknown,
-      unknown: true,
+      icon: <CheckCircleOutlineIcon fontSize="small" color="action" />,
+      value: formatInteger(product.availableToPromise),
       accent: true,
     },
   ]
 }
 
-/** Filas de la tabla, de mayor a menor cantidad como en el diseño. */
+/**
+ * Filas de la tabla, de mayor a menor cantidad como en el diseño. El estado de
+ * cada fila lo manda el backend; el resalte sigue el criterio del catálogo.
+ */
 function buildRows(product: Product): WarehouseDistributionRow[] {
-  return sortByQuantityDesc(product.stocks).map((stock) => {
-    const level = stockLevel(stock.quantity)
-
-    return {
-      id: stock.warehouseId,
-      name: stock.warehouse.name,
-      location: stock.warehouse.address,
-      committed: specsCopy.unknown,
-      inTransit: specsCopy.unknown,
-      onHand: formatUnits(stock.quantity),
-      statusLabel: status[level],
-      statusVariant: STOCK_LEVEL_STATUS[level],
-      critical: level === 'critical' || level === 'out',
-    }
-  })
+  return distributionPositions(product).map((position) => ({
+    id: position.warehouseId,
+    name: position.name,
+    location: position.location ?? specsCopy.unknown,
+    committed: formatInteger(position.committed),
+    inTransit: formatInteger(position.incoming),
+    // Lo físico del depósito, no lo libre: es la misma definición que el
+    // encabezado, y por eso las filas suman el titular (TESIS-162).
+    onHand: formatInteger(position.onHand),
+    statusLabel: stockLabel(position.stockStatus),
+    statusVariant: stockVariant(position.stockStatus),
+    critical: stockRowTone(position.stockStatus) === 'critical',
+  }))
 }
 
 /**
  * Detalle de producto (S12) — especificaciones, stock agregado y distribución
  * por depósito del SKU.
  *
- * Los datos salen de `GET /api/v1/products/:id`, que es lo único que hay: los
- * campos del diseño que la API todavía no expone se muestran sin dato en lugar
- * de rellenarse con un valor plausible.
+ * Todo sale de `GET /api/v1/products/:id`. Desde TESIS-162 y TESIS-144 la API
+ * expone también el comprometido por depósito, el en tránsito por depósito, el
+ * empaque y la norma técnica, así que ya no queda ninguna pieza del diseño
+ * mostrándose sin dato por falta de modelo: un «—» ahora es un dato que el
+ * producto no tiene cargado, no una columna que no existe.
  */
 export function ProductDetailPage() {
   const { productId } = useParams()
@@ -162,7 +195,21 @@ export function ProductDetailPage() {
   const { pathname, state } = useLocation()
   const navigate = useNavigate()
   const abrirEdicion = typeof state === 'object' && state !== null && 'edit' in state
+  // Abierto o cerrado, y con qué alcance, en dos estados separados: «Editar
+  // producto» abre el formulario entero y «Editar stock» sólo las cantidades.
+  //
+  // Separados y no un `EditScope | null` porque el modal se cierra con una
+  // animación: al pasar el alcance a `null` y leerlo con un `?? 'product'`, el
+  // de stock mostraba el formulario completo durante la salida. El alcance sólo
+  // cambia al abrir, así que lo que se ve mientras se cierra es lo que había.
   const [editing, setEditing] = useState(abrirEdicion)
+  const [scope, setScope] = useState<EditScope>('product')
+
+  function openEditor(next: EditScope) {
+    setScope(next)
+    setEditing(true)
+  }
+  const integrationsEnabled = useTenantFeature('integrations')
 
   // La intención se consume una sola vez. `location.state` vive en
   // `history.state`, que el navegador conserva al recargar y al ir y volver:
@@ -184,6 +231,7 @@ export function ProductDetailPage() {
 
   const product = useProduct(id)
   const warehouses = useWarehouses()
+  const categories = useCategories()
   const updateMutation = useUpdateProduct(id, product.data?.version ?? null)
 
   // El 412 llega con la versión ya invalidada: React Query refetchea el detalle
@@ -242,40 +290,44 @@ export function ProductDetailPage() {
     )
   }
 
-  const total = totalOnHand(product.data.stocks)
-  const level = stockLevel(total)
-
   return (
     <PageWrapper>
       <Stack spacing={2}>
         <ProductDetailHeader
           sku={product.data.sku}
           name={product.data.name}
-          statusLabel={status[level]}
-          statusVariant={STOCK_LEVEL_STATUS[level]}
+          statusLabel={stockLabel(product.data.stockStatus)}
+          statusVariant={stockVariant(product.data.stockStatus)}
           catalogPath={CATALOG_PATH}
-          onEdit={() => setEditing(true)}
+          onEdit={() => openEditor('product')}
         />
 
         <ProductSpecsCard
           specs={buildSpecs(product.data)}
           secondarySpecs={buildSecondarySpecs(product.data)}
-          footnote={specsCopy.pendingBackend}
         />
 
         <Box sx={CONTENT_GRID}>
+          {/* El titular es `onHand` y no `totalStock`: las cubetas lo
+              descomponen —comprometido + disponible para prometer— y
+              `totalStock` es sólo la segunda, así que encabezar con él dejaba
+              la tarjeta sin cerrar. El en tránsito queda afuera a propósito:
+              esas unidades no están en ningún depósito todavía.
+              El epígrafe cuenta las posiciones y no `stocks`, porque un
+              depósito puede quedarse sin fila de stock y seguir teniendo
+              unidades vendidas sin despachar. */}
           <MasterStockCard
-            totalLabel={formatUnits(total)}
-            caption={masterCopy.warehouseCount(product.data.stocks.length)}
-            buckets={buildBuckets()}
-            footnote={masterCopy.pending}
-            onEditStock={() => setEditing(true)}
+            totalLabel={formatInteger(product.data.onHand)}
+            caption={masterCopy.warehouseCount(distributionPositions(product.data).length)}
+            buckets={buildBuckets(product.data)}
+            onEditStock={() => openEditor('stock')}
           />
-          <WarehouseDistributionCard
-            rows={buildRows(product.data)}
-            footnote={distributionCopy.pending}
-          />
+          <WarehouseDistributionCard rows={buildRows(product.data)} />
         </Box>
+
+        {/* Canales de venta: sólo para las empresas con la feature encendida,
+            igual que la ruta de integraciones (TESIS-121). */}
+        {integrationsEnabled ? <SalesChannelsCard productId={product.data.id} /> : null}
 
         {/* El 412 no es un error a mostrar acá: lo explica el propio modal, que
             queda abierto con lo que el usuario cargó. La condición mira
@@ -291,8 +343,10 @@ export function ProductDetailPage() {
 
       <EditProductModal
         open={editing}
+        scope={scope}
         product={product.data}
         warehouses={warehouses.data}
+        categories={categories.data}
         submitting={updateMutation.isPending}
         conflict={conflict}
         onClose={() => {

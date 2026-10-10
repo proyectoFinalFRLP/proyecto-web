@@ -2,7 +2,12 @@ import { describe, expect, it } from 'vitest'
 
 import type { OrderLine, OriginWarehouse, Shipment } from '../types'
 
-import { dispatchableShipment, originCandidates, toOrderQuotePayload } from './dispatch'
+import {
+  canOpenShipment,
+  dispatchableShipment,
+  originCandidates,
+  toOrderQuotePayload,
+} from './dispatch'
 
 const PENDING: Shipment = {
   id: 31,
@@ -11,6 +16,7 @@ const PENDING: Shipment = {
   trackingNumber: null,
   shippingCost: null,
   courier: null,
+  labelUrl: null,
   events: [],
 }
 
@@ -58,6 +64,41 @@ describe('dispatchableShipment', () => {
     expect(dispatchableShipment('pending', { kind: 'duplicated', count: 2 })).toBeNull()
     expect(dispatchableShipment('pending', { kind: 'loading' })).toBeNull()
     expect(dispatchableShipment('pending', { kind: 'error', onRetry: () => undefined })).toBeNull()
+  })
+})
+
+describe('canOpenShipment', () => {
+  // El caso que motiva la card: una orden de webhook nace sin envío y hasta
+  // TESIS-141 no había forma de abrirlo desde la app.
+  it('lets an order with no shipment open one', () => {
+    expect(canOpenShipment('paid', { kind: 'none' }, true)).toBe(true)
+  })
+
+  it('also lets a pending order open it, like the backend does', () => {
+    expect(canOpenShipment('pending', { kind: 'none' }, true)).toBe(true)
+  })
+
+  // Misma exclusión que Shipments::CreateShipment::NON_SHIPPABLE_STATUSES.
+  it('refuses a cancelled order', () => {
+    expect(canOpenShipment('cancelled', { kind: 'none' }, true)).toBe(false)
+  })
+
+  // La otra exclusión de CreateShipment: un retiro responde PickupOrderError
+  // (422), así que ofrecerlo era ofrecer un botón que siempre falla.
+  it('refuses an order the customer picks up at the store', () => {
+    expect(canOpenShipment('paid', { kind: 'none' }, false)).toBe(false)
+  })
+
+  it('refuses an order that already has one', () => {
+    expect(canOpenShipment('paid', { kind: 'single', shipment: PENDING }, true)).toBe(false)
+  })
+
+  // Que el envío no exista tiene que ser un hecho: sobre una consulta que
+  // todavía no resolvió o que falló, ofrecerlo invitaría a un 409.
+  it('refuses while the shipment is unknown', () => {
+    expect(canOpenShipment('paid', { kind: 'loading' }, true)).toBe(false)
+    expect(canOpenShipment('paid', { kind: 'error', onRetry: () => undefined }, true)).toBe(false)
+    expect(canOpenShipment('paid', { kind: 'duplicated', count: 2 }, true)).toBe(false)
   })
 })
 
