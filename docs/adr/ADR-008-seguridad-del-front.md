@@ -9,7 +9,7 @@
 
 El token de sesión vive en `localStorage` (ver [ADR-002](./ADR-002-state-management.md)): cualquier script que corra en el origen del front lo puede leer, así que un XSS equivale a robar la sesión. Los datos que el front muestra no los escribe sólo el usuario. Llegan también de los webhooks de los canales de venta (el cliente de una orden) y de los couriers (los eventos de tracking), y esos endpoints de la API no se autentican: cualquiera que conozca la URL puede mandar texto que termine en pantalla.
 
-La QA de TESIS-130 encontró que el front ya mostraba todo como texto, pero sin nada que lo sostuviera si eso cambiaba: nginx no mandaba ningún header de seguridad, ninguna regla impedía agregar un `dangerouslySetInnerHTML`, y `npm audit` reportaba 11 vulnerabilidades altas que la CI no miraba. La contraparte de la API (CORS, HTTPS, secretos, seeds) está en el ADR-018 de proyecto-api.
+La QA de TESIS-130 encontró que el front ya mostraba todo como texto, pero sin nada que lo sostuviera si eso cambiaba: nginx no mandaba ningún header de seguridad, ninguna regla impedía agregar un `dangerouslySetInnerHTML`, y `npm audit` reportaba 11 vulnerabilidades altas que la CI no miraba. La contraparte de la API (CORS, HTTPS, secretos, seeds) está en el ADR-021 de proyecto-api.
 
 ## Decisión
 
@@ -54,7 +54,7 @@ object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
 
 ### Dependencias
 
-`npm audit fix` resolvió las 11 vulnerabilidades altas sin salir de los rangos de `package.json` (entre otras, `react-router` 7.18, `axios` 1.20 y `vite` 8.3). La CI suma el job `security`, que corre `npm audit --audit-level=high` sobre el lockfile, de producción y de desarrollo, como el `bundler-audit` de la API.
+`npm audit fix` resolvió las 11 vulnerabilidades altas sin salir de los rangos de `package.json` (entre otras, `react-router` 7.18, `axios` 1.20 y `vite` 8.3). La CI suma el job `security`, que corre `npm audit --audit-level=high` sobre el lockfile, de producción y de desarrollo, como el `bundler-audit` de la API. Antes del merge apareció una alta más, en `source-map-js` (la usan `postcss` y `jsdom`, las dos de desarrollo), y se resolvió de la misma forma: 1.2.2, dentro de los rangos.
 
 ## Alternativas consideradas
 
