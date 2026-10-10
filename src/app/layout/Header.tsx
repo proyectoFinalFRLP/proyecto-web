@@ -4,10 +4,7 @@ import type { TopNavUser } from 'shared/components'
 import { useAuthStore, useTenantName, useUiStore } from 'shared/store'
 import { useThemeMode } from 'shared/store/uiStore'
 
-// Las rutas de destino del panel se declaran acá y no se importan del router:
-// `shared/components` no puede depender de `app/`. El de eventos fallidos
-// todavía no existe (TESIS-147); sin él la fila se muestra y no enlaza.
-const ACTIVITY_PATHS = { order: (id: number) => `/orders/${id}` }
+import { ACTIVITY_PATHS } from './activityPaths'
 
 export function Header() {
   // Selectores individuales (no el store completo): Header está en todas las
