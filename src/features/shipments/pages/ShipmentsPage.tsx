@@ -5,9 +5,10 @@ import { useNavigate } from 'react-router-dom'
 import { ErrorFallback, LoadingSpinner, PageWrapper } from 'shared/components'
 import type { DataTableTab } from 'shared/components'
 import { useDebouncedValue } from 'shared/hooks/useDebouncedValue'
+import { formatInteger } from 'shared/utils'
 
 import { ShipmentsTable } from '../components/ShipmentsTable'
-import { formatCount, shipmentsCopy } from '../content'
+import { shipmentsCopy } from '../content'
 import { SHIPMENT_TABS, useShipmentCounts, useShipmentPage } from '../hooks/useShipments'
 import type { ShipmentTabId } from '../hooks/useShipments'
 import type { ShipmentSummary } from '../types'
@@ -79,7 +80,7 @@ export function ShipmentsPage() {
     label: TAB_LABELS[id],
     // Un contador que todavía no resolvió no muestra cero: mostraría un número
     // falso durante el primer render y luego saltaría al real.
-    count: counts[index] === undefined ? undefined : formatCount(counts[index]),
+    count: counts[index] === undefined ? undefined : formatInteger(counts[index]),
   }))
 
   if (shipments.isPending) return <LoadingSpinner fullScreen />

@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { ErrorFallback, LoadingSpinner, PageWrapper } from 'shared/components'
 import { notify, useTenantFeature } from 'shared/store'
+import { formatDecimal, formatInteger } from 'shared/utils'
 
 import { EditProductModal } from '../components/EditProductModal'
 import type { EditScope } from '../components/EditProductModal'
@@ -28,7 +29,7 @@ import {
 import type { Product, UpdateProductPayload } from '../types'
 import { describeConflict } from '../utils/conflict'
 import { parseDimensions } from '../utils/dimensions'
-import { formatSpecTimestamp, formatUnits, formatWeight } from '../utils/format'
+import { formatSpecTimestamp } from '../utils/format'
 import { distributionPositions } from '../utils/stock'
 import { stockLabel, stockRowTone, stockVariant } from '../utils/stockStatus'
 
@@ -70,7 +71,7 @@ function buildSpecs(product: Product): ProductSpec[] {
     {
       id: 'weight',
       label: specsCopy.fields.weight,
-      value: specsCopy.weightValue(formatWeight(product.weight)),
+      value: specsCopy.weightValue(formatDecimal(product.weight)),
       mono: true,
     },
     {
@@ -78,9 +79,9 @@ function buildSpecs(product: Product): ProductSpec[] {
       label: specsCopy.fields.dimensions,
       value: hasDimensions
         ? specsCopy.dimensionsValue(
-            formatUnits(dimensions.length),
-            formatUnits(dimensions.width),
-            formatUnits(dimensions.height),
+            formatInteger(dimensions.length),
+            formatInteger(dimensions.width),
+            formatInteger(dimensions.height),
           )
         : specsCopy.unknown,
       mono: true,
@@ -134,19 +135,19 @@ function buildBuckets(product: Product): StockBucket[] {
       id: 'committed',
       label: masterCopy.buckets.committed,
       icon: <LockOutlinedIcon fontSize="small" color="action" />,
-      value: formatUnits(product.committed),
+      value: formatInteger(product.committed),
     },
     {
       id: 'inTransit',
       label: masterCopy.buckets.inTransit,
       icon: <LocalShippingOutlinedIcon fontSize="small" color="action" />,
-      value: formatUnits(product.inTransitQuantity),
+      value: formatInteger(product.inTransitQuantity),
     },
     {
       id: 'availableToPromise',
       label: masterCopy.buckets.availableToPromise,
       icon: <CheckCircleOutlineIcon fontSize="small" color="action" />,
-      value: formatUnits(product.availableToPromise),
+      value: formatInteger(product.availableToPromise),
       accent: true,
     },
   ]
@@ -161,11 +162,11 @@ function buildRows(product: Product): WarehouseDistributionRow[] {
     id: position.warehouseId,
     name: position.name,
     location: position.location ?? specsCopy.unknown,
-    committed: formatUnits(position.committed),
-    inTransit: formatUnits(position.incoming),
+    committed: formatInteger(position.committed),
+    inTransit: formatInteger(position.incoming),
     // Lo físico del depósito, no lo libre: es la misma definición que el
     // encabezado, y por eso las filas suman el titular (TESIS-162).
-    onHand: formatUnits(position.onHand),
+    onHand: formatInteger(position.onHand),
     statusLabel: stockLabel(position.stockStatus),
     statusVariant: stockVariant(position.stockStatus),
     critical: stockRowTone(position.stockStatus) === 'critical',
@@ -316,7 +317,7 @@ export function ProductDetailPage() {
               depósito puede quedarse sin fila de stock y seguir teniendo
               unidades vendidas sin despachar. */}
           <MasterStockCard
-            totalLabel={formatUnits(product.data.onHand)}
+            totalLabel={formatInteger(product.data.onHand)}
             caption={masterCopy.warehouseCount(distributionPositions(product.data).length)}
             buckets={buildBuckets(product.data)}
             onEditStock={() => openEditor('stock')}

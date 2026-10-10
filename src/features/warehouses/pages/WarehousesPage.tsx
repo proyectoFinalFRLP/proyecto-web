@@ -6,10 +6,11 @@ import { useState } from 'react'
 import { DataTable, ErrorFallback, LoadingSpinner, PageWrapper } from 'shared/components'
 import type { DataTableAction, DataTableColumn } from 'shared/components'
 import { notify } from 'shared/store'
+import { formatInteger } from 'shared/utils'
 
 import { DeleteWarehouseDialog } from '../components/DeleteWarehouseDialog'
 import { WarehouseFormModal } from '../components/WarehouseFormModal'
-import { formatUnits, warehousesCopy } from '../content'
+import { warehousesCopy } from '../content'
 import {
   RESTRICTED_STATUS,
   useCreateWarehouse,
@@ -36,7 +37,7 @@ const COLUMNS: DataTableColumn<Warehouse>[] = [
     header: columns.storedUnits,
     align: 'right',
     width: 180,
-    render: (warehouse) => formatUnits(warehouse.storedUnits),
+    render: (warehouse) => formatInteger(warehouse.storedUnits),
   },
 ]
 

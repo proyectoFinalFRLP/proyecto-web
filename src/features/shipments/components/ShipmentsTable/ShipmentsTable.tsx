@@ -2,8 +2,9 @@ import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined'
 import { IconButton, Link, Tooltip, Typography } from '@mui/material'
 import { DataTable, StackedCell, StatusBadge } from 'shared/components'
 import type { DataTableColumn, StatusVariant } from 'shared/components'
+import { formatRoundMoney } from 'shared/utils'
 
-import { formatMoney, shipmentsCopy } from '../../content'
+import { shipmentsCopy } from '../../content'
 import type { ShipmentStatus, ShipmentSummary } from '../../types'
 import { formatShipmentDate, formatShipmentTime } from '../../utils/format'
 
@@ -94,7 +95,7 @@ function buildColumns(
         shipment.shippingCost === null ? (
           <Missing>{cells.noCost}</Missing>
         ) : (
-          <Typography variant="dataMono">{formatMoney(shipment.shippingCost)}</Typography>
+          <Typography variant="dataMono">{formatRoundMoney(shipment.shippingCost)}</Typography>
         ),
     },
     {

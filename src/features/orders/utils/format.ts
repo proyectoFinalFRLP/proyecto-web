@@ -1,13 +1,6 @@
 // Formato de las celdas del listado. Vive acá y no en el componente para que
 // cada regla se pueda probar sin montar la tabla.
 
-const MONEY = new Intl.NumberFormat('es-AR', {
-  style: 'currency',
-  currency: 'ARS',
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-})
-
 const DATE = new Intl.DateTimeFormat('es-AR', {
   day: 'numeric',
   month: 'short',
@@ -28,17 +21,6 @@ const SHORT_DATE = new Intl.DateTimeFormat('es-AR', {
   day: 'numeric',
   month: 'short',
 })
-
-/**
- * Importe de la orden.
- *
- * Con dos decimales siempre, aunque el diseño los omita: esta columna es plata
- * facturada y redondear $ 1.478.300,49 a $ 1.478.300 en pantalla es mostrar un
- * número que no es el de la orden.
- */
-export function formatMoney(amount: number): string {
-  return MONEY.format(amount)
-}
 
 /** "24 ago 2026" — la línea principal de la columna de fecha. */
 export function formatOrderDate(iso: string): string {

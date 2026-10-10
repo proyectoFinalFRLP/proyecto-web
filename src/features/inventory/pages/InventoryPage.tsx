@@ -7,11 +7,12 @@ import { ErrorFallback, LoadingSpinner, PageWrapper } from 'shared/components'
 import type { DataTableTab } from 'shared/components'
 import { useDebouncedValue } from 'shared/hooks/useDebouncedValue'
 import { notify } from 'shared/store'
+import { formatInteger } from 'shared/utils'
 
 import { CreateProductModal } from '../components/CreateProductModal'
 import { DeleteProductDialog } from '../components/DeleteProductDialog'
 import { InventoryTable } from '../components/InventoryTable'
-import { formatUnits, inventoryCopy } from '../content'
+import { inventoryCopy } from '../content'
 import {
   CATALOG_TABS,
   RESTRICTED_STATUS,
@@ -163,7 +164,7 @@ export function InventoryPage() {
     label: TAB_LABELS[id],
     // Un contador que todavía no resolvió no muestra cero: mostraría un número
     // falso durante el primer render y luego saltaría al real.
-    count: counts.data === undefined ? undefined : formatUnits(counts.data[id]),
+    count: counts.data === undefined ? undefined : formatInteger(counts.data[id]),
   }))
 
   return (

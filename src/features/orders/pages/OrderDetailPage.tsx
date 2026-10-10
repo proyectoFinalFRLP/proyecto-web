@@ -9,6 +9,7 @@ import type { ReactNode } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ErrorFallback, LoadingSpinner, PageWrapper } from 'shared/components'
 import { notify } from 'shared/store'
+import { formatInteger, formatMoney } from 'shared/utils'
 
 import { DispatchShipmentDialog } from '../components/DispatchShipmentDialog'
 import { InfoPanel } from '../components/InfoPanel'
@@ -21,12 +22,12 @@ import { PaymentSummaryCard } from '../components/PaymentSummaryCard'
 import { ShipmentLifecycleCard } from '../components/ShipmentLifecycleCard'
 import { ShippingLabelField } from '../components/ShippingLabelField'
 import { TrackingNumberField } from '../components/TrackingNumberField'
-import { formatCount, ordersCopy } from '../content'
+import { ordersCopy } from '../content'
 import { useCreateOrderShipment } from '../hooks/useCreateOrderShipment'
 import { useOrder, useOrderShipment } from '../hooks/useOrderDetail'
 import type { OrderDetail, Shipment, ShipmentView } from '../types'
 import { canOpenShipment, dispatchableShipment } from '../utils/dispatch'
-import { formatMoney, formatOrderId, formatShortDate } from '../utils/format'
+import { formatOrderId, formatShortDate } from '../utils/format'
 import { paymentSummary, totalUnits } from '../utils/payment'
 import { deliveredAt, headerStatus } from '../utils/shipment'
 
@@ -76,7 +77,7 @@ function buildMetrics(order: OrderDetail, shipment: Shipment | null, total: numb
     {
       id: 'units',
       label: metrics.units,
-      value: formatCount(totalUnits(order.lines)),
+      value: formatInteger(totalUnits(order.lines)),
       note: metrics.lines(order.lines.length),
       icon: <Inventory2OutlinedIcon />,
     },

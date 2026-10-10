@@ -3,11 +3,11 @@ import { Button, Link, Typography } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
 import { DataTable, StackedCell, StatusBadge } from 'shared/components'
 import type { DataTableColumn } from 'shared/components'
+import { formatMoney } from 'shared/utils'
 
 import { dashboardCopy } from '../../content'
 import type { RecentOrder } from '../../types'
 import {
-  formatMoney,
   formatOrderId,
   formatShortDate,
   formatTime,

@@ -3,9 +3,9 @@ import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked'
 import ScheduleIcon from '@mui/icons-material/Schedule'
 import { Stack, Typography } from '@mui/material'
 import { StatusBadge } from 'shared/components'
+import { formatMoney } from 'shared/utils'
 
 import { ordersCopy } from '../../content'
-import { formatMoney } from '../../utils/format'
 import { SelectableCard } from '../SelectableCard'
 
 import {
