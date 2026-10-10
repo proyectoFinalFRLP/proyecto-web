@@ -8,6 +8,8 @@ export const activityContent = {
   /** Nada que mostrar no es un error: es una empresa que recién arranca. */
   empty: 'Todavía no pasó nada por acá.',
   close: 'Cerrar',
+  /** El acceso fijo a la cola de reintentos, al pie del panel (TESIS-171). */
+  failedEventsLink: 'Ver eventos fallidos',
   /** El texto de cada hecho. La API manda el dato; la frase se arma acá. */
   orderCreated: {
     manual: (customer: string) => `Nueva orden de ${customer}`,

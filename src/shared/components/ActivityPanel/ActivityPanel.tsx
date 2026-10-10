@@ -137,6 +137,30 @@ export function ActivityPanel({ anchorEl, onClose, paths }: ActivityPanelProps) 
           )
         })}
       </List>
+
+      {/* El acceso estable a la cola de reintentos (TESIS-171). Sin el ítem
+          del menú, la fila del evento caído no alcanza como puerta: el feed son
+          las últimas 20 entradas mezcladas con ventas y despachos, y en un día
+          de mucho movimiento —justo cuando más eventos caen— los empuja fuera.
+          Tampoco llevaba a los resueltos ni a los descartados. Va fuera de los
+          estados de carga y error a propósito: es la puerta, no depende de que
+          el feed haya respondido. */}
+      {paths.failedEvents === undefined ? null : (
+        <>
+          <Divider />
+          <Box sx={{ px: 1, py: 0.5 }}>
+            <Button
+              component={Link}
+              to={paths.failedEvents}
+              onClick={onClose}
+              size="small"
+              startIcon={<ErrorOutlineIcon fontSize="small" />}
+            >
+              {activityContent.failedEventsLink}
+            </Button>
+          </Box>
+        </>
+      )}
     </Popover>
   )
 }

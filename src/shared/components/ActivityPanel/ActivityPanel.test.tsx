@@ -56,6 +56,33 @@ beforeEach(() => {
 })
 
 describe('ActivityPanel', () => {
+  // TESIS-171: la cola salió del menú y la fila del evento caído no alcanza
+  // como puerta, porque el feed son las últimas 20 entradas mezcladas. El pie
+  // del panel es el acceso que no depende de qué haya en el feed.
+  describe('the way into the failed events queue', () => {
+    it('is always at the foot of the panel when the queue has a route', () => {
+      renderPanel({ ...PATHS, failedEvents: '/failed-events' })
+
+      expect(screen.getByRole('link', { name: 'Ver eventos fallidos' })).toHaveAttribute(
+        'href',
+        '/failed-events',
+      )
+    })
+
+    it('does not depend on a failed event being in the feed', () => {
+      mockFeed([])
+      renderPanel({ ...PATHS, failedEvents: '/failed-events' })
+
+      expect(screen.getByRole('link', { name: 'Ver eventos fallidos' })).toBeInTheDocument()
+    })
+
+    it('is not offered when there is nowhere to go', () => {
+      renderPanel()
+
+      expect(screen.queryByRole('link', { name: 'Ver eventos fallidos' })).not.toBeInTheDocument()
+    })
+  })
+
   it('reads each fact of the feed as a sentence', () => {
     renderPanel()
 
