@@ -2,6 +2,7 @@ import { Typography } from '@mui/material'
 
 import { FieldLabel, FieldRoot, FullRow } from './LabeledField.styles'
 import type { LabeledFieldProps } from './LabeledField.types'
+import { RequiredMark } from './RequiredMark'
 
 /**
  * Campo con el label arriba del input, como pide el DS (MUI por defecto lo
@@ -16,6 +17,7 @@ export function LabeledField({
   children,
   error,
   helperText,
+  required = false,
   fullWidth = false,
 }: LabeledFieldProps) {
   const message = error ?? helperText
@@ -23,7 +25,10 @@ export function LabeledField({
 
   return (
     <Wrapper as="label">
-      <FieldLabel variant="labelSm">{label}</FieldLabel>
+      <FieldLabel variant="labelSm">
+        {label}
+        {required ? <RequiredMark /> : null}
+      </FieldLabel>
       {children}
       {message === undefined ? null : (
         <Typography

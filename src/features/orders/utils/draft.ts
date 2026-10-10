@@ -42,11 +42,25 @@ export function draftWeight(items: OrderDraftItem[]): number {
   return grams / 1000
 }
 
+/** Por qué las líneas del borrador todavía no alcanzan para avanzar. */
+export type ItemsGap = 'noItems' | 'invalidItems'
+
+/**
+ * Lo que les falta a las líneas para que el paso 1 pueda avanzar, o `null` si
+ * están listas: ninguna línea todavía, o alguna que no se puede enviar. Es la
+ * mitad de `canProceed` que no es el formulario del cliente, separada para que
+ * la pantalla diga cuál de las dos falla (TESIS-173).
+ */
+export function itemsGap(items: OrderDraftItem[]): ItemsGap | null {
+  if (items.length === 0) return 'noItems'
+  return items.every(isDraftItemValid) ? null : 'invalidItems'
+}
+
 /**
  * Cuándo se habilita «Siguiente»: datos del cliente válidos y al menos una
  * línea, todas válidas. Una fila con cantidad en blanco no bloquea sólo su
  * celda: bloquea el paso, porque el envío la rechazaría.
  */
 export function canProceed(customerValid: boolean, items: OrderDraftItem[]): boolean {
-  return customerValid && items.length > 0 && items.every(isDraftItemValid)
+  return customerValid && itemsGap(items) === null
 }

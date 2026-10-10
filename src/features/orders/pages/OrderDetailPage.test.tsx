@@ -297,8 +297,20 @@ describe('OrderDetailPage', () => {
 
     renderAt('/orders/8829')
 
-    expect(screen.getByText('Retiro en el local')).toBeInTheDocument()
+    const payment = screen.getByRole('region', { name: 'Resumen de pago' })
+    expect(within(payment).getByText('Retiro en el local')).toBeInTheDocument()
     expect(screen.queryByText('Sin cotizar')).not.toBeInTheDocument()
+  })
+
+  // TESIS-173: «Sin asignar» decía que faltaba un operador que un retiro no va
+  // a tener nunca.
+  it('says the carrier does not apply to an order picked up at the store', () => {
+    mockQueries({ data: { ...ORDER, requiresShipping: false } }, { data: { kind: 'none' } })
+
+    renderAt('/orders/8829')
+
+    expect(screen.getByText('No aplica')).toBeInTheDocument()
+    expect(screen.queryByText('Sin asignar')).not.toBeInTheDocument()
   })
 
   it('still says the shipment is missing for an order that is shipped', () => {

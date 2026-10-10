@@ -1,5 +1,6 @@
 import { Typography } from '@mui/material'
 import { useId } from 'react'
+import { RequiredMark } from 'shared/components'
 
 import { SectionCard, SectionHeading } from './FormSection.styles'
 import type { FormSectionProps } from './FormSection.types'
@@ -11,8 +12,12 @@ import type { FormSectionProps } from './FormSection.types'
  *
  * Nació en «Datos del cliente» del paso 1 y se extrajo cuando el paso 2 la
  * necesitó dos veces (Regla de Dos, feature-structure.md §6).
+ *
+ * `required` marca el título con el mismo asterisco que los campos: hay
+ * secciones que se completan eligiendo, no tipeando —el depósito de origen—, y
+ * sin la marca no se distinguían de las opcionales (TESIS-173).
  */
-export function FormSection({ icon, title, children }: FormSectionProps) {
+export function FormSection({ icon, title, required = false, children }: FormSectionProps) {
   const titleId = useId()
 
   return (
@@ -21,6 +26,7 @@ export function FormSection({ icon, title, children }: FormSectionProps) {
         {icon}
         <Typography id={titleId} variant="h3" component="h2">
           {title}
+          {required ? <RequiredMark /> : null}
         </Typography>
       </SectionHeading>
       {children}
