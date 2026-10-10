@@ -1,5 +1,4 @@
 import BarChartOutlinedIcon from '@mui/icons-material/BarChartOutlined'
-import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
 import InsightsOutlinedIcon from '@mui/icons-material/InsightsOutlined'
 import Inventory2Icon from '@mui/icons-material/Inventory2'
 import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined'
@@ -144,7 +143,9 @@ export const appRoutes: AppRoute[] = [
   {
     path: '/failed-events',
     element: <FailedEventsPage />,
-    nav: { label: 'Eventos fallidos', icon: <ErrorOutlineIcon /> },
+    // Sin `nav` (TESIS-171): a la cola de reintentos no se entra a buscarla, se
+    // llega porque algo falló, y de eso se entera uno por la campanita. Se
+    // alcanza desde la fila del evento caído del panel de actividad.
   },
   {
     path: '/reports',
