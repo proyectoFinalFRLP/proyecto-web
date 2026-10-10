@@ -128,3 +128,19 @@ export function areaPath(points: readonly ChartPoint[], frame: ChartFrame = CHAR
 
   return `${line} L${coord(last.x)},${frame.height} L${coord(first.x)},${frame.height} Z`
 }
+
+/**
+ * Cada cuántos puntos va un rótulo del eje X para que entren en `width`, si
+ * cada uno necesita `slot` px. Uno por punto mientras entren; si no, uno cada
+ * N (un día de cada dos, de cada cuatro…), así a 30 días en 800px los rótulos
+ * no se pisan ni se salen de la tarjeta.
+ *
+ * Sin un ancho medido (`undefined` o `0`: todavía no hay layout, o la tarjeta
+ * está oculta) no hay con qué decidir, y no se esconde nada.
+ */
+export function labelStep(count: number, width: number | undefined, slot: number): number {
+  if (!width || count <= 1) return 1
+
+  const fitting = Math.max(1, Math.floor(width / slot))
+  return Math.max(1, Math.ceil(count / fitting))
+}

@@ -76,14 +76,42 @@ export const LinePath = styled('path')(({ theme }) => ({
   vectorEffect: 'non-scaling-stroke',
 }))
 
-export const LabelsRow = styled(Box)({
-  gridColumn: 2,
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-})
+// Lo que reserva cada rótulo del eje X (px): «12/09» en `labelSm` más aire
+// para que dos vecinos no se toquen. Con esto se decide cada cuántos días va
+// uno (`labelStep`).
+export const DAY_LABEL_SLOT = 48
 
-export const DayLabel = styled(Typography)(({ theme }) => ({
+// Los rótulos van posicionados, cada uno sobre su punto, y no en un flex con
+// `space-between`: así se puede saltear días sin que los que quedan se corran
+// de su lugar, y la fila no aporta ancho propio —con 30 rótulos en línea, la
+// tarjeta se estiraba fuera de la pantalla a 800px—. El alto es el de una
+// línea de `labelSm`, que los rótulos, al estar posicionados, ya no dan.
+export const LabelsRow = styled(Box)(({ theme }) => ({
   ...theme.typography.labelSm,
+  gridColumn: 2,
+  position: 'relative',
+  height: `${theme.typography.labelSm.lineHeight}em`,
+}))
+
+/** Dónde se ancla un rótulo contra su punto. */
+export type DayLabelAnchor = 'start' | 'middle' | 'end'
+
+// Centrado sobre su punto, salvo en las puntas: el primero arranca en el borde
+// izquierdo y el último termina en el derecho, si no la mitad de cada uno se
+// saldría del lienzo.
+const ANCHOR_SHIFT: Record<DayLabelAnchor, string> = {
+  start: 'none',
+  middle: 'translateX(-50%)',
+  end: 'translateX(-100%)',
+}
+
+export const DayLabel = styled(Typography, {
+  shouldForwardProp: (prop) => prop !== 'anchor',
+})<{ anchor: DayLabelAnchor }>(({ theme, anchor }) => ({
+  ...theme.typography.labelSm,
+  position: 'absolute',
+  top: 0,
+  whiteSpace: 'nowrap',
+  transform: ANCHOR_SHIFT[anchor],
   color: theme.vars.palette.text.secondary,
 }))

@@ -10,29 +10,37 @@ import {
 } from '@mui/material'
 import { navRoutes } from 'app/router/routes'
 import { NavLink } from 'react-router-dom'
-import { useUiStore } from 'shared/store'
 
-const DRAWER_WIDTH = 240
+import { SIDEBAR_WIDTH, useSidebar } from './useSidebar'
 
+/**
+ * Navegación lateral. En pantallas anchas es un drawer `persistent`: fijo al
+ * costado, abierto de entrada, y el contenido se corre para dejarle lugar.
+ * Debajo de `lg` es `temporary`: arranca cerrado, la hamburguesa lo abre
+ * flotando sobre el contenido con un scrim, y se cierra al elegir una sección,
+ * tocar afuera o apretar Escape. Quién decide el modo es `useSidebar`.
+ */
 export function Sidebar() {
-  const { sidebarOpen } = useUiStore()
+  const { floating, open, close } = useSidebar()
 
   return (
     <Drawer
-      variant="persistent"
-      open={sidebarOpen}
-      sx={{
+      variant={floating ? 'temporary' : 'persistent'}
+      open={open}
+      // Sólo lo dispara el `temporary` (scrim o Escape); el fijo no tiene modal.
+      onClose={close}
+      sx={[
+        { '& .MuiDrawer-paper': { width: SIDEBAR_WIDTH, boxSizing: 'border-box' } },
         // Ancho fijo, también cerrada: el drawer reserva su columna en el flex
         // del layout y el contenido la reclama con un margen negativo (ver
         // AppLayout). Condicionar el ancho acá **y** el margen allá descontaba
         // la sidebar dos veces y abría un hueco de 480px.
-        width: DRAWER_WIDTH,
-        flexShrink: 0,
-        '& .MuiDrawer-paper': {
-          width: DRAWER_WIDTH,
-          boxSizing: 'border-box',
-        },
-      }}
+        //
+        // Sólo en el modo fijo: el flotante vive en un portal fuera del flex, y
+        // su raíz es el modal que cubre la pantalla —con ancho de 240px, el scrim
+        // dejaría sin cubrir todo lo demás—.
+        !floating && { width: SIDEBAR_WIDTH, flexShrink: 0 },
+      ]}
     >
       <Toolbar />
       <Divider />
@@ -43,6 +51,9 @@ export function Sidebar() {
               component={NavLink}
               to={route.path}
               end
+              // Flotando, la sidebar tapa la pantalla a la que se acaba de ir:
+              // elegir una sección es también terminar con el panel.
+              onClick={floating ? close : undefined}
               sx={{
                 '&.active': {
                   bgcolor: 'action.selected',

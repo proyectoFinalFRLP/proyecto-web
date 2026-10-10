@@ -1,3 +1,4 @@
+import type { Breakpoint } from '@mui/material/styles'
 import type { ReactNode } from 'react'
 
 export type DataTableAlign = 'left' | 'right' | 'center'
@@ -23,6 +24,33 @@ export interface DataTableColumn<Row> {
   align?: DataTableAlign
   /** Ancho fijo en px. Sin esto la columna reparte el espacio sobrante. */
   width?: number
+  /**
+   * Esconde la columna (encabezado y celdas) por debajo de este breakpoint.
+   *
+   * Es la prioridad de columnas: en una pantalla angosta —el proyector de
+   * 800×600— lo secundario (fecha, operador, depósito) se va para que el
+   * estado, el importe y las acciones entren sin scroll horizontal. Se mide
+   * contra el viewport y no contra la tabla: debajo de `lg` la sidebar flota
+   * y el contenido ya ocupa todo el ancho, así que los dos coinciden.
+   */
+  hideBelow?: Breakpoint
+  /**
+   * Fija la columna contra el borde derecho de la tabla, con fondo opaco, para
+   * que quede a mano aunque la tabla scrollee. Es para la columna de acciones
+   * que arma la propia feature (botones en la fila en vez del kebab); la de
+   * `actions` ya viene fijada. Sólo tiene sentido en la última columna: dos
+   * fijadas con `right: 0` se apilarían una sobre otra.
+   */
+  pinned?: boolean
+  /**
+   * El contenido no estira la columna: se queda con el ancho que le dejan las
+   * demás y lo que no entra se corta (la elipsis la pone quien renderiza, como
+   * `StackedCell`). Es para el texto libre que, largo, empujaría el estado y
+   * el importe fuera de la vista. Va en una sola columna sin `width` por
+   * tabla: el sobrante se reparte según el ancho del contenido, y una columna
+   * que declara no tener ninguno no recibiría nada al lado de otra que sí.
+   */
+  truncate?: boolean
   render: (row: Row) => ReactNode
 }
 

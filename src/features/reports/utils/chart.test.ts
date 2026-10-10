@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest'
 
-import { areaPath, axisTicks, linePath, niceCeiling, plotPoints, tickOffsets } from './chart'
+import {
+  areaPath,
+  axisTicks,
+  labelStep,
+  linePath,
+  niceCeiling,
+  plotPoints,
+  tickOffsets,
+} from './chart'
 import type { ChartFrame } from './chart'
 
 // Un lienzo chico con números redondos, para leer las coordenadas a ojo.
@@ -119,5 +127,27 @@ describe('areaPath', () => {
 
   it('is empty when there is no line to close', () => {
     expect(areaPath([{ x: 0, y: 0 }], FRAME)).toBe('')
+  })
+})
+
+describe('labelStep', () => {
+  it('labels every point while they fit', () => {
+    expect(labelStep(7, 640, 48)).toBe(1)
+  })
+
+  // 30 días a 48px piden 1440px: en 300px entran 6 rótulos, uno cada 5 días.
+  it('labels one point every N when they do not fit', () => {
+    expect(labelStep(30, 300, 48)).toBe(5)
+    expect(labelStep(30, 640, 48)).toBe(3)
+  })
+
+  // Sin medida no hay con qué decidir: mejor todos que ninguno.
+  it('labels every point while the width is unknown', () => {
+    expect(labelStep(30, undefined, 48)).toBe(1)
+    expect(labelStep(30, 0, 48)).toBe(1)
+  })
+
+  it('keeps at least the first label on a very narrow chart', () => {
+    expect(labelStep(30, 10, 48)).toBe(30)
   })
 })
