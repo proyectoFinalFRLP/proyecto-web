@@ -49,10 +49,15 @@ export function useShipmentPage(filters: ShipmentFilters) {
  * sin número. Antes podía fallar una sola y las otras cuatro seguían; ahora son
  * las cinco o ninguna, que es lo honesto —si la consulta no respondió, no se
  * sabe ningún contador— y es lo que ya hace el catálogo.
+ *
+ * `keepPreviousData` por el mismo motivo que el listado: el término entra en la
+ * clave, así que cada letra tipeada estrena consulta y sin esto las cinco
+ * pestañas se quedarían sin número en cada pulsación.
  */
 export function useShipmentCounts(search = '') {
   return useQuery<ShipmentCounts>({
     queryKey: shipmentKeys.tabCounts(search),
     queryFn: () => fetchShipmentCounts(search),
+    placeholderData: keepPreviousData,
   })
 }

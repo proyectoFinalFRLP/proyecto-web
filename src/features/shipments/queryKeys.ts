@@ -1,4 +1,4 @@
-import type { ShipmentFilters, ShipmentStatus } from './types'
+import type { ShipmentFilters } from './types'
 
 // Factory de query keys de la feature (architecture.md §4.3).
 //
@@ -14,9 +14,4 @@ export const shipmentKeys = {
   // clave igual que en la del listado: si no, las pestañas seguirían contando
   // la empresa entera mientras la tabla muestra lo buscado.
   tabCounts: (search: string) => [...shipmentKeys.counts(), 'tabs', search] as const,
-  // `status ?? 'all'`: sin esto, la clave de «todos» y la de un estado
-  // indefinido serían la misma sólo por casualidad de serialización. Queda
-  // para el KPI del panel, que pide un número suelto.
-  count: (status: ShipmentStatus | undefined, search: string) =>
-    [...shipmentKeys.counts(), status ?? 'all', search] as const,
 }
