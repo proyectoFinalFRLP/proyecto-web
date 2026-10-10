@@ -12,6 +12,7 @@ import {
   Toolbar,
   ToolbarActions,
   ToolbarTitle,
+  TruncatedContent,
 } from './DataTable.styles'
 import type { DataTableProps } from './DataTable.types'
 import { DataTablePaginationBar } from './DataTablePaginationBar'
@@ -27,7 +28,10 @@ import { DataTableTabs } from './DataTableTabs'
  * `render` de su columna, así la tabla no acumula reglas de dominio.
  *
  * En pantallas angostas scrollea horizontalmente en vez de colapsar: siete
- * columnas apiladas dejan de ser una tabla y se vuelven ilegibles.
+ * columnas apiladas dejan de ser una tabla y se vuelven ilegibles. Antes de
+ * llegar al scroll, cada columna puede declarar debajo de qué breakpoint se
+ * esconde (`hideBelow`), y la de acciones queda fijada a la derecha: aunque la
+ * tabla scrollee, lo que se puede hacer con la fila sigue a la vista.
  */
 export function DataTable<Row>({
   columns,
@@ -131,13 +135,19 @@ export function DataTable<Row>({
                 <HeadCell
                   key={column.id}
                   align={column.align ?? 'left'}
+                  hideBelow={column.hideBelow}
+                  pinned={column.pinned}
                   style={column.width === undefined ? undefined : { width: column.width }}
                 >
                   {column.header}
                 </HeadCell>
               ))}
 
-              {actions === undefined ? null : <HeadCell align="center">{actionsHeader}</HeadCell>}
+              {actions === undefined ? null : (
+                <HeadCell align="center" pinned>
+                  {actionsHeader}
+                </HeadCell>
+              )}
             </TableRow>
           </TableHead>
 
@@ -160,13 +170,22 @@ export function DataTable<Row>({
                   ) : null}
 
                   {columns.map((column) => (
-                    <BodyCell key={column.id} align={column.align ?? 'left'}>
-                      {column.render(row)}
+                    <BodyCell
+                      key={column.id}
+                      align={column.align ?? 'left'}
+                      hideBelow={column.hideBelow}
+                      pinned={column.pinned}
+                    >
+                      {column.truncate ? (
+                        <TruncatedContent>{column.render(row)}</TruncatedContent>
+                      ) : (
+                        column.render(row)
+                      )}
                     </BodyCell>
                   ))}
 
                   {actions === undefined ? null : (
-                    <BodyCell align="center">
+                    <BodyCell align="center" pinned>
                       <DataTableRowActions
                         row={row}
                         actions={actions}

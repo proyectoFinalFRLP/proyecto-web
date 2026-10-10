@@ -19,6 +19,11 @@ const { columns: columnCopy, cells, actions: actionCopy, page } = ordersCopy
  * Las siete columnas del listado, en el orden del diseño. Se construyen con el
  * callback de navegación porque la primera columna y el menú de acciones llevan
  * al mismo lugar, y así ese destino se define una sola vez.
+ *
+ * Debajo de `md` (el proyector de 800×600) se van la fecha y el operador: son
+ * contexto, y lo que el operador barre en el listado es qué orden, a dónde, en
+ * qué estado y por cuánto. El destino se recorta en vez de irse, y es lo que
+ * deja entrar al estado, al total y a las acciones sin scroll horizontal.
  */
 function buildColumns(onView: (order: OrderSummary) => void): DataTableColumn<OrderSummary>[] {
   return [
@@ -45,6 +50,7 @@ function buildColumns(onView: (order: OrderSummary) => void): DataTableColumn<Or
       id: 'date',
       header: columnCopy.date,
       width: 124,
+      hideBelow: 'md',
       render: (order) => (
         <StackedCell
           primary={formatOrderDate(order.createdAt)}
@@ -55,6 +61,9 @@ function buildColumns(onView: (order: OrderSummary) => void): DataTableColumn<Or
     {
       id: 'destination',
       header: columnCopy.destination,
+      // Una dirección larga en una sola línea estiraba la columna hasta su
+      // largo entero; recortada, la columna toma lo que dejan las demás.
+      truncate: true,
       render: (order) =>
         order.customerAddress === null ? (
           <Typography variant="bodyMd" sx={{ color: 'text.disabled' }}>
@@ -76,6 +85,7 @@ function buildColumns(onView: (order: OrderSummary) => void): DataTableColumn<Or
       id: 'carrier',
       header: columnCopy.carrier,
       width: 170,
+      hideBelow: 'md',
       render: (order) => <CarrierCell carrier={order.carrier} pickup={!order.requiresShipping} />,
     },
     {

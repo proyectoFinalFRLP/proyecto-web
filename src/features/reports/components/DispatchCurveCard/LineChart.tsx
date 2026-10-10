@@ -1,7 +1,9 @@
+import { useElementWidth } from '../../hooks/useElementWidth'
 import {
   areaPath,
   axisTicks,
   CHART_FRAME,
+  labelStep,
   linePath,
   niceCeiling,
   plotPoints,
@@ -14,12 +16,19 @@ import {
   AxisTick,
   ChartGrid,
   ChartSvg,
+  DAY_LABEL_SLOT,
   DayLabel,
   GridLine,
   LabelsRow,
   LinePath,
 } from './DispatchCurveCard.styles'
+import type { DayLabelAnchor } from './DispatchCurveCard.styles'
 import type { LineChartProps } from './DispatchCurveCard.types'
+
+function anchorOf(index: number, last: number): DayLabelAnchor {
+  if (index === 0) return 'start'
+  return index === last ? 'end' : 'middle'
+}
 
 /**
  * Gráfico de líneas de la curva de despacho: grilla, área y trazo suave sobre
@@ -28,11 +37,17 @@ import type { LineChartProps } from './DispatchCurveCard.types'
  *
  * Presentacional: recibe la serie y el formato del eje. El techo del eje sale
  * de los datos, así la misma curva sirve para órdenes y para pesos.
+ *
+ * Los rótulos del eje X se ralean según el ancho: si los 30 días del mes no
+ * entran, va uno cada N días. La curva sigue teniendo todos sus puntos.
  */
 export function LineChart({ values, labels, formatValue, ariaLabel }: LineChartProps) {
   const ceiling = niceCeiling(values)
   const points = plotPoints(values, ceiling)
   const offsets = tickOffsets(CHART_FRAME)
+  const [labelsRef, labelsWidth] = useElementWidth<HTMLDivElement>()
+  const step = labelStep(labels.length, labelsWidth, DAY_LABEL_SLOT)
+  const last = labels.length - 1
 
   return (
     <ChartGrid>
@@ -55,10 +70,20 @@ export function LineChart({ values, labels, formatValue, ariaLabel }: LineChartP
         <LinePath d={linePath(points)} />
       </ChartSvg>
 
-      <LabelsRow aria-hidden>
-        {labels.map((label) => (
-          <DayLabel key={label}>{label}</DayLabel>
-        ))}
+      <LabelsRow ref={labelsRef} aria-hidden>
+        {labels.map((label, index) =>
+          index % step === 0 ? (
+            <DayLabel
+              key={label}
+              anchor={anchorOf(index, last)}
+              // El mismo reparto que `plotPoints`: el primero en 0 y el último
+              // en el borde, así cada rótulo cae debajo de su punto.
+              style={{ left: `${last > 0 ? (index / last) * 100 : 0}%` }}
+            >
+              {label}
+            </DayLabel>
+          ) : null,
+        )}
       </LabelsRow>
     </ChartGrid>
   )

@@ -31,6 +31,11 @@ function Missing({ children }: { children: string }) {
   )
 }
 
+/**
+ * Debajo de `md` (el proyector de 800×600) se van el operador y la fecha de
+ * alta: el envío ya se identifica por su número y su orden, y lo que se viene a
+ * mirar es el costo, el estado y el ojito para abrirlo.
+ */
 function buildColumns(
   onView: (shipment: ShipmentSummary) => void,
 ): DataTableColumn<ShipmentSummary>[] {
@@ -65,6 +70,7 @@ function buildColumns(
       id: 'courier',
       header: columnCopy.courier,
       width: 170,
+      hideBelow: 'md',
       render: (shipment) =>
         shipment.courier === null ? (
           <Missing>{cells.noCourier}</Missing>
@@ -110,6 +116,7 @@ function buildColumns(
       id: 'createdAt',
       header: columnCopy.createdAt,
       width: 124,
+      hideBelow: 'md',
       render: (shipment) => (
         <StackedCell
           primary={formatShipmentDate(shipment.createdAt)}
@@ -124,6 +131,7 @@ function buildColumns(
       header: columnCopy.actions,
       width: 72,
       align: 'center',
+      pinned: true,
       render: (shipment) => (
         <Tooltip title={table.view}>
           <IconButton
