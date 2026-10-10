@@ -127,8 +127,57 @@ describe('CarrierStepPage · pickup at the store', () => {
   it('does not ask the carriers for a quote', () => {
     renderPage()
 
-    expect(screen.getByText('Retiro en el local')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Retiro en el local' })).toBeInTheDocument()
     expect(screen.queryByRole('radio')).not.toBeInTheDocument()
+  })
+
+  // TESIS-173: el paso de un retiro no cotiza nada, sólo confirma.
+  it('titles the step as a confirmation, not as quotes', () => {
+    renderPage()
+
+    expect(screen.getByText('Confirmación')).toBeInTheDocument()
+    expect(screen.queryByText('Cotizaciones')).not.toBeInTheDocument()
+  })
+
+  // TESIS-173: el resumen de un retiro decía «Envío: Elegí un operador», «Va
+  // a: CABA» y prometía un despacho. Nada de eso existe en un retiro.
+  describe('the summary', () => {
+    const summary = () => screen.getByRole('region', { name: 'Resumen de la orden' })
+
+    it('says the order is picked up instead of asking for a carrier', () => {
+      renderPage()
+
+      expect(within(summary()).getByText('Retiro en el local')).toBeInTheDocument()
+      expect(within(summary()).queryByText('Elegí un operador')).not.toBeInTheDocument()
+    })
+
+    it('says where the customer picks it up instead of where it goes', () => {
+      renderPage()
+
+      expect(within(summary()).getByText('Lo retira en')).toBeInTheDocument()
+      expect(within(summary()).getByText('CD Ezeiza')).toBeInTheDocument()
+      expect(within(summary()).queryByText('Va a')).not.toBeInTheDocument()
+      expect(within(summary()).queryByText('Sale de')).not.toBeInTheDocument()
+      expect(summary()).not.toHaveTextContent(/CABA/)
+    })
+
+    it('does not promise a dispatch on confirming', () => {
+      renderPage()
+
+      expect(
+        within(summary()).getByText(
+          'Al confirmar se crea la orden. El cliente la retira en el local.',
+        ),
+      ).toBeInTheDocument()
+    })
+
+    // El criterio de la card, dicho de una vez: ni operador, ni despacho, ni
+    // destino en ningún renglón del resumen.
+    it('mentions no carrier, dispatch or destination at all', () => {
+      renderPage()
+
+      expect(summary()).not.toHaveTextContent(/operador|despach|Va a/i)
+    })
   })
 
   it('can be confirmed without choosing a carrier', () => {
@@ -261,6 +310,21 @@ describe('CarrierStepPage', () => {
     renderPage()
 
     expect(confirmButton()).toBeDisabled()
+  })
+
+  // Control negativo de TESIS-173: con envío, el resumen sigue hablando de él.
+  it('keeps talking about the shipment when the order ships', () => {
+    renderPage()
+
+    const summary = screen.getByRole('region', { name: 'Resumen de la orden' })
+    expect(screen.getByText('Cotizaciones')).toBeInTheDocument()
+    expect(within(summary).getByText('Elegí un operador')).toBeInTheDocument()
+    expect(within(summary).getByText('Va a')).toBeInTheDocument()
+    expect(
+      within(summary).getByText(
+        'Al confirmar se crea la orden y se emite el despacho con el operador elegido.',
+      ),
+    ).toBeInTheDocument()
   })
 
   // Criterio de la card: sin cotizaciones se puede reintentar o revisar los datos.

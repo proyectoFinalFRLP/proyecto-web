@@ -177,7 +177,13 @@ export function CarrierStepPage() {
   return (
     <PageWrapper sx={{ maxWidth: 1400 }}>
       <Stack spacing={3}>
-        <OrderWizardHeader step={STEP} total={TOTAL_STEPS} subtitle={wizard.steps.carrier} />
+        {/* Un retiro no cotiza nada: el paso sólo confirma, y se llama así
+            (TESIS-173). */}
+        <OrderWizardHeader
+          step={STEP}
+          total={TOTAL_STEPS}
+          subtitle={draft.requiresShipping ? wizard.steps.carrier : wizard.steps.confirmation}
+        />
 
         <Box
           sx={{
@@ -224,6 +230,7 @@ export function CarrierStepPage() {
               draft.destination.province,
               draft.destination.zipCode,
             )}
+            pickup={!draft.requiresShipping}
             canConfirm={(chosen !== null || !draft.requiresShipping) && !confirm.isPending}
             confirming={confirm.isPending}
             confirmLabel={

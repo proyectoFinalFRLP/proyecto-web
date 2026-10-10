@@ -39,6 +39,9 @@ function coverageLabel(coverage: WarehouseCoverage): string {
  * depósito y el alta lo rechazaría—, y el motivo viaja en su descripción
  * accesible, no sólo en el color del badge. Mientras el stock carga, ninguno se
  * puede elegir todavía.
+ *
+ * Elegir uno es obligatorio —sin origen no hay orden—, y el grupo lo dice con
+ * `aria-required`: a la vista lo dice el asterisco del título de la sección.
  */
 export function OriginWarehousePicker({
   warehouses,
@@ -47,7 +50,7 @@ export function OriginWarehousePicker({
   onSelect,
 }: OriginWarehousePickerProps) {
   return (
-    <OptionsGrid role="radiogroup" aria-label={copy.groupLabel}>
+    <OptionsGrid role="radiogroup" aria-label={copy.groupLabel} aria-required>
       {warehouses.map((warehouse) => {
         const itsCoverage = coverage?.get(warehouse.id)
         const selected = warehouse.id === selectedId

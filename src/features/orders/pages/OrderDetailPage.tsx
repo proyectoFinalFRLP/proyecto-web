@@ -81,14 +81,7 @@ function buildMetrics(order: OrderDetail, shipment: Shipment | null, total: numb
       note: metrics.lines(order.lines.length),
       icon: <Inventory2OutlinedIcon />,
     },
-    {
-      id: 'carrier',
-      label: metrics.carrier,
-      value: courier?.name ?? metrics.noCarrier,
-      note: courier === null ? undefined : metrics.serviceTypeUnknown,
-      icon: <LocalShippingOutlinedIcon />,
-      unknown: courier === null,
-    },
+    carrierMetric(order, courier),
     {
       id: 'delivery',
       label: metrics.delivery,
@@ -98,6 +91,32 @@ function buildMetrics(order: OrderDetail, shipment: Shipment | null, total: numb
       unknown: delivered === null,
     },
   ]
+}
+
+/**
+ * El operador logístico. Una orden de retiro no tiene uno «sin asignar»: no va
+ * a tener nunca, y decir que falta mandaba a buscar un despacho que no existe
+ * (TESIS-173). Va en el tono neutro igual, porque tampoco es un dato.
+ */
+function carrierMetric(order: OrderDetail, courier: Shipment['courier']): OrderMetric {
+  const { metrics } = detail
+  const base = { id: 'carrier', label: metrics.carrier, icon: <LocalShippingOutlinedIcon /> }
+
+  if (!order.requiresShipping) {
+    return {
+      ...base,
+      value: metrics.carrierNotApplicable,
+      note: metrics.carrierPickupNote,
+      unknown: true,
+    }
+  }
+
+  return {
+    ...base,
+    value: courier?.name ?? metrics.noCarrier,
+    note: courier === null ? undefined : metrics.serviceTypeUnknown,
+    unknown: courier === null,
+  }
 }
 
 function customerFields(order: OrderDetail): InfoField[] {

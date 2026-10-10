@@ -9,9 +9,14 @@ export interface OrderConfirmCardProps {
   weight: number
   /** De dónde sale: el nombre del depósito de origen. */
   originName: string
-  /** A dónde va: "CABA, Ciudad Autónoma de Buenos Aires · CP 1193". */
+  /** A dónde va: "CABA, Ciudad Autónoma de Buenos Aires · CP 1193". No se muestra con `pickup`. */
   destinationLabel: string
-  /** Si «Confirmar orden» se puede apretar: hay una opción elegida y no se está confirmando. */
+  /**
+   * El cliente la retira en el local: no hay operador, despacho ni destino de
+   * qué hablar, y el depósito es a donde va el cliente (TESIS-173).
+   */
+  pickup?: boolean
+  /** Si «Confirmar orden» se puede apretar: hay una opción elegida (o es un retiro) y no se está confirmando. */
   canConfirm: boolean
   confirming: boolean
   /** El rótulo del botón principal: «Confirmar orden», o reintentar el despacho. */

@@ -1,6 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 import StorefrontOutlinedIcon from '@mui/icons-material/StorefrontOutlined'
 import WarehouseOutlinedIcon from '@mui/icons-material/WarehouseOutlined'
 import {
@@ -13,7 +12,7 @@ import {
   Typography,
 } from '@mui/material'
 import { useEffect, useMemo } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { LoadingSpinner, PageWrapper } from 'shared/components'
 import { useOrderDraftStore } from 'shared/store'
@@ -23,11 +22,13 @@ import type { DestinationFormData } from '../components/DestinationFieldsCard'
 import { FormSection } from '../components/FormSection'
 import { OrderWizardHeader } from '../components/OrderWizardHeader'
 import { OriginWarehousePicker } from '../components/OriginWarehousePicker'
+import { WizardNextButton } from '../components/WizardNextButton'
 import { ordersCopy } from '../content'
 import { useOriginWarehouses } from '../hooks/useOriginWarehouses'
 import { useProductStocks } from '../hooks/useProductStocks'
 import { useProvinces } from '../hooks/useProvinces'
-import { warehouseCoverage } from '../utils/shipping'
+import { invalidFields } from '../utils/missing'
+import { onlyCoveringWarehouse, warehouseCoverage } from '../utils/shipping'
 import type { WarehouseCoverage } from '../utils/shipping'
 
 const { wizard, shipping } = ordersCopy
@@ -44,6 +45,9 @@ const TOTAL_STEPS = 3
 
 const EMPTY_DESTINATION: DestinationFormData = { address: '', city: '', province: '', zipCode: '' }
 
+// El orden en que los nombra «lo que falta»: el de la pantalla.
+const DESTINATION_FIELDS = ['address', 'city', 'province', 'zipCode'] as const
+
 /**
  * Paso 2 del alta manual de una orden (S06): de dónde sale la mercadería y a
  * dónde va.
@@ -57,6 +61,9 @@ const EMPTY_DESTINATION: DestinationFormData = { address: '', city: '', province
  * El depósito se guarda en el borrador apenas se elige; el domicilio, al
  * avanzar (validado) o al volver al paso 1 (tal como esté, para no perder lo
  * tipeado).
+ *
+ * Mientras «Siguiente» no se puede apretar, debajo dice qué falta: el depósito,
+ * los campos del domicilio cuando la orden se envía (TESIS-173).
  */
 export function ShippingStepPage() {
   const navigate = useNavigate()
@@ -79,7 +86,7 @@ export function ShippingStepPage() {
     control,
     handleSubmit,
     getValues,
-    formState: { errors, isValid },
+    formState: { errors },
   } = useForm<DestinationFormData>({
     resolver: zodResolver(destinationSchema),
     mode: 'onChange',
@@ -119,8 +126,47 @@ export function ShippingStepPage() {
   useEffect(() => {
     if (savedOriginFellShort) setOrigin(null)
   }, [savedOriginFellShort, setOrigin])
+
+  // Si un solo depósito cubre la orden, viene elegido: era la única tarjeta
+  // habilitada y el operador tenía que descubrir que «Siguiente» esperaba que
+  // la apretara (TESIS-173). Con dos o más no se elige por él.
+  //
+  // Sólo con el borrador sin depósito: uno guardado que sigue cubriendo no se
+  // pisa. Si el guardado dejó de cubrir, el efecto de arriba lo borra y en el
+  // render siguiente entra éste con el único que queda.
+  const onlyCoveringId = onlyCoveringWarehouse(coverage)
+  const onlyCovering =
+    onlyCoveringId === null
+      ? undefined
+      : warehouses.data?.find((warehouse) => warehouse.id === onlyCoveringId)
+
+  useEffect(() => {
+    if (origin === null && onlyCovering !== undefined) {
+      setOrigin({ warehouseId: onlyCovering.id, name: onlyCovering.name })
+    }
+  }, [origin, onlyCovering, setOrigin])
+
   const noneCovers =
     coverage !== null && [...coverage.values()].every((entry) => entry.level !== 'full')
+
+  // Lo que falta, contra el mismo schema que valida el domicilio y no contra
+  // `errors`, que aparecen recién al tocar un campo: la lista tiene que nombrar
+  // también los que nadie tocó (ver el paso 1). Con retiro en el local el
+  // domicilio no se exige, así que tampoco falta.
+  const destinationValues = useWatch({ control })
+  const missingDestination = requiresShipping
+    ? invalidFields(destinationSchema, destinationValues, DESTINATION_FIELDS)
+    : []
+  // Mientras depósitos y stock viajan el depósito todavía no se puede elegir:
+  // decir que falta sería pedir algo imposible, y además parpadearía justo
+  // antes de que se elija solo. El spinner y el «Calculando stock…» ya dicen
+  // qué está pasando.
+  const originLoading = warehouses.isPending || stocks.isPending
+  const missingOrigin = selectedId === null && !originLoading
+  const gaps = [
+    ...(missingOrigin ? [shipping.missing.origin] : []),
+    ...missingDestination.map((field) => shipping.missing[field]),
+  ]
 
   // Sin cliente o sin líneas no hay orden que despachar: se llegó por URL o se
   // canceló el borrador en otra pestaña.
@@ -152,7 +198,11 @@ export function ShippingStepPage() {
       <Stack spacing={3}>
         <OrderWizardHeader step={STEP} total={TOTAL_STEPS} subtitle={wizard.steps.shipping} />
 
-        <FormSection icon={<WarehouseOutlinedIcon aria-hidden />} title={shipping.origin.title}>
+        <FormSection
+          icon={<WarehouseOutlinedIcon aria-hidden />}
+          title={shipping.origin.title}
+          required
+        >
           <OriginContent
             warehouses={warehouses}
             stocks={stocks}
@@ -210,21 +260,21 @@ export function ShippingStepPage() {
         />
 
         {/* `useFlexGap`: sin él `spacing` separa con `margin-left` y pisa el
-            `ml: 'auto'` que manda el botón de avanzar a la derecha (TESIS-132). */}
-        <Stack direction="row" spacing={2} useFlexGap sx={{ alignItems: 'center' }}>
+            `margin-left: auto` que manda el botón de avanzar a la derecha
+            (TESIS-132). Por la línea de base, como en el paso 1: debajo de
+            «Siguiente» puede ir lo que falta (TESIS-173). */}
+        <Stack direction="row" spacing={2} useFlexGap sx={{ alignItems: 'baseline' }}>
           <Button variant="outlined" startIcon={<ArrowBackIcon />} onClick={back}>
             {shipping.back}
           </Button>
-          <Button
-            variant="contained"
-            size="large"
-            endIcon={<ArrowForwardIcon />}
-            disabled={(requiresShipping && !isValid) || selectedId === null}
+          {/* Con retiro, el paso 3 no cotiza: el botón nombra la etapa que de
+              verdad sigue (TESIS-173). */}
+          <WizardNextButton
+            label={wizard.next(requiresShipping ? wizard.steps.carrier : wizard.steps.confirmation)}
+            gaps={gaps}
+            disabled={selectedId === null || missingDestination.length > 0}
             onClick={() => void next()}
-            sx={{ ml: 'auto' }}
-          >
-            {wizard.next(wizard.steps.carrier)}
-          </Button>
+          />
         </Stack>
       </Stack>
     </PageWrapper>

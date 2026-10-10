@@ -59,6 +59,24 @@ function coverageLevel(missingCount: number, total: number): CoverageLevel {
   return missingCount === total ? 'none' : 'partial'
 }
 
+/**
+ * El id del único depósito que cubre el borrador entero, o `null` si son
+ * varios, ninguno o todavía no se sabe (`coverage` en `null`).
+ *
+ * Con uno solo no hay nada que elegir: el paso 2 lo deja elegido en vez de
+ * esperar a que el operador descubra que «Siguiente» está gris porque falta
+ * apretar la única tarjeta habilitada (TESIS-173). Con dos o más no se elige
+ * por él: de qué depósito sale la mercadería es una decisión del negocio.
+ */
+export function onlyCoveringWarehouse(
+  coverage: ReadonlyMap<number, WarehouseCoverage> | null,
+): number | null {
+  if (coverage === null) return null
+
+  const covering = [...coverage].filter(([, entry]) => entry.level === 'full')
+  return covering.length === 1 ? covering[0][0] : null
+}
+
 /** Lo que el paso 3 manda a `POST /api/v1/orders` para crear la orden. */
 export interface CreateOrderPayload {
   order: {

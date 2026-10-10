@@ -21,3 +21,10 @@ export const FullRow = styled(FieldRoot)(({ theme }) => ({
   gridColumn: '1 / -1',
   [theme.breakpoints.down('sm')]: { gridColumn: 'auto' },
 }))
+
+// El asterisco de obligatorio, en el color de error como es costumbre: es lo
+// que, si falta, termina siendo un error.
+export const RequiredMarkRoot = styled('span')(({ theme }) => ({
+  color: theme.vars.palette.error.main,
+  marginLeft: theme.spacing(0.25),
+}))
