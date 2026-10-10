@@ -2,6 +2,8 @@
 // Mismo criterio que `features/design-system/content.ts`: si más adelante entra
 // i18n, este módulo es el único punto a migrar a claves de traducción (ADR-007).
 
+import { formatInteger } from 'shared/utils'
+
 export const inventoryCopy = {
   page: {
     title: 'Inventario',
@@ -38,7 +40,7 @@ export const inventoryCopy = {
     noCategory: 'Sin categoría',
     /** Un producto sin unidades en ningún depósito no tiene nodo que mostrar. */
     noWarehouse: 'Sin asignar',
-    inTransit: (units: number) => `+${formatUnits(units)} en tránsito`,
+    inTransit: (units: number) => `+${formatInteger(units)} en tránsito`,
     /** "en 3 depósitos" cuando hay más de uno además del principal. */
     moreWarehouses: (count: number) => `en ${count} depósitos`,
   },
@@ -65,7 +67,7 @@ export const inventoryCopy = {
     next: 'Página siguiente',
     page: (page: number) => `Ir a la página ${page}`,
     summary: (from: number, to: number, total: number) =>
-      `Mostrando ${from} a ${to} de ${formatUnits(total)} ${total === 1 ? 'producto' : 'productos'}`,
+      `Mostrando ${from} a ${to} de ${formatInteger(total)} ${total === 1 ? 'producto' : 'productos'}`,
   },
   detail: {
     breadcrumb: {
@@ -99,7 +101,6 @@ export const inventoryCopy = {
         `${length} × ${width} × ${height} cm`,
       /** Marca de "sin dato" del DS, la misma que usa el dashboard. */
       unknown: '—',
-      pendingBackend: 'Empaque y norma técnica todavía no existen en la API.',
     },
     master: {
       title: 'Stock maestro',
@@ -112,12 +113,6 @@ export const inventoryCopy = {
         inTransit: 'En tránsito',
         availableToPromise: 'Disponible para prometer',
       },
-      // Cubre las dos piezas del diseño que la API no puede alimentar: la barra
-      // de capacidad ("71 % del umbral máximo de 6.000 unidades"), que necesita
-      // un techo por producto, y el desglose por reserva. Y aclara que el en
-      // tránsito, a diferencia del diseño, no es una porción del total.
-      pending:
-        'El en tránsito no forma parte del total. La capacidad y las reservas esperan datos que la API todavía no expone.',
       edit: 'Editar stock',
     },
     distribution: {
@@ -138,8 +133,15 @@ export const inventoryCopy = {
           ? '1 depósito con stock o en camino'
           : `${count} depósitos con stock o en camino`,
       empty: 'Este producto no tiene stock asignado en ningún depósito.',
-      pending:
-        'En tránsito son las unidades que vienen hacia cada depósito. Comprometido espera que la API modele las reservas.',
+      // En tránsito **por depósito** llega con TESIS-144; el total del producto
+      // ya se muestra en el encabezado. Comprometido sí está, por depósito.
+      pendingInTransit: 'El en tránsito por depósito llega con el detalle de stock por nodo.',
+    },
+    status: {
+      available: 'Disponible',
+      low: 'Stock bajo',
+      critical: 'Crítico',
+      out: 'Sin stock',
     },
     notFound: 'No encontramos el producto que buscabas.',
     backToCatalog: 'Volver al catálogo',
@@ -147,6 +149,8 @@ export const inventoryCopy = {
   modal: {
     /** El título lleva el nombre del producto; el subtítulo, el SKU. */
     title: (productName: string) => `Editar producto: ${productName}`,
+    /** Con alcance `stock`: el modal muestra sólo las cantidades por depósito. */
+    stockTitle: (productName: string) => `Editar stock: ${productName}`,
     subtitle: (sku: string) => `Actualizá especificaciones y stock del SKU: ${sku}`,
     close: 'Cerrar',
     conflict: {
@@ -277,8 +281,3 @@ export const inventoryCopy = {
     duplicateWarehouse: 'No repitas el mismo depósito en dos filas',
   },
 } as const
-
-/** Miles con punto, como el resto de los números de la pantalla. */
-export function formatUnits(value: number): string {
-  return new Intl.NumberFormat('es-AR').format(value)
-}

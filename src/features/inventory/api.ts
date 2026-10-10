@@ -1,6 +1,7 @@
 import { client } from 'shared/api/client'
 
 import type {
+  CatalogCounts,
   CreateProductPayload,
   LinkProductPayload,
   LinkProductResult,
@@ -31,11 +32,13 @@ interface ApiWarehouse {
   name: string
   address: string
   zip_code: string
+  capacity?: number | null
 }
 
 interface ApiStock {
   id: number
   quantity: number
+  committed?: number
   warehouse_id: number
   warehouse: ApiWarehouse
   stock_status: StockStatus
@@ -59,6 +62,8 @@ interface ApiProduct {
   name: string
   description: string | null
   category: string | null
+  packaging: string | null
+  technical_standard: string | null
   weight: number
   dimensions: string | null
   total_stock: number
@@ -66,6 +71,10 @@ interface ApiProduct {
   in_transit_quantity: number
   in_transit_by_warehouse: { warehouse_id: number; name: string; quantity: number }[]
   updated_at: string
+  committed_quantity: number
+  on_hand_quantity: number
+  available_to_promise: number
+  committed_by_warehouse: { warehouse_id: number; name: string; quantity: number }[]
   stocks: ApiStock[]
 }
 
@@ -75,7 +84,12 @@ interface ApiList<T> {
 }
 
 function toWarehouse(warehouse: ApiWarehouse): Warehouse {
-  return { id: warehouse.id, name: warehouse.name, address: warehouse.address }
+  return {
+    id: warehouse.id,
+    name: warehouse.name,
+    address: warehouse.address,
+    capacity: warehouse.capacity ?? null,
+  }
 }
 
 // El ETag viene entrecomillado y puede traer el prefijo débil `W/`. Se guarda
@@ -85,12 +99,22 @@ function readVersion(etag: unknown): string | null {
 }
 
 function toProduct(product: ApiProduct, version: string | null = null): Product {
+  // Lo comprometido llega aparte y por depósito: un depósito puede tener
+  // unidades vendidas sin despachar y ninguna fila de stock, si la venta se
+  // llevó la última. Se indexa por depósito para resolver cada fila sin
+  // recorrer la lista entera por cada una.
+  const committedByWarehouse = new Map(
+    (product.committed_by_warehouse ?? []).map((row) => [row.warehouse_id, row.quantity]),
+  )
+
   return {
     id: product.id,
     sku: product.sku,
     name: product.name,
     description: product.description,
     category: (product.category ?? null) as Product['category'],
+    packaging: product.packaging,
+    technicalStandard: product.technical_standard,
     weight: product.weight,
     dimensions: product.dimensions,
     totalStock: product.total_stock,
@@ -101,11 +125,21 @@ function toProduct(product: ApiProduct, version: string | null = null): Product 
       name: transit.name,
       quantity: transit.quantity,
     })),
+    committedByWarehouse: (product.committed_by_warehouse ?? []).map((row) => ({
+      warehouseId: row.warehouse_id,
+      name: row.name,
+      quantity: row.quantity,
+    })),
     updatedAt: product.updated_at,
+    committed: product.committed_quantity,
+    onHand: product.on_hand_quantity,
+    availableToPromise: product.available_to_promise,
+    inTransit: product.in_transit_quantity,
     version,
     stocks: (product.stocks ?? []).map((stock) => ({
       warehouseId: stock.warehouse_id,
       quantity: stock.quantity,
+      committed: committedByWarehouse.get(stock.warehouse_id) ?? 0,
       warehouse: toWarehouse(stock.warehouse),
       stockStatus: stock.stock_status,
     })),
@@ -128,10 +162,12 @@ function toSummary(product: ApiProductSummary): ProductSummary {
 
 // Un filtro vacío no viaja: mandar `status=` o `search=` en blanco haría que el
 // backend filtre por cadena vacía y devuelva cero filas.
-function toParams({ page, perPage, status, search, category }: ProductFilters) {
+// `page` y `perPage` son opcionales acá: `/products/counts` no pagina, y
+// mandarle una página sería decirle que cuente una porción (TESIS-163).
+function toParams({ page, perPage, status, search, category }: Partial<ProductFilters>) {
   return {
-    page,
-    per_page: perPage,
+    ...(page === undefined ? {} : { page }),
+    ...(perPage === undefined ? {} : { per_page: perPage }),
     ...(status === undefined ? {} : { status }),
     ...(search === undefined || search === '' ? {} : { search }),
     ...(category === undefined ? {} : { category }),
@@ -152,17 +188,21 @@ export async function fetchProductPage(filters: ProductFilters): Promise<Product
 }
 
 /**
- * Cuántos productos matchean un filtro, sin traerlos.
+ * Cuántos productos cae en cada pestaña del catálogo (`GET /products/counts`).
  *
- * Alimenta los contadores de las pestañas: pide una sola fila y lee nada más
- * que el `meta.total`, que el backend cuenta sobre el scope ya filtrado.
+ * Era una consulta por pestaña —cuatro requests que pedían una fila cada uno
+ * sólo para leer su `meta.total`—, y la auditoría del 04/10 lo marcó: la
+ * pantalla disparaba seis llamadas. El backend los devuelve juntos desde
+ * TESIS-162, respetando el mismo buscador y la misma categoría que el listado.
  */
-export async function fetchProductCount(status?: StockStatus, search?: string): Promise<number> {
-  const { data } = await client.get<ApiList<ApiProductSummary>>('/products', {
-    params: toParams({ page: 1, perPage: 1, status, search }),
+export async function fetchProductCounts(
+  filters: Pick<ProductFilters, 'search' | 'category'>,
+): Promise<CatalogCounts> {
+  const { data } = await client.get<{ data: CatalogCounts }>('/products/counts', {
+    params: toParams({ search: filters.search, category: filters.category }),
   })
 
-  return data.meta.total
+  return data.data
 }
 
 export async function fetchProduct(id: number): Promise<Product> {

@@ -1,8 +1,9 @@
 import AddIcon from '@mui/icons-material/Add'
 import { Autocomplete, Button, InputAdornment, TextField, Typography } from '@mui/material'
 import { useState } from 'react'
+import { formatInteger } from 'shared/utils'
 
-import { formatCount, ordersCopy } from '../../content'
+import { ordersCopy } from '../../content'
 import type { CatalogProduct } from '../../types'
 import { isDraftItemValid } from '../../utils/draft'
 
@@ -118,7 +119,7 @@ export function ProductPicker({
                 <Typography variant="labelSm" color="text.secondary" noWrap>
                   {addedIds.has(option.id)
                     ? copy.alreadyAdded
-                    : copy.optionMeta(option.category, formatCount(option.totalStock))}
+                    : copy.optionMeta(option.category, formatInteger(option.totalStock))}
                 </Typography>
               </OptionBody>
             </li>

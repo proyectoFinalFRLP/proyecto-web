@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { fireEvent, screen, waitFor, within } from '@testing-library/react'
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { notify, useOrderDraftStore } from 'shared/store'
 import type * as sharedStore from 'shared/store'
@@ -115,6 +115,88 @@ beforeEach(() => {
   useOrderDraftStore.getState().clearDraft()
   fillDraft()
   mockQuotes()
+})
+
+// TESIS-162: con retiro en el local la venta no entra al circuito logístico,
+// así que el paso 3 no cotiza ni despacha.
+describe('CarrierStepPage · pickup at the store', () => {
+  beforeEach(() => {
+    useOrderDraftStore.getState().setRequiresShipping(false)
+  })
+
+  it('does not ask the carriers for a quote', () => {
+    renderPage()
+
+    expect(screen.getByText('Retiro en el local')).toBeInTheDocument()
+    expect(screen.queryByRole('radio')).not.toBeInTheDocument()
+  })
+
+  it('can be confirmed without choosing a carrier', () => {
+    renderPage()
+
+    expect(confirmButton()).toBeEnabled()
+  })
+
+  // El alta y nada más: no hay envío que abrir ni etiqueta que pedir.
+  it('creates the order and stops there', async () => {
+    const calls = stubConfirmation()
+    renderPage()
+
+    fireEvent.click(confirmButton())
+
+    await waitFor(() => expect(calls.createOrder).toHaveBeenCalled())
+    expect(calls.createShipment).not.toHaveBeenCalled()
+    expect(calls.dispatch).not.toHaveBeenCalled()
+  })
+
+  it('tells the API that the order is picked up', async () => {
+    const calls = stubConfirmation()
+    renderPage()
+
+    fireEvent.click(confirmButton())
+
+    await waitFor(() => expect(calls.createOrder).toHaveBeenCalled())
+    expect(calls.createOrder.mock.calls[0][0].order.requires_shipping).toBe(false)
+  })
+
+  // Apenas la orden existe, el borrador se vacía, y `requiresShipping` vuelve a
+  // su default `true`. Si la pantalla lo leyera del store en vez de la copia
+  // congelada, una venta de retiro saldría a pedirles precio a los couriers en
+  // mitad de la confirmación.
+  // Apenas la orden existe, `onOrderCreated` vacía el borrador y
+  // `requiresShipping` vuelve a su default `true`. Lo que se muestra desde ese
+  // momento sale de la copia congelada al apretar el botón: si saliera del
+  // store, una venta de retiro saldría a pedirles precio a los couriers en
+  // mitad de la confirmación, y el confirmar quedaría deshabilitado por no
+  // tener ninguna opción elegida.
+  it('does not quote once the draft was cleared mid-confirmation', async () => {
+    stubConfirmation()
+    renderPage()
+
+    fireEvent.click(confirmButton())
+    await act(async () => {
+      useOrderDraftStore.getState().clearDraft()
+    })
+
+    expect(useOrderDraftStore.getState().requiresShipping).toBe(true)
+    // `null` es «no cotices», y el hook lo recibe en cada render.
+    const calls = vi.mocked(useDraftQuotes).mock.calls
+    expect(calls.every((call) => call[0] === null)).toBe(true)
+  })
+
+  it('announces the pickup instead of a dispatch', async () => {
+    stubConfirmation()
+    renderPage()
+
+    fireEvent.click(confirmButton())
+
+    await waitFor(() =>
+      expect(notify).toHaveBeenCalledWith(
+        expect.stringContaining('El cliente la retira en el local'),
+        'success',
+      ),
+    )
+  })
 })
 
 describe('CarrierStepPage', () => {

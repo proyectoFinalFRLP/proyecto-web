@@ -1,7 +1,7 @@
 import { client } from 'shared/api/client'
 import { fetchCount } from 'shared/api/count'
 
-import type { RecentOrder, WarehouseLoad } from './types'
+import type { DispatchedShipment, RecentOrder, WarehouseLoad } from './types'
 
 // Frontera con Rails de los KPIs de órdenes y envíos (TESIS-53). Único lugar de
 // la feature que conoce los endpoints y el vocabulario de estados del backend.
@@ -77,6 +77,7 @@ interface ApiWarehouse {
   id: number
   name: string
   stored_units: number
+  capacity: number | null
 }
 
 /**
@@ -92,7 +93,45 @@ export async function fetchWarehouseLoads(): Promise<WarehouseLoad[]> {
   return data.data.map((warehouse) => ({
     id: warehouse.id,
     name: warehouse.name,
-    storedUnits: warehouse.stored_units,
+    // `?? null` y no el valor crudo: si el front se despliega antes que el
+    // backend que agrega el campo, `undefined` pasa el `!== null` de
+    // `shareOf` y la barra sale en NaN %.
+    storedUnits: warehouse.stored_units ?? 0,
+    capacity: warehouse.capacity ?? null,
+  }))
+}
+
+/** Cuántos envíos muestra la tarjeta del panel. */
+export const RECENT_SHIPMENTS = 5
+
+interface ApiDispatchedShipment {
+  id: number
+  order_id: number
+  status: DispatchedShipment['status']
+  tracking_number: string | null
+  courier: { id: number; service_id: number; name: string } | null
+  created_at: string
+}
+
+/**
+ * Los últimos envíos de la empresa (`GET /api/v1/shipments?page=1&per_page=5`).
+ *
+ * Igual que las órdenes recientes: el backend los devuelve del más nuevo al más
+ * viejo, así que la primera página *es* «los últimos cinco» y no se reordena de
+ * este lado.
+ */
+export async function fetchRecentShipments(): Promise<DispatchedShipment[]> {
+  const { data } = await client.get<{ data: ApiDispatchedShipment[] }>('/shipments', {
+    params: { page: 1, per_page: RECENT_SHIPMENTS },
+  })
+
+  return data.data.map((shipment) => ({
+    id: shipment.id,
+    orderId: shipment.order_id,
+    status: shipment.status,
+    trackingNumber: shipment.tracking_number,
+    courier: shipment.courier?.name ?? null,
+    createdAt: shipment.created_at,
   }))
 }
 

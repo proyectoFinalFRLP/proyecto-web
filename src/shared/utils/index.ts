@@ -23,3 +23,4 @@ export function isNonEmpty<T>(value: T | null | undefined): value is T {
 }
 
 export { formatRelativeTime } from './relativeTime'
+export { formatDecimal, formatInteger, formatMoney, formatRoundMoney } from './number'

@@ -66,12 +66,20 @@ export interface Warehouse {
   id: number
   name: string
   address: string
+  /**
+   * Capacidad declarada, en unidades (TESIS-162). `null` cuando nadie la cargó
+   * todavía: no es cero, que diría que no entra nada, y por eso la barra de
+   * ocupación no se dibuja en ese caso.
+   */
+  capacity: number | null
 }
 
 /** Cantidad de un producto en un depósito concreto (tabla `stocks`). */
 export interface ProductStock {
   warehouseId: number
   quantity: number
+  /** Vendido y todavía en este depósito (TESIS-162). */
+  committed: number
   warehouse: Warehouse
   /**
    * Disponibilidad de este depósito. La calcula el backend con la misma regla
@@ -102,10 +110,30 @@ export interface Product {
   sku: string
   name: string
   description: string | null
+  category: ProductCategory | null
+  /** Cómo viene embalado. Texto libre: lo describe el rubro, no un vocabulario. */
+  packaging: string | null
+  /** Norma del producto (IRAM, IEC). Es un código de un organismo externo. */
+  technicalStandard: string | null
   weight: number
   dimensions: string | null
-  /** Opcional: los productos anteriores a TESIS-102 no tienen ninguna. */
-  category: ProductCategory | null
+  /**
+   * Los tres números del stock, que la API calcula desde TESIS-162. Ninguno se
+   * deriva acá: `onHand` no es la suma de `stocks[].quantity` —lo vendido sin
+   * despachar sigue en el estante pero ya salió de esas filas— y restarlos mal
+   * del lado del cliente era justamente el problema.
+   *
+   * Son números y no `null`: un producto que nadie reservó tiene 0
+   * comprometido, que es un dato.
+   */
+  committed: number
+  onHand: number
+  availableToPromise: number
+  /**
+   * El mismo `inTransitQuantity`, con el nombre que usa el detalle. Son el
+   * mismo campo de la API (`in_transit_quantity`) y conviene unificarlos.
+   */
+  inTransit: number
   stocks: ProductStock[]
   /** Unidades en depósito sumando todos los depósitos, calculado por la API. */
   totalStock: number
@@ -119,6 +147,12 @@ export interface Product {
    * se recibe. La suma de `quantity` es `inTransitQuantity`.
    */
   inTransitByWarehouse: IncomingTransit[]
+  /**
+   * Lo vendido sin despachar, por depósito. Puede nombrar depósitos que no
+   * están en `stocks`: si la venta se llevó la última unidad, la fila de stock
+   * queda en cero o desaparece y las unidades siguen en el estante.
+   */
+  committedByWarehouse: IncomingTransit[]
   updatedAt: string
   /**
    * Versión del agregado que devolvió la API en el header `ETag` (TESIS-101).
@@ -196,4 +230,15 @@ export interface LinkProductPayload {
 export interface LinkProductResult {
   mapping: ProductMapping
   warnings: string[]
+}
+
+/**
+ * Cuántos productos tiene cada pestaña del catálogo (`GET /products/counts`).
+ * Las claves son las de `CATALOG_TABS`: el backend las nombra igual.
+ */
+export interface CatalogCounts {
+  all: number
+  available: number
+  low: number
+  out_of_stock: number
 }

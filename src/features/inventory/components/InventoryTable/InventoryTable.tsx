@@ -4,8 +4,9 @@ import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined'
 import { Box, Link, Typography } from '@mui/material'
 import { DataTable, StatusBadge } from 'shared/components'
 import type { DataTableAction, DataTableColumn } from 'shared/components'
+import { formatInteger } from 'shared/utils'
 
-import { formatUnits, inventoryCopy } from '../../content'
+import { inventoryCopy } from '../../content'
 import type { ProductSummary } from '../../types'
 import { stockLabel, stockRowTone, stockVariant } from '../../utils/stockStatus'
 
@@ -78,7 +79,7 @@ function buildColumns(
       // en ningún nodo. Sumarlas diría que hay mercadería que no está.
       render: (product) => (
         <Box sx={{ textAlign: 'right' }}>
-          <Typography variant="dataMono">{formatUnits(product.totalStock)}</Typography>
+          <Typography variant="dataMono">{formatInteger(product.totalStock)}</Typography>
           {product.inTransitQuantity > 0 ? (
             <Typography variant="labelSm" sx={{ color: 'info.main' }}>
               {cells.inTransit(product.inTransitQuantity)}

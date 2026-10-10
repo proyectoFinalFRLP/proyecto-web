@@ -23,13 +23,20 @@ const PRODUCT: Product = {
   name: 'Cable UTP Cat6 100m',
   description: null,
   category: null,
+  packaging: null,
+  technicalStandard: null,
   weight: 4.5,
   dimensions: null,
+  committed: 0,
+  onHand: 0,
+  availableToPromise: 0,
+  inTransit: 0,
   stocks: [],
   totalStock: 0,
   stockStatus: 'out_of_stock',
   inTransitQuantity: 0,
   inTransitByWarehouse: [],
+  committedByWarehouse: [],
   updatedAt: '2026-09-01T10:00:00Z',
   version: 'W/"1"',
 }
@@ -46,17 +53,29 @@ const SEEDED_MOUSE: Product = {
     {
       warehouseId: 1,
       quantity: 100,
-      warehouse: { id: 1, name: 'Depósito Central', address: 'Av. 7 N° 1234' },
+      committed: 0,
+      warehouse: { id: 1, name: 'Depósito Central', address: 'Av. 7 N° 1234', capacity: null },
       stockStatus: 'low',
     },
     {
       warehouseId: 2,
       quantity: 30,
-      warehouse: { id: 2, name: 'Depósito Satélite Norte', address: 'Calle 25 N° 456' },
+      committed: 0,
+      warehouse: {
+        id: 2,
+        name: 'Depósito Satélite Norte',
+        address: 'Calle 25 N° 456',
+        capacity: null,
+      },
       stockStatus: 'low',
     },
   ],
   totalStock: 130,
+  // 130 libres y 14 vendidos sin despachar: 144 en el estante. El en tránsito
+  // queda afuera, que no está en ningún depósito todavía.
+  committed: 14,
+  onHand: 144,
+  availableToPromise: 130,
   stockStatus: 'available',
   inTransitQuantity: 12,
   inTransitByWarehouse: [
@@ -191,8 +210,19 @@ describe('ProductDetailPage', () => {
       expect(screen.getByText('Categoría').parentElement).toHaveTextContent('—')
     })
 
+    // El titular es lo que hay en el estante —lo libre más lo vendido sin
+    // despachar—, que es justo lo que las cubetas descomponen. Encabezar con
+    // `totalStock` dejaba la tarjeta sin cerrar: la cubeta de comprometido
+    // sumaba unidades que el titular no contaba.
+    it('headlines what is on the shelf, and not just what is free', () => {
+      showProduct(SEEDED_MOUSE)
+      renderDetail()
+
+      expect(screen.getByText('144')).toBeInTheDocument()
+    })
+
     it('takes the master total from the API instead of adding the rows', () => {
-      showProduct({ ...SEEDED_MOUSE, totalStock: 131 })
+      showProduct({ ...SEEDED_MOUSE, onHand: 131 })
       renderDetail()
 
       expect(screen.getByText('131')).toBeInTheDocument()
@@ -224,5 +254,20 @@ describe('ProductDetailPage', () => {
       expect(distributionRow('Depósito Sur').getByText('7')).toBeInTheDocument()
       expect(distributionRow('Depósito Sur').getByText('Sin stock')).toBeInTheDocument()
     })
+  })
+})
+
+// El modal se cierra con una animación: si el alcance volviera a `product` al
+// apretar cerrar, el de stock mostraría el formulario entero durante la salida.
+describe('ProductDetailPage · closing the stock editor', () => {
+  it('does not flash the full form on the way out', async () => {
+    showProduct(SEEDED_MOUSE)
+    renderDetail()
+    fireEvent.click(screen.getByRole('button', { name: /Editar stock/ }))
+
+    fireEvent.click(screen.getByRole('button', { name: /Cerrar/ }))
+
+    // Mientras el modal se va, lo que se ve sigue siendo el alcance de stock.
+    expect(screen.queryByRole('textbox', { name: /Nombre/ })).not.toBeInTheDocument()
   })
 })

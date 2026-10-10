@@ -81,7 +81,11 @@ function feedEntries(shipment: Shipment): StatusFeedEntry[] {
  * «Ciclo de vida del envío» de S08: las cuatro etapas con su avance, y debajo
  * la bitácora completa de `ShipmentEvents` con los dos estados de cada evento.
  */
-export function ShipmentLifecycleCard({ shipment, action }: ShipmentLifecycleCardProps) {
+export function ShipmentLifecycleCard({
+  shipment,
+  action,
+  pickup = false,
+}: ShipmentLifecycleCardProps) {
   return (
     <LifecycleCard>
       <CardHeading>
@@ -111,7 +115,7 @@ export function ShipmentLifecycleCard({ shipment, action }: ShipmentLifecycleCar
           />
         </>
       ) : (
-        <ShipmentStateMessage view={shipment} />
+        <ShipmentStateMessage view={shipment} pickup={pickup} />
       )}
     </LifecycleCard>
   )

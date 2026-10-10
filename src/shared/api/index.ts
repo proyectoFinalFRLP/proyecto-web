@@ -1,3 +1,5 @@
+export { activityKeys, fetchActivity } from './activity'
+export type { ActivityEntry, ActivityType } from './activity'
 export { client, LOGOUT_PATH } from './client'
 export { fetchCount } from './count'
 export type { CountFilters } from './count'

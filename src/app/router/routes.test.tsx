@@ -15,6 +15,7 @@ describe('navRoutes', () => {
     expect(paths).toEqual([
       '/',
       '/orders',
+      '/shipments',
       '/inventory',
       '/warehouses',
       '/failed-events',

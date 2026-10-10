@@ -14,6 +14,7 @@ function order(overrides: Partial<OrderSummary> = {}): OrderSummary {
     customerAddress: 'Av. Rivadavia 1234',
     customerZipCode: '1406',
     status: 'paid',
+    requiresShipping: true,
     carrier: 'Correo Argentino',
     totalAmount: 1478300,
     itemCount: 3,
@@ -160,5 +161,13 @@ describe('OrdersTable', () => {
     renderTable([])
 
     expect(screen.getByText('No hay órdenes que coincidan con el filtro.')).toBeInTheDocument()
+  })
+
+  // TESIS-162: la fila dice que no espera courier, en vez de verse igual que
+  // una a la que le falta el despacho.
+  it('says a pickup order is picked up at the store', () => {
+    renderTable([order({ carrier: null, requiresShipping: false })])
+
+    expect(screen.getByText('Retiro en el local')).toBeInTheDocument()
   })
 })

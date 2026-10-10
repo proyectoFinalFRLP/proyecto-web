@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useRef, useState } from 'react'
+import { activityKeys } from 'shared/api/activity'
 import type { ApiRequestError } from 'shared/api/types'
 
 import { createOrder, createOrderShipment, dispatchShipment } from '../api'
@@ -8,7 +9,11 @@ import type { CreateOrderPayload, DispatchPayload } from '../utils/shipping'
 
 export interface ConfirmDraftOrderInput {
   order: CreateOrderPayload
-  dispatch: DispatchPayload
+  /**
+   * `null` cuando la venta se retira en el local (TESIS-162): no hay envío que
+   * abrir ni courier que despachar, así que la confirmación termina en el alta.
+   */
+  dispatch: DispatchPayload | null
 }
 
 interface Progress {
@@ -51,6 +56,9 @@ export function useConfirmDraftOrder({ onOrderCreated }: Options = {}) {
       }
       const orderId = progress.current.orderId
 
+      // Retiro en el local: la venta queda registrada y ahí termina.
+      if (dispatch === null) return orderId
+
       if (progress.current.shipmentId === null) {
         progress.current.shipmentId = (await createOrderShipment(orderId)).id
       }
@@ -66,8 +74,13 @@ export function useConfirmDraftOrder({ onOrderCreated }: Options = {}) {
 
       return Promise.all([
         queryClient.invalidateQueries({ queryKey: orderKeys.all }),
-        // Literal y no la factory de inventario: una feature no importa otra.
+        // El alta abre un envío y deja su rastro en la campanita, así que el
+        // listado de envíos, los contadores de sus pestañas y el feed quedan
+        // viejos lo mismo que el listado de órdenes. `['shipments']` va literal
+        // porque es de otra feature; la actividad vive en `shared`.
         queryClient.invalidateQueries({ queryKey: ['inventory'] }),
+        queryClient.invalidateQueries({ queryKey: ['shipments'] }),
+        queryClient.invalidateQueries({ queryKey: activityKeys.all }),
       ])
     },
   })

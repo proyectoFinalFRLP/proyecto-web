@@ -1,22 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import {
-  formatCompact,
-  formatCompactMoney,
-  formatInteger,
-  formatPercent,
-  formatUnits,
-} from './format'
-
-describe('formatInteger', () => {
-  it('separates thousands with a dot, as es-AR does', () => {
-    expect(formatInteger(124592)).toBe('124.592')
-  })
-
-  it('drops the decimals of a count', () => {
-    expect(formatInteger(4200.7)).toBe('4.201')
-  })
-})
+import { formatCompact, formatCompactMoney, formatPercent, formatUnits } from './format'
 
 describe('formatCompact', () => {
   it('leaves anything under a thousand as a plain integer', () => {

@@ -113,7 +113,10 @@ describe('ShippingStepPage', () => {
   it('offers exactly the warehouses the company has', () => {
     renderPage()
 
-    expect(screen.getAllByRole('radio')).toHaveLength(2)
+    // Acotado al grupo de depósitos: desde TESIS-162 la pantalla tiene otro
+    // grupo de radios, el de envío contra retiro en el local.
+    const origins = screen.getByRole('radiogroup', { name: 'Depósito de origen de la orden' })
+    expect(within(origins).getAllByRole('radio')).toHaveLength(2)
     expect(option(/CD Ezeiza/)).toBeInTheDocument()
     expect(option(/CD Córdoba/)).toBeInTheDocument()
   })
@@ -249,5 +252,51 @@ describe('ShippingStepPage', () => {
     renderPage()
 
     expect(await screen.findByRole('heading', { name: 'Paso 1' })).toBeInTheDocument()
+  })
+})
+
+// TESIS-162: con retiro en el local el destino deja de pedirse. El comentario
+// del código lo decía y el formulario lo seguía exigiendo igual.
+describe('ShippingStepPage · pickup at the store', () => {
+  function choosePickup() {
+    fireEvent.click(screen.getByRole('radio', { name: /Retiro en el local/ }))
+  }
+
+  it('lets the step advance without a delivery address', async () => {
+    renderPage()
+    fireEvent.click(option(/CD Ezeiza/))
+    choosePickup()
+
+    await waitFor(() => expect(nextButton()).toBeEnabled())
+  })
+
+  it('says the address is optional instead of demanding it', () => {
+    renderPage()
+    choosePickup()
+
+    expect(screen.getByText(/Domicilio del cliente \(opcional\)/)).toBeInTheDocument()
+  })
+
+  // Se guarda lo que haya: el paso 3 pide un destino para no mandar de vuelta
+  // al 2, y el domicilio del cliente puede hacer falta para la factura.
+  it('still carries whatever address was typed into the draft', async () => {
+    renderPage()
+    fireEvent.click(option(/CD Ezeiza/))
+    await fillDestination()
+    choosePickup()
+
+    fireEvent.click(nextButton())
+
+    await waitFor(() =>
+      expect(useOrderDraftStore.getState().destination).toMatchObject({ city: 'CABA' }),
+    )
+  })
+
+  // Control negativo: con envío a domicilio el destino se sigue exigiendo.
+  it('keeps demanding it when the order ships', () => {
+    renderPage()
+    fireEvent.click(option(/CD Ezeiza/))
+
+    expect(nextButton()).toBeDisabled()
   })
 })

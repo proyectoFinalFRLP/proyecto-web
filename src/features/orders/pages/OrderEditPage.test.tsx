@@ -34,6 +34,7 @@ const ORDER: OrderDetail = {
   customerCity: 'CABA',
   customerProvince: 'Ciudad Autónoma de Buenos Aires',
   status: 'pending',
+  requiresShipping: true,
   version: '"v1"',
   totalAmount: 1260000,
   lines: [

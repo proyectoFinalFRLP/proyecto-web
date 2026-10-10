@@ -49,6 +49,7 @@ interface ApiOrderSummary {
   customer_address: string | null
   customer_zip_code: string | null
   status: OrderStatus
+  requires_shipping: boolean
   courier: ApiCourier | null
   total_amount: number | null
   item_count: number
@@ -96,6 +97,7 @@ interface ApiOrderDetail {
   customer_city: string | null
   customer_province: string | null
   status: OrderStatus
+  requires_shipping: boolean
   total_amount: number | null
   order_items: ApiOrderItem[]
   created_at: string
@@ -150,6 +152,10 @@ function toOrder(order: ApiOrderSummary): OrderSummary {
     customerAddress: order.customer_address,
     customerZipCode: order.customer_zip_code,
     status: order.status,
+    // `?? true`: si el front se despliega antes que el backend que agrega el
+    // campo, `undefined` es falsy y el listado marcaría **todas** las órdenes
+    // como retiro en el local.
+    requiresShipping: order.requires_shipping ?? true,
     // La columna sólo muestra el nombre, así que el dominio se queda con eso y
     // no arrastra el id de la integración hasta la tabla. Si alguna pantalla
     // necesita enlazar a la integración, el id está acá para levantarlo.
@@ -195,6 +201,7 @@ function toOrderDetail(data: ApiOrderDetail, version: string | null): OrderDetai
     customerCity: data.customer_city,
     customerProvince: data.customer_province,
     status: data.status,
+    requiresShipping: data.requires_shipping ?? true,
     version,
     totalAmount: data.total_amount,
     lines: data.order_items.map((item) => ({

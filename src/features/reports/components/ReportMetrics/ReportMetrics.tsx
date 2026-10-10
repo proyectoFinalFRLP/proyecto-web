@@ -4,10 +4,11 @@ import ScheduleOutlinedIcon from '@mui/icons-material/ScheduleOutlined'
 import WarningAmberOutlinedIcon from '@mui/icons-material/WarningAmberOutlined'
 import { StatCard } from 'shared/components'
 import type { StatTrend } from 'shared/components'
+import { formatInteger } from 'shared/utils'
 
 import { reportsCopy } from '../../content'
 import type { TrendedValue } from '../../types'
-import { formatCompactMoney, formatInteger, formatPercent } from '../../utils/format'
+import { formatCompactMoney, formatPercent } from '../../utils/format'
 
 import { MetricsGrid } from './ReportMetrics.styles'
 import type { ReportMetricsProps } from './ReportMetrics.types'

@@ -6,9 +6,10 @@ import { useNavigate } from 'react-router-dom'
 import { ErrorFallback, LoadingSpinner, PageWrapper } from 'shared/components'
 import type { DataTableTab } from 'shared/components'
 import { useDebouncedValue } from 'shared/hooks/useDebouncedValue'
+import { formatInteger } from 'shared/utils'
 
 import { OrdersTable } from '../components/OrdersTable'
-import { formatCount, ordersCopy } from '../content'
+import { ordersCopy } from '../content'
 import { ORDER_TABS, useOrderCounts, useOrderPage } from '../hooks/useOrders'
 import type { OrderTabId } from '../hooks/useOrders'
 import type { OrderSummary } from '../types'
@@ -65,7 +66,7 @@ export function OrdersPage() {
     label: TAB_LABELS[id],
     // Un contador que todavía no resolvió no muestra cero: mostraría un número
     // falso durante el primer render y luego saltaría al real.
-    count: counts[index] === undefined ? undefined : formatCount(counts[index]),
+    count: counts[index] === undefined ? undefined : formatInteger(counts[index]),
   }))
 
   if (orders.isPending) return <LoadingSpinner fullScreen />

@@ -18,6 +18,9 @@ export const orderKeys = {
 export const shipmentKeys = {
   all: ['shipments'] as const,
   kpi: (status: string) => [...shipmentKeys.all, 'kpi', status] as const,
+  // Mismo criterio que `orderKeys.recent`: despachar un envío invalida el
+  // dominio y refresca también la tarjeta del panel.
+  recent: (size: number) => [...shipmentKeys.all, 'recent', size] as const,
 }
 
 // Misma regla que los KPIs de órdenes y envíos: la key cuelga de la raíz del

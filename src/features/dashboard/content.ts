@@ -2,13 +2,11 @@
 // idea que `content.ts` de design-system: si mañana sumamos i18n, este módulo es
 // el único punto a migrar a claves de traducción).
 
+import { formatInteger } from 'shared/utils'
+
 // Lo que muestra una tarjeta cuando el dato no está: falló la consulta o no hay
 // con qué calcularlo. Nunca un 0, que se leería como un dato real.
 const UNKNOWN_VALUE = '—'
-
-// Separadores de miles del locale, para las unidades del widget de depósitos.
-// El componente del DS recibe el valor ya formateado.
-const UNITS_FORMAT = new Intl.NumberFormat('es-AR')
 
 export const dashboardCopy = {
   pageTitle: 'Panel de operación',
@@ -22,6 +20,17 @@ export const dashboardCopy = {
     pendingOrders: {
       label: 'Órdenes pendientes',
     },
+    // Reemplaza al KPI de «Salud del sistema» (TESIS-163): la misma salud de
+    // las integraciones, dicha como un número sobre el que se puede actuar.
+    // Reemplaza al KPI de «Salud del sistema» (TESIS-163), que mostraba un
+    // porcentaje derivado de la frescura de los nodos. Las unidades guardadas
+    // son el inventario del que vive la operación, y salen del mismo dato que
+    // ya alimenta la carga por depósito: ni un request más.
+    storedUnits: {
+      label: 'Unidades en stock',
+      note: (warehouses: number) =>
+        warehouses === 1 ? 'en 1 depósito' : `repartidas en ${warehouses} depósitos`,
+    },
     // Cuarta tarjeta de la fila del diseño. El chip y la nota son los del
     // MetricCard de S03-Panel; el tono `error` es lo que le da el borde de
     // acento que el diseño marca como `critical`.
@@ -32,8 +41,8 @@ export const dashboardCopy = {
       // umbral no son lo mismo y se trabajan distinto, pero los dos son alerta.
       note: (outOfStock: number, low: number) =>
         outOfStock === 0
-          ? `${UNITS_FORMAT.format(low)} por debajo del umbral`
-          : `${UNITS_FORMAT.format(outOfStock)} sin stock · ${UNITS_FORMAT.format(low)} por debajo del umbral`,
+          ? `${formatInteger(low)} por debajo del umbral`
+          : `${formatInteger(outOfStock)} sin stock · ${formatInteger(low)} por debajo del umbral`,
       // Sin productos en alerta la tarjeta no grita: el borde rojo y el chip
       // «Crítico» afirmarían un problema que no existe.
       calmNote: 'Sin productos en alerta de stock',
@@ -54,11 +63,23 @@ export const dashboardCopy = {
   warehouses: {
     title: 'Carga por depósito',
     caption: (units: number) =>
-      `${UNITS_FORMAT.format(units)} ${units === 1 ? 'unidad guardada' : 'unidades guardadas'} · la barra compara contra el depósito más cargado`,
-    units: (units: number) => `${UNITS_FORMAT.format(units)} u`,
+      `${formatInteger(units)} ${units === 1 ? 'unidad guardada' : 'unidades guardadas'}`,
+    units: (units: number) => `${formatInteger(units)} u`,
+    // Con capacidad declarada (TESIS-162) se muestra la ocupación; sin ella, lo
+    // guardado a secas. El rótulo accesible dice contra qué se mide, porque las
+    // dos barras se ven igual y significan cosas distintas.
+    occupancy: (percentage: number) => `${Math.round(percentage)} % de su capacidad`,
     barLabel: (name: string, units: number) =>
-      `${name}: ${UNITS_FORMAT.format(units)} ${units === 1 ? 'unidad' : 'unidades'}`,
+      `${name}: ${formatInteger(units)} ${units === 1 ? 'unidad' : 'unidades'}`,
+    barLabelWithCapacity: (name: string, units: number, capacity: number) =>
+      `${name}: ${formatInteger(units)} de ${formatInteger(capacity)} unidades de capacidad`,
+    // Las dos barras se ven igual y miden cosas distintas: una la ocupación
+    // declarada y la otra la comparación contra el depósito más cargado. El
+    // rótulo accesible lo dice por fila; esto lo dice para quien mira.
+    relativeNote: 'Los depósitos sin capacidad declarada se comparan con el más cargado.',
     empty: 'La empresa no tiene depósitos cargados.',
+    /** La lista vacía por un error no es la lista vacía de una empresa sin depósitos. */
+    unavailable: 'No pudimos cargar la carga por depósito.',
   },
   // Tabla de órdenes recientes del panel (TESIS-56). Vocabulario y orden de
   // columnas de S03-Panel.
@@ -85,36 +106,27 @@ export const dashboardCopy = {
       cancelled: 'Cancelada',
     },
   },
-  infra: {
-    health: {
-      // Vocabulario del diseño (S03-Panel): "Salud del sistema", no "de infraestructura".
-      label: 'Salud del sistema',
-      unknownValue: UNKNOWN_VALUE,
-    },
-    nodes: {
-      title: 'Integraciones',
-      subtitleSynced: (online: number, reporting: number) =>
-        `${online}/${reporting} ${reporting === 1 ? 'nodo sincronizado' : 'nodos sincronizados'}`,
-      subtitleNoReports: (active: number) =>
-        `${active} ${active === 1 ? 'integración activa' : 'integraciones activas'} · sin datos de sincronización`,
-      empty: 'La empresa no tiene integraciones activas.',
-      // Línea inferior de cada fila. El diseño la usa como frase de estado
-      // ("Sincronizado hace 2 ms"), no como un timestamp suelto.
-      sync: {
-        online: (elapsed: string) => `Sincronizado ${elapsed}`,
-        stale: (elapsed: string) => `Sin sincronizar desde ${elapsed}`,
-        unknown: 'Sin datos de sincronización',
-      },
-      // Texto accesible del ícono de estado.
-      status: {
-        online: 'Sincronizado',
-        stale: 'Sincronización atrasada',
-        unknown: 'Sin datos de sincronización',
-      },
-      types: {
-        ecommerce: 'E-commerce',
-        courier: 'Courier',
-      },
+  // La tarjeta «Últimos envíos» reemplaza a la de Integraciones (TESIS-163):
+  // las conexiones las administra el equipo, no la empresa, y lo que sí le
+  // sirve al operador es qué salió y con quién.
+  shipments: {
+    title: 'Últimos envíos',
+    subtitle: (count: number) => (count === 1 ? '1 envío reciente' : `${count} envíos recientes`),
+    empty: 'Todavía no se despachó ningún envío.',
+    noCourier: 'Sin operador asignado',
+    noTracking: 'Sin seguimiento',
+    /** "Orden #8829" — nombre accesible de la fila. */
+    order: (id: number) => `Orden #${id}`,
+    /** La fila entera es un enlace: el nombre accesible dice a dónde lleva. */
+    openOrder: (id: number) => `Ver la orden #${id}`,
+    // El destino se declara acá y no se importa del router: una feature no
+    // puede depender de `app/` (architecture.md §3.2).
+    orderPath: (id: number) => `/orders/${id}`,
+    status: {
+      pending: 'Pendiente',
+      ready_to_ship: 'Listo para despachar',
+      in_transit: 'En tránsito',
+      delivered: 'Entregado',
     },
   },
   error: {

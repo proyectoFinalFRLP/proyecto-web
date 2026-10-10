@@ -51,6 +51,7 @@ const ORDER: OrderDetail = {
   customerCity: null,
   customerProvince: null,
   status: 'paid',
+  requiresShipping: true,
   version: null,
   totalAmount: 1420000,
   lines: [
@@ -237,6 +238,75 @@ describe('OrderDetailPage', () => {
     expect(screen.getByText('No pudimos cargar el envío de la orden.')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'PRO-8812-A' })).toBeInTheDocument()
     expect(screen.getByText('Pendiente de despacho')).toBeInTheDocument()
+  })
+
+  // TESIS-162: no es lo mismo que le falte el envío que que no lleve.
+  it('says the customer picks the order up instead of saying the shipment is missing', () => {
+    mockQueries({ data: { ...ORDER, requiresShipping: false } }, { data: { kind: 'none' } })
+
+    renderAt('/orders/8829')
+
+    expect(
+      screen.getByText('El cliente retira esta orden en el local. No lleva envío.'),
+    ).toBeInTheDocument()
+  })
+
+  // El criterio de la card: «una orden con retiro en local no ofrece crear
+  // envío». El botón lo trajo TESIS-141, que mira el estado y si el envío
+  // existe, y git no marcó conflicto porque cada rama tocó líneas distintas.
+  // Crearlo responde 422 (PickupOrderError), así que era un botón que sólo
+  // sabía fallar.
+  it('does not offer to create a shipment for an order picked up at the store', () => {
+    mockQueries({ data: { ...ORDER, requiresShipping: false } }, { data: { kind: 'none' } })
+
+    renderAt('/orders/8829')
+
+    expect(screen.queryByRole('button', { name: 'Crear envío' })).not.toBeInTheDocument()
+  })
+
+  it('still offers it for an order that ships', () => {
+    mockQueries({ data: ORDER }, { data: { kind: 'none' } })
+
+    renderAt('/orders/8829')
+
+    expect(screen.getByRole('button', { name: 'Crear envío' })).toBeInTheDocument()
+  })
+
+  // El panel entero hablaba de un envío que la orden no lleva: «Pendiente de
+  // despacho» y «Se emite al despachar» de algo que no va a existir.
+  it('hides the shipping panel of an order picked up at the store', () => {
+    mockQueries({ data: { ...ORDER, requiresShipping: false } }, { data: { kind: 'none' } })
+
+    renderAt('/orders/8829')
+
+    expect(screen.queryByText('Datos del envío')).not.toBeInTheDocument()
+    expect(screen.queryByText('Pendiente de despacho')).not.toBeInTheDocument()
+  })
+
+  it('keeps the shipping panel for an order that ships', () => {
+    mockQueries({ data: ORDER }, { data: { kind: 'none' } })
+
+    renderAt('/orders/8829')
+
+    expect(screen.getByText('Datos del envío')).toBeInTheDocument()
+  })
+
+  // Un retiro no está «sin cotizar»: no se va a cotizar nunca.
+  it('says the pickup has no shipping cost instead of leaving it unquoted', () => {
+    mockQueries({ data: { ...ORDER, requiresShipping: false } }, { data: { kind: 'none' } })
+
+    renderAt('/orders/8829')
+
+    expect(screen.getByText('Retiro en el local')).toBeInTheDocument()
+    expect(screen.queryByText('Sin cotizar')).not.toBeInTheDocument()
+  })
+
+  it('still says the shipment is missing for an order that is shipped', () => {
+    mockQueries({ data: ORDER }, { data: { kind: 'none' } })
+
+    renderAt('/orders/8829')
+
+    expect(screen.getByText('La orden todavía no tiene un envío creado.')).toBeInTheDocument()
   })
 
   it('leaves the shipping unquoted and the courier unassigned without a shipment', () => {

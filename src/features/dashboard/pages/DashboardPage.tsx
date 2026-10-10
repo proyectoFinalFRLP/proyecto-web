@@ -1,22 +1,23 @@
+import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined'
 import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined'
-import MonitorHeartOutlinedIcon from '@mui/icons-material/MonitorHeartOutlined'
 import ScheduleOutlinedIcon from '@mui/icons-material/ScheduleOutlined'
 import WarningAmberOutlinedIcon from '@mui/icons-material/WarningAmberOutlined'
 import { Alert, Box, Button, Grid, Stack, Typography } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
 import { PageWrapper, StatCard } from 'shared/components'
+import { formatInteger } from 'shared/utils'
 
-import { IntegrationNodeList } from '../components/IntegrationNodeList'
 import { RecentOrdersTable } from '../components/RecentOrdersTable'
+import { RecentShipmentsCard } from '../components/RecentShipmentsCard'
 import { WarehouseLoadCard } from '../components/WarehouseLoadCard'
 import { dashboardCopy } from '../content'
-import { useInfraHealth } from '../hooks/useInfraHealth'
 import { useInventoryAlerts } from '../hooks/useInventoryAlerts'
 import { useLogisticsKpis } from '../hooks/useLogisticsKpis'
 import { useRecentOrders } from '../hooks/useRecentOrders'
+import { useRecentShipments } from '../hooks/useRecentShipments'
 
-const { metrics, infra, error: errorCopy } = dashboardCopy
-const healthCopy = infra.health
+const { metrics, error: errorCopy } = dashboardCopy
+const storedUnitsCopy = metrics.storedUnits
 const alertsCopy = metrics.inventoryAlerts
 
 // Destino del click en la tarjeta de alertas. Las rutas se registran en
@@ -58,12 +59,10 @@ function noteFor(breakdown: { low: number; outOfStock: number } | undefined): st
 
 // `StatCard` recibe el valor ya formateado: el componente del DS no decide
 // separadores ni unidades.
-const NUMBER_FORMAT = new Intl.NumberFormat('es-AR')
-
 // Un conteo que no llegó (consulta fallida) se muestra como "—", nunca como 0:
 // un cero es un dato real —no hay órdenes pendientes— y acá no lo sabemos.
 function formatCount(count: number | undefined): string {
-  return count === undefined ? metrics.unknownValue : NUMBER_FORMAT.format(count)
+  return count === undefined ? metrics.unknownValue : formatInteger(count)
 }
 
 export function DashboardPage() {
@@ -73,17 +72,6 @@ export function DashboardPage() {
     isError: isKpisError,
     refetch: refetchKpis,
   } = useLogisticsKpis()
-
-  const {
-    nodes,
-    reportingNodes,
-    onlineNodes,
-    healthPercentage,
-    healthTone,
-    isLoading: isInfraLoading,
-    isError: isInfraError,
-    refetch: refetchInfra,
-  } = useInfraHealth()
 
   const {
     alerts,
@@ -102,13 +90,20 @@ export function DashboardPage() {
     refetch: refetchOrders,
   } = useRecentOrders()
 
-  const isError = isKpisError || isInfraError || isInventoryError || isOrdersError
+  const {
+    shipments,
+    isLoading: shipmentsLoading,
+    isError: isShipmentsError,
+    refetch: refetchShipments,
+  } = useRecentShipments()
+
+  const isError = isKpisError || isInventoryError || isOrdersError || isShipmentsError
 
   const retry = () => {
     refetchKpis()
-    refetchInfra()
     refetchInventory()
     refetchOrders()
+    refetchShipments()
   }
 
   // El tono de alerta se enciende sólo si hay algo que alertar: con cero
@@ -117,14 +112,6 @@ export function DashboardPage() {
   // enciende: `undefined` no es cero.
   const hasAlerts = alerts.value !== undefined && alerts.value > 0
   const alertsValue = formatCount(alerts.value)
-
-  // Sin nodos reportando sync, el KPI no tiene numerador ni denominador reales:
-  // se muestra "—" en vez de un 0% que se leería como caída total de la
-  // infraestructura, o un 100% que afirmaría una salud que nadie verificó.
-  const healthValue =
-    isInfraLoading || healthPercentage === null
-      ? healthCopy.unknownValue
-      : `${NUMBER_FORMAT.format(healthPercentage)}%`
 
   return (
     <PageWrapper>
@@ -170,11 +157,19 @@ export function DashboardPage() {
             />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            {/* Reemplaza al KPI de «Salud del sistema» (TESIS-163). Sale del
+                mismo dato que la carga por depósito, así que no agrega ningún
+                request. */}
             <StatCard
-              label={healthCopy.label}
-              value={healthValue}
-              icon={<MonitorHeartOutlinedIcon />}
-              tone={healthTone}
+              label={storedUnitsCopy.label}
+              value={formatCount(storedUnits)}
+              loading={warehousesLoading}
+              icon={<Inventory2OutlinedIcon />}
+              note={
+                warehousesLoading || storedUnits === undefined
+                  ? undefined
+                  : storedUnitsCopy.note(warehouses.length)
+              }
             />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
@@ -203,7 +198,8 @@ export function DashboardPage() {
         </Grid>
 
         {/* La fila inferior del diseño: la tabla de órdenes recientes y, a su
-            derecha, la columna de 280px con integraciones y carga de depósitos.
+            derecha, la columna de 280px con los últimos envíos y la carga de
+            depósitos.
             En pantallas angostas la columna baja debajo de la tabla. */}
         <Grid container spacing={2}>
           <Grid size={{ xs: 12, md: 8 }}>
@@ -211,12 +207,7 @@ export function DashboardPage() {
           </Grid>
           <Grid size={{ xs: 12, md: 4 }}>
             <Stack spacing={3}>
-              <IntegrationNodeList
-                nodes={nodes}
-                reportingNodes={reportingNodes}
-                onlineNodes={onlineNodes}
-                loading={isInfraLoading}
-              />
+              <RecentShipmentsCard shipments={shipments} loading={shipmentsLoading} />
               <WarehouseLoadCard
                 warehouses={warehouses}
                 storedUnits={storedUnits}

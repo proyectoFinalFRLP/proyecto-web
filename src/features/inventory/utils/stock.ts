@@ -28,9 +28,21 @@ export interface DistributionPosition {
   name: string
   /** `null` si el depósito sólo aparece por unidades entrantes (sin fila de stock). */
   location: string | null
+  /** Libres: lo que queda en `stocks` después de descontar lo vendido. */
   quantity: number
   /** Unidades en vuelo hacia este depósito. */
   incoming: number
+  /** Vendido y todavía en este depósito, sin despachar (TESIS-162). */
+  committed: number
+  /**
+   * Lo que hay físicamente en el estante: libres más comprometidas.
+   *
+   * Es la misma definición que el encabezado de la pantalla —«En depósito
+   * (físico)» de TESIS-162— y por eso las filas suman el titular. Mostrar acá
+   * sólo las libres hacía que la columna y el encabezado usaran la misma
+   * palabra para dos cosas distintas, y las filas no cerraban: 40 contra 44.
+   */
+  onHand: number
   stockStatus: StockStatus
 }
 
@@ -57,29 +69,55 @@ export function sortByQuantityDesc(stocks: ProductStock[]): ProductStock[] {
  */
 export function distributionPositions(product: Product): DistributionPosition[] {
   const incoming = new Map(
-    product.inTransitByWarehouse.map((transit) => [transit.warehouseId, transit]),
+    product.inTransitByWarehouse.map((transit) => [transit.warehouseId, transit.quantity]),
   )
-
   const stocked = sortByQuantityDesc(product.stocks).map((stock) => ({
     warehouseId: stock.warehouseId,
     name: stock.warehouse.name,
     location: stock.warehouse.address,
     quantity: stock.quantity,
-    incoming: incoming.get(stock.warehouseId)?.quantity ?? 0,
+    incoming: incoming.get(stock.warehouseId) ?? 0,
+    committed: stock.committed,
+    onHand: stock.quantity + stock.committed,
     stockStatus: stock.stockStatus,
   }))
 
+  // Un depósito sin fila de stock entra igual si tiene unidades en camino o
+  // vendidas sin despachar. Esconderlo haría desaparecer de la tabla unidades
+  // que existen: las que viajan hacia él y las que están en su estante
+  // esperando el despacho.
   const stockedIds = new Set(product.stocks.map((stock) => stock.warehouseId))
-  const onlyIncoming = product.inTransitByWarehouse
-    .filter((transit) => !stockedIds.has(transit.warehouseId))
-    .map((transit) => ({
-      warehouseId: transit.warehouseId,
+  const sinFila = new Map<number, { name: string; incoming: number; committed: number }>()
+  for (const transit of product.inTransitByWarehouse) {
+    if (stockedIds.has(transit.warehouseId)) continue
+    sinFila.set(transit.warehouseId, {
       name: transit.name,
-      location: null,
-      quantity: 0,
       incoming: transit.quantity,
-      stockStatus: 'out_of_stock' as const,
-    }))
+      committed: 0,
+    })
+  }
+  for (const row of product.committedByWarehouse) {
+    if (stockedIds.has(row.warehouseId)) continue
+    const previo = sinFila.get(row.warehouseId)
+    sinFila.set(row.warehouseId, {
+      name: row.name,
+      incoming: previo?.incoming ?? 0,
+      committed: row.quantity,
+    })
+  }
 
-  return [...stocked, ...onlyIncoming]
+  const soloEnCamino = [...sinFila].map(([warehouseId, fila]) => ({
+    warehouseId,
+    name: fila.name,
+    location: null,
+    quantity: 0,
+    incoming: fila.incoming,
+    committed: fila.committed,
+    // Sin fila de stock no quedan libres, pero lo vendido sin despachar sigue
+    // en el estante: ése es todo su físico.
+    onHand: fila.committed,
+    stockStatus: 'out_of_stock' as const,
+  }))
+
+  return [...stocked, ...soloEnCamino]
 }

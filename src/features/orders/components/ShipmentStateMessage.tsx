@@ -9,6 +9,11 @@ const messages = ordersCopy.detail.shipmentState
 interface ShipmentStateMessageProps {
   /** Cualquier estado del envío salvo el resuelto: ése lo dibuja cada panel. */
   view: Exclude<ShipmentView, { kind: 'single' }>
+  /**
+   * La orden la retira el cliente (TESIS-162). Cambia lo que significa «no hay
+   * envío»: no es que falte, es que no lleva.
+   */
+  pickup?: boolean
 }
 
 /**
@@ -16,14 +21,14 @@ interface ShipmentStateMessageProps {
  * comparten el ciclo de vida y los datos del envío, así los dos dicen lo mismo
  * con las mismas palabras.
  */
-export function ShipmentStateMessage({ view }: ShipmentStateMessageProps) {
+export function ShipmentStateMessage({ view, pickup = false }: ShipmentStateMessageProps) {
   switch (view.kind) {
     case 'loading':
       return <ProgressSkeleton lines={2} />
     case 'none':
       return (
         <Typography variant="bodyMd" color="text.secondary">
-          {messages.none}
+          {pickup ? messages.pickup : messages.none}
         </Typography>
       )
     case 'duplicated':

@@ -8,12 +8,7 @@ export const topNavContent = {
   toggleThemeAriaLabel: 'Alternar tema',
   notificationsAriaLabel: 'Notificaciones',
   settingsAriaLabel: 'Configuración',
-  searchPlaceholder: 'Buscar órdenes...',
-  searchAriaLabel: 'Búsqueda global',
-  openSearchAriaLabel: 'Abrir búsqueda',
-  closeSearchAriaLabel: 'Cerrar búsqueda',
   userMenuAriaLabel: 'Cuenta de usuario',
   genericUserName: 'Usuario',
-  profileLabel: 'Mi perfil',
   logoutLabel: 'Cerrar sesión',
 } as const

@@ -2,6 +2,7 @@ import BarChartOutlinedIcon from '@mui/icons-material/BarChartOutlined'
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
 import InsightsOutlinedIcon from '@mui/icons-material/InsightsOutlined'
 import Inventory2Icon from '@mui/icons-material/Inventory2'
+import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined'
 import ReceiptLongOutlinedIcon from '@mui/icons-material/ReceiptLongOutlined'
 import WarehouseOutlinedIcon from '@mui/icons-material/WarehouseOutlined'
 import { lazy } from 'react'
@@ -35,6 +36,9 @@ const InventoryPage = lazy(() =>
 )
 const ProductDetailPage = lazy(() =>
   import('features/inventory').then((m) => ({ default: m.ProductDetailPage })),
+)
+const ShipmentsPage = lazy(() =>
+  import('features/shipments').then((m) => ({ default: m.ShipmentsPage })),
 )
 const WarehousesPage = lazy(() =>
   import('features/warehouses').then((m) => ({ default: m.WarehousesPage })),
@@ -116,6 +120,11 @@ export const appRoutes: AppRoute[] = [
     path: '/orders/:orderId',
     element: <OrderDetailPage />,
     // Sin `nav`: se llega desde el listado, no desde el Sidebar.
+  },
+  {
+    path: '/shipments',
+    element: <ShipmentsPage />,
+    nav: { label: 'Envíos', icon: <LocalShippingOutlinedIcon /> },
   },
   {
     path: '/inventory',

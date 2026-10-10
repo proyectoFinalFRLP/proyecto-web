@@ -9,6 +9,7 @@ import type { ReactNode } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ErrorFallback, LoadingSpinner, PageWrapper } from 'shared/components'
 import { notify } from 'shared/store'
+import { formatInteger, formatMoney } from 'shared/utils'
 
 import { DispatchShipmentDialog } from '../components/DispatchShipmentDialog'
 import { InfoPanel } from '../components/InfoPanel'
@@ -21,12 +22,12 @@ import { PaymentSummaryCard } from '../components/PaymentSummaryCard'
 import { ShipmentLifecycleCard } from '../components/ShipmentLifecycleCard'
 import { ShippingLabelField } from '../components/ShippingLabelField'
 import { TrackingNumberField } from '../components/TrackingNumberField'
-import { formatCount, ordersCopy } from '../content'
+import { ordersCopy } from '../content'
 import { useCreateOrderShipment } from '../hooks/useCreateOrderShipment'
 import { useOrder, useOrderShipment } from '../hooks/useOrderDetail'
 import type { OrderDetail, Shipment, ShipmentView } from '../types'
 import { canOpenShipment, dispatchableShipment } from '../utils/dispatch'
-import { formatMoney, formatOrderId, formatShortDate } from '../utils/format'
+import { formatOrderId, formatShortDate } from '../utils/format'
 import { paymentSummary, totalUnits } from '../utils/payment'
 import { deliveredAt, headerStatus } from '../utils/shipment'
 
@@ -76,7 +77,7 @@ function buildMetrics(order: OrderDetail, shipment: Shipment | null, total: numb
     {
       id: 'units',
       label: metrics.units,
-      value: formatCount(totalUnits(order.lines)),
+      value: formatInteger(totalUnits(order.lines)),
       note: metrics.lines(order.lines.length),
       icon: <Inventory2OutlinedIcon />,
     },
@@ -233,7 +234,7 @@ export function OrderDetailPage() {
   const payment = paymentSummary(order.data, resolved?.shippingCost ?? null)
   const status = headerStatus(order.data.status, shipment.data)
   const dispatchable = dispatchableShipment(order.data.status, shipmentView)
-  const canOpen = canOpenShipment(order.data.status, shipmentView)
+  const canOpen = canOpenShipment(order.data.status, shipmentView, order.data.requiresShipping)
   const orderLabel = formatOrderId(order.data.externalOrderId, order.data.id)
   // El id suelto y no `order.data.id` dentro del callback: el angostado de los
   // returns de arriba no alcanza adentro de una función, que TypeScript no sabe
@@ -270,6 +271,7 @@ export function OrderDetailPage() {
             <OrderItemsTable lines={order.data.lines} productPath={productPath} />
             <ShipmentLifecycleCard
               shipment={shipmentView}
+              pickup={!order.data.requiresShipping}
               action={shipmentAction({
                 dispatchable,
                 canOpen,
@@ -287,23 +289,30 @@ export function OrderDetailPage() {
               fields={customerFields(order.data)}
               footnote={detail.customer.footnote}
             />
-            <InfoPanel
-              title={detail.shipping.title}
-              icon={<LocalShippingOutlinedIcon aria-hidden />}
-              fields={SHIPPING_FIELDS}
-              footnote={detail.shipping.footnote}
-            >
-              {/* Sin envío resuelto el tracking tampoco existe: el panel dice
-                  «Pendiente de despacho», que es lo mismo que ve el operador
-                  mientras el courier no confirma. La etiqueta sigue el mismo
-                  criterio: la emite el courier al despachar (RF-23). */}
-              <TrackingNumberField trackingNumber={resolved?.trackingNumber ?? null} />
-              <ShippingLabelField shipment={resolved} />
-            </InfoPanel>
+            {/* En un retiro el panel entero habla de algo que no va a existir:
+                decía «Pendiente de despacho» y «Se emite al despachar» de un
+                envío que la orden no lleva. No se muestra, y la tarjeta del
+                ciclo de vida es la que explica por qué (TESIS-162). */}
+            {order.data.requiresShipping ? (
+              <InfoPanel
+                title={detail.shipping.title}
+                icon={<LocalShippingOutlinedIcon aria-hidden />}
+                fields={SHIPPING_FIELDS}
+                footnote={detail.shipping.footnote}
+              >
+                {/* Sin envío resuelto el tracking tampoco existe: el panel dice
+                    «Pendiente de despacho», que es lo mismo que ve el operador
+                    mientras el courier no confirma. La etiqueta sigue el mismo
+                    criterio: la emite el courier al despachar (RF-23). */}
+                <TrackingNumberField trackingNumber={resolved?.trackingNumber ?? null} />
+                <ShippingLabelField shipment={resolved} />
+              </InfoPanel>
+            ) : null}
             <PaymentSummaryCard
               subtotal={formatMoney(payment.subtotal)}
               shipping={payment.shipping === null ? null : formatMoney(payment.shipping)}
               total={formatMoney(payment.total)}
+              pickup={!order.data.requiresShipping}
             />
           </Stack>
         </Box>

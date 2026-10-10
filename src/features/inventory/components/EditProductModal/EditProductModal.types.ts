@@ -3,7 +3,23 @@ import type { ReactNode } from 'react'
 import type { Product, UpdateProductPayload, Warehouse } from '../../types'
 import type { ConflictChange } from '../../utils/conflict'
 
+/**
+ * Qué deja editar el modal.
+ *
+ * `product` es el formulario completo. `stock` muestra **sólo** las cantidades
+ * por depósito: el botón «Editar stock» del detalle abría el formulario entero
+ * —nombre, peso, dimensiones y de paso el stock— y la auditoría del 04/10 lo
+ * marcó, porque el botón promete una cosa y hace otra.
+ *
+ * Es un alcance del mismo modal y no un componente aparte a propósito: el
+ * guardado, el `If-Match` y el 412 (TESIS-101) son los mismos, y duplicarlos
+ * sería tener dos versiones de la parte delicada.
+ */
+export type EditScope = 'product' | 'stock'
+
 export interface EditProductModalProps {
+  /** Por defecto, el formulario completo. */
+  scope?: EditScope
   open: boolean
   /** Producto a editar. Sus valores pre-pueblan el formulario al abrir. */
   product: Product

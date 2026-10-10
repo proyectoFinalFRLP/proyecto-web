@@ -3,9 +3,10 @@ import { Typography } from '@mui/material'
 import { DataTable } from 'shared/components'
 import type { DataTableAction, DataTableColumn } from 'shared/components'
 import type { OrderDraftItem } from 'shared/store'
+import { formatMoney } from 'shared/utils'
 
 import { ordersCopy } from '../../content'
-import { formatMoney, formatWeight } from '../../utils/format'
+import { formatWeight } from '../../utils/format'
 import { lineSubtotal } from '../../utils/payment'
 
 import type { DraftItemsTableProps } from './DraftItemsTable.types'
