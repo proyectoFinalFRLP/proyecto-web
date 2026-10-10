@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { renderWithTheme } from '../../../test/renderWithTheme'
 import type * as shipmentHooks from '../hooks/useShipments'
 import { useShipmentCounts, useShipmentPage } from '../hooks/useShipments'
-import type { ShipmentPage, ShipmentSummary } from '../types'
+import type { ShipmentCounts, ShipmentPage, ShipmentSummary } from '../types'
 
 import { ShipmentsPage } from './ShipmentsPage'
 
@@ -73,9 +73,14 @@ function renderPage() {
   )
 }
 
+/** Los cinco contadores llegan juntos desde TESIS-165, uno por pestaña. */
+function mockCounts(counts: Partial<ShipmentCounts> | undefined) {
+  vi.mocked(useShipmentCounts).mockReturnValue({ data: counts } as never)
+}
+
 beforeEach(() => {
   vi.mocked(useShipmentPage).mockReset()
-  vi.mocked(useShipmentCounts).mockReturnValue([2, 1, 0, 1, 0] as never)
+  mockCounts({ all: 2, pending: 1, ready_to_ship: 0, in_transit: 1, delivered: 0 })
   mockPage([DISPATCHED, PENDING])
 })
 
@@ -139,14 +144,15 @@ describe('ShipmentsPage', () => {
   })
 
   // Un contador que todavía no resolvió no muestra cero: sería un número falso
-  // durante el primer render.
-  it('leaves a tab without a number while its count travels', () => {
-    vi.mocked(useShipmentCounts).mockReturnValue([undefined, 1, 0, 1, 0] as never)
+  // durante el primer render. Desde TESIS-165 son los cinco o ninguno: si la
+  // consulta no respondió, no se sabe ningún contador.
+  it('leaves the tabs without a number while the counts travel', () => {
+    mockCounts(undefined)
     renderPage()
 
-    expect(
-      within(screen.getByRole('tablist')).getByRole('tab', { name: /Todos/ }),
-    ).not.toHaveTextContent('0')
+    const tabs = within(screen.getByRole('tablist'))
+    expect(tabs.getByRole('tab', { name: /Todos/ })).not.toHaveTextContent('0')
+    expect(tabs.getByRole('tab', { name: /Pendientes/ })).not.toHaveTextContent('0')
   })
 
   it('says the range it is showing', () => {
