@@ -44,6 +44,7 @@ vi.mock('../components/DispatchShipmentDialog', () => ({
 const ORDER: OrderDetail = {
   id: 8829,
   externalOrderId: 'ORD-8829-X',
+  externalOrderNumber: null,
   customerName: 'Global Tech Solutions S.A.',
   customerDocument: '30-71234567-8',
   customerEmail: null,

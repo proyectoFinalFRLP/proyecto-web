@@ -26,6 +26,8 @@ export interface ShipmentSummary {
    * ventas manuales: ahí se muestra el id interno, igual que en órdenes.
    */
   externalOrderId: string | null
+  /** El número que muestra la tienda (TESIS-180): «#1001» en Shopify. */
+  externalOrderNumber: string | null
   status: ShipmentStatus
   trackingNumber: string | null
   shippingCost: number | null

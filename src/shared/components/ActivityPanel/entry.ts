@@ -19,7 +19,12 @@ const LABELS: Record<ActivityType, (entry: ActivityEntry) => string> = {
     const customer = entry.customerName ?? ''
     return entry.externalOrderId === null
       ? activityContent.orderCreated.manual(customer)
-      : activityContent.orderCreated.channel(customer, entry.externalOrderId)
+      : activityContent.orderCreated.channel(
+          customer,
+          // El número que muestra la tienda, si lo hay (TESIS-180): el id de la
+          // API de Shopify no aparece en ninguna de sus pantallas.
+          entry.externalOrderNumber ?? entry.externalOrderId,
+        )
   },
   shipment_dispatched: (entry) =>
     entry.courier === null

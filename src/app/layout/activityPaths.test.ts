@@ -17,6 +17,7 @@ function entry(overrides: Partial<ActivityEntry> = {}): ActivityEntry {
     orderId: null,
     customerName: null,
     externalOrderId: null,
+    externalOrderNumber: null,
     shipmentId: null,
     trackingNumber: null,
     courier: null,

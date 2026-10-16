@@ -44,7 +44,7 @@ const COLUMNS: DataTableColumn<RecentOrder>[] = [
         // familia mono del DS, el tamaño y el peso.
         sx={{ typography: 'dataMono', ...NO_WRAP }}
       >
-        {formatOrderId(order.externalOrderId, order.id)}
+        {formatOrderId(order.externalOrderId, order.id, order.externalOrderNumber)}
       </Link>
     ),
   },

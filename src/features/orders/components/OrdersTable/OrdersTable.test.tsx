@@ -10,6 +10,7 @@ function order(overrides: Partial<OrderSummary> = {}): OrderSummary {
   return {
     id: 8829,
     externalOrderId: 'ORD-8829-X',
+    externalOrderNumber: null,
     customerName: 'Ferretería Pérez',
     customerAddress: 'Av. Rivadavia 1234',
     customerZipCode: '1406',
@@ -70,6 +71,13 @@ describe('OrdersTable', () => {
     renderTable([order()])
 
     expect(screen.getByRole('button', { name: '#ORD-8829-X' })).toBeInTheDocument()
+  })
+
+  // TESIS-180: el mismo número que el comerciante ve en el admin de Shopify.
+  it('names the sale with the number its store shows, when it has one', () => {
+    renderTable([order({ externalOrderId: '18948032757993', externalOrderNumber: '#1001' })])
+
+    expect(screen.getByRole('button', { name: '#1001' })).toBeInTheDocument()
   })
 
   it('shows the address with the postal code underneath', () => {
