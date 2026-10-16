@@ -111,6 +111,29 @@ describe('toCreateOrderPayload', () => {
       customer_zip_code: '1193',
     })
   })
+
+  // TESIS-178: con retiro el domicilio es opcional, y la API rechazaba la
+  // provincia vacía.
+  it('sends a blank destination as null, not as empty text', () => {
+    const blank = { address: ' ', city: '', province: '', zipCode: '' }
+    const payload = toCreateOrderPayload(customer, [ROUTER], origin, blank, false)
+
+    expect(payload.order).toMatchObject({
+      customer_address: null,
+      customer_city: null,
+      customer_province: null,
+      customer_zip_code: null,
+      requires_shipping: false,
+    })
+  })
+
+  it('keeps the part of the destination the operator did fill', () => {
+    const partial = { address: 'Calle 7 1234', city: '', province: '', zipCode: '' }
+    const payload = toCreateOrderPayload(customer, [ROUTER], origin, partial, false)
+
+    expect(payload.order.customer_address).toBe('Calle 7 1234')
+    expect(payload.order.customer_province).toBeNull()
+  })
 })
 
 describe('toDraftQuotePayload', () => {

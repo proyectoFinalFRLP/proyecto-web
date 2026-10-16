@@ -6,6 +6,7 @@ import type {
 } from '../types'
 
 import { lineSubtotal } from './payment'
+import { toDestinationPayload } from './shipping'
 
 // Las reglas de la modificación de una orden (S09), fuera de los componentes
 // para probarlas sin montar la pantalla.
@@ -214,7 +215,8 @@ export function editSubtotal(lines: EditLine[]): number {
  *
  * El domicilio, también sólo si cambió. Una orden que entró por webhook no trae
  * ciudad ni provincia (el canal no las manda), y mandar esos campos vacíos haría
- * que la API rechace la provincia: no se podría ni pasarla a «Pagada».
+ * que la API rechace la provincia: no se podría ni pasarla a «Pagada». Cuando
+ * viaja, lo que quedó en blanco va `null` (TESIS-178), como en el alta.
  */
 export function toUpdatePayload(
   header: EditHeader,
@@ -225,14 +227,7 @@ export function toUpdatePayload(
   const order: UpdateOrderPayload['order'] = {
     customer_name: header.customerName.trim(),
     customer_document: header.customerDocument.trim(),
-    ...(includeDestination
-      ? {
-          customer_address: header.address.trim(),
-          customer_city: header.city.trim(),
-          customer_province: header.province,
-          customer_zip_code: header.zipCode.trim(),
-        }
-      : {}),
+    ...(includeDestination ? toDestinationPayload(header) : {}),
     status: header.status,
   }
 

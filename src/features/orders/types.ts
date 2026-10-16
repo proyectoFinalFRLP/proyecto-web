@@ -77,6 +77,9 @@ export interface OrderDetail {
   externalOrderId: string | null
   customerName: string
   customerDocument: string | null
+  /** Contacto del comprador (TESIS-179). `null` si el canal no lo mandó o la orden es anterior. */
+  customerEmail: string | null
+  customerPhone: string | null
   customerAddress: string | null
   customerZipCode: string | null
   /** Ciudad y provincia del destino (TESIS-128). `null` en las órdenes anteriores y las de webhook. */
@@ -250,10 +253,10 @@ export interface UpdateOrderPayload {
      * las órdenes de webhook no traen ciudad ni provincia, y mandarlas vacías
      * haría que la API las rechace.
      */
-    customer_address?: string
-    customer_city?: string
-    customer_province?: string
-    customer_zip_code?: string
+    customer_address?: string | null
+    customer_city?: string | null
+    customer_province?: string | null
+    customer_zip_code?: string | null
     status: EditableOrderStatus
     items?: (
       | { id: number; quantity: number }

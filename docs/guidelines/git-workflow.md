@@ -105,13 +105,14 @@ master
 
 Pipeline en `.github/workflows/ci.yml`. Se dispara en push y pull_request sobre `main`, `master` y `develop`.
 
-| Job           | Acción                                       | Dependencia |
-| ------------- | -------------------------------------------- | ----------- |
-| `lint`        | ESLint (`--max-warnings 0`) + Prettier check | —           |
-| `branch-name` | Valida nombre de rama (solo en PRs)          | —           |
-| `test`        | `npm run test` (Vitest)                      | `lint`      |
-| `build`       | `npm run build` (tsc + vite)                 | `lint`      |
+| Job           | Acción                                           | Dependencia |
+| ------------- | ------------------------------------------------ | ----------- |
+| `security`    | `npm audit --audit-level=high` sobre el lockfile | —           |
+| `lint`        | ESLint (`--max-warnings 0`) + Prettier check     | —           |
+| `branch-name` | Valida nombre de rama (solo en PRs)              | —           |
+| `test`        | `npm run test` (Vitest)                          | `lint`      |
+| `build`       | `npm run build` (tsc + vite)                     | `lint`      |
 
-`test` y `build` sólo corren si `lint` pasa, y corren en paralelo entre sí.
+`test` y `build` sólo corren si `lint` pasa, y corren en paralelo entre sí. `security` corta con cualquier vulnerabilidad alta o crítica, también de las dependencias de desarrollo ([ADR-008](../adr/ADR-008-seguridad-del-front.md)).
 
 Cómo se escribe un test está en [testing.md](./testing.md).

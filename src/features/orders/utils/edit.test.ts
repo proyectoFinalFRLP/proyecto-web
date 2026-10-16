@@ -189,6 +189,18 @@ describe('toUpdatePayload', () => {
     ])
   })
 
+  it('sends a destination left blank as null', () => {
+    const blank = { ...HEADER, address: '', city: '', province: '', zipCode: ' ' }
+    const payload = toUpdatePayload(blank, [line()], false)
+
+    expect(payload.order).toMatchObject({
+      customer_address: null,
+      customer_city: null,
+      customer_province: null,
+      customer_zip_code: null,
+    })
+  })
+
   it('leaves the address out when it was not touched', () => {
     const payload = toUpdatePayload(HEADER, [line()], false, false)
 
