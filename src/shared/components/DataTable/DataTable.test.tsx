@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react'
+import { fireEvent, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { renderWithTheme } from '../../../test/renderWithTheme'
@@ -179,5 +179,73 @@ describe('DataTable', () => {
         overflow: 'hidden',
       })
     })
+  })
+})
+
+// TESIS-184: orden por columna. La tabla no ordena las filas: avisa qué orden
+// se pidió, porque los listados paginan en la API.
+describe('DataTable · sort', () => {
+  const SORTABLE_COLUMNS: DataTableProps<Row>['columns'] = [
+    { id: 'name', header: 'Nombre', sortKey: 'name', render: (row) => row.name },
+    {
+      id: 'total',
+      header: 'Total',
+      sortKey: 'total',
+      firstSortDirection: 'desc',
+      render: () => '$ 1',
+    },
+    { id: 'notes', header: 'Notas', render: () => '—' },
+  ]
+
+  it('makes a header with a sort key a button, and leaves the others as text', () => {
+    renderTable({ columns: SORTABLE_COLUMNS, onSortChange: vi.fn() })
+
+    expect(screen.getByRole('button', { name: 'Nombre' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Notas' })).not.toBeInTheDocument()
+  })
+
+  it('does not offer to sort when nobody listens', () => {
+    renderTable({ columns: SORTABLE_COLUMNS })
+
+    expect(screen.queryByRole('button', { name: 'Nombre' })).not.toBeInTheDocument()
+  })
+
+  it('sorts a text ascending and an amount descending on the first click', () => {
+    const onSortChange = vi.fn()
+    renderTable({ columns: SORTABLE_COLUMNS, onSortChange })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Nombre' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Total' }))
+
+    expect(onSortChange).toHaveBeenNthCalledWith(1, { key: 'name', direction: 'asc' })
+    expect(onSortChange).toHaveBeenNthCalledWith(2, { key: 'total', direction: 'desc' })
+  })
+
+  it('inverts the direction of the active column', () => {
+    const onSortChange = vi.fn()
+    renderTable({
+      columns: SORTABLE_COLUMNS,
+      sort: { key: 'total', direction: 'desc' },
+      onSortChange,
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Total' }))
+
+    expect(onSortChange).toHaveBeenCalledWith({ key: 'total', direction: 'asc' })
+  })
+
+  it('announces the sort on the active header only', () => {
+    renderTable({
+      columns: SORTABLE_COLUMNS,
+      sort: { key: 'total', direction: 'desc' },
+      onSortChange: vi.fn(),
+    })
+
+    const headers = screen.getAllByRole('columnheader')
+    expect(headers.map((header) => header.getAttribute('aria-sort'))).toEqual([
+      null,
+      'descending',
+      null,
+    ])
   })
 })

@@ -1,4 +1,5 @@
 import { client } from 'shared/api/client'
+import { sortParams } from 'shared/utils'
 
 import type {
   ShipmentCounts,
@@ -61,13 +62,14 @@ function toShipment(shipment: ApiShipmentSummary): ShipmentSummary {
 // filtre por el string vacío y devuelva cero filas. Con `search` el backend sí
 // tolera el vacío —corta antes de armar la condición—, pero mandarlo igual
 // ensucia la URL y la clave de caché, así que se omite por el mismo criterio.
-function toParams({ page, perPage, status, orderId, search }: ShipmentFilters) {
+function toParams({ page, perPage, status, orderId, search, sort }: ShipmentFilters) {
   return {
     page,
     per_page: perPage,
     ...(status === undefined ? {} : { status }),
     ...(orderId === undefined ? {} : { order_id: orderId }),
     ...(search ? { search } : {}),
+    ...sortParams(sort),
   }
 }
 

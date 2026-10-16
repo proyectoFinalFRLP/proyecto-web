@@ -1,4 +1,4 @@
-import type { DataTablePagination, DataTableTab } from 'shared/components'
+import type { DataTablePagination, DataTableSort, DataTableTab } from 'shared/components'
 
 import type { ProductSummary } from '../../types'
 
@@ -13,4 +13,7 @@ export interface InventoryTableProps {
   onEdit: (product: ProductSummary) => void
   /** Pide confirmación antes de borrar: la baja no se puede deshacer. */
   onDelete: (product: ProductSummary) => void
+  /** El orden activo de la tabla (TESIS-184). Lo resuelve la API. */
+  sort?: DataTableSort | null
+  onSortChange?: (sort: DataTableSort) => void
 }

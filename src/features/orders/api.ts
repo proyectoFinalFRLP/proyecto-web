@@ -1,5 +1,6 @@
 import { client } from 'shared/api/client'
 import { fetchCount } from 'shared/api/count'
+import { sortParams } from 'shared/utils'
 
 import type {
   CatalogProduct,
@@ -178,8 +179,8 @@ function toFilters({ status, search }: Pick<OrderFilters, 'status' | 'search'>) 
   }
 }
 
-function toParams({ page, perPage, status, search }: OrderFilters) {
-  return { page, per_page: perPage, ...toFilters({ status, search }) }
+function toParams({ page, perPage, status, search, sort }: OrderFilters) {
+  return { page, per_page: perPage, ...toFilters({ status, search }), ...sortParams(sort) }
 }
 
 export async function fetchOrderPage(filters: OrderFilters): Promise<OrderPage> {
