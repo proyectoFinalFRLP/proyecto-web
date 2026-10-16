@@ -4,12 +4,14 @@ import { describe, expect, it } from 'vitest'
 import type { ProductStockByWarehouse, ShippingQuote } from '../types'
 
 import {
+  onlyCoveringWarehouse,
   toCreateOrderPayload,
   toDispatchPayload,
   toDraftQuotePayload,
   totalWithShipping,
   warehouseCoverage,
 } from './shipping'
+import type { CoverageLevel, WarehouseCoverage } from './shipping'
 
 function item(overrides: Partial<OrderDraftItem> = {}): OrderDraftItem {
   return {
@@ -172,5 +174,33 @@ describe('totalWithShipping', () => {
   // Sin opción elegida el envío no cuesta 0: el total es lo que se sabe.
   it('is the products alone while no shipping was chosen', () => {
     expect(totalWithShipping(1420000, null)).toBe(1420000)
+  })
+})
+
+// TESIS-173: con un único depósito posible, el paso 2 lo trae elegido.
+describe('onlyCoveringWarehouse', () => {
+  const coverage = (levels: Record<number, CoverageLevel>) =>
+    new Map(
+      Object.entries(levels).map(([id, level]) => [
+        Number(id),
+        { level, missing: [], total: 1 } satisfies WarehouseCoverage,
+      ]),
+    )
+
+  it('names the only warehouse that covers the whole draft', () => {
+    expect(onlyCoveringWarehouse(coverage({ 1: 'partial', 2: 'full', 3: 'none' }))).toBe(2)
+  })
+
+  // Con dos posibles, de cuál sale la mercadería lo decide el operador.
+  it('does not pick between two that cover it', () => {
+    expect(onlyCoveringWarehouse(coverage({ 1: 'full', 2: 'full' }))).toBeNull()
+  })
+
+  it('has nothing to pick when none covers it', () => {
+    expect(onlyCoveringWarehouse(coverage({ 1: 'partial', 2: 'none' }))).toBeNull()
+  })
+
+  it('waits while the coverage is unknown', () => {
+    expect(onlyCoveringWarehouse(null)).toBeNull()
   })
 })
