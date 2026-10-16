@@ -112,6 +112,13 @@ describe('buildCreatePayload', () => {
     expect(nested).not.toHaveProperty('stocks_attributes')
   })
 
+  // TESIS-182: el mínimo que cargó el operador, no el default.
+  it('sends the low stock threshold the operator typed', () => {
+    expect(
+      buildCreatePayload(createForm({ lowStockThreshold: 25 })).product.low_stock_threshold,
+    ).toBe(25)
+  })
+
   it('sends description as an explicit null, since the form has no such field', () => {
     expect(buildCreatePayload(createForm()).product.description).toBeNull()
   })

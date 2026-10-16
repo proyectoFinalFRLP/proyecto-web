@@ -206,8 +206,10 @@ function toOrderDetail(data: ApiOrderDetail, version: string | null): OrderDetai
     externalOrderNumber: data.external_order_number ?? null,
     customerName: data.customer_name,
     customerDocument: data.customer_document,
-    customerEmail: data.customer_email ?? null,
-    customerPhone: data.customer_phone ?? null,
+    // `||` y no `??`: un texto vacío tampoco es un contacto. La API ya guarda
+    // los blancos como `null` (TESIS-179), pero una orden vieja puede tener uno.
+    customerEmail: data.customer_email || null,
+    customerPhone: data.customer_phone || null,
     customerAddress: data.customer_address,
     customerZipCode: data.customer_zip_code,
     customerCity: data.customer_city,

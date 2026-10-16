@@ -131,6 +131,12 @@ export interface DataTableProps<Row> {
 
   /** El orden activo. `null` o ausente: el listado sale en su orden de siempre. */
   sort?: DataTableSort | null
+  /**
+   * El orden de siempre del listado, el que aplica la API cuando no se pidió
+   * otro. Sólo se muestra: con `sort` en `null`, la flecha de esa columna dice
+   * por qué la tabla está así. Sin columna que lo represente, se omite.
+   */
+  defaultSort?: DataTableSort
   /** Sin esto ninguna columna se ordena, aunque declare `sortKey`. */
   onSortChange?: (sort: DataTableSort) => void
 

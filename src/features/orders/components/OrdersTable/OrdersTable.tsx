@@ -8,6 +8,7 @@ import { formatMoney, formatOrderId } from 'shared/utils'
 import { ordersCopy } from '../../content'
 import type { OrderSummary } from '../../types'
 import { formatOrderDate, formatOrderTime } from '../../utils/format'
+import { ORDER_DEFAULT_SORT } from '../../utils/sort'
 import { statusLabel, statusRowTone, statusVariant } from '../../utils/status'
 
 import { CarrierCell } from './CarrierCell'
@@ -164,6 +165,7 @@ export function OrdersTable({
         )
       }
       sort={sort}
+      defaultSort={ORDER_DEFAULT_SORT}
       onSortChange={onSortChange}
       pagination={pagination}
       paginationLabels={{

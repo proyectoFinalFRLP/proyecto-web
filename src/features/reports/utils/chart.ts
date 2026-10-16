@@ -30,7 +30,11 @@ export const TICK_COUNT = 5
 // y «8», y el número no era el de su línea (TESIS-183). Con un paso entero el
 // texto de cada tick es exactamente su valor, y en la serie de órdenes —que se
 // cuentan de a una— no aparece media orden.
-const STEP_MANTISSAS = [1, 2, 2.5, 5, 10]
+//
+// El 3 evita los saltos más grandes: sin él, de 2 a 5 por intervalo, un máximo
+// de 9 órdenes llevaba el eje a 20 y la curva usaba menos de la mitad del alto.
+// Con él va a 12.
+const STEP_MANTISSAS = [1, 2, 2.5, 3, 5, 10]
 
 const INTERVALS = TICK_COUNT - 1
 
@@ -52,8 +56,8 @@ function tickStep(raw: number): number {
 }
 
 /**
- * Techo del eje Y para una serie: cuatro pasos redondos y enteros (1, 2, 2,5 o
- * 5 por su orden de magnitud) que cubren el máximo. Así 7 órdenes suben a 8
+ * Techo del eje Y para una serie: cuatro pasos redondos y enteros (1, 2, 2,5, 3
+ * o 5 por su orden de magnitud) que cubren el máximo. Así 7 órdenes suben a 8
  * —ticks de a 2—, 9.400 pesos a 10.000 —de a 2.500— y 740.000 a 800.000.
  */
 export function niceCeiling(values: readonly number[]): number {

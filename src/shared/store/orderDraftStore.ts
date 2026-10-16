@@ -16,6 +16,12 @@ export interface OrderDraftCustomer {
   firstName: string
   lastName: string
   document: string
+  /**
+   * El contacto (TESIS-179). Opcionales: un borrador guardado antes de que
+   * existieran no los trae.
+   */
+  email?: string
+  phone?: string
 }
 
 /**

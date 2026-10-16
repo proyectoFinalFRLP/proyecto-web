@@ -152,6 +152,36 @@ describe('NewOrderPage', () => {
     await waitFor(() => expect(nextButton()).toBeEnabled())
   })
 
+  // TESIS-179: el contacto es opcional, pero un email mal escrito no pasa.
+  it('keeps the next step locked with an email that is not one', async () => {
+    renderPage()
+
+    fillCustomer()
+    type(textbox('Email'), 'marina')
+    await addProduct('PX-9021', '12', '120000')
+
+    await waitFor(() => expect(nextButton()).toBeDisabled())
+    expect(screen.getByText(/un email válido/)).toBeInTheDocument()
+  })
+
+  it('keeps the contact of the customer in the draft', async () => {
+    renderPage()
+
+    fillCustomer()
+    type(textbox('Email'), 'marina@empresa.com')
+    type(textbox('Teléfono'), '11 2342 3456')
+    await addProduct('PX-9021', '12', '120000')
+    await waitFor(() => expect(nextButton()).toBeEnabled())
+    fireEvent.click(nextButton())
+
+    await waitFor(() =>
+      expect(useOrderDraftStore.getState().customer).toMatchObject({
+        email: 'marina@empresa.com',
+        phone: '11 2342 3456',
+      }),
+    )
+  })
+
   // El filtro es del backend (TESIS-125): lo que la pantalla tiene que hacer es
   // mandarle lo tipeado. Buscar en memoria dejaba fuera del buscador todo
   // producto más allá del corte de la API, sin que se distinguiera de «no

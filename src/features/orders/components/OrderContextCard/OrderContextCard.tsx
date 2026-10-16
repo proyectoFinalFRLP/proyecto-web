@@ -25,7 +25,7 @@ export interface OrderContextCardProps {
 }
 
 /**
- * Cliente, documento y estado de la orden en S09. El estado es un select de dos
+ * Cliente, documento, contacto (opcional, TESIS-179) y estado de la orden en S09. El estado es un select de dos
  * opciones y el cambio se ve en el acto en el badge del encabezado, que es el
  * «Lifecycle Status» que pide la card.
  *
@@ -66,6 +66,30 @@ export function OrderContextCard({ register, control, errors, readOnly }: OrderC
             required={required}
             error={errors.customerDocument !== undefined}
             disabled={readOnly}
+            slotProps={MONO_INPUT}
+            fullWidth
+          />
+        </LabeledField>
+
+        {/* El contacto es opcional (TESIS-179): sin marca de obligatorio. */}
+        <LabeledField label={copy.fields.customerEmail} error={errors.customerEmail?.message}>
+          <TextField
+            {...register('customerEmail')}
+            type="email"
+            error={errors.customerEmail !== undefined}
+            disabled={readOnly}
+            autoComplete="email"
+            fullWidth
+          />
+        </LabeledField>
+
+        <LabeledField label={copy.fields.customerPhone} error={errors.customerPhone?.message}>
+          <TextField
+            {...register('customerPhone')}
+            type="tel"
+            error={errors.customerPhone !== undefined}
+            disabled={readOnly}
+            autoComplete="tel"
             slotProps={MONO_INPUT}
             fullWidth
           />
