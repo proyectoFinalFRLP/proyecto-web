@@ -20,6 +20,7 @@ vi.mock('../hooks/useShipments', async (importOriginal) => ({
 const DISPATCHED: ShipmentSummary = {
   id: 31,
   orderId: 8829,
+  externalOrderId: null,
   status: 'in_transit',
   trackingNumber: 'AND-9920-X8829-Z',
   shippingCost: 58300,
@@ -126,6 +127,15 @@ describe('ShipmentsPage', () => {
 
   // El ojito va directo en la fila: no hay un kebab que abrir para llegar a la
   // única acción que tiene el listado.
+  // TESIS-181: la misma venta con el mismo número que en el listado de órdenes.
+  it('names the order with the number of its channel, as the orders listing does', () => {
+    mockPage([{ ...DISPATCHED, externalOrderId: '18948032757993' }])
+
+    renderPage()
+
+    expect(screen.getByRole('button', { name: 'Orden #18948032757993' })).toBeInTheDocument()
+  })
+
   it('opens the order from the eye of its row, with no menu in between', () => {
     renderPage()
 

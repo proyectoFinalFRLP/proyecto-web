@@ -1,6 +1,7 @@
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined'
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
+import NotificationsActiveOutlinedIcon from '@mui/icons-material/NotificationsActiveOutlined'
 import { Box, Button, Stack, Typography } from '@mui/material'
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
@@ -149,6 +150,14 @@ function buildBuckets(product: Product): StockBucket[] {
       icon: <CheckCircleOutlineIcon fontSize="small" color="action" />,
       value: formatInteger(product.availableToPromise),
       accent: true,
+    },
+    // TESIS-182: el umbral es de cada producto, y sin verlo no se entiende por
+    // qué el badge dice «stock bajo» con 58 unidades en uno y no en otro.
+    {
+      id: 'lowStockThreshold',
+      label: masterCopy.buckets.lowStockThreshold,
+      icon: <NotificationsActiveOutlinedIcon fontSize="small" color="action" />,
+      value: formatInteger(product.lowStockThreshold),
     },
   ]
 }

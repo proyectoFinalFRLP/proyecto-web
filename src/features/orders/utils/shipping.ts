@@ -77,15 +77,23 @@ export function onlyCoveringWarehouse(
   return covering.length === 1 ? covering[0][0] : null
 }
 
+/**
+ * El domicilio como lo recibe la API. Un campo en blanco viaja `null` y no
+ * `""`: con retiro en el local el domicilio es opcional, y la API rechaza una
+ * provincia vacía porque no está en la lista (TESIS-178).
+ */
+export interface DestinationPayload {
+  customer_address: string | null
+  customer_city: string | null
+  customer_province: string | null
+  customer_zip_code: string | null
+}
+
 /** Lo que el paso 3 manda a `POST /api/v1/orders` para crear la orden. */
 export interface CreateOrderPayload {
-  order: {
+  order: DestinationPayload & {
     customer_name: string
     customer_document: string
-    customer_address: string
-    customer_city: string
-    customer_province: string
-    customer_zip_code: string
     /** Si la venta se despacha o la retira el cliente (TESIS-162). */
     requires_shipping: boolean
     items: {
@@ -94,6 +102,29 @@ export interface CreateOrderPayload {
       quantity: number
       unit_price: number
     }[]
+  }
+}
+
+function blankToNull(value: string): string | null {
+  const trimmed = value.trim()
+  return trimmed === '' ? null : trimmed
+}
+
+/**
+ * Los cuatro campos del domicilio recortados, con los que quedaron en blanco en
+ * `null`. Lo usan el alta y la edición, que arman el mismo bloque.
+ */
+export function toDestinationPayload(destination: {
+  address: string
+  city: string
+  province: string
+  zipCode: string
+}): DestinationPayload {
+  return {
+    customer_address: blankToNull(destination.address),
+    customer_city: blankToNull(destination.city),
+    customer_province: blankToNull(destination.province),
+    customer_zip_code: blankToNull(destination.zipCode),
   }
 }
 
@@ -114,10 +145,7 @@ export function toCreateOrderPayload(
     order: {
       customer_name: `${customer.firstName.trim()} ${customer.lastName.trim()}`,
       customer_document: customer.document.trim(),
-      customer_address: destination.address.trim(),
-      customer_city: destination.city.trim(),
-      customer_province: destination.province,
-      customer_zip_code: destination.zipCode.trim(),
+      ...toDestinationPayload(destination),
       // El backend asume `true` si no viaja (TESIS-162); se manda igual, para
       // que el cuerpo diga lo que el operador eligió y no lo que el default
       // deduce.

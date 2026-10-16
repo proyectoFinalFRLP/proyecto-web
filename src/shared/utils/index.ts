@@ -22,6 +22,7 @@ export function isNonEmpty<T>(value: T | null | undefined): value is T {
   return value !== null && value !== undefined
 }
 
+export { formatOrderId } from './orderId'
 export { formatRelativeTime } from './relativeTime'
 export { sortParams } from './sortParams'
 export { formatDecimal, formatInteger, formatMoney, formatRoundMoney } from './number'

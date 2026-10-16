@@ -23,6 +23,11 @@ export interface Courier {
 export interface ShipmentSummary {
   id: number
   orderId: number
+  /**
+   * El número con el que el canal conoce la orden (TESIS-181). `null` en las
+   * ventas manuales: ahí se muestra el id interno, igual que en órdenes.
+   */
+  externalOrderId: string | null
   status: ShipmentStatus
   trackingNumber: string | null
   shippingCost: number | null

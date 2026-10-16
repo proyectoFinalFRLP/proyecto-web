@@ -36,8 +36,8 @@ export const shipmentsCopy = {
     noCost: 'Sin cotizar',
     /** "Envío #31". */
     shipment: (id: number) => `Envío #${id}`,
-    /** "Orden #8829". */
-    order: (id: number) => `Orden #${id}`,
+    /** "Orden #18948032757993": recibe la orden ya nombrada con `formatOrderId`. */
+    order: (label: string) => `Orden ${label}`,
   },
   status: {
     pending: 'Pendiente',

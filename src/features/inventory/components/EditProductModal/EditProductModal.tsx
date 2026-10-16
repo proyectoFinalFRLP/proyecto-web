@@ -27,6 +27,7 @@ import {
   BasicGrid,
   SectionRoot,
   SpecGrid,
+  ThresholdField,
   WarehouseList,
 } from './EditProductModal.styles'
 import type { EditProductModalProps } from './EditProductModal.types'
@@ -48,6 +49,7 @@ function buildDefaults(product: Product): EditProductFormData {
     length,
     width,
     height,
+    lowStockThreshold: product.lowStockThreshold,
     stocks: product.stocks.map((stock) => ({
       warehouseId: stock.warehouseId,
       warehouseName: stock.warehouse.name,
@@ -252,6 +254,22 @@ export function EditProductModal({
                 </AddWarehouseButton>
               }
             />
+
+            <ThresholdField>
+              <LabeledField
+                label={modal.fields.lowStockThreshold}
+                helperText={modal.lowStockThresholdHelper}
+                error={errors.lowStockThreshold?.message}
+              >
+                <TextField
+                  {...register('lowStockThreshold', { valueAsNumber: true })}
+                  type="number"
+                  inputProps={{ min: 0, step: 1 }}
+                  error={errors.lowStockThreshold !== undefined}
+                  fullWidth
+                />
+              </LabeledField>
+            </ThresholdField>
 
             {fields.length === 0 ? (
               <Typography variant="bodyMd" sx={{ color: 'text.secondary' }}>

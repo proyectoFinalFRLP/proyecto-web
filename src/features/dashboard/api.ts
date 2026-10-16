@@ -39,11 +39,12 @@ export function fetchActiveShipmentCount(): Promise<number> {
  * Los dos estados de stock que son una alerta (TESIS-55).
  *
  * Son dos y no uno porque el backend los separa: `low` es
- * `BETWEEN 1 AND LOW_STOCK_THRESHOLD`, así que un producto **agotado** no es
+ * `BETWEEN 1 AND` el umbral del producto, así que un producto **agotado** no es
  * `low`, es `out_of_stock`. Contar sólo `low` dejaría fuera del número justo
  * los casos más graves, que son los que ya no se pueden vender.
  *
- * El umbral no vive acá: lo decide `Product::LOW_STOCK_THRESHOLD`, y son los
+ * El umbral no vive acá: es de cada producto (`products.low_stock_threshold`,
+ * TESIS-182), y son los
  * mismos estados que filtran las pestañas del catálogo. Calcularlo en el
  * cliente con una regla propia haría que el panel y el inventario mostraran
  * números distintos del mismo hecho.

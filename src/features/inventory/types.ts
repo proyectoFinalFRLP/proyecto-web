@@ -42,6 +42,8 @@ export interface ProductSummary {
   primaryWarehouse: PrimaryWarehouse | null
   /** En cuántos depósitos hay unidades. Si es 0, `primaryWarehouse` es null. */
   warehouseCount: number
+  /** Con este total o menos, el producto está en stock bajo (TESIS-182). */
+  lowStockThreshold: number
 }
 
 /** Cómo viene paginado el catálogo: el `meta` del backend, en camelCase. */
@@ -143,6 +145,11 @@ export interface Product {
   totalStock: number
   /** Disponibilidad del producto: la misma que muestra el catálogo. */
   stockStatus: StockStatus
+  /**
+   * Con este total o menos, el producto está en stock bajo. Es de cada
+   * producto desde TESIS-182; antes era un único umbral para todo el catálogo.
+   */
+  lowStockThreshold: number
   /** Unidades en vuelo entre depósitos. **No** están incluidas en `totalStock`. */
   inTransitQuantity: number
   /**
@@ -187,6 +194,7 @@ export interface CreateProductPayload {
     category: string | null
     weight: number
     dimensions: string | null
+    low_stock_threshold: number
     stocks: { warehouse_id: number; quantity: number }[]
   }
 }
@@ -205,6 +213,7 @@ export interface UpdateProductPayload {
     category: string | null
     weight: number
     dimensions: string | null
+    low_stock_threshold: number
     stocks: { warehouse_id: number; quantity: number }[]
   }
 }
