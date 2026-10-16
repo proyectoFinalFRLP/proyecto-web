@@ -30,6 +30,11 @@ function Stacked({ primary, secondary }: { primary: string; secondary?: string |
   )
 }
 
+/**
+ * Debajo de `md` (el proyector de 800×600) se van la categoría y el depósito
+ * principal: el stock disponible y su estado son lo que se viene a mirar, y el
+ * reparto por depósito está en el detalle del producto.
+ */
 function buildColumns(
   onView: (product: ProductSummary) => void,
 ): DataTableColumn<ProductSummary>[] {
@@ -58,6 +63,7 @@ function buildColumns(
       id: 'category',
       header: columnCopy.category,
       width: 130,
+      hideBelow: 'md',
       render: (product) =>
         product.category === null ? (
           <Typography variant="bodyMd" sx={{ color: 'text.disabled' }}>
@@ -103,6 +109,7 @@ function buildColumns(
       id: 'warehouse',
       header: columnCopy.warehouse,
       width: 160,
+      hideBelow: 'md',
       render: (product) =>
         product.primaryWarehouse === null ? (
           <Typography variant="bodyMd" sx={{ color: 'text.disabled' }}>

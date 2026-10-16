@@ -29,7 +29,8 @@ const NO_WRAP = { whiteSpace: 'nowrap' } as const
 
 /**
  * Las cinco columnas de S03-Panel, en su orden: id, destino, total, estado y
- * fecha.
+ * fecha. La fecha se va debajo de `md` (el proyector de 800×600): en un panel
+ * de «últimas órdenes» ya se sabe que son recientes.
  *
  * El id es un enlace de verdad y no un botón con `onClick` —el diseño lo marca
  * como `link`— así el operador puede abrir la orden en otra pestaña sin perder
@@ -100,6 +101,7 @@ const COLUMNS: DataTableColumn<RecentOrder>[] = [
     header: copy.columns.date,
     align: 'right',
     width: 96,
+    hideBelow: 'md',
     render: (order) => (
       <StackedCell
         primary={formatShortDate(order.createdAt)}

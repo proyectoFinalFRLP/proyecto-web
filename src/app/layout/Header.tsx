@@ -5,6 +5,7 @@ import { useAuthStore, useTenantName, useUiStore } from 'shared/store'
 import { useThemeMode } from 'shared/store/uiStore'
 
 import { ACTIVITY_PATHS } from './activityPaths'
+import { useSidebar } from './useSidebar'
 
 export function Header() {
   // Selectores individuales (no el store completo): Header está en todas las
@@ -12,7 +13,9 @@ export function Header() {
   // estas slices, no ante cualquier cambio del store.
   const themeMode = useThemeMode()
   const toggleTheme = useUiStore((state) => state.toggleTheme)
-  const toggleSidebar = useUiStore((state) => state.toggleSidebar)
+  // La hamburguesa abre o cierra la sidebar del modo actual: la fija en
+  // pantallas anchas, la flotante en las angostas (ver `useSidebar`).
+  const sidebar = useSidebar()
   const sessionUser = useAuthStore((state) => state.user)
   const logout = useAuthStore((state) => state.logout)
   const organization = useTenantName()
@@ -30,7 +33,7 @@ export function Header() {
     <TopNavBar
       brandTo="/"
       organization={organization}
-      onToggleSidebar={toggleSidebar}
+      onToggleSidebar={sidebar.toggle}
       themeMode={themeMode}
       onToggleTheme={toggleTheme}
       user={user}

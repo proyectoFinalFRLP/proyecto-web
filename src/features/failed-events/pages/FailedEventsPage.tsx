@@ -91,6 +91,10 @@ export function FailedEventsPage() {
     )
   }
 
+  // Debajo de `md` (el proyector de 800×600) quedan el evento, su estado y lo
+  // que se puede hacer con él. Los intentos, el próximo reintento y la fecha
+  // son contexto; el último error es un texto libre en una sola línea que, sin
+  // espacio, se llevaba puesta la columna de acciones.
   const tableColumns: DataTableColumn<FailedEvent>[] = [
     {
       id: 'event',
@@ -112,19 +116,22 @@ export function FailedEventsPage() {
       header: columns.attempts,
       align: 'right',
       width: 110,
+      hideBelow: 'md',
       render: (event) => cells.attempts(event.attempts, event.maxAttempts),
     },
     {
       id: 'nextRetry',
       header: columns.nextRetry,
       width: 170,
+      hideBelow: 'md',
       render: (event) => nextRetryCell(event, now),
     },
-    { id: 'lastError', header: columns.lastError, render: lastErrorCell },
+    { id: 'lastError', header: columns.lastError, hideBelow: 'md', render: lastErrorCell },
     {
       id: 'createdAt',
       header: columns.createdAt,
       width: 150,
+      hideBelow: 'md',
       render: (event) => formatRelativeTime(event.createdAt, now) ?? cells.noRetry,
     },
     {
@@ -132,6 +139,7 @@ export function FailedEventsPage() {
       header: columns.actions,
       align: 'right',
       width: 220,
+      pinned: true,
       // Botones visibles y no el menú de acciones del DataTable: ese menú no
       // admite opciones por fila, y acá cada estado acepta cosas distintas.
       render: (event) => (
