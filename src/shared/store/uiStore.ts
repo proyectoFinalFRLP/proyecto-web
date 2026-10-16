@@ -8,10 +8,19 @@ type ThemeMode = 'light' | 'dark'
 interface UiState {
   /** Tema elegido por la persona usuaria. `null` = nunca eligió. */
   themeChoice: ThemeMode | null
+  /** La sidebar fija, en pantallas anchas. Arranca abierta. */
   sidebarOpen: boolean
+  /**
+   * La sidebar flotante, debajo de `lg`. Es otro estado y no el mismo con otro
+   * default: cerrar la flotante no puede cerrar la fija, y una pantalla que se
+   * achica no puede heredar la fija abierta y arrancar tapando el contenido.
+   * Arranca cerrada. Ninguna de las dos persiste.
+   */
+  floatingSidebarOpen: boolean
   toggleTheme: () => void
   toggleSidebar: () => void
   setSidebarOpen: (open: boolean) => void
+  setFloatingSidebarOpen: (open: boolean) => void
 }
 
 // Dark es el tema canónico del design system (ADR-007, decisión D1): es el
@@ -42,6 +51,7 @@ export const useUiStore = create<UiState>()(
     (set) => ({
       themeChoice: null,
       sidebarOpen: true,
+      floatingSidebarOpen: false,
       toggleTheme: () =>
         set((state) => ({
           // El toggle persiste la elección: es lo que hace que el modo del
@@ -50,6 +60,7 @@ export const useUiStore = create<UiState>()(
         })),
       toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
       setSidebarOpen: (open) => set({ sidebarOpen: open }),
+      setFloatingSidebarOpen: (open) => set({ floatingSidebarOpen: open }),
     }),
     {
       name: 'ui-store',

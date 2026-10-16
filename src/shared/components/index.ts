@@ -47,7 +47,7 @@ export type {
   DataTableRowTone,
   DataTableTab,
 } from './DataTable'
-export { FieldLabel, FieldRoot, FullRow, LabeledField } from './LabeledField'
+export { FieldLabel, FieldRoot, FullRow, LabeledField, RequiredMark } from './LabeledField'
 export type { LabeledFieldProps } from './LabeledField'
 export { ConfirmDialog } from './ConfirmDialog'
 export type { ConfirmDialogProps, ConfirmDialogTone } from './ConfirmDialog'

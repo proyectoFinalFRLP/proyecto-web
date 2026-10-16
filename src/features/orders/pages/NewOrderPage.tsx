@@ -1,9 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 import CloseIcon from '@mui/icons-material/Close'
 import { Alert, Button, Stack } from '@mui/material'
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import { PageWrapper } from 'shared/components'
 import { useDebouncedValue } from 'shared/hooks/useDebouncedValue'
@@ -16,10 +15,12 @@ import { DraftItemsTable } from '../components/DraftItemsTable'
 import { DraftSummaryCard } from '../components/DraftSummaryCard'
 import { OrderWizardHeader } from '../components/OrderWizardHeader'
 import { ProductPicker } from '../components/ProductPicker'
+import { WizardNextButton } from '../components/WizardNextButton'
 import { ordersCopy } from '../content'
 import { useCatalogProducts } from '../hooks/useCatalogProducts'
-import { canProceed, draftSubtotal, draftWeight } from '../utils/draft'
+import { canProceed, draftSubtotal, draftWeight, itemsGap } from '../utils/draft'
 import { formatWeight } from '../utils/format'
+import { invalidFields } from '../utils/missing'
 
 const { wizard, draft } = ordersCopy
 
@@ -34,6 +35,9 @@ const TOTAL_STEPS = 3
 
 const EMPTY_CUSTOMER: CustomerFormData = { firstName: '', lastName: '', document: '' }
 
+// El orden en que los nombra «lo que falta»: el de la pantalla.
+const CUSTOMER_FIELDS = ['firstName', 'lastName', 'document'] as const
+
 /**
  * Paso 1 del alta manual de una orden (S05): quién compra y qué se lleva.
  *
@@ -44,7 +48,8 @@ const EMPTY_CUSTOMER: CustomerFormData = { firstName: '', lastName: '', document
  *
  * «Siguiente» se habilita sólo con el cliente completo y al menos una línea
  * válida (`canProceed`): es el criterio de la card, y también lo que
- * `POST /orders` exige para no responder 422.
+ * `POST /orders` exige para no responder 422. Mientras no se puede, debajo
+ * dice qué falta (TESIS-173).
  */
 export function NewOrderPage() {
   const navigate = useNavigate()
@@ -65,16 +70,30 @@ export function NewOrderPage() {
 
   const {
     register,
+    control,
     handleSubmit,
-    formState: { errors, isValid },
+    formState: { errors },
   } = useForm<CustomerFormData>({
     resolver: zodResolver(customerSchema),
-    // `onChange` para que «Siguiente» se encienda mientras se tipea, sin
-    // esperar a un submit que todavía no puede ocurrir.
+    // `onChange` para que los errores de un campo aparezcan mientras se tipea,
+    // sin esperar a un submit que todavía no puede ocurrir.
     mode: 'onChange',
     // Volver del paso 2 encuentra el formulario como se lo dejó.
     defaultValues: customer ?? EMPTY_CUSTOMER,
   })
+
+  // Lo que falta se calcula sobre lo tipeado, contra el mismo schema, y no
+  // sobre `errors`: ésos aparecen recién al tocar un campo, y la lista tiene
+  // que nombrar también los que nadie tocó todavía. De la misma cuenta sale si
+  // se habilita «Siguiente», en vez del `isValid` del formulario, que llega un
+  // render tarde: así el botón y la lista no se contradicen nunca.
+  const customerValues = useWatch({ control })
+  const missingCustomer = invalidFields(customerSchema, customerValues, CUSTOMER_FIELDS)
+  const linesGap = itemsGap(items)
+  const gaps = [
+    ...missingCustomer.map((field) => draft.missing[field]),
+    ...(linesGap === null ? [] : [draft.missing[linesGap]]),
+  ]
 
   const addedIds = new Set(items.map((item) => item.productId))
 
@@ -130,21 +149,20 @@ export function NewOrderPage() {
         />
 
         {/* `useFlexGap`: sin él `spacing` separa con `margin-left` y pisa el
-            `ml: 'auto'` que manda el botón de avanzar a la derecha (TESIS-132). */}
-        <Stack direction="row" spacing={2} useFlexGap sx={{ alignItems: 'center' }}>
+            `margin-left: auto` que manda el botón de avanzar a la derecha
+            (TESIS-132). Por la línea de base y no al centro: debajo de
+            «Siguiente» puede ir lo que falta, y centrado contra ese bloque
+            «Cancelar» quedaba a media altura del texto (TESIS-173). */}
+        <Stack direction="row" spacing={2} useFlexGap sx={{ alignItems: 'baseline' }}>
           <Button variant="text" color="neutral" startIcon={<CloseIcon />} onClick={cancel}>
             {wizard.cancel}
           </Button>
-          <Button
-            variant="contained"
-            size="large"
-            endIcon={<ArrowForwardIcon />}
-            disabled={!canProceed(isValid, items)}
+          <WizardNextButton
+            label={wizard.next(wizard.steps.shipping)}
+            gaps={gaps}
+            disabled={!canProceed(missingCustomer.length === 0, items)}
             onClick={() => void next()}
-            sx={{ ml: 'auto' }}
-          >
-            {wizard.next(wizard.steps.shipping)}
-          </Button>
+          />
         </Stack>
       </Stack>
     </PageWrapper>

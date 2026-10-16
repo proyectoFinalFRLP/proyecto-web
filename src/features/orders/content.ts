@@ -4,6 +4,10 @@
 
 import { formatInteger } from 'shared/utils'
 
+// «el nombre, el apellido y el DNI / CUIT»: la conjunción del castellano, con su
+// «e» delante de «i» y sin coma antes de la «y», sin armarla a mano.
+const MISSING_LIST = new Intl.ListFormat('es', { type: 'conjunction' })
+
 export const ordersCopy = {
   page: {
     title: 'Órdenes',
@@ -139,6 +143,12 @@ export const ordersCopy = {
       carrier: 'Operador logístico',
       /** El courier se asigna al confirmar el despacho. */
       noCarrier: 'Sin asignar',
+      /**
+       * Una orden de retiro no espera courier: «Sin asignar» decía que faltaba
+       * algo que no va a llegar nunca (TESIS-173).
+       */
+      carrierNotApplicable: 'No aplica',
+      carrierPickupNote: 'Retiro en el local',
       serviceTypeUnknown: 'Tipo de servicio sin registrar',
       delivery: 'Entrega',
       delivered: 'Entregada',
@@ -224,8 +234,20 @@ export const ordersCopy = {
       customer: 'Cliente y productos',
       shipping: 'Destino y origen',
       carrier: 'Cotizaciones',
+      /** El paso 3 de un retiro en el local: no cotiza nada, sólo confirma (TESIS-173). */
+      confirmation: 'Confirmación',
     },
     next: (stepLabel: string) => `Siguiente: ${stepLabel.toLowerCase()}`,
+    /**
+     * Lo que le falta a un paso para avanzar, debajo de «Siguiente»: el botón
+     * gris solo no decía por qué (TESIS-173). Cada paso arma la lista con sus
+     * propias frases (`draft.missing`, `shipping.missing`).
+     *
+     * "Para seguir, falta el DNI / CUIT."
+     * "Para seguir, faltan el nombre y al menos un producto."
+     */
+    missing: (gaps: string[]) =>
+      `Para seguir, ${gaps.length === 1 ? 'falta' : 'faltan'} ${MISSING_LIST.format(gaps)}.`,
   },
   /** Paso 1: cliente y productos. */
   draft: {
@@ -290,6 +312,15 @@ export const ordersCopy = {
       weight: 'Peso total estimado',
       weightHint: 'Calculado sobre el peso unitario declarado de cada SKU.',
     },
+    /** Lo que falta para avanzar, en el orden de la pantalla (`wizard.missing`). */
+    missing: {
+      firstName: 'el nombre',
+      lastName: 'el apellido',
+      document: 'el DNI / CUIT',
+      noItems: 'al menos un producto',
+      /** Una fila con la cantidad en blanco, en cero o con decimales. */
+      invalidItems: 'una cantidad válida en cada producto',
+    },
   },
   /** Paso 2: origen y destino (S06). */
   shipping: {
@@ -350,6 +381,18 @@ export const ordersCopy = {
         zipCodeFormat: 'Usá los 4 dígitos (1193) o el formato completo (C1193ABC).',
       },
     },
+    /**
+     * Lo que falta para avanzar, en el orden de la pantalla (`wizard.missing`).
+     * El código postal dice «válido» porque también falta cuando está escrito
+     * con otro formato; vacío, la frase sigue siendo cierta.
+     */
+    missing: {
+      origin: 'el depósito de origen',
+      address: 'la calle y el número',
+      city: 'la ciudad',
+      province: 'la provincia',
+      zipCode: 'un código postal válido',
+    },
     back: 'Paso anterior',
   },
   /** Paso 3: cotización y confirmación (S07). */
@@ -375,9 +418,16 @@ export const ordersCopy = {
       shipping: 'Envío',
       /** Todavía no se eligió operador: el envío no cuesta 0, falta elegirlo. */
       shippingPending: 'Elegí un operador',
+      /** Con retiro en el local no hay operador que elegir (TESIS-173). */
+      shippingPickup: 'Retiro en el local',
       weight: 'Peso estimado',
       origin: 'Sale de',
       destination: 'Va a',
+      /**
+       * Con retiro, en lugar de «Sale de» y «Va a»: nada viaja, el depósito es
+       * a donde va el cliente (TESIS-173).
+       */
+      pickupAt: 'Lo retira en',
       /** "CABA, Ciudad Autónoma de Buenos Aires · CP 1193". */
       place: (city: string, province: string, zipCode: string) =>
         `${city}, ${province} · CP ${zipCode}`,
@@ -386,6 +436,8 @@ export const ordersCopy = {
       confirm: 'Confirmar orden',
       confirming: 'Confirmando…',
       notice: 'Al confirmar se crea la orden y se emite el despacho con el operador elegido.',
+      /** Sin operador ni despacho que anunciar (TESIS-173). */
+      pickupNotice: 'Al confirmar se crea la orden. El cliente la retira en el local.',
     },
     /** "Orden #8829 creada y despachada con Andreani." */
     confirmed: (orderLabel: string, carrier: string) =>

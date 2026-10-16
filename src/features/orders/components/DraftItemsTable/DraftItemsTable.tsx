@@ -20,6 +20,9 @@ const NO_WRAP = { whiteSpace: 'nowrap' } as const
 /**
  * Las columnas de la tabla de S05 más el precio y el subtotal, que la card
  * pide y el diseño no dibuja: sin precio no hay orden que enviar.
+ *
+ * Debajo de `md` (el proyector de 800×600) se van la categoría, el peso y el
+ * precio unitario: la cantidad y el subtotal alcanzan para armar la orden.
  */
 function buildColumns(
   onQuantityChange: DraftItemsTableProps['onQuantityChange'],
@@ -44,6 +47,7 @@ function buildColumns(
       id: 'category',
       header: copy.columns.category,
       width: 130,
+      hideBelow: 'md',
       render: (item) => (
         <Typography
           variant="bodyMd"
@@ -58,6 +62,7 @@ function buildColumns(
       header: copy.columns.weight,
       align: 'right',
       width: 120,
+      hideBelow: 'md',
       render: (item) => (
         <Typography variant="dataMono" sx={NO_WRAP}>
           {formatWeight(item.weight)}
@@ -69,6 +74,7 @@ function buildColumns(
       header: copy.columns.unitPrice,
       align: 'right',
       width: 150,
+      hideBelow: 'md',
       render: (item) => (
         <Typography variant="dataMono" sx={NO_WRAP}>
           {formatMoney(item.unitPrice)}

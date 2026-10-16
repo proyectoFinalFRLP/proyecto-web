@@ -1,7 +1,7 @@
 import type { OrderDraftItem } from 'shared/store'
 import { describe, expect, it } from 'vitest'
 
-import { canProceed, draftSubtotal, draftWeight, isDraftItemValid } from './draft'
+import { canProceed, draftSubtotal, draftWeight, isDraftItemValid, itemsGap } from './draft'
 
 function item(overrides: Partial<OrderDraftItem> = {}): OrderDraftItem {
   return {
@@ -75,5 +75,20 @@ describe('canProceed', () => {
   // Una fila a medias bloquea el paso entero: el envío la rechazaría.
   it('is blocked by a single invalid line', () => {
     expect(canProceed(true, [item(), item({ productId: 2, quantity: 0 })])).toBe(false)
+  })
+})
+
+// TESIS-173: la pantalla dice cuál de las dos cosas les falta a las líneas.
+describe('itemsGap', () => {
+  it('asks for a product when there is none', () => {
+    expect(itemsGap([])).toBe('noItems')
+  })
+
+  it('points at a line that cannot be sent', () => {
+    expect(itemsGap([item(), item({ productId: 2, quantity: Number.NaN })])).toBe('invalidItems')
+  })
+
+  it('is satisfied with every line valid', () => {
+    expect(itemsGap([item(), item({ productId: 2 })])).toBeNull()
   })
 })

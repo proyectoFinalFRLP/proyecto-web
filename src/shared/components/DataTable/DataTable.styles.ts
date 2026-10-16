@@ -9,6 +9,7 @@ import {
   tableRowClasses,
 } from '@mui/material'
 import { styled } from '@mui/material/styles'
+import type { Breakpoint, CSSObject, Theme } from '@mui/material/styles'
 import type { ElementType } from 'react'
 
 import type { DataTableDensity, DataTableRowTone } from './DataTable.types'
@@ -23,7 +24,16 @@ export const COMPACT_ROW_HEIGHT = 52
 // Ancho de la columna de selección — el checkbox más su padding de 24px.
 export const SELECT_COLUMN_WIDTH = 64
 
-const TRANSIENT = new Set<string>(['tone', 'density'])
+const TRANSIENT = new Set<string>(['tone', 'density', 'hideBelow', 'pinned'])
+
+// El relleno de la fila viaja en una variable CSS y no sólo en su
+// `background-color`: la celda fijada a la derecha necesita fondo opaco (si no,
+// lo que scrollea por debajo se transparenta) y a la vez tiene que verse igual
+// que su fila —crítica, seleccionada, con hover—. La celda hereda la variable y
+// la pinta sobre el papel de la tarjeta, que es exactamente lo que se ve detrás
+// de la fila.
+const ROW_FILL = '--DataTable-rowFill'
+const rowFill = `var(${ROW_FILL})`
 
 // La tarjeta es la superficie elevada; las bandas (barra, encabezado y pie) van
 // sobre el fondo de página, más hundido. En el frame la relación está invertida
@@ -119,7 +129,26 @@ export const Scroller = styled(TableContainer, {
   }),
 }))
 
-export const HeadCell = styled(TableCell)(({ theme }) => ({
+/** Lo que una columna le pide a sus celdas: esconderse en angosto, fijarse a la derecha. */
+interface ColumnCellProps {
+  hideBelow?: Breakpoint
+  pinned?: boolean
+}
+
+// `display: none` y no desmontar: la columna se esconde por CSS, sin esperar a
+// que JS mida la pantalla, así la tabla no aparece ancha y después se achica.
+function hiddenBelow(theme: Theme, hideBelow: Breakpoint | undefined): CSSObject {
+  return hideBelow === undefined ? {} : { [theme.breakpoints.down(hideBelow)]: { display: 'none' } }
+}
+
+// Fijada contra el borde derecho del Scroller. El `zIndex` la sube sobre lo que
+// pasa por debajo: los enlaces y botones de MUI son `position: relative`, y sin
+// un orden explícito se pintarían encima de la celda fijada.
+const PINNED: CSSObject = { position: 'sticky', right: 0, zIndex: 1 }
+
+export const HeadCell = styled(TableCell, {
+  shouldForwardProp: (prop) => !TRANSIENT.has(prop as string),
+})<ColumnCellProps>(({ theme, hideBelow, pinned }) => ({
   paddingBlock: theme.spacing(1.5),
   paddingInline: theme.spacing(3),
   backgroundColor: theme.vars.palette.background.default,
@@ -130,6 +159,9 @@ export const HeadCell = styled(TableCell)(({ theme }) => ({
   letterSpacing: '0.05em',
   textTransform: 'uppercase',
   whiteSpace: 'nowrap',
+  ...hiddenBelow(theme, hideBelow),
+  // El fondo de la banda ya es opaco: fijarla alcanza.
+  ...(pinned && PINNED),
 }))
 
 interface BodyRowProps {
@@ -138,26 +170,65 @@ interface BodyRowProps {
 
 export const BodyRow = styled(TableRow, {
   shouldForwardProp: (prop) => !TRANSIENT.has(prop as string),
-})<BodyRowProps>(({ theme, tone }) => ({
-  height: ROW_HEIGHT,
-  transition: theme.transitions.create('background-color'),
-  '&:hover': { backgroundColor: theme.vars.palette.background.containerHighest },
-  // El tinte de la fila crítica tiene que sobrevivir al hover, si no la fila
-  // pierde su marca justo cuando el usuario la está por tocar.
-  ...(tone === 'critical' && {
-    backgroundColor: theme.alpha(theme.vars.palette.error.main, 0.1),
-    '&:hover': { backgroundColor: theme.alpha(theme.vars.palette.error.main, 0.16) },
-  }),
-  ...(tone === 'muted' && { opacity: 0.8 }),
-}))
+})<BodyRowProps>(({ theme, tone }) => {
+  const { primary, action } = theme.vars.palette
 
-export const BodyCell = styled(TableCell)(({ theme }) => ({
+  return {
+    height: ROW_HEIGHT,
+    transition: theme.transitions.create('background-color'),
+    [ROW_FILL]: 'transparent',
+    backgroundColor: rowFill,
+    '&:hover': { [ROW_FILL]: theme.vars.palette.background.containerHighest },
+    // El tinte de la fila crítica tiene que sobrevivir al hover, si no la fila
+    // pierde su marca justo cuando el usuario la está por tocar.
+    ...(tone === 'critical' && {
+      [ROW_FILL]: theme.alpha(theme.vars.palette.error.main, 0.1),
+      '&:hover': { [ROW_FILL]: theme.alpha(theme.vars.palette.error.main, 0.16) },
+    }),
+    ...(tone === 'muted' && { opacity: 0.8 }),
+    // La selección la pinta MUI con un `background-color` directo, que la
+    // celda fijada no vería. Se repite su tinte —mismas cuentas que
+    // `TableRow`— pero por la variable, y gana por ir después.
+    [`&.${tableRowClasses.selected}`]: {
+      [ROW_FILL]: theme.alpha(primary.main, action.selectedOpacity),
+      backgroundColor: rowFill,
+      '&:hover': {
+        [ROW_FILL]: theme.alpha(primary.main, `${action.selectedOpacity} + ${action.hoverOpacity}`),
+        backgroundColor: rowFill,
+      },
+    },
+  }
+})
+
+export const BodyCell = styled(TableCell, {
+  shouldForwardProp: (prop) => !TRANSIENT.has(prop as string),
+})<ColumnCellProps>(({ theme, hideBelow, pinned }) => ({
   paddingBlock: theme.spacing(2),
   paddingInline: theme.spacing(3),
   borderBottom: `1px solid ${theme.vars.palette.divider}`,
   color: theme.vars.palette.text.primary,
   fontSize: 14,
+  ...hiddenBelow(theme, hideBelow),
+  // Opaca: el papel de la tarjeta y, encima, el relleno de su fila. Con el
+  // fondo transparente de las demás celdas, lo que scrollea por debajo se leería
+  // a través de los botones.
+  ...(pinned && {
+    ...PINNED,
+    backgroundColor: theme.vars.palette.background.paper,
+    backgroundImage: `linear-gradient(${rowFill}, ${rowFill})`,
+  }),
 }))
+
+// Contenido de una columna `truncate`. Con `width: 0` no aporta ancho al cálculo
+// de la tabla —que reparte las columnas según su contenido— y con
+// `min-width: 100%` igual ocupa la celda que le quedó. Es el truco conocido para
+// que una elipsis funcione adentro de una tabla de layout automático: sin esto
+// un texto en una sola línea estira la columna hasta su largo entero.
+export const TruncatedContent = styled(Box)({
+  width: 0,
+  minWidth: '100%',
+  overflow: 'hidden',
+})
 
 // Celda de selección: ancho fijo y sin el padding lateral del resto, para que
 // el checkbox quede alineado con el del encabezado.

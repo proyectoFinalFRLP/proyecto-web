@@ -30,23 +30,40 @@ export interface OrderContextCardProps {
  * «Lifecycle Status» que pide la card.
  *
  * Presentacional: la página es dueña del formulario (React Hook Form).
+ *
+ * Cliente y documento llevan la marca de obligatorio, como en el alta: el
+ * domicilio de esta misma pantalla la lleva desde TESIS-173 (es el mismo
+ * `DestinationFieldsCard`), y con la mitad de los campos marcados la otra mitad
+ * parecía opcional. Una orden que ya no se edita no marca nada.
  */
 export function OrderContextCard({ register, control, errors, readOnly }: OrderContextCardProps) {
+  const required = !readOnly
+
   return (
     <FormSection icon={<BadgeOutlinedIcon aria-hidden />} title={copy.title}>
       <FormFieldsGrid>
-        <LabeledField label={copy.fields.customerName} error={errors.customerName?.message}>
+        <LabeledField
+          label={copy.fields.customerName}
+          error={errors.customerName?.message}
+          required={required}
+        >
           <TextField
             {...register('customerName')}
+            required={required}
             error={errors.customerName !== undefined}
             disabled={readOnly}
             fullWidth
           />
         </LabeledField>
 
-        <LabeledField label={copy.fields.customerDocument} error={errors.customerDocument?.message}>
+        <LabeledField
+          label={copy.fields.customerDocument}
+          error={errors.customerDocument?.message}
+          required={required}
+        >
           <TextField
             {...register('customerDocument')}
+            required={required}
             error={errors.customerDocument !== undefined}
             disabled={readOnly}
             slotProps={MONO_INPUT}
