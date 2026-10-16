@@ -15,9 +15,9 @@ import type { ChartFrame } from './chart'
 const FRAME: ChartFrame = { width: 100, height: 60, inset: 5 }
 
 describe('niceCeiling', () => {
-  it('rounds the maximum up to the next 1, 2, 4 or 10 of its magnitude', () => {
+  it('covers the maximum with four round steps of its magnitude', () => {
     expect(niceCeiling([2400, 9400])).toBe(10_000)
-    expect(niceCeiling([380_000, 740_000])).toBe(1_000_000)
+    expect(niceCeiling([380_000, 740_000])).toBe(800_000)
     expect(niceCeiling([15])).toBe(20)
     expect(niceCeiling([30])).toBe(40)
   })
@@ -27,10 +27,31 @@ describe('niceCeiling', () => {
     expect(niceCeiling([200])).toBe(200)
   })
 
-  // Sin magnitud de la que partir el eje se dibuja igual, de 0 a 10.
+  // TESIS-183: con un techo de 10 los ticks eran 2,5 y 7,5, y el eje los
+  // mostraba redondeados como «3» y «8». Una serie de órdenes se cuenta de a
+  // una: 7 órdenes van de 0 a 8, de a 2.
+  it('gives a small count whole steps', () => {
+    expect(niceCeiling([1, 7, 2])).toBe(8)
+    expect(axisTicks(niceCeiling([1, 7, 2]))).toEqual([8, 6, 4, 2, 0])
+  })
+
+  it('never puts a fraction on a tick', () => {
+    const maxima = [1, 3, 7, 9, 10, 11, 23, 99, 101, 950, 2_400, 9_400, 74_000, 740_000]
+    const ticks = maxima.flatMap((max) => axisTicks(niceCeiling([max])))
+
+    expect(ticks.every((tick) => Number.isInteger(tick))).toBe(true)
+  })
+
+  it('always reaches the maximum', () => {
+    for (const max of [1, 3, 7, 9, 10, 11, 23, 99, 101, 950, 9_400, 740_000]) {
+      expect(niceCeiling([max])).toBeGreaterThanOrEqual(max)
+    }
+  })
+
+  // Sin magnitud de la que partir el eje se dibuja igual, de 0 a 4 de a uno.
   it('falls back to a fixed axis for an empty or all-zero series', () => {
-    expect(niceCeiling([])).toBe(10)
-    expect(niceCeiling([0, 0])).toBe(10)
+    expect(niceCeiling([])).toBe(4)
+    expect(niceCeiling([0, 0])).toBe(4)
   })
 })
 
@@ -98,6 +119,34 @@ describe('linePath', () => {
     // Cada tramo `C` termina exactamente en el punto que le toca.
     expect(path).toMatch(/ 50,10 C/)
     expect(path.endsWith(' 100,30')).toBe(true)
+  })
+
+  // TESIS-183: la curva anterior bajaba del piso en un día sin órdenes entre
+  // dos con ventas, y subía más que el pico. Los puntos de control de cada
+  // tramo tienen que quedar entre sus dos extremos.
+  it('never goes past the values it joins', () => {
+    const points = plotPoints([1, 0, 1, 0, 7, 2, 7], 8, FRAME)
+    const ys = linePath(points)
+      .replace(/^M/, '')
+      .split(/[ C]+/)
+      .filter(Boolean)
+      .map((pair) => Number(pair.split(',')[1]))
+    const floor = plotPoints([0], 8, FRAME)[0].y
+    const peak = plotPoints([7], 8, FRAME)[0].y
+
+    expect(Math.max(...ys)).toBeLessThanOrEqual(floor)
+    expect(Math.min(...ys)).toBeGreaterThanOrEqual(peak)
+  })
+
+  it('stays flat on a day with no orders between two with sales', () => {
+    const path = linePath([
+      { x: 0, y: 10 },
+      { x: 10, y: 50 },
+      { x: 20, y: 10 },
+    ])
+
+    // Los dos controles que rodean el valle quedan a la altura del valle.
+    expect(path).toMatch(/ 6\.7,50 10,50 C13\.3,50 /)
   })
 
   it('draws one cubic segment per pair of consecutive points', () => {
