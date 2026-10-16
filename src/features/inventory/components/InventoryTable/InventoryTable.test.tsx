@@ -14,6 +14,7 @@ function product(overrides: Partial<ProductSummary> = {}): ProductSummary {
     category: 'Electronics',
     totalStock: 2710,
     stockStatus: 'available',
+    lowStockThreshold: 100,
     inTransitQuantity: 0,
     primaryWarehouse: { id: 1, name: 'CD Ezeiza', quantity: 2710 },
     warehouseCount: 1,

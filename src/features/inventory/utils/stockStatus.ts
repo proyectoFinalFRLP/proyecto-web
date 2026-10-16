@@ -12,6 +12,14 @@ import type { StockStatus } from '../types'
 // Son mapas explícitos y no un `switch` con default: si el backend suma un
 // estado, el compilador marca este archivo en vez de pintarlo en gris.
 
+/**
+ * El umbral con el que nace un producto si no se le carga otro: el default de
+ * `products.low_stock_threshold` en la API (TESIS-182). El front no decide el
+ * estado con él; sólo lo usa para precargar el alta y para leer una API que
+ * todavía no manda el campo.
+ */
+export const DEFAULT_LOW_STOCK_THRESHOLD = 100
+
 const VARIANTS: Record<StockStatus, StatusVariant> = {
   available: 'success',
   low: 'warning',

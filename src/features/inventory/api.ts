@@ -14,6 +14,7 @@ import type {
   UpdateProductPayload,
   Warehouse,
 } from './types'
+import { DEFAULT_LOW_STOCK_THRESHOLD } from './utils/stockStatus'
 
 // Frontera con la API Rails. Todo lo que entra en snake_case se traduce acá y
 // sale como el dominio en camelCase; ningún componente ve la forma cruda.
@@ -54,6 +55,8 @@ interface ApiProductSummary {
   in_transit_quantity: number
   primary_warehouse: { id: number; name: string; quantity: number } | null
   warehouse_count: number
+  /** Opcional: una API anterior a TESIS-182 no lo manda. */
+  low_stock_threshold?: number
 }
 
 interface ApiProduct {
@@ -70,6 +73,8 @@ interface ApiProduct {
   stock_status: StockStatus
   in_transit_quantity: number
   in_transit_by_warehouse: { warehouse_id: number; name: string; quantity: number }[]
+  /** Opcional: una API anterior a TESIS-182 no lo manda. */
+  low_stock_threshold?: number
   updated_at: string
   committed_quantity: number
   on_hand_quantity: number
@@ -119,6 +124,7 @@ function toProduct(product: ApiProduct, version: string | null = null): Product 
     dimensions: product.dimensions,
     totalStock: product.total_stock,
     stockStatus: product.stock_status,
+    lowStockThreshold: product.low_stock_threshold ?? DEFAULT_LOW_STOCK_THRESHOLD,
     inTransitQuantity: product.in_transit_quantity,
     inTransitByWarehouse: (product.in_transit_by_warehouse ?? []).map((transit) => ({
       warehouseId: transit.warehouse_id,
@@ -157,6 +163,7 @@ function toSummary(product: ApiProductSummary): ProductSummary {
     inTransitQuantity: product.in_transit_quantity,
     primaryWarehouse: product.primary_warehouse,
     warehouseCount: product.warehouse_count,
+    lowStockThreshold: product.low_stock_threshold ?? DEFAULT_LOW_STOCK_THRESHOLD,
   }
 }
 
