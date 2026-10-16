@@ -42,13 +42,15 @@ function buildColumns(onView: (order: OrderSummary) => void): DataTableColumn<Or
           // caía en la monoespaciada del sistema.
           sx={{ typography: 'dataMono', textAlign: 'left' }}
         >
-          {formatOrderId(order.externalOrderId, order.id)}
+          {formatOrderId(order.externalOrderId, order.id, order.externalOrderNumber)}
         </Link>
       ),
     },
     {
       id: 'date',
       header: columnCopy.date,
+      sortKey: 'created_at',
+      firstSortDirection: 'desc',
       width: 124,
       hideBelow: 'md',
       render: (order) => (
@@ -61,6 +63,7 @@ function buildColumns(onView: (order: OrderSummary) => void): DataTableColumn<Or
     {
       id: 'destination',
       header: columnCopy.destination,
+      sortKey: 'destination',
       // Una dirección larga en una sola línea estiraba la columna hasta su
       // largo entero; recortada, la columna toma lo que dejan las demás.
       truncate: true,
@@ -76,6 +79,7 @@ function buildColumns(onView: (order: OrderSummary) => void): DataTableColumn<Or
     {
       id: 'status',
       header: columnCopy.status,
+      sortKey: 'status',
       width: 128,
       render: (order) => (
         <StatusBadge status={statusVariant(order.status)} label={statusLabel(order.status)} />
@@ -84,6 +88,7 @@ function buildColumns(onView: (order: OrderSummary) => void): DataTableColumn<Or
     {
       id: 'carrier',
       header: columnCopy.carrier,
+      sortKey: 'courier',
       width: 170,
       hideBelow: 'md',
       render: (order) => <CarrierCell carrier={order.carrier} pickup={!order.requiresShipping} />,
@@ -91,6 +96,8 @@ function buildColumns(onView: (order: OrderSummary) => void): DataTableColumn<Or
     {
       id: 'total',
       header: columnCopy.total,
+      sortKey: 'total',
+      firstSortDirection: 'desc',
       align: 'right',
       width: 140,
       render: (order) => (
@@ -119,6 +126,8 @@ export function OrdersTable({
   activeTabId,
   onTabChange,
   pagination,
+  sort,
+  onSortChange,
   onView,
   onEdit,
 }: OrdersTableProps) {
@@ -150,8 +159,12 @@ export function OrdersTable({
       actions={actions}
       actionsHeader={columnCopy.actions}
       getActionsLabel={(order) =>
-        actionCopy.menuFor(formatOrderId(order.externalOrderId, order.id))
+        actionCopy.menuFor(
+          formatOrderId(order.externalOrderId, order.id, order.externalOrderNumber),
+        )
       }
+      sort={sort}
+      onSortChange={onSortChange}
       pagination={pagination}
       paginationLabels={{
         previousLabel: ordersCopy.pagination.previous,

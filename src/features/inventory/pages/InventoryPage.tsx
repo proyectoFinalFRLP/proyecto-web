@@ -4,8 +4,9 @@ import { Box, Button, InputAdornment, Stack, TextField, Typography } from '@mui/
 import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { ErrorFallback, LoadingSpinner, PageWrapper } from 'shared/components'
-import type { DataTableTab } from 'shared/components'
+import type { DataTableSort, DataTableTab } from 'shared/components'
 import { useDebouncedValue } from 'shared/hooks/useDebouncedValue'
+import { useSortParam } from 'shared/hooks/useSortParam'
 import { notify } from 'shared/store'
 import { formatInteger } from 'shared/utils'
 
@@ -25,6 +26,7 @@ import {
 } from '../hooks/useInventory'
 import type { CatalogTabId } from '../hooks/useInventory'
 import type { ProductSummary } from '../types'
+import { PRODUCT_SORT_KEYS } from '../utils/sort'
 
 const { page, createModal, tabs: tabCopy, pagination } = inventoryCopy
 
@@ -67,6 +69,7 @@ export function InventoryPage() {
   const tabId = tabFromParams(searchParams)
   const [pageNumber, setPageNumber] = useState(1)
   const [search, setSearch] = useState('')
+  const [sort, setSort] = useSortParam(PRODUCT_SORT_KEYS)
   const [creating, setCreating] = useState(false)
   const [removing, setRemoving] = useState<ProductSummary | undefined>(undefined)
 
@@ -80,6 +83,7 @@ export function InventoryPage() {
     perPage: PER_PAGE,
     status,
     search: debouncedSearch,
+    sort,
   })
   const counts = useProductCounts(debouncedSearch)
   const warehouses = useWarehouses()
@@ -107,6 +111,12 @@ export function InventoryPage() {
 
   function changeSearch(value: string) {
     setSearch(value)
+    setPageNumber(1)
+  }
+
+  // Mismo criterio para el orden (TESIS-184).
+  function changeSort(next: DataTableSort) {
+    setSort(next)
     setPageNumber(1)
   }
 
@@ -219,6 +229,8 @@ export function InventoryPage() {
         tabs={tabs}
         activeTabId={tabId}
         onTabChange={changeTab}
+        sort={sort}
+        onSortChange={changeSort}
         pagination={{
           page: pageNumber,
           pageCount,

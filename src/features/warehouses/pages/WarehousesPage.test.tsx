@@ -1,4 +1,5 @@
 import { fireEvent, screen, within } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { renderWithTheme } from '../../../test/renderWithTheme'
@@ -15,6 +16,15 @@ import type { Warehouse } from '../types'
 import { WarehousesPage } from './WarehousesPage'
 
 vi.mock('../hooks/useProvinces', () => ({ useProvinces: vi.fn() }))
+
+// La página lee el orden de la URL (TESIS-184): necesita un router.
+function renderPage(url = '/') {
+  return renderWithTheme(
+    <MemoryRouter initialEntries={[url]}>
+      <WarehousesPage />
+    </MemoryRouter>,
+  )
+}
 
 vi.mock('../hooks/useWarehouses', async (importOriginal) => ({
   ...(await importOriginal<typeof warehouseHooks>()),
@@ -86,7 +96,7 @@ function openRowAction(name: string, action: string) {
 
 describe('WarehousesPage', () => {
   it('lists the warehouses with their address, postal code and units', () => {
-    renderWithTheme(<WarehousesPage />)
+    renderPage()
 
     expect(
       row('Depósito Central').getByText('Av. 7 N° 1234, La Plata, Buenos Aires'),
@@ -97,13 +107,13 @@ describe('WarehousesPage', () => {
 
   // TESIS-185: un depósito anterior no tiene localidad ni provincia.
   it('shows only the address of a warehouse with no city or province', () => {
-    renderWithTheme(<WarehousesPage />)
+    renderPage()
 
     expect(row('Depósito Satélite').getByText('Calle 25 N° 456')).toBeInTheDocument()
   })
 
   it('opens the creation form', () => {
-    renderWithTheme(<WarehousesPage />)
+    renderPage()
 
     fireEvent.click(screen.getByRole('button', { name: 'Nuevo depósito' }))
 
@@ -111,7 +121,7 @@ describe('WarehousesPage', () => {
   })
 
   it('opens the edition of a row with its data', () => {
-    renderWithTheme(<WarehousesPage />)
+    renderPage()
 
     openRowAction('Depósito Satélite', 'Editar')
 
@@ -121,7 +131,7 @@ describe('WarehousesPage', () => {
   it('asks before deleting and then deletes', () => {
     const mutate = vi.fn()
     vi.mocked(useDeleteWarehouse).mockReturnValue(idleMutation({ mutate }) as never)
-    renderWithTheme(<WarehousesPage />)
+    renderPage()
 
     openRowAction('Depósito Satélite', 'Eliminar')
     fireEvent.click(
@@ -139,7 +149,7 @@ describe('WarehousesPage', () => {
         error: { status: 409, message: 'Cannot delete warehouse with existing stock' },
       }) as never,
     )
-    renderWithTheme(<WarehousesPage />)
+    renderPage()
 
     openRowAction('Depósito Central', 'Eliminar')
     const dialog = within(screen.getByRole('alertdialog'))
@@ -154,7 +164,7 @@ describe('WarehousesPage', () => {
       isPending: false,
       isError: false,
     } as never)
-    renderWithTheme(<WarehousesPage />)
+    renderPage()
 
     expect(screen.getByText(/Todavía no hay depósitos/)).toBeInTheDocument()
   })

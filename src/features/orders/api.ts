@@ -1,5 +1,6 @@
 import { client } from 'shared/api/client'
 import { fetchCount } from 'shared/api/count'
+import { sortParams } from 'shared/utils'
 
 import type {
   CatalogProduct,
@@ -45,6 +46,8 @@ interface ApiCourier {
 interface ApiOrderSummary {
   id: number
   external_order_id: string | null
+  /** Opcional: una API anterior a TESIS-180 no lo manda. */
+  external_order_number?: string | null
   customer_name: string
   customer_address: string | null
   customer_zip_code: string | null
@@ -90,6 +93,8 @@ interface ApiOrderItem {
 interface ApiOrderDetail {
   id: number
   external_order_id: string | null
+  /** Opcional: una API anterior a TESIS-180 no lo manda. */
+  external_order_number?: string | null
   customer_name: string
   customer_document: string | null
   /** Opcionales: una API anterior a TESIS-179 no los manda. */
@@ -154,6 +159,7 @@ function toOrder(order: ApiOrderSummary): OrderSummary {
   return {
     id: order.id,
     externalOrderId: order.external_order_id,
+    externalOrderNumber: order.external_order_number ?? null,
     customerName: order.customer_name,
     customerAddress: order.customer_address,
     customerZipCode: order.customer_zip_code,
@@ -181,8 +187,8 @@ function toFilters({ status, search }: Pick<OrderFilters, 'status' | 'search'>) 
   }
 }
 
-function toParams({ page, perPage, status, search }: OrderFilters) {
-  return { page, per_page: perPage, ...toFilters({ status, search }) }
+function toParams({ page, perPage, status, search, sort }: OrderFilters) {
+  return { page, per_page: perPage, ...toFilters({ status, search }), ...sortParams(sort) }
 }
 
 export async function fetchOrderPage(filters: OrderFilters): Promise<OrderPage> {
@@ -200,6 +206,7 @@ function toOrderDetail(data: ApiOrderDetail, version: string | null): OrderDetai
   return {
     id: data.id,
     externalOrderId: data.external_order_id,
+    externalOrderNumber: data.external_order_number ?? null,
     customerName: data.customer_name,
     customerDocument: data.customer_document,
     customerEmail: data.customer_email ?? null,

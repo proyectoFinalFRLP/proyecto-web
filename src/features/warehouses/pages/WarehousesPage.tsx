@@ -5,6 +5,7 @@ import { Box, Button, Stack, Typography } from '@mui/material'
 import { useState } from 'react'
 import { DataTable, ErrorFallback, LoadingSpinner, PageWrapper } from 'shared/components'
 import type { DataTableAction, DataTableColumn } from 'shared/components'
+import { useSortParam } from 'shared/hooks/useSortParam'
 import { notify } from 'shared/store'
 import { formatInteger } from 'shared/utils'
 
@@ -26,19 +27,22 @@ import { formatLocation } from '../utils/location'
 const { page, columns, actions: actionCopy, form } = warehousesCopy
 
 const COLUMNS: DataTableColumn<Warehouse>[] = [
-  { id: 'name', header: columns.name, render: (warehouse) => warehouse.name },
+  { id: 'name', header: columns.name, sortKey: 'name', render: (warehouse) => warehouse.name },
   // Dirección, localidad y provincia en una sola columna (TESIS-185): es una
   // sola respuesta a «dónde queda», y tres columnas angostas no entran a 800 px.
   { id: 'address', header: columns.address, render: formatLocation },
   {
     id: 'zipCode',
     header: columns.zipCode,
+    sortKey: 'zip_code',
     width: 140,
     render: (warehouse) => warehouse.zipCode,
   },
   {
     id: 'storedUnits',
     header: columns.storedUnits,
+    sortKey: 'stored_units',
+    firstSortDirection: 'desc',
     align: 'right',
     width: 180,
     render: (warehouse) => formatInteger(warehouse.storedUnits),
@@ -55,8 +59,12 @@ type FormState = { mode: 'closed' } | { mode: 'create' } | { mode: 'edit'; wareh
  * No tiene maqueta en `docs/design/`: se arma con la tabla, el modal y el
  * diálogo de confirmación del DS, con la cabecera de las demás pantallas.
  */
+/** Las claves por las que la API ordena los depósitos (`WarehousesController::SORTS`). */
+const SORT_KEYS = ['name', 'zip_code', 'stored_units']
+
 export function WarehousesPage() {
-  const warehouses = useWarehouseList()
+  const [sort, setSort] = useSortParam(SORT_KEYS)
+  const warehouses = useWarehouseList(sort)
   const createMutation = useCreateWarehouse()
   const updateMutation = useUpdateWarehouse()
   const deleteMutation = useDeleteWarehouse()
@@ -163,6 +171,8 @@ export function WarehousesPage() {
         actions={rowActions}
         actionsHeader={actionCopy.header}
         getActionsLabel={(warehouse) => actionCopy.menuFor(warehouse.name)}
+        sort={sort}
+        onSortChange={setSort}
         emptyMessage={page.empty}
         footer={page.footer(warehouses.data.length)}
       />

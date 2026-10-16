@@ -18,6 +18,7 @@ interface ApiActivityEntry {
   order_id?: number
   customer_name?: string
   external_order_id?: string | null
+  external_order_number?: string | null
   total_amount?: number | null
   shipment_id?: number
   tracking_number?: string | null
@@ -41,6 +42,8 @@ export interface ActivityEntry {
   customerName: string | null
   /** Null en una venta cargada a mano: es lo que la distingue de una de canal. */
   externalOrderId: string | null
+  /** El número que muestra la tienda (TESIS-180), que se prefiere al id del canal. */
+  externalOrderNumber: string | null
   shipmentId: number | null
   trackingNumber: string | null
   courier: string | null
@@ -56,6 +59,7 @@ function toEntry(entry: ApiActivityEntry): ActivityEntry {
     orderId: entry.order_id ?? null,
     customerName: entry.customer_name ?? null,
     externalOrderId: entry.external_order_id ?? null,
+    externalOrderNumber: entry.external_order_number ?? null,
     shipmentId: entry.shipment_id ?? null,
     trackingNumber: entry.tracking_number ?? null,
     courier: entry.courier ?? null,

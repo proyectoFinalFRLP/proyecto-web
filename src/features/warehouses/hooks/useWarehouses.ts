@@ -1,5 +1,6 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { ApiRequestError } from 'shared/api/types'
+import type { DataTableSort } from 'shared/components'
 
 import { createWarehouse, deleteWarehouse, fetchWarehouses, updateWarehouse } from '../api'
 import { warehouseKeys } from '../queryKeys'
@@ -8,10 +9,13 @@ import type { Warehouse, WarehouseInput } from '../types'
 /** Status con el que la API rechaza borrar un depósito con historia. */
 export const RESTRICTED_STATUS = 409
 
-export function useWarehouseList() {
+export function useWarehouseList(sort: DataTableSort | null = null) {
   return useQuery<Warehouse[]>({
-    queryKey: warehouseKeys.list(),
-    queryFn: fetchWarehouses,
+    queryKey: warehouseKeys.list(sort),
+    queryFn: () => fetchWarehouses(sort),
+    // Al cambiar el orden, la tabla sigue mostrando el anterior hasta que
+    // llega el nuevo, en vez de caer al spinner de carga.
+    placeholderData: keepPreviousData,
   })
 }
 

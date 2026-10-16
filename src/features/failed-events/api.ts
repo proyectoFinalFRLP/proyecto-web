@@ -1,4 +1,5 @@
 import { client } from 'shared/api/client'
+import { sortParams } from 'shared/utils'
 
 import type {
   FailedEvent,
@@ -46,8 +47,13 @@ function toFailedEvent(event: ApiFailedEvent): FailedEvent {
 
 // Sin estado no viaja `status=`: la API ignora un estado desconocido, pero uno
 // vacío no es "todos" por contrato, es por casualidad.
-function toParams({ page, perPage, status }: FailedEventFilters) {
-  return { page, per_page: perPage, ...(status === undefined ? {} : { status }) }
+function toParams({ page, perPage, status, sort }: FailedEventFilters) {
+  return {
+    page,
+    per_page: perPage,
+    ...(status === undefined ? {} : { status }),
+    ...sortParams(sort),
+  }
 }
 
 export async function fetchFailedEventPage(filters: FailedEventFilters): Promise<FailedEventPage> {

@@ -1,3 +1,5 @@
+import type { DataTableSort } from 'shared/components'
+
 // Tipos del dominio de envíos. Espejo de `GET /api/v1/shipments`, ya en
 // camelCase: ningún componente ve la forma cruda de Rails.
 
@@ -26,6 +28,8 @@ export interface ShipmentSummary {
    * ventas manuales: ahí se muestra el id interno, igual que en órdenes.
    */
   externalOrderId: string | null
+  /** El número que muestra la tienda (TESIS-180): «#1001» en Shopify. */
+  externalOrderNumber: string | null
   status: ShipmentStatus
   trackingNumber: string | null
   shippingCost: number | null
@@ -50,6 +54,8 @@ export interface ShipmentFilters {
   orderId?: number
   /** Número de seguimiento o id del canal. Vacío es «sin buscar». */
   search?: string
+  /** Orden por columna (TESIS-184). Sin orden, el de siempre: los más nuevos primero. */
+  sort?: DataTableSort | null
 }
 
 /**
