@@ -250,10 +250,10 @@ export interface UpdateOrderPayload {
      * las órdenes de webhook no traen ciudad ni provincia, y mandarlas vacías
      * haría que la API las rechace.
      */
-    customer_address?: string
-    customer_city?: string
-    customer_province?: string
-    customer_zip_code?: string
+    customer_address?: string | null
+    customer_city?: string | null
+    customer_province?: string | null
+    customer_zip_code?: string | null
     status: EditableOrderStatus
     items?: (
       | { id: number; quantity: number }
