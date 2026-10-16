@@ -23,6 +23,7 @@ function product(overrides: Partial<Product> = {}): Product {
     inTransit: 0,
     totalStock: 10,
     stockStatus: 'low',
+    lowStockThreshold: 100,
     inTransitQuantity: 0,
     inTransitByWarehouse: [],
     committedByWarehouse: [],
@@ -286,6 +287,44 @@ describe('EditProductModal', () => {
       await choose('Sin categoría')
 
       expect(await submittedCategory(props)).toBeNull()
+    })
+  })
+  // TESIS-182: cada producto tiene su umbral de stock bajo.
+  describe('low stock threshold', () => {
+    const thresholdInput = () => screen.getByRole('spinbutton', { name: /^Stock mínimo/ })
+
+    it('opens with the threshold of the product, also from «Editar stock»', () => {
+      renderWithTheme(
+        <EditProductModal
+          open
+          scope="stock"
+          warehouses={[]}
+          product={product({ lowStockThreshold: 25 })}
+          onSubmit={vi.fn()}
+          onClose={vi.fn()}
+        />,
+      )
+
+      expect(thresholdInput()).toHaveValue(25)
+    })
+
+    it('sends the threshold the user typed', async () => {
+      const { props } = renderModal(product({ lowStockThreshold: 100 }))
+      fireEvent.change(thresholdInput(), { target: { value: '20' } })
+      fireEvent.click(screen.getByRole('button', { name: 'Guardar cambios' }))
+
+      await waitFor(() => expect(props.onSubmit).toHaveBeenCalled())
+      const body = props.onSubmit.mock.calls[0]?.[0] as { product: { low_stock_threshold: number } }
+      expect(body.product.low_stock_threshold).toBe(20)
+    })
+
+    it('does not take a fraction of a unit', async () => {
+      const { props } = renderModal(product())
+      fireEvent.change(thresholdInput(), { target: { value: '2.5' } })
+      fireEvent.click(screen.getByRole('button', { name: 'Guardar cambios' }))
+
+      expect(await screen.findByText('El stock mínimo debe ser un número entero')).toBeVisible()
+      expect(props.onSubmit).not.toHaveBeenCalled()
     })
   })
 })

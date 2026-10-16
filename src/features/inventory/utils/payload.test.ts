@@ -15,6 +15,7 @@ function createForm(overrides: Partial<CreateProductFormData> = {}): CreateProdu
     length: 45,
     width: 30,
     height: 20,
+    lowStockThreshold: 100,
     stocks: [{ warehouseId: 1, quantity: 10 }],
     ...overrides,
   }
@@ -28,6 +29,7 @@ function editForm(overrides: Partial<EditProductFormData> = {}): EditProductForm
     length: 45,
     width: 30,
     height: 20,
+    lowStockThreshold: 100,
     stocks: [
       {
         warehouseId: 1,
@@ -57,6 +59,7 @@ function product(overrides: Partial<Product> = {}): Product {
     inTransit: 0,
     totalStock: 10,
     stockStatus: 'low',
+    lowStockThreshold: 100,
     inTransitQuantity: 0,
     inTransitByWarehouse: [],
     committedByWarehouse: [],
@@ -92,6 +95,7 @@ describe('buildCreatePayload', () => {
         category: null,
         weight: 12.4,
         dimensions: '45x30x20',
+        low_stock_threshold: 100,
         stocks: [{ warehouse_id: 1, quantity: 10 }],
       },
     })
@@ -128,6 +132,7 @@ describe('buildUpdatePayload', () => {
         category: 'Cabling',
         weight: 12.4,
         dimensions: '45x30x20',
+        low_stock_threshold: 100,
         stocks: [{ warehouse_id: 1, quantity: 10 }],
       },
     })

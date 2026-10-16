@@ -33,6 +33,7 @@ function product(overrides: Partial<Product> = {}): Product {
     stocks: [],
     totalStock: 0,
     stockStatus: 'out_of_stock',
+    lowStockThreshold: 100,
     inTransitQuantity: 0,
     inTransitByWarehouse: [],
     committedByWarehouse: [],

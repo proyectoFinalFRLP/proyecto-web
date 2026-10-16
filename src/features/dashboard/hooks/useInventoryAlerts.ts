@@ -34,8 +34,8 @@ export interface InventoryOverview {
  * alerta de stock y cuánto guarda cada depósito.
  *
  * El conteo sale de los estados de stock del backend y no de sumar los stocks
- * en el cliente, aunque la card describa un `.reduce()`: el umbral vive en
- * `Product::LOW_STOCK_THRESHOLD` y las pestañas del catálogo filtran por ese
+ * en el cliente, aunque la card describa un `.reduce()`: el umbral es de cada
+ * producto en la API (TESIS-182) y las pestañas del catálogo filtran por ese
  * mismo criterio. Calcularlo acá con una regla propia haría que la tarjeta y
  * las pestañas a las que lleva mostraran números distintos del mismo hecho.
  * De paso, contar en el cliente exigiría traer el catálogo entero, y el

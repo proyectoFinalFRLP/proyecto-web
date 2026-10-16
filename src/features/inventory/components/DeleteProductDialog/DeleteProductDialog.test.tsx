@@ -13,6 +13,7 @@ const PRODUCT: ProductSummary = {
   category: 'Cabling',
   totalStock: 10,
   stockStatus: 'low',
+  lowStockThreshold: 100,
   inTransitQuantity: 0,
   primaryWarehouse: { id: 1, name: 'CD Ezeiza', quantity: 10 },
   warehouseCount: 1,

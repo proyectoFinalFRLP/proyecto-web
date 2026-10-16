@@ -157,3 +157,12 @@ export const AddWarehouseButton = styled(Button)(({ theme }) => ({
     backgroundColor: `color-mix(in srgb, ${theme.vars.palette.primary.main} 20%, transparent)`,
   },
 }))
+
+/**
+ * El stock mínimo (TESIS-182) va arriba de las filas de depósitos: es un número
+ * del producto, no de un depósito. Ancho acotado para que no se lea como una
+ * fila más.
+ */
+export const ThresholdField = styled(Box)({
+  maxWidth: 280,
+})

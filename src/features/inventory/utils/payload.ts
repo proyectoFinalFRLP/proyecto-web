@@ -34,6 +34,7 @@ export function buildCreatePayload(data: CreateProductFormData): CreateProductPa
         width: data.width,
         height: data.height,
       }),
+      low_stock_threshold: data.lowStockThreshold,
       stocks: data.stocks.map((stock) => ({
         warehouse_id: stock.warehouseId,
         quantity: stock.quantity,
@@ -84,6 +85,7 @@ export function buildUpdatePayload(
       category: categoryOf(data.category),
       weight: data.weight,
       dimensions,
+      low_stock_threshold: data.lowStockThreshold,
       stocks: [
         ...data.stocks.map((stock) => ({
           warehouse_id: stock.warehouseId,

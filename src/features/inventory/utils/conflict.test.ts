@@ -40,6 +40,7 @@ function product(overrides: Partial<Product> = {}): Product {
     inTransit: 0,
     totalStock: 10,
     stockStatus: 'low',
+    lowStockThreshold: 100,
     inTransitQuantity: 0,
     inTransitByWarehouse: [],
     committedByWarehouse: [],
