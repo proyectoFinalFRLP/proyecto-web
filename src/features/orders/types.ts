@@ -77,6 +77,9 @@ export interface OrderDetail {
   externalOrderId: string | null
   customerName: string
   customerDocument: string | null
+  /** Contacto del comprador (TESIS-179). `null` si el canal no lo mandó o la orden es anterior. */
+  customerEmail: string | null
+  customerPhone: string | null
   customerAddress: string | null
   customerZipCode: string | null
   /** Ciudad y provincia del destino (TESIS-128). `null` en las órdenes anteriores y las de webhook. */
