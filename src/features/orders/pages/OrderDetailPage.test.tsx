@@ -20,6 +20,11 @@ vi.mock('../hooks/useCreateOrderShipment', () => ({
   useCreateOrderShipment: vi.fn(),
 }))
 
+// La descarga de la etiqueta tiene sus propios tests (ShippingLabelField).
+vi.mock('../hooks/useShipmentLabel', () => ({
+  useShipmentLabel: () => ({ print: vi.fn(), printing: false }),
+}))
+
 vi.mock('shared/store', async (importOriginal) => ({
   ...(await importOriginal<typeof sharedStore>()),
   notify: vi.fn(),
@@ -87,6 +92,8 @@ const SHIPMENT: Shipment = {
   shippingCost: 58300,
   courier: { id: 4, serviceId: 7, name: 'Andreani' },
   labelUrl: null,
+  labelAvailable: false,
+  externalReference: null,
   events: [],
 }
 
@@ -319,6 +326,28 @@ describe('OrderDetailPage', () => {
     renderAt('/orders/8829')
 
     expect(screen.getByText('Datos del envío')).toBeInTheDocument()
+  })
+
+  // OCA nombra el despacho con su orden de retiro (TESIS-186).
+  it('shows the pickup order the courier returned', () => {
+    mockQueries(
+      { data: ORDER },
+      { data: { kind: 'single', shipment: { ...SHIPMENT, externalReference: '0012345678' } } },
+    )
+
+    renderAt('/orders/8829')
+
+    expect(screen.getByText('Orden de retiro')).toBeInTheDocument()
+    expect(screen.getByText('0012345678')).toBeInTheDocument()
+  })
+
+  // Un courier que no la tiene no la «perdió»: la fila no se muestra.
+  it('leaves out the pickup order when the courier has none', () => {
+    mockQueries({ data: ORDER })
+
+    renderAt('/orders/8829')
+
+    expect(screen.queryByText('Orden de retiro')).not.toBeInTheDocument()
   })
 
   // Un retiro no está «sin cotizar»: no se va a cotizar nunca.

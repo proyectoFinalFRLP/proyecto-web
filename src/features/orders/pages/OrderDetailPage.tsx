@@ -168,6 +168,21 @@ const SHIPPING_FIELDS: InfoField[] = [
 ]
 
 /**
+ * Los campos del panel del envío. La orden de retiro (TESIS-186) va primero
+ * cuando el courier la devolvió; si no, la fila no se muestra: no es un dato
+ * que falte, es uno que ese courier no tiene.
+ */
+function shippingFields(shipment: Shipment | null): InfoField[] {
+  const reference = shipment?.externalReference ?? null
+  if (reference === null) return SHIPPING_FIELDS
+
+  return [
+    { id: 'pickupOrder', label: detail.shipping.fields.pickupOrder, value: reference, mono: true },
+    ...SHIPPING_FIELDS,
+  ]
+}
+
+/**
  * La acción de la tarjeta del envío. Son dos y excluyentes: abrir el envío
  * cuando la orden no lo tiene (TESIS-141) y despacharlo cuando quedó `pending`
  * (TESIS-134). Van separadas a propósito —el asistente del alta las encadena
@@ -332,7 +347,7 @@ export function OrderDetailPage() {
               <InfoPanel
                 title={detail.shipping.title}
                 icon={<LocalShippingOutlinedIcon aria-hidden />}
-                fields={SHIPPING_FIELDS}
+                fields={shippingFields(resolved)}
                 footnote={detail.shipping.footnote}
               >
                 {/* Sin envío resuelto el tracking tampoco existe: el panel dice

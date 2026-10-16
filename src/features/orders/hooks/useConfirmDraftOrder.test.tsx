@@ -143,6 +143,7 @@ describe('useConfirmDraftOrder', () => {
         origin_warehouse_id: 3,
         destination_zip_code: '1193',
         destination_address: '',
+        declared_value: 0,
         items: [],
       },
     })

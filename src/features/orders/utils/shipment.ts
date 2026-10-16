@@ -39,6 +39,25 @@ export function printableLabel(url: string | null | undefined): string | null {
   }
 }
 
+const NOT_FOUND_STATUS = 404
+const BAD_GATEWAY_STATUS = 502
+// Los avisa el cliente HTTP (sesión vencida, sin permiso): un segundo aviso
+// diría lo mismo con otras palabras.
+const NOTIFIED_BY_CLIENT = [401, 403]
+
+/**
+ * El aviso cuando no se pudo traer la etiqueta (TESIS-187), según el status
+ * con el que contestó la API. Null cuando ya lo avisó el cliente HTTP.
+ */
+export function labelErrorMessage(status: number | undefined): string | null {
+  if (status !== undefined && NOTIFIED_BY_CLIENT.includes(status)) return null
+
+  const { errors } = ordersCopy.detail.shipping.label
+  if (status === NOT_FOUND_STATUS) return errors.notFound
+  if (status === BAD_GATEWAY_STATUS) return errors.courier
+  return errors.failed
+}
+
 /** Las etapas del ciclo, en orden. Es el mismo vocabulario que `Shipment::STATUSES`. */
 export const SHIPMENT_STAGES: readonly ShipmentStatus[] = [
   'pending',

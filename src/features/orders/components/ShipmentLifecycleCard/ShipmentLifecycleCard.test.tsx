@@ -14,6 +14,8 @@ const SHIPMENT: Shipment = {
   shippingCost: 58300,
   courier: { id: 4, serviceId: 7, name: 'Andreani' },
   labelUrl: null,
+  labelAvailable: false,
+  externalReference: null,
   events: [
     {
       id: 1,

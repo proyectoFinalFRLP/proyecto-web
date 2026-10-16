@@ -187,8 +187,18 @@ export const ordersCopy = {
         pending: 'Se emite al despachar.',
         /** Despachado y sin etiqueta: el courier no la devolvió. */
         missing: 'El operador no devolvió la etiqueta.',
+        /** Al pedirla (TESIS-187): el PDF lo emite el courier en el momento. */
+        errors: {
+          /** 404: el envío no tiene etiqueta que devolver. */
+          notFound: 'El envío no tiene una etiqueta para imprimir.',
+          /** 502, o un documento que no es un PDF: lo que contestó el courier no sirve. */
+          courier: 'El operador no devolvió la etiqueta. Probá de nuevo en unos minutos.',
+          failed: 'No pudimos descargar la etiqueta. Probá de nuevo.',
+        },
       },
       fields: {
+        /** El id del despacho en OCA (TESIS-186). */
+        pickupOrder: 'Orden de retiro',
         serviceType: 'Tipo de servicio',
         origin: 'Depósito de origen',
       },

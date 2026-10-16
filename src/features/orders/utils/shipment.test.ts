@@ -7,6 +7,7 @@ import {
   deliveredAt,
   eventsNewestFirst,
   headerStatus,
+  labelErrorMessage,
   lifecycleProgress,
   SHIPMENT_STAGES,
   printableLabel,
@@ -35,6 +36,8 @@ function shipment(status: ShipmentStatus, events: ShipmentEvent[] = []): Shipmen
     shippingCost: null,
     courier: null,
     labelUrl: null,
+    labelAvailable: false,
+    externalReference: null,
     events,
   }
 }
@@ -182,5 +185,29 @@ describe('printableLabel', () => {
   it('refuses something that is not an absolute url', () => {
     expect(printableLabel('/etiquetas/AND-9920.pdf')).toBeNull()
     expect(printableLabel('no es una url')).toBeNull()
+  })
+})
+
+describe('labelErrorMessage', () => {
+  it('says the shipment has no label when the api answers 404', () => {
+    expect(labelErrorMessage(404)).toBe('El envío no tiene una etiqueta para imprimir.')
+  })
+
+  // 502: el courier contestó, pero no con un PDF.
+  it('blames the courier when the api answers 502', () => {
+    expect(labelErrorMessage(502)).toBe(
+      'El operador no devolvió la etiqueta. Probá de nuevo en unos minutos.',
+    )
+  })
+
+  it('falls back to a generic message for anything else', () => {
+    expect(labelErrorMessage(500)).toBe('No pudimos descargar la etiqueta. Probá de nuevo.')
+    expect(labelErrorMessage(undefined)).toBe('No pudimos descargar la etiqueta. Probá de nuevo.')
+  })
+
+  // Ya lo avisa el cliente HTTP: dos avisos dirían lo mismo.
+  it('says nothing about an expired session or a missing permission', () => {
+    expect(labelErrorMessage(401)).toBeNull()
+    expect(labelErrorMessage(403)).toBeNull()
   })
 })

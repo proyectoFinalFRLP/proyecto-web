@@ -7,6 +7,8 @@ import type {
 
 import type { ProductStockByWarehouse, ShippingQuote } from '../types'
 
+import { draftSubtotal } from './draft'
+
 // Las reglas del envío en el alta manual, fuera de los componentes para
 // probarlas sin montar las pantallas: qué depósito cubre el borrador (paso 2,
 // S06) y cómo se arman los requests del paso 3 (S07): cotizar el borrador,
@@ -166,6 +168,11 @@ export interface DraftQuotePayload {
     origin_warehouse_id: number
     destination_zip_code: string
     destination_address: string
+    /** Sólo si se cargaron: algunas plantillas las piden (TESIS-186). */
+    destination_city?: string
+    destination_province?: string
+    /** Lo que suman los productos: OCA lo usa para el seguro (TESIS-186). */
+    declared_value: number
     items: { product_id: number; quantity: number }[]
   }
 }
@@ -176,17 +183,29 @@ export interface DraftQuotePayload {
  * Viaja qué lleva el paquete y no cuánto pesa: el peso lo calcula el backend con
  * el de cada producto, que es su dato. Así cotizar no crea la orden ni descuenta
  * stock; eso pasa una sola vez, cuando el operador confirma.
+ *
+ * La localidad y la provincia viajan cuando están (TESIS-187): OCA las pide
+ * para cotizar. Una en blanco no viaja, en vez de viajar vacía. El valor
+ * declarado es el subtotal de los productos, el mismo que muestra el resumen
+ * del paso: la orden todavía no existe y no tiene un total propio, y sin él OCA
+ * cotiza el seguro sobre 0.
  */
 export function toDraftQuotePayload(
   items: OrderDraftItem[],
   origin: OrderDraftOrigin,
   destination: OrderDraftDestination,
 ): DraftQuotePayload {
+  const city = blankToNull(destination.city)
+  const province = blankToNull(destination.province)
+
   return {
     quote: {
       origin_warehouse_id: origin.warehouseId,
       destination_zip_code: destination.zipCode.trim(),
       destination_address: destination.address.trim(),
+      ...(city === null ? {} : { destination_city: city }),
+      ...(province === null ? {} : { destination_province: province }),
+      declared_value: draftSubtotal(items),
       items: items.map((item) => ({ product_id: item.productId, quantity: item.quantity })),
     },
   }
