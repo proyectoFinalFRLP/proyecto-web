@@ -191,12 +191,13 @@ Ver detalle en [`docs/guidelines/code-conventions.md`](docs/guidelines/code-conv
 
 Pipeline en `.github/workflows/ci.yml`:
 
-| Job           | Acción                              |
-| ------------- | ----------------------------------- |
-| `lint`        | ESLint + Prettier check             |
-| `branch-name` | Valida nombre de rama (solo en PRs) |
-| `test`        | `npm run test` (Vitest)             |
-| `build`       | `npm run build` (tsc + vite)        |
+| Job           | Acción                                   |
+| ------------- | ---------------------------------------- |
+| `security`    | `npm audit --audit-level=high` (ADR-008) |
+| `lint`        | ESLint + Prettier check                  |
+| `branch-name` | Valida nombre de rama (solo en PRs)      |
+| `test`        | `npm run test` (Vitest)                  |
+| `build`       | `npm run build` (tsc + vite)             |
 
 ---
 
@@ -211,5 +212,5 @@ Pipeline en `.github/workflows/ci.yml`:
 | [docs/guidelines/git-workflow.md](docs/guidelines/git-workflow.md)               | Ramas, commits, PRs, Husky, CI/CD                                                 |
 | [docs/guidelines/testing.md](docs/guidelines/testing.md)                         | Vitest y Testing Library: dónde vive un test, cómo se escribe, qué se prueba      |
 | [docs/guidelines/pr-guidelines.md](docs/guidelines/pr-guidelines.md)             | Cómo redactar PRs con ejemplos                                                    |
-| [docs/adr/](docs/adr/)                                                           | 7 decisiones arquitectónicas (ADRs)                                               |
+| [docs/adr/](docs/adr/)                                                           | 8 decisiones arquitectónicas (ADRs)                                               |
 | [docs/design/](docs/design/)                                                     | Fuentes del diseño: pantallas, componentes compartidos y vocabulario del producto |
