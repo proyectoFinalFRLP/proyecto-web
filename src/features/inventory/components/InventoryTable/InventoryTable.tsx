@@ -42,6 +42,7 @@ function buildColumns(
     {
       id: 'sku',
       header: columnCopy.sku,
+      sortKey: 'sku',
       width: 140,
       render: (product) => (
         <Link
@@ -58,10 +59,11 @@ function buildColumns(
         </Link>
       ),
     },
-    { id: 'name', header: columnCopy.name, render: (product) => product.name },
+    { id: 'name', header: columnCopy.name, sortKey: 'name', render: (product) => product.name },
     {
       id: 'category',
       header: columnCopy.category,
+      sortKey: 'category',
       width: 130,
       hideBelow: 'md',
       render: (product) =>
@@ -78,6 +80,8 @@ function buildColumns(
     {
       id: 'available',
       header: columnCopy.available,
+      sortKey: 'total_stock',
+      firstSortDirection: 'desc',
       align: 'right',
       width: 150,
       // Las unidades en tránsito van debajo y no sumadas: salieron de un
@@ -139,6 +143,8 @@ export function InventoryTable({
   activeTabId,
   onTabChange,
   pagination,
+  sort,
+  onSortChange,
   onView,
   onEdit,
   onDelete,
@@ -178,6 +184,8 @@ export function InventoryTable({
       actions={actions}
       actionsHeader={columnCopy.actions}
       getActionsLabel={(product) => actionCopy.menuFor(product.sku)}
+      sort={sort}
+      onSortChange={onSortChange}
       pagination={pagination}
       paginationLabels={{
         previousLabel: inventoryCopy.pagination.previous,

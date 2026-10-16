@@ -45,6 +45,8 @@ export type {
   DataTablePaginationLabels,
   DataTableProps,
   DataTableRowTone,
+  DataTableSort,
+  DataTableSortDirection,
   DataTableTab,
 } from './DataTable'
 export { FieldLabel, FieldRoot, FullRow, LabeledField, RequiredMark } from './LabeledField'

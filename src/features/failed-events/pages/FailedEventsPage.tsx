@@ -10,6 +10,7 @@ import {
   StatusBadge,
 } from 'shared/components'
 import type { DataTableColumn, DataTableTab } from 'shared/components'
+import { useSortParam } from 'shared/hooks/useSortParam'
 import { notify } from 'shared/store'
 import { formatRelativeTime, formatInteger } from 'shared/utils'
 
@@ -59,13 +60,17 @@ function lastErrorCell(event: FailedEvent) {
  * estado del catálogo. Existe para que la resiliencia del sistema se pueda ver
  * y operar, no sólo confiar en que pasa.
  */
+/** Las claves por las que la API ordena la cola (`FailedEventsController::SORTS`). */
+const SORT_KEYS = ['status', 'attempts', 'next_retry_at', 'created_at']
+
 export function FailedEventsPage() {
   const [tabId, setTabId] = useState<QueueTabId>('all')
   const [pageNumber, setPageNumber] = useState(1)
+  const [sort, setSort] = useSortParam(SORT_KEYS)
   const [discarding, setDiscarding] = useState<FailedEvent | undefined>(undefined)
 
   const status = QUEUE_TABS.find((tab) => tab.id === tabId)?.status
-  const events = useFailedEventPage({ page: pageNumber, perPage: PER_PAGE, status })
+  const events = useFailedEventPage({ page: pageNumber, perPage: PER_PAGE, status, sort })
   const counts = useFailedEventCounts()
   const action = useFailedEventAction()
 
@@ -106,6 +111,7 @@ export function FailedEventsPage() {
     {
       id: 'status',
       header: columns.status,
+      sortKey: 'status',
       width: 140,
       render: (event) => (
         <StatusBadge status={STATUS_VARIANTS[event.status]} label={STATUS_LABELS[event.status]} />
@@ -114,6 +120,8 @@ export function FailedEventsPage() {
     {
       id: 'attempts',
       header: columns.attempts,
+      sortKey: 'attempts',
+      firstSortDirection: 'desc',
       align: 'right',
       width: 110,
       hideBelow: 'md',
@@ -122,6 +130,7 @@ export function FailedEventsPage() {
     {
       id: 'nextRetry',
       header: columns.nextRetry,
+      sortKey: 'next_retry_at',
       width: 170,
       hideBelow: 'md',
       render: (event) => nextRetryCell(event, now),
@@ -130,6 +139,8 @@ export function FailedEventsPage() {
     {
       id: 'createdAt',
       header: columns.createdAt,
+      sortKey: 'created_at',
+      firstSortDirection: 'desc',
       width: 150,
       hideBelow: 'md',
       render: (event) => formatRelativeTime(event.createdAt, now) ?? cells.noRetry,
@@ -215,6 +226,12 @@ export function FailedEventsPage() {
           setPageNumber(1)
         }}
         rowTone={(event) => (event.status === 'dead' ? 'critical' : 'default')}
+        sort={sort}
+        // Otro orden vuelve a la primera página, como otra pestaña (TESIS-184).
+        onSortChange={(next) => {
+          setSort(next)
+          setPageNumber(1)
+        }}
         pagination={{
           page: pageNumber,
           pageCount,

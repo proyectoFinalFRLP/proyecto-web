@@ -1,3 +1,5 @@
+import type { DataTableSort } from 'shared/components'
+
 // Tipos del dominio de órdenes.
 //
 // Como en el resto de las features, el dominio se declara en camelCase y la
@@ -196,6 +198,8 @@ export interface OrderFilters {
   status?: OrderStatus
   /** Busca por id externo, nombre de cliente o dirección. */
   search?: string
+  /** Orden por columna (TESIS-184). Sin orden, el de siempre: las más nuevas primero. */
+  sort?: DataTableSort | null
 }
 
 /**
