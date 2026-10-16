@@ -21,6 +21,12 @@ const { summary: copy } = ordersCopy.carrier
  * («el costo de envío se suma al total general de forma transparente»). Sin
  * opción elegida el envío no cuesta 0: dice que falta elegirlo, y el total es
  * lo que se sabe.
+ *
+ * Con retiro en el local (`pickup`) el resumen deja de hablar de un envío
+ * (TESIS-173): no pide elegir operador, no dice de dónde sale ni a dónde va
+ * —nada viaja— sino dónde lo retira el cliente, y el aviso final no promete un
+ * despacho. Antes un retiro decía «Va a: La Plata» y «se emite el despacho con
+ * el operador elegido».
  */
 export function OrderConfirmCard({
   subtotal,
@@ -28,6 +34,7 @@ export function OrderConfirmCard({
   weight,
   originName,
   destinationLabel,
+  pickup = false,
   canConfirm,
   confirming,
   confirmLabel,
@@ -45,14 +52,24 @@ export function OrderConfirmCard({
 
       <Stack spacing={1.5}>
         <Line label={copy.products} value={formatMoney(subtotal)} />
-        <Line
-          label={copy.shipping}
-          value={shippingCost === null ? copy.shippingPending : formatMoney(shippingCost)}
-          muted={shippingCost === null}
-        />
+        {pickup ? (
+          <Line label={copy.shipping} value={copy.shippingPickup} />
+        ) : (
+          <Line
+            label={copy.shipping}
+            value={shippingCost === null ? copy.shippingPending : formatMoney(shippingCost)}
+            muted={shippingCost === null}
+          />
+        )}
         <Line label={copy.weight} value={formatWeight(weight)} />
-        <Line label={copy.origin} value={originName} />
-        <Line label={copy.destination} value={destinationLabel} />
+        {pickup ? (
+          <Line label={copy.pickupAt} value={originName} />
+        ) : (
+          <>
+            <Line label={copy.origin} value={originName} />
+            <Line label={copy.destination} value={destinationLabel} />
+          </>
+        )}
       </Stack>
 
       <Divider />
@@ -96,7 +113,7 @@ export function OrderConfirmCard({
       )}
 
       <Alert severity="info" variant="outlined">
-        {copy.notice}
+        {pickup ? copy.pickupNotice : copy.notice}
       </Alert>
     </ConfirmCardRoot>
   )

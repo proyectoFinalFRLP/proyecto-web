@@ -36,10 +36,19 @@ const ITEMS: OrderDraftItem[] = [
 // Ezeiza cubre el borrador; Córdoba tiene 1 de las 4 unidades.
 const STOCKS: ProductStockByWarehouse[] = [{ productId: 12, quantities: { 1: 40, 2: 1 } }]
 
+// Los dos cubren: desde TESIS-173 es el único caso en el que la pantalla espera
+// a que el operador elija, porque con uno solo lo trae elegido.
+const BOTH_COVER: ProductStockByWarehouse[] = [{ productId: 12, quantities: { 1: 40, 2: 40 } }]
+
 function mockData({
   warehouses = WAREHOUSES,
   stocks = STOCKS,
-}: { warehouses?: OriginWarehouse[]; stocks?: ProductStockByWarehouse[] } = {}) {
+  stocksPending = false,
+}: {
+  warehouses?: OriginWarehouse[]
+  stocks?: ProductStockByWarehouse[]
+  stocksPending?: boolean
+} = {}) {
   vi.mocked(useOriginWarehouses).mockReturnValue({
     data: warehouses,
     isPending: false,
@@ -47,8 +56,8 @@ function mockData({
     refetch: vi.fn(),
   } as never)
   vi.mocked(useProductStocks).mockReturnValue({
-    stocks,
-    isPending: false,
+    stocks: stocksPending ? [] : stocks,
+    isPending: stocksPending,
     isError: false,
     refetch: vi.fn(),
   })
@@ -143,6 +152,7 @@ describe('ShippingStepPage', () => {
   })
 
   it('marks the chosen warehouse and keeps it in the draft', () => {
+    mockData({ stocks: BOTH_COVER })
     renderPage()
 
     fireEvent.click(option(/CD Ezeiza/))
@@ -152,6 +162,7 @@ describe('ShippingStepPage', () => {
   })
 
   it('keeps Next disabled until a warehouse is chosen', async () => {
+    mockData({ stocks: BOTH_COVER })
     renderPage()
     await fillDestination()
 
@@ -231,11 +242,24 @@ describe('ShippingStepPage', () => {
 
   // Dejar de resaltarlo no alcanza: el paso 3 lee el depósito del borrador, y
   // con uno que ya no cubre armaría un alta que el backend rechaza con 422.
+  //
+  // Ninguno cubre a propósito: si quedara uno solo, la pantalla lo elegiría en
+  // su lugar (TESIS-173) y el ejemplo no distinguiría «lo borró» de «lo pisó».
   it('erases it from the draft, not only from the screen', async () => {
+    mockData({ stocks: [{ productId: 12, quantities: { 1: 1, 2: 1 } }] })
     useOrderDraftStore.getState().setOrigin({ warehouseId: 2, name: 'CD Córdoba' })
     renderPage()
 
     await waitFor(() => expect(useOrderDraftStore.getState().origin).toBeNull())
+  })
+
+  it('replaces it with the only warehouse that still covers the draft', async () => {
+    useOrderDraftStore.getState().setOrigin({ warehouseId: 2, name: 'CD Córdoba' })
+    renderPage()
+
+    await waitFor(() =>
+      expect(useOrderDraftStore.getState().origin).toEqual({ warehouseId: 1, name: 'CD Ezeiza' }),
+    )
   })
 
   // Y el que sí cubre no se toca: el borrador tiene que sobrevivir a volver y
@@ -298,5 +322,132 @@ describe('ShippingStepPage · pickup at the store', () => {
     fireEvent.click(option(/CD Ezeiza/))
 
     expect(nextButton()).toBeDisabled()
+  })
+})
+
+// TESIS-173: el depósito no venía elegido aunque hubiera uno solo posible, y
+// nada decía que faltaba.
+describe('ShippingStepPage · choosing the origin for the operator', () => {
+  it('comes with the only warehouse that covers the order already chosen', async () => {
+    renderPage()
+
+    await waitFor(() => expect(option(/CD Ezeiza/)).toHaveAttribute('aria-checked', 'true'))
+    expect(useOrderDraftStore.getState().origin).toEqual({ warehouseId: 1, name: 'CD Ezeiza' })
+  })
+
+  // Con dos posibles, de cuál sale la mercadería es una decisión del negocio.
+  it('does not choose when more than one warehouse covers the order', () => {
+    mockData({ stocks: BOTH_COVER })
+    renderPage()
+
+    expect(option(/CD Ezeiza/)).toHaveAttribute('aria-checked', 'false')
+    expect(option(/CD Córdoba/)).toHaveAttribute('aria-checked', 'false')
+    expect(useOrderDraftStore.getState().origin).toBeNull()
+  })
+
+  it('does not choose before knowing which one covers the order', () => {
+    mockData({ stocksPending: true })
+    renderPage()
+
+    expect(useOrderDraftStore.getState().origin).toBeNull()
+  })
+
+  it('does not choose when none covers the order', () => {
+    mockData({ stocks: [{ productId: 12, quantities: { 1: 1, 2: 1 } }] })
+    renderPage()
+
+    expect(useOrderDraftStore.getState().origin).toBeNull()
+  })
+})
+
+// TESIS-173: «Siguiente» quedaba gris sin decir por qué.
+describe('ShippingStepPage · what is missing to advance', () => {
+  const hint = () => screen.queryByText(/^Para seguir/)
+
+  it('marks the origin and the address fields as required when the order ships', () => {
+    renderPage()
+
+    expect(
+      screen.getByRole('radiogroup', { name: 'Depósito de origen de la orden' }),
+    ).toHaveAttribute('aria-required', 'true')
+    expect(textbox('Calle y número')).toBeRequired()
+    expect(textbox('Ciudad')).toBeRequired()
+    expect(textbox('Código postal')).toBeRequired()
+  })
+
+  it('stops marking the address as required for a pickup', () => {
+    renderPage()
+    fireEvent.click(screen.getByRole('radio', { name: /Retiro en el local/ }))
+
+    expect(textbox('Calle y número')).not.toBeRequired()
+  })
+
+  it('says the warehouse is missing while none is chosen', async () => {
+    mockData({ stocks: BOTH_COVER })
+    renderPage()
+    await fillDestination()
+
+    await waitFor(() =>
+      expect(nextButton()).toHaveAccessibleDescription('Para seguir, falta el depósito de origen.'),
+    )
+  })
+
+  // Los campos que nadie tocó también faltan: la lista no sale de los errores
+  // de validación, que aparecen recién al tocar cada campo.
+  it('lists every address field still missing when the order ships', () => {
+    renderPage()
+
+    expect(nextButton()).toHaveAccessibleDescription(
+      'Para seguir, faltan la calle y el número, la ciudad, la provincia y un código postal válido.',
+    )
+  })
+
+  it('counts a zip code in the wrong format as missing', async () => {
+    renderPage()
+    await fillDestination('12')
+
+    await waitFor(() =>
+      expect(nextButton()).toHaveAccessibleDescription(
+        'Para seguir, falta un código postal válido.',
+      ),
+    )
+  })
+
+  it('does not ask for the address of a pickup', () => {
+    mockData({ stocks: BOTH_COVER })
+    renderPage()
+    fireEvent.click(screen.getByRole('radio', { name: /Retiro en el local/ }))
+
+    expect(nextButton()).toHaveAccessibleDescription('Para seguir, falta el depósito de origen.')
+  })
+
+  // Mientras viaja el stock no se puede elegir ninguno: pedirlo sería pedir
+  // algo imposible, y parpadearía justo antes de que se elija solo.
+  it('does not ask for the warehouse while the stock is still loading', () => {
+    mockData({ stocksPending: true })
+    renderPage()
+
+    expect(hint()).not.toHaveTextContent(/depósito/)
+  })
+
+  it('says nothing once the step can advance', async () => {
+    renderPage()
+    await fillDestination()
+
+    await waitFor(() => expect(nextButton()).toBeEnabled())
+    expect(hint()).not.toBeInTheDocument()
+  })
+
+  it('names the confirmation as the next stage of a pickup', () => {
+    renderPage()
+    fireEvent.click(screen.getByRole('radio', { name: /Retiro en el local/ }))
+
+    expect(screen.getByRole('button', { name: 'Siguiente: confirmación' })).toBeInTheDocument()
+  })
+
+  it('names the quotes as the next stage when the order ships', () => {
+    renderPage()
+
+    expect(screen.getByRole('button', { name: 'Siguiente: cotizaciones' })).toBeInTheDocument()
   })
 })

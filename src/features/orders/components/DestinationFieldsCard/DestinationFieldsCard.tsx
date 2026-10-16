@@ -41,14 +41,24 @@ export function DestinationFieldsCard({
   readOnly = false,
   optional = false,
 }: DestinationFieldsCardProps) {
+  // Los cuatro se exigen salvo con retiro en el local, y uno de sólo lectura no
+  // se completa: ahí la marca de obligatorio sólo sería ruido (TESIS-173).
+  const required = !optional && !readOnly
+
   return (
     <FormSection
       icon={<LocationOnOutlinedIcon aria-hidden />}
       title={optional ? copy.optionalTitle : copy.title}
     >
-      <LabeledField label={copy.fields.address} error={errors.address?.message} fullWidth>
+      <LabeledField
+        label={copy.fields.address}
+        error={errors.address?.message}
+        required={required}
+        fullWidth
+      >
         <TextField
           {...register('address')}
+          required={required}
           placeholder={copy.placeholders.address}
           error={errors.address !== undefined}
           autoComplete="street-address"
@@ -58,9 +68,10 @@ export function DestinationFieldsCard({
       </LabeledField>
 
       <LocalityGrid>
-        <LabeledField label={copy.fields.city} error={errors.city?.message}>
+        <LabeledField label={copy.fields.city} error={errors.city?.message} required={required}>
           <TextField
             {...register('city')}
+            required={required}
             placeholder={copy.placeholders.city}
             error={errors.city !== undefined}
             autoComplete="address-level2"
@@ -69,7 +80,11 @@ export function DestinationFieldsCard({
           />
         </LabeledField>
 
-        <LabeledField label={copy.fields.province} error={errors.province?.message}>
+        <LabeledField
+          label={copy.fields.province}
+          error={errors.province?.message}
+          required={required}
+        >
           <Controller
             name="province"
             control={control}
@@ -77,6 +92,7 @@ export function DestinationFieldsCard({
               <TextField
                 {...field}
                 select
+                required={required}
                 error={errors.province !== undefined}
                 disabled={readOnly || provincesLoading || provincesError}
                 fullWidth
@@ -105,9 +121,14 @@ export function DestinationFieldsCard({
           />
         </LabeledField>
 
-        <LabeledField label={copy.fields.zipCode} error={errors.zipCode?.message}>
+        <LabeledField
+          label={copy.fields.zipCode}
+          error={errors.zipCode?.message}
+          required={required}
+        >
           <TextField
             {...register('zipCode')}
+            required={required}
             placeholder={copy.placeholders.zipCode}
             error={errors.zipCode !== undefined}
             autoComplete="postal-code"

@@ -346,3 +346,74 @@ describe('NewOrderPage', () => {
     expect(textbox('Nombre')).toBeInTheDocument()
   })
 })
+
+// TESIS-173: «Siguiente» quedaba gris sin decir por qué, y el documento no
+// figuraba como obligatorio.
+describe('NewOrderPage · what is missing to advance', () => {
+  const hint = () => screen.queryByText(/^Para seguir/)
+
+  it('marks the customer fields as required', () => {
+    renderPage()
+
+    expect(textbox('Nombre')).toBeRequired()
+    expect(textbox('Apellido')).toBeRequired()
+    expect(textbox('DNI / CUIT')).toBeRequired()
+  })
+
+  // Nada se tocó todavía y aun así la lista está completa: no sale de los
+  // errores de validación, que aparecen recién al tocar cada campo.
+  it('lists everything that is missing on an empty draft', () => {
+    renderPage()
+
+    expect(nextButton()).toHaveAccessibleDescription(
+      'Para seguir, faltan el nombre, el apellido, el DNI / CUIT y al menos un producto.',
+    )
+  })
+
+  // El caso de la demo: todo cargado menos el documento.
+  it('names the document when it is the only thing missing', async () => {
+    renderPage()
+
+    type(textbox('Nombre'), 'Marina')
+    type(textbox('Apellido'), 'Rodríguez')
+    await addProduct('PX-9021', '12', '120000')
+
+    await waitFor(() =>
+      expect(nextButton()).toHaveAccessibleDescription('Para seguir, falta el DNI / CUIT.'),
+    )
+  })
+
+  it('counts a document of blank spaces as missing', async () => {
+    renderPage()
+
+    fillCustomer()
+    type(textbox('DNI / CUIT'), '   ')
+    await addProduct('PX-9021', '12', '120000')
+
+    await waitFor(() =>
+      expect(nextButton()).toHaveAccessibleDescription('Para seguir, falta el DNI / CUIT.'),
+    )
+  })
+
+  it('says a line is left without a valid quantity', async () => {
+    renderPage()
+
+    fillCustomer()
+    await addProduct('PX-9021', '12', '120000')
+    type(spinbutton('Cantidad de PX-9021-LRG'), '')
+
+    expect(nextButton()).toHaveAccessibleDescription(
+      'Para seguir, falta una cantidad válida en cada producto.',
+    )
+  })
+
+  it('says nothing once the step can advance', async () => {
+    renderPage()
+
+    fillCustomer()
+    await addProduct('PX-9021', '12', '120000')
+
+    await waitFor(() => expect(nextButton()).toBeEnabled())
+    expect(hint()).not.toBeInTheDocument()
+  })
+})
