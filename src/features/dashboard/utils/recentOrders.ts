@@ -52,14 +52,3 @@ export function formatShortDate(iso: string): string {
 export function formatTime(iso: string): string {
   return TIME.format(new Date(iso))
 }
-
-/**
- * Lo que se muestra en la columna «ID de orden».
- *
- * Se prefiere el identificador del canal externo, que es con el que el operador
- * conoce la venta. Las ventas cargadas a mano no tienen uno, y ahí se cae al id
- * interno para que la columna nunca quede vacía: es la que abre el detalle.
- */
-export function formatOrderId(externalOrderId: string | null, id: number): string {
-  return `#${externalOrderId ?? id}`
-}

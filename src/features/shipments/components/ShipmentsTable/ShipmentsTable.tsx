@@ -2,7 +2,7 @@ import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined'
 import { IconButton, Link, Tooltip, Typography } from '@mui/material'
 import { DataTable, StackedCell, StatusBadge } from 'shared/components'
 import type { DataTableColumn, StatusVariant } from 'shared/components'
-import { formatRoundMoney } from 'shared/utils'
+import { formatOrderId, formatRoundMoney } from 'shared/utils'
 
 import { shipmentsCopy } from '../../content'
 import type { ShipmentStatus, ShipmentSummary } from '../../types'
@@ -51,7 +51,9 @@ function buildColumns(
     {
       id: 'order',
       header: columnCopy.order,
-      width: 120,
+      // Entra el número de un canal (14 dígitos en Shopify), no sólo el id
+      // interno de tres o cuatro (TESIS-181).
+      width: 190,
       render: (shipment) => (
         // El detalle del envío vive en su orden: no hay pantalla propia, así
         // que la columna enlaza ahí.
@@ -62,7 +64,7 @@ function buildColumns(
           onClick={() => onView(shipment)}
           sx={{ typography: 'dataMono', textAlign: 'left' }}
         >
-          {cells.order(shipment.orderId)}
+          {cells.order(formatOrderId(shipment.externalOrderId, shipment.orderId))}
         </Link>
       ),
     },

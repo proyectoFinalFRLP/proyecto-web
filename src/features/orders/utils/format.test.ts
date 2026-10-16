@@ -6,7 +6,6 @@ import { describe, expect, it } from 'vitest'
 import {
   formatEventTimestamp,
   formatOrderDate,
-  formatOrderId,
   formatOrderTime,
   formatShortDate,
   formatWeight,
@@ -56,18 +55,6 @@ describe('formatShortDate', () => {
 describe('formatEventTimestamp', () => {
   it('joins the short date and the time with a middle dot', () => {
     expect(formatEventTimestamp('2026-08-12T09:42:00-03:00')).toMatch(/^12 ago\.? · 09:42$/)
-  })
-})
-
-describe('formatOrderId', () => {
-  it('prefers the external id, which is how the channel names the sale', () => {
-    expect(formatOrderId('ML-1001', 42)).toBe('#ML-1001')
-  })
-
-  // Una venta cargada a mano no viene de ningún canal y no tiene id externo.
-  // La columna no puede quedar vacía: es la que abre el detalle.
-  it('falls back to the internal id when there is no external one', () => {
-    expect(formatOrderId(null, 42)).toBe('#42')
   })
 })
 
