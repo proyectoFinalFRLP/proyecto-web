@@ -1,6 +1,7 @@
 import { z } from 'zod'
 
 import { ordersCopy } from '../../content'
+import { optionalEmail, optionalPhone } from '../../utils/contact'
 
 const { validation } = ordersCopy.edit.context
 
@@ -19,6 +20,9 @@ const { validation } = ordersCopy.edit.context
 export const orderContextSchema = z.object({
   customerName: z.string().trim().min(1, validation.customerNameRequired),
   customerDocument: z.string().trim().min(1, validation.customerDocumentRequired),
+  // Opcionales, como en el alta (TESIS-179).
+  customerEmail: optionalEmail(validation.customerEmailInvalid),
+  customerPhone: optionalPhone,
   status: z.enum(['pending', 'paid']),
 })
 

@@ -33,10 +33,16 @@ const SHIPPING_STEP_PATH = '/orders/new/shipping'
 const STEP = 1
 const TOTAL_STEPS = 3
 
-const EMPTY_CUSTOMER: CustomerFormData = { firstName: '', lastName: '', document: '' }
+const EMPTY_CUSTOMER: CustomerFormData = {
+  firstName: '',
+  lastName: '',
+  document: '',
+  email: '',
+  phone: '',
+}
 
 // El orden en que los nombra «lo que falta»: el de la pantalla.
-const CUSTOMER_FIELDS = ['firstName', 'lastName', 'document'] as const
+const CUSTOMER_FIELDS = ['firstName', 'lastName', 'document', 'email'] as const
 
 /**
  * Paso 1 del alta manual de una orden (S05): quién compra y qué se lleva.
@@ -79,7 +85,8 @@ export function NewOrderPage() {
     // sin esperar a un submit que todavía no puede ocurrir.
     mode: 'onChange',
     // Volver del paso 2 encuentra el formulario como se lo dejó.
-    defaultValues: customer ?? EMPTY_CUSTOMER,
+    // Sobre el vacío: un borrador anterior a TESIS-179 no trae el contacto.
+    defaultValues: { ...EMPTY_CUSTOMER, ...customer },
   })
 
   // Lo que falta se calcula sobre lo tipeado, contra el mismo schema, y no

@@ -33,6 +33,8 @@ export function contextDefaults(order: OrderDetail): OrderContextFormData {
   return {
     customerName: order.customerName,
     customerDocument: order.customerDocument ?? '',
+    customerEmail: order.customerEmail ?? '',
+    customerPhone: order.customerPhone ?? '',
     // Una orden cancelada llega bloqueada; el valor sólo tiene que ser válido.
     status: order.status === 'paid' ? 'paid' : 'pending',
   }

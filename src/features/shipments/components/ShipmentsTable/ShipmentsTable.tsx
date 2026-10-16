@@ -7,6 +7,7 @@ import { formatOrderId, formatRoundMoney } from 'shared/utils'
 import { shipmentsCopy } from '../../content'
 import type { ShipmentStatus, ShipmentSummary } from '../../types'
 import { formatShipmentDate, formatShipmentTime } from '../../utils/format'
+import { SHIPMENT_DEFAULT_SORT } from '../../utils/sort'
 
 import type { ShipmentsTableProps } from './ShipmentsTable.types'
 
@@ -188,6 +189,7 @@ export function ShipmentsTable({
       onTabChange={onTabChange}
       emptyMessage={emptyMessage}
       sort={sort}
+      defaultSort={SHIPMENT_DEFAULT_SORT}
       onSortChange={onSortChange}
       pagination={pagination}
       paginationLabels={{

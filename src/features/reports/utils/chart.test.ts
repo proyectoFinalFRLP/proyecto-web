@@ -35,6 +35,12 @@ describe('niceCeiling', () => {
     expect(axisTicks(niceCeiling([1, 7, 2]))).toEqual([8, 6, 4, 2, 0])
   })
 
+  // Sin el paso de 3, 9 órdenes llevaban el eje a 20 y la curva usaba menos de
+  // la mitad del alto.
+  it('takes a step of 3 when it fits better than 5', () => {
+    expect(axisTicks(niceCeiling([9]))).toEqual([12, 9, 6, 3, 0])
+  })
+
   it('never puts a fraction on a tick', () => {
     const maxima = [1, 3, 7, 9, 10, 11, 23, 99, 101, 950, 2_400, 9_400, 74_000, 740_000]
     const ticks = maxima.flatMap((max) => axisTicks(niceCeiling([max])))

@@ -82,6 +82,7 @@ export function DataTable<Row>({
   selectRowLabel = 'Seleccionar fila',
   sort,
   onSortChange,
+  defaultSort,
   pagination,
   paginationLabels,
   toolbarActions,
@@ -138,6 +139,9 @@ export function DataTable<Row>({
     return <span />
   }
 
+  // El orden que se ve: el pedido, o el de siempre si no se pidió ninguno.
+  const shownSort = sort ?? defaultSort ?? null
+
   return (
     <TableCard>
       {hasToolbar ? (
@@ -170,17 +174,17 @@ export function DataTable<Row>({
                   hideBelow={column.hideBelow}
                   pinned={column.pinned}
                   style={column.width === undefined ? undefined : { width: column.width }}
-                  sortDirection={sortDirectionOf(column, sort)}
+                  sortDirection={sortDirectionOf(column, shownSort)}
                 >
                   {column.sortKey === undefined || onSortChange === undefined ? (
                     column.header
                   ) : (
                     <TableSortLabel
-                      active={sort?.key === column.sortKey}
+                      active={shownSort?.key === column.sortKey}
                       direction={
-                        sortDirectionOf(column, sort) || column.firstSortDirection || 'asc'
+                        sortDirectionOf(column, shownSort) || column.firstSortDirection || 'asc'
                       }
-                      onClick={() => onSortChange(nextSort(column, sort))}
+                      onClick={() => onSortChange(nextSort(column, shownSort))}
                     >
                       {column.header}
                     </TableSortLabel>

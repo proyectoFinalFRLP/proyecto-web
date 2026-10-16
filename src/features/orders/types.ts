@@ -256,6 +256,9 @@ export interface UpdateOrderPayload {
   order: {
     customer_name: string
     customer_document: string
+    /** El contacto (TESIS-179): en blanco viaja `null`. */
+    customer_email?: string | null
+    customer_phone?: string | null
     /**
      * El domicilio viaja sólo si el operador lo tocó (ver `toUpdatePayload`):
      * las órdenes de webhook no traen ciudad ni provincia, y mandarlas vacías

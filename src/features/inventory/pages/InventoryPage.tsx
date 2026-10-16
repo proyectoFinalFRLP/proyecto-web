@@ -4,8 +4,9 @@ import { Box, Button, InputAdornment, Stack, TextField, Typography } from '@mui/
 import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { ErrorFallback, LoadingSpinner, PageWrapper } from 'shared/components'
-import type { DataTableSort, DataTableTab } from 'shared/components'
+import type { DataTableTab } from 'shared/components'
 import { useDebouncedValue } from 'shared/hooks/useDebouncedValue'
+import { sortResetKey, usePageNumber } from 'shared/hooks/usePageNumber'
 import { useSortParam } from 'shared/hooks/useSortParam'
 import { notify } from 'shared/store'
 import { formatInteger } from 'shared/utils'
@@ -67,9 +68,10 @@ export function InventoryPage() {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const tabId = tabFromParams(searchParams)
-  const [pageNumber, setPageNumber] = useState(1)
   const [search, setSearch] = useState('')
   const [sort, setSort] = useSortParam(PRODUCT_SORT_KEYS)
+  // Otro orden vuelve a la página 1, venga del encabezado o de la URL.
+  const [pageNumber, setPageNumber] = usePageNumber(sortResetKey(sort))
   const [creating, setCreating] = useState(false)
   const [removing, setRemoving] = useState<ProductSummary | undefined>(undefined)
 
@@ -111,12 +113,6 @@ export function InventoryPage() {
 
   function changeSearch(value: string) {
     setSearch(value)
-    setPageNumber(1)
-  }
-
-  // Mismo criterio para el orden (TESIS-184).
-  function changeSort(next: DataTableSort) {
-    setSort(next)
     setPageNumber(1)
   }
 
@@ -230,7 +226,7 @@ export function InventoryPage() {
         activeTabId={tabId}
         onTabChange={changeTab}
         sort={sort}
-        onSortChange={changeSort}
+        onSortChange={setSort}
         pagination={{
           page: pageNumber,
           pageCount,
