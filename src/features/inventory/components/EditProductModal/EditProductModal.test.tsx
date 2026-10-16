@@ -16,7 +16,9 @@ function product(overrides: Partial<Product> = {}): Product {
     packaging: null,
     technicalStandard: null,
     weight: 12.4,
-    dimensions: '45x30x20',
+    lengthCm: 45,
+    widthCm: 30,
+    heightCm: 20,
     committed: 0,
     onHand: 10,
     availableToPromise: 10,
@@ -289,6 +291,68 @@ describe('EditProductModal', () => {
       expect(await submittedCategory(props)).toBeNull()
     })
   })
+  // TESIS-185: tres medidas en centímetros, cada una opcional.
+  describe('the measurements', () => {
+    const measure = (name: string) => screen.getByRole('spinbutton', { name })
+
+    async function submittedProduct(props: { onSubmit: ReturnType<typeof vi.fn> }) {
+      fireEvent.click(screen.getByRole('button', { name: 'Guardar cambios' }))
+      await waitFor(() => expect(props.onSubmit).toHaveBeenCalled())
+      return (props.onSubmit.mock.calls[0]?.[0] as { product: Record<string, unknown> }).product
+    }
+
+    it('opens with the measurements of the product', () => {
+      renderModal(product({ lengthCm: 16.5, widthCm: 7.8, heightCm: 0.9 }))
+
+      expect(measure('Largo (cm)')).toHaveValue(16.5)
+      expect(measure('Ancho (cm)')).toHaveValue(7.8)
+      expect(measure('Alto (cm)')).toHaveValue(0.9)
+    })
+
+    it('leaves empty a measurement nobody loaded', () => {
+      renderModal(product({ lengthCm: null, widthCm: null, heightCm: null }))
+
+      expect(measure('Largo (cm)')).toHaveValue(null)
+    })
+
+    it('sends the measurements as numbers in centimeters', async () => {
+      const { props } = renderModal(product())
+      fireEvent.change(measure('Largo (cm)'), { target: { value: '16.5' } })
+
+      expect(await submittedProduct(props)).toMatchObject({
+        length_cm: 16.5,
+        width_cm: 30,
+        height_cm: 20,
+      })
+    })
+
+    it('sends an emptied measurement as null', async () => {
+      const { props } = renderModal(product())
+      fireEvent.change(measure('Alto (cm)'), { target: { value: '' } })
+
+      expect(await submittedProduct(props)).toMatchObject({ height_cm: null })
+    })
+
+    it('saves a product without measurements', async () => {
+      const { props } = renderModal(product({ lengthCm: null, widthCm: null, heightCm: null }))
+
+      expect(await submittedProduct(props)).toMatchObject({
+        length_cm: null,
+        width_cm: null,
+        height_cm: null,
+      })
+    })
+
+    it('does not take a measurement of zero', async () => {
+      const { props } = renderModal(product())
+      fireEvent.change(measure('Ancho (cm)'), { target: { value: '0' } })
+      fireEvent.click(screen.getByRole('button', { name: 'Guardar cambios' }))
+
+      expect(await screen.findByText('Tiene que ser mayor a 0')).toBeVisible()
+      expect(props.onSubmit).not.toHaveBeenCalled()
+    })
+  })
+
   // TESIS-182: cada producto tiene su umbral de stock bajo.
   describe('low stock threshold', () => {
     const thresholdInput = () => screen.getByRole('spinbutton', { name: /^Stock mínimo/ })

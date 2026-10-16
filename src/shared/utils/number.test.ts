@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 
-import { formatDecimal, formatInteger, formatMoney, formatRoundMoney } from './number'
+import {
+  formatDecimal,
+  formatInteger,
+  formatMeasure,
+  formatMoney,
+  formatRoundMoney,
+} from './number'
 
 // Estos ejemplos venían repartidos en `inventory/utils/format.test.ts`,
 // `orders/utils/format.test.ts` y `reports/utils/format.test.ts`, uno por cada
@@ -41,6 +47,21 @@ describe('formatDecimal', () => {
 
   it('says there is no data instead of printing NaN', () => {
     expect(formatDecimal(Number.NaN)).toBe('—')
+  })
+})
+
+describe('formatMeasure', () => {
+  it('keeps the decimals the measure has, with a comma', () => {
+    expect(formatMeasure(16.5)).toBe('16,5')
+    expect(formatMeasure(0.25)).toBe('0,25')
+  })
+
+  it('does not pad a whole measure', () => {
+    expect(formatMeasure(45)).toBe('45')
+  })
+
+  it('says there is no data instead of printing NaN', () => {
+    expect(formatMeasure(Number.NaN)).toBe('—')
   })
 })
 

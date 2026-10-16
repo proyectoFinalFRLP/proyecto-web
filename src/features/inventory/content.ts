@@ -97,8 +97,8 @@ export const inventoryCopy = {
         updatedAt: 'Última actualización',
       },
       weightValue: (kilograms: string) => `${kilograms} kg`,
-      dimensionsValue: (length: string, width: string, height: string) =>
-        `${length} × ${width} × ${height} cm`,
+      // Las medidas («16,5 × 7,8 × 0,9 cm») las escribe `formatDimensions`: el
+      // detalle y el aviso de conflicto las tienen que nombrar igual.
       /** Marca de "sin dato" del DS, la misma que usa el dashboard. */
       unknown: '—',
     },
@@ -249,7 +249,10 @@ export const inventoryCopy = {
       sku: 'Código SKU',
       category: 'Categoría',
       weight: 'Peso (kg)',
-      dimensions: 'Dimensiones (largo × ancho × alto, cm)',
+      dimensions: 'Medidas en cm (largo × ancho × alto, opcionales)',
+      length: 'Largo (cm)',
+      width: 'Ancho (cm)',
+      height: 'Alto (cm)',
       warehousePrimary: 'Depósito principal',
       warehouse: 'Depósito',
       quantity: 'Cantidad',
@@ -261,9 +264,9 @@ export const inventoryCopy = {
       name: 'ej. Servomotor industrial Z5',
       sku: 'SKU-XXXX-XXX',
       weight: '0.00',
-      length: 'L',
-      width: 'A',
-      height: 'H',
+      length: 'Largo',
+      width: 'Ancho',
+      height: 'Alto',
     },
     categoryHelper: 'Se usa para agrupar y filtrar el catálogo.',
     noCategory: 'Sin categoría',
@@ -288,5 +291,6 @@ export const inventoryCopy = {
     warehouseRequired: 'Elegí un depósito',
     duplicateWarehouse: 'No repitas el mismo depósito en dos filas',
     thresholdInteger: 'El stock mínimo debe ser un número entero',
+    measurePositive: 'Tiene que ser mayor a 0',
   },
 } as const

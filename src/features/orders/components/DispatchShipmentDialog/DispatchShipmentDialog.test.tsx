@@ -186,6 +186,27 @@ describe('DispatchShipmentDialog', () => {
     })
   })
 
+  // OCA rechaza un código postal sin cobertura con HTTP 200; la API lo
+  // devuelve como 422 con el motivo del courier (TESIS-186), y ese motivo es
+  // lo que el operador necesita leer.
+  it('shows the reason the courier gave when it rejected the dispatch', async () => {
+    const calls = stubApi()
+    calls.dispatch.mockReset()
+    calls.dispatch.mockRejectedValue(
+      Object.assign(new Error('El código postal de destino no tiene cobertura.'), { status: 422 }),
+    )
+    renderDialog()
+
+    fireEvent.click(await option(/Andreani/))
+    fireEvent.click(dispatchButton())
+
+    expect(
+      await screen.findByText(
+        'No pudimos emitir el despacho. El código postal de destino no tiene cobertura.',
+      ),
+    ).toBeInTheDocument()
+  })
+
   it('does not offer to retry a shipment that was dispatched meanwhile', async () => {
     const calls = stubApi()
     calls.dispatch.mockRejectedValue(

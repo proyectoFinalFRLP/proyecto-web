@@ -126,6 +126,9 @@ interface ApiShipment {
   tracking_number: string | null
   shipping_cost: number | null
   shipping_label_url: string | null
+  /** Opcionales: una API anterior a TESIS-186 no los manda. */
+  external_reference?: string | null
+  label_available?: boolean
   courier: ApiCourier | null
   events: ApiShipmentEvent[]
 }
@@ -263,6 +266,13 @@ export async function updateOrder(
   return toOrderDetail(response.data, readVersion(response.headers.etag))
 }
 
+// Un texto en blanco no es un dato: la pantalla esconde la fila en vez de
+// mostrar un rótulo vacío.
+function blankToNull(value: string | null | undefined): string | null {
+  const trimmed = value?.trim() ?? ''
+  return trimmed === '' ? null : trimmed
+}
+
 function toShipment(shipment: ApiShipment): Shipment {
   return {
     id: shipment.id,
@@ -273,6 +283,8 @@ function toShipment(shipment: ApiShipment): Shipment {
     // Viene de la respuesta del courier, así que se acota a un enlace que se
     // pueda abrir (ver `printableLabel`). La API lo guarda tal cual lo mandó.
     labelUrl: printableLabel(shipment.shipping_label_url),
+    labelAvailable: shipment.label_available ?? false,
+    externalReference: blankToNull(shipment.external_reference),
     courier: toCourier(shipment.courier),
     // El backend ya los ordena por `occurred_at` (con desempate por id): no se
     // reordenan acá para no tener dos definiciones del mismo orden.
@@ -482,4 +494,28 @@ export async function dispatchShipment(
   const { data } = await client.post<ApiShipment>(`/shipments/${shipmentId}/dispatch`, payload)
 
   return toShipment(data)
+}
+
+const PDF_TYPE = 'application/pdf'
+
+/**
+ * La etiqueta del envío para imprimir (`GET /shipments/:id/label`, TESIS-186).
+ *
+ * Pasa por el cliente HTTP y no por un `href` porque el endpoint pide el JWT,
+ * y un enlace no lo lleva. Devuelve el PDF, o null si lo que llegó no es un
+ * PDF: el backend redirige a `shipping_label_url` cuando el courier sólo dejó
+ * la URL, el navegador sigue la redirección y lo que vuelve es lo que haya en
+ * el sitio del courier. Ese caso lo resuelve quien llama, abriendo la URL.
+ *
+ * Un 404 (sin etiqueta) o un 502 (el courier contestó otra cosa que un PDF)
+ * llegan como el error del cliente, con su status.
+ */
+export async function fetchShipmentLabel(shipmentId: number): Promise<Blob | null> {
+  const response = await client.get<Blob>(`/shipments/${shipmentId}/label`, {
+    responseType: 'blob',
+  })
+  const header: unknown = response.headers['content-type']
+  const type = typeof header === 'string' ? header : response.data.type
+
+  return type.toLowerCase().startsWith(PDF_TYPE) ? response.data : null
 }

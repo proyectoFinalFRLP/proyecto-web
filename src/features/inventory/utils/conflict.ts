@@ -1,5 +1,7 @@
 import type { Product } from '../types'
 
+import { formatDimensions } from './dimensions'
+
 /** Un cambio detectado, con clave estable para renderizar la lista. */
 export interface ConflictChange {
   /**
@@ -56,10 +58,14 @@ export function describeConflict(
     changes.push({ id: 'weight', text: `${labels.weight}: ${before.weight} → ${after.weight}` })
   }
 
-  if (before.dimensions !== after.dimensions) {
+  // Las tres medidas se nombran juntas, como se muestran en el detalle: «Medidas:
+  // 45 × 30 × 20 cm → 50 × 30 × 20 cm» se lee mejor que tres líneas sueltas.
+  const dimensionsBefore = formatDimensions(before)
+  const dimensionsAfter = formatDimensions(after)
+  if (dimensionsBefore !== dimensionsAfter) {
     changes.push({
       id: 'dimensions',
-      text: `${labels.dimensions}: ${before.dimensions ?? ABSENT} → ${after.dimensions ?? ABSENT}`,
+      text: `${labels.dimensions}: ${dimensionsBefore} → ${dimensionsAfter}`,
     })
   }
 

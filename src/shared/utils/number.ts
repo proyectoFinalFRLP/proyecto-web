@@ -20,6 +20,8 @@ const DECIMAL = new Intl.NumberFormat('es-AR', {
   maximumFractionDigits: 2,
 })
 
+const MEASURE = new Intl.NumberFormat('es-AR', { maximumFractionDigits: 2 })
+
 const MONEY = new Intl.NumberFormat('es-AR', {
   style: 'currency',
   currency: 'ARS',
@@ -53,6 +55,16 @@ export function formatInteger(value: number): string {
 /** Dos decimales siempre: `1.45` → `"1,45"`. Un peso, una medida. */
 export function formatDecimal(value: number): string {
   return Number.isFinite(value) ? DECIMAL.format(value) : UNKNOWN_VALUE
+}
+
+/**
+ * Medida física con los decimales que tenga, hasta dos: `16.5` → `"16,5"`,
+ * `45` → `"45"`. Para los centímetros de un paquete (TESIS-185), donde rellenar
+ * con ceros («45,00 cm») es ruido y redondear a entero («17» por 16,5) es
+ * mentir sobre la medida que va a la etiqueta del courier.
+ */
+export function formatMeasure(value: number): string {
+  return Number.isFinite(value) ? MEASURE.format(value) : UNKNOWN_VALUE
 }
 
 /**

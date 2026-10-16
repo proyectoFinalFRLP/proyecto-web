@@ -52,7 +52,9 @@ function product(overrides: Partial<Product> = {}): Product {
     packaging: null,
     technicalStandard: null,
     weight: 12.4,
-    dimensions: '45x30x20',
+    lengthCm: 45,
+    widthCm: 30,
+    heightCm: 20,
     committed: 0,
     onHand: 10,
     availableToPromise: 10,
@@ -94,7 +96,9 @@ describe('buildCreatePayload', () => {
         description: null,
         category: null,
         weight: 12.4,
-        dimensions: '45x30x20',
+        length_cm: 45,
+        width_cm: 30,
+        height_cm: 20,
         low_stock_threshold: 100,
         stocks: [{ warehouse_id: 1, quantity: 10 }],
       },
@@ -116,10 +120,18 @@ describe('buildCreatePayload', () => {
     expect(buildCreatePayload(createForm()).product.description).toBeNull()
   })
 
-  it('sends null dimensions when the user loaded no measurements', () => {
-    const payload = buildCreatePayload(createForm({ length: 0, width: 0, height: 0 }))
+  // TESIS-185: tres números en centímetros, no el texto libre `dimensions`.
+  it('sends the measurements as three numbers and no longer as text', () => {
+    const payload = buildCreatePayload(createForm({ length: 16.5, width: 7.8, height: 0.9 }))
 
-    expect(payload.product.dimensions).toBeNull()
+    expect(payload.product).toMatchObject({ length_cm: 16.5, width_cm: 7.8, height_cm: 0.9 })
+    expect(payload.product).not.toHaveProperty('dimensions')
+  })
+
+  it('sends null measurements when the user loaded none', () => {
+    const payload = buildCreatePayload(createForm({ length: null, width: null, height: null }))
+
+    expect(payload.product).toMatchObject({ length_cm: null, width_cm: null, height_cm: null })
   })
 })
 
@@ -131,7 +143,9 @@ describe('buildUpdatePayload', () => {
         description: 'Rollo de 305 metros',
         category: 'Cabling',
         weight: 12.4,
-        dimensions: '45x30x20',
+        length_cm: 45,
+        width_cm: 30,
+        height_cm: 20,
         low_stock_threshold: 100,
         stocks: [{ warehouse_id: 1, quantity: 10 }],
       },
@@ -168,25 +182,12 @@ describe('buildUpdatePayload', () => {
     )
   })
 
-  // Si el formulario no supo mostrar la medida guardada, borrarla al guardar
-  // sería perder un dato que el usuario nunca vio ni decidió tocar.
-  it('keeps a stored measurement the form could not parse', () => {
-    const stored = product({ dimensions: 'grande' })
-    const empty = editForm({ length: 0, width: 0, height: 0 })
+  // Vaciar un eje es borrarlo: viaja en `null` y no se conserva el anterior.
+  it('clears a measurement the user emptied', () => {
+    const payload = buildUpdatePayload(product(), editForm({ height: null }))
 
-    expect(buildUpdatePayload(stored, empty).product.dimensions).toBe('grande')
-  })
-
-  it('clears the measurement when the stored one was in the canonical format', () => {
-    const empty = editForm({ length: 0, width: 0, height: 0 })
-
-    expect(buildUpdatePayload(product(), empty).product.dimensions).toBeNull()
-  })
-
-  it('overwrites an unparseable measurement once the user loads real ones', () => {
-    const stored = product({ dimensions: 'grande' })
-
-    expect(buildUpdatePayload(stored, editForm()).product.dimensions).toBe('45x30x20')
+    expect(payload.product).toMatchObject({ length_cm: 45, width_cm: 30, height_cm: null })
+    expect(payload.product).not.toHaveProperty('dimensions')
   })
 })
 

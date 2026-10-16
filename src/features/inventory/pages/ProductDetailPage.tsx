@@ -29,7 +29,7 @@ import {
 } from '../hooks/useInventory'
 import type { Product, UpdateProductPayload } from '../types'
 import { describeConflict } from '../utils/conflict'
-import { parseDimensions } from '../utils/dimensions'
+import { formatDimensions, hasDimensions } from '../utils/dimensions'
 import { formatSpecTimestamp } from '../utils/format'
 import { distributionPositions } from '../utils/stock'
 import { stockLabel, stockRowTone, stockVariant } from '../utils/stockStatus'
@@ -55,8 +55,7 @@ const CONTENT_GRID = {
 
 /** Cuadrícula de especificaciones. Lo que la API no expone se muestra sin dato. */
 function buildSpecs(product: Product): ProductSpec[] {
-  const dimensions = parseDimensions(product.dimensions)
-  const hasDimensions = product.dimensions !== null && product.dimensions !== ''
+  const measured = hasDimensions(product)
 
   return [
     // Los tres salen de la API: categoría de TESIS-150, empaque y norma de
@@ -78,15 +77,9 @@ function buildSpecs(product: Product): ProductSpec[] {
     {
       id: 'dimensions',
       label: specsCopy.fields.dimensions,
-      value: hasDimensions
-        ? specsCopy.dimensionsValue(
-            formatInteger(dimensions.length),
-            formatInteger(dimensions.width),
-            formatInteger(dimensions.height),
-          )
-        : specsCopy.unknown,
+      value: measured ? formatDimensions(product) : specsCopy.unknown,
       mono: true,
-      unknown: !hasDimensions,
+      unknown: !measured,
     },
     {
       id: 'packaging',

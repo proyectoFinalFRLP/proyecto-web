@@ -263,7 +263,8 @@ describe('CarrierStepPage', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Consultando a los operadores logísticos')
   })
 
-  // La cotización se pide sobre el borrador, sin crear la orden (TESIS-131).
+  // La cotización se pide sobre el borrador, sin crear la orden (TESIS-131),
+  // con la localidad, la provincia y lo que suman los productos (TESIS-187).
   it('quotes the draft, not an order', () => {
     const createOrder = vi.spyOn(api, 'createOrder')
     renderPage()
@@ -273,6 +274,9 @@ describe('CarrierStepPage', () => {
         origin_warehouse_id: 1,
         destination_zip_code: '1193',
         destination_address: 'Av. Corrientes 3247',
+        destination_city: 'CABA',
+        destination_province: 'Ciudad Autónoma de Buenos Aires',
+        declared_value: 480000,
         items: [{ product_id: 12, quantity: 4 }],
       },
     })

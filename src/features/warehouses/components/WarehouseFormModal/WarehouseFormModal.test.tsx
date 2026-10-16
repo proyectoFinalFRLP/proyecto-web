@@ -11,13 +11,23 @@ const CENTRAL: Warehouse = {
   name: 'Depósito Central',
   address: 'Av. 7 N° 1234',
   zipCode: '1900',
+  city: 'La Plata',
+  province: 'Buenos Aires',
   storedUnits: 230,
 }
+
+const PROVINCES = ['Buenos Aires', 'Córdoba', 'Santa Fe']
 
 function renderModal(warehouse?: Warehouse) {
   const onSubmit = vi.fn()
   renderWithTheme(
-    <WarehouseFormModal open warehouse={warehouse} onSubmit={onSubmit} onClose={vi.fn()} />,
+    <WarehouseFormModal
+      open
+      warehouse={warehouse}
+      provinces={PROVINCES}
+      onSubmit={onSubmit}
+      onClose={vi.fn()}
+    />,
   )
   return onSubmit
 }
@@ -28,8 +38,15 @@ function fill(name: string, value: string) {
   fireEvent.change(field(name), { target: { value } })
 }
 
+const provinceSelect = () => screen.getByRole('combobox', { name: /^Provincia/ })
+
+async function chooseProvince(option: string) {
+  fireEvent.mouseDown(provinceSelect())
+  fireEvent.click(await screen.findByRole('option', { name: option }))
+}
+
 describe('WarehouseFormModal', () => {
-  it('creates a warehouse with the three fields', async () => {
+  it('creates a warehouse with the three required fields', async () => {
     const onSubmit = renderModal()
     fill('Nombre', 'Depósito Sur')
     fill('Dirección', 'Av. Colón 789')
@@ -38,7 +55,13 @@ describe('WarehouseFormModal', () => {
 
     await waitFor(() =>
       expect(onSubmit).toHaveBeenCalledWith(
-        { name: 'Depósito Sur', address: 'Av. Colón 789', zipCode: 'B8000ABC' },
+        {
+          name: 'Depósito Sur',
+          address: 'Av. Colón 789',
+          zipCode: 'B8000ABC',
+          city: '',
+          province: '',
+        },
         expect.anything(),
       ),
     )
@@ -71,5 +94,55 @@ describe('WarehouseFormModal', () => {
       await screen.findByText('Usá 4 dígitos (1900) o el CPA completo (B1900ABC).'),
     ).toBeInTheDocument()
     expect(onSubmit).not.toHaveBeenCalled()
+  })
+
+  // TESIS-185: el courier pide la localidad y la provincia del origen.
+  describe('the city and the province', () => {
+    it('sends the city and the province the user chose', async () => {
+      const onSubmit = renderModal()
+      fill('Nombre', 'Depósito Sur')
+      fill('Dirección', 'Av. Colón 789')
+      fill('Código postal', 'B8000ABC')
+      fill('Localidad', 'Córdoba')
+      await chooseProvince('Córdoba')
+      fireEvent.click(screen.getByRole('button', { name: 'Crear depósito' }))
+
+      await waitFor(() =>
+        expect(onSubmit).toHaveBeenCalledWith(
+          expect.objectContaining({ city: 'Córdoba', province: 'Córdoba' }),
+          expect.anything(),
+        ),
+      )
+    })
+
+    it('offers the provinces of the API plus none', () => {
+      renderModal()
+      fireEvent.mouseDown(provinceSelect())
+
+      expect(screen.getAllByRole('option').map((option) => option.textContent)).toEqual([
+        'Sin provincia',
+        ...PROVINCES,
+      ])
+    })
+
+    it('opens the edition with the current city and province', () => {
+      renderModal(CENTRAL)
+
+      expect(field('Localidad')).toHaveValue('La Plata')
+      expect(provinceSelect()).toHaveTextContent('Buenos Aires')
+    })
+
+    it('lets the user clear the province', async () => {
+      const onSubmit = renderModal(CENTRAL)
+      await chooseProvince('Sin provincia')
+      fireEvent.click(screen.getByRole('button', { name: 'Guardar cambios' }))
+
+      await waitFor(() =>
+        expect(onSubmit).toHaveBeenCalledWith(
+          expect.objectContaining({ province: '' }),
+          expect.anything(),
+        ),
+      )
+    })
   })
 })

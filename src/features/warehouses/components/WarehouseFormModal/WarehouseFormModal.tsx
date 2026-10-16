@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Alert, Button, TextField } from '@mui/material'
+import { Alert, Button, MenuItem, TextField } from '@mui/material'
 import { useEffect } from 'react'
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 import {
   LabeledField,
   ModalBody,
@@ -16,6 +16,7 @@ import type { Warehouse } from '../../types'
 
 import { warehouseFormSchema } from './WarehouseFormModal.schema'
 import type { WarehouseFormData } from './WarehouseFormModal.schema'
+import { LocalityRow } from './WarehouseFormModal.styles'
 import type { WarehouseFormModalProps } from './WarehouseFormModal.types'
 
 const copy = warehousesCopy.form
@@ -25,7 +26,15 @@ function defaultsFor(warehouse: Warehouse | undefined): WarehouseFormData {
     name: warehouse?.name ?? '',
     address: warehouse?.address ?? '',
     zipCode: warehouse?.zipCode ?? '',
+    city: warehouse?.city ?? '',
+    province: warehouse?.province ?? '',
   }
+}
+
+function provincePlaceholder(loading: boolean, failed: boolean): string {
+  if (loading) return copy.provincesLoading
+  if (failed) return copy.provincesError
+  return copy.placeholders.province
 }
 
 /**
@@ -37,10 +46,14 @@ export function WarehouseFormModal({
   warehouse,
   submitting = false,
   error,
+  provinces,
+  provincesLoading = false,
+  provincesError = false,
   onSubmit,
   onClose,
 }: WarehouseFormModalProps) {
   const {
+    control,
     register,
     handleSubmit,
     reset,
@@ -98,6 +111,54 @@ export function WarehouseFormModal({
               fullWidth
             />
           </LabeledField>
+
+          <LocalityRow>
+            <LabeledField label={copy.fields.city} error={errors.city?.message}>
+              <TextField
+                {...register('city')}
+                placeholder={copy.placeholders.city}
+                error={errors.city !== undefined}
+                fullWidth
+              />
+            </LabeledField>
+
+            <LabeledField label={copy.fields.province} error={errors.province?.message}>
+              <Controller
+                name="province"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    select
+                    error={errors.province !== undefined}
+                    // Sin la lista no hay qué elegir; lo que ya tenía el
+                    // depósito se conserva igual porque el valor no cambia.
+                    disabled={provincesLoading || provincesError}
+                    fullWidth
+                    slotProps={{
+                      select: {
+                        // El Select de MUI se dibuja en un `div` que el
+                        // `<label>` de LabeledField no nombra.
+                        SelectDisplayProps: { 'aria-label': copy.fields.province },
+                        displayEmpty: true,
+                        renderValue: (value) =>
+                          value === ''
+                            ? provincePlaceholder(provincesLoading, provincesError)
+                            : String(value),
+                      },
+                    }}
+                  >
+                    <MenuItem value="">{copy.noProvince}</MenuItem>
+                    {provinces.map((province) => (
+                      <MenuItem key={province} value={province}>
+                        {province}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                )}
+              />
+            </LabeledField>
+          </LocalityRow>
         </ModalBody>
 
         <ModalFooter>

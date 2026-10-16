@@ -13,6 +13,7 @@ import {
   fetchOrderShipment,
   fetchProductStocks,
   fetchProvinces,
+  fetchShipmentLabel,
   fetchWarehouses,
   quoteDraft,
   updateOrder,
@@ -34,6 +35,8 @@ const SHIPMENT = {
   tracking_number: 'AND-9920-X8829-Z',
   shipping_cost: 58300,
   shipping_label_url: 'https://andreani.test/etiquetas/AND-9920.pdf',
+  external_reference: '0012345678',
+  label_available: true,
   courier: { id: 4, service_id: 7, name: 'Andreani' },
   events: [
     {
@@ -128,6 +131,8 @@ describe('fetchOrderShipment', () => {
         trackingNumber: 'AND-9920-X8829-Z',
         shippingCost: 58300,
         labelUrl: 'https://andreani.test/etiquetas/AND-9920.pdf',
+        labelAvailable: true,
+        externalReference: '0012345678',
         courier: { id: 4, serviceId: 7, name: 'Andreani' },
         events: [
           {
@@ -140,6 +145,63 @@ describe('fetchOrderShipment', () => {
         ],
       },
     })
+  })
+
+  // Un backend anterior a TESIS-186 no los manda: sin el dato no se ofrece
+  // imprimir, porque el endpoint de la etiqueta tampoco existe.
+  it('offers no label and no pickup order when the api does not send them', async () => {
+    const older: Partial<typeof SHIPMENT> = { ...SHIPMENT }
+    delete older.external_reference
+    delete older.label_available
+    vi.spyOn(client, 'get')
+      .mockResolvedValueOnce(shipmentList([31]))
+      .mockResolvedValueOnce(respond(older))
+
+    const result = await fetchOrderShipment(8829)
+
+    expect(result).toMatchObject({
+      shipment: { labelAvailable: false, externalReference: null },
+    })
+  })
+
+  it('treats a blank pickup order as none', async () => {
+    vi.spyOn(client, 'get')
+      .mockResolvedValueOnce(shipmentList([31]))
+      .mockResolvedValueOnce(respond({ ...SHIPMENT, external_reference: '  ' }))
+
+    expect(await fetchOrderShipment(8829)).toMatchObject({
+      shipment: { externalReference: null },
+    })
+  })
+})
+
+describe('fetchShipmentLabel', () => {
+  const pdf = new Blob(['%PDF-1.4'], { type: 'application/pdf' })
+
+  it('asks for the label as a file, through the authenticated client', async () => {
+    const get = vi
+      .spyOn(client, 'get')
+      .mockResolvedValueOnce(respond(pdf, { 'content-type': 'application/pdf' }))
+
+    await expect(fetchShipmentLabel(31)).resolves.toBe(pdf)
+    expect(get).toHaveBeenCalledWith('/shipments/31/label', { responseType: 'blob' })
+  })
+
+  it('reads the type of the file when the response has no content type', async () => {
+    vi.spyOn(client, 'get').mockResolvedValueOnce(respond(pdf))
+
+    await expect(fetchShipmentLabel(31)).resolves.toBe(pdf)
+  })
+
+  // El backend redirige a la URL del courier y el navegador la sigue: lo que
+  // vuelve es la página del courier, no el PDF.
+  it('returns nothing when the redirect ended in something that is not a pdf', async () => {
+    const page = new Blob(['<html></html>'], { type: 'text/html' })
+    vi.spyOn(client, 'get').mockResolvedValueOnce(
+      respond(page, { 'content-type': 'text/html; charset=utf-8' }),
+    )
+
+    await expect(fetchShipmentLabel(31)).resolves.toBeNull()
   })
 })
 
@@ -312,6 +374,7 @@ describe('quoteDraft', () => {
       origin_warehouse_id: 3,
       destination_zip_code: '1193',
       destination_address: 'Av. Corrientes 3247',
+      declared_value: 480000,
       items: [{ product_id: 12, quantity: 4 }],
     },
   }
@@ -374,6 +437,7 @@ describe('the cost of a quote with more than two decimals', () => {
         origin_warehouse_id: 3,
         destination_zip_code: '1193',
         destination_address: 'Av. Corrientes 3247',
+        declared_value: 120000,
         items: [{ product_id: 12, quantity: 1 }],
       },
     })

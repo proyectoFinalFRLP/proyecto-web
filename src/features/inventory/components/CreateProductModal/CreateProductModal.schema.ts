@@ -9,6 +9,14 @@ const { validation } = inventoryCopy
 // número" y no el mensaje de negativo.
 const nonNegativeNumber = z.number({ error: validation.numberRequired }).min(0, validation.negative)
 
+// Las medidas son opcionales (TESIS-185): el input vacío llega como `null`
+// —`measureFromInput`, no `valueAsNumber`— y eso es «sin cargar». Cargada, tiene
+// que ser mayor a cero: un eje en 0 no es un paquete que un courier pueda cotizar.
+const measureSchema = z
+  .number({ error: validation.numberRequired })
+  .positive(validation.measurePositive)
+  .nullable()
+
 // `warehouseId` arranca en 0 = "sin elegir". `positive()` es lo que convierte
 // una fila recién agregada en inválida hasta que el usuario elige el depósito.
 const stockRowSchema = z.object({
@@ -35,9 +43,9 @@ export const createProductSchema = z.object({
   sku: z.string().trim().min(1, validation.skuRequired),
   category: z.string(),
   weight: nonNegativeNumber,
-  length: nonNegativeNumber,
-  width: nonNegativeNumber,
-  height: nonNegativeNumber,
+  length: measureSchema,
+  width: measureSchema,
+  height: measureSchema,
   // Entero y no negativo, como la columna (TESIS-182). Cero es válido: el
   // producto sólo avisa cuando se agota.
   lowStockThreshold: nonNegativeNumber.int(validation.thresholdInteger),

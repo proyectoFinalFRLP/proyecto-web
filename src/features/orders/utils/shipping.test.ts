@@ -160,6 +160,44 @@ describe('toDraftQuotePayload', () => {
       { product_id: 13, quantity: 10 },
     ])
   })
+
+  it('sends the city and the province the operator entered, trimmed', () => {
+    expect(
+      toDraftQuotePayload([ROUTER], origin, { ...destination, city: ' CABA ' }).quote,
+    ).toMatchObject({
+      destination_city: 'CABA',
+      destination_province: 'Ciudad Autónoma de Buenos Aires',
+    })
+  })
+
+  // Un campo en blanco no es una localidad: no viaja, en vez de viajar vacío.
+  it('leaves out the city and the province while they are blank', () => {
+    const { quote } = toDraftQuotePayload([ROUTER], origin, {
+      ...destination,
+      city: '  ',
+      province: '',
+    })
+
+    expect(quote).not.toHaveProperty('destination_city')
+    expect(quote).not.toHaveProperty('destination_province')
+  })
+
+  // La orden todavía no existe: el valor declarado es lo que suman los
+  // productos del borrador, el mismo subtotal que muestra el resumen.
+  it('declares what the products of the draft add up to', () => {
+    expect(toDraftQuotePayload([ROUTER, SENSOR], origin, destination).quote.declared_value).toBe(
+      1680000,
+    )
+  })
+
+  it('declares cents without float noise', () => {
+    const cheap = [
+      item({ unitPrice: 0.1, quantity: 1 }),
+      item({ productId: 13, unitPrice: 0.2, quantity: 1 }),
+    ]
+
+    expect(toDraftQuotePayload(cheap, origin, destination).quote.declared_value).toBe(0.3)
+  })
 })
 
 describe('toDispatchPayload', () => {

@@ -163,6 +163,17 @@ export interface Shipment {
    * también después si el courier no lo devolvió.
    */
   labelUrl: string | null
+  /**
+   * Si `GET /shipments/:id/label` tiene algo que devolver (TESIS-186): el
+   * courier emite la etiqueta a pedido (OCA) o dejó su URL al despachar. Es lo
+   * que decide si se ofrece imprimirla.
+   */
+  labelAvailable: boolean
+  /**
+   * El id con el que el courier nombra el despacho, además del seguimiento: en
+   * OCA, la orden de retiro (TESIS-186). Null si el courier no lo devuelve.
+   */
+  externalReference: string | null
   /** Ordenados por `occurredAt`, del más viejo al más nuevo. */
   events: ShipmentEvent[]
 }
