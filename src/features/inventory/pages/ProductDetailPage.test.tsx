@@ -34,6 +34,7 @@ const PRODUCT: Product = {
   stocks: [],
   totalStock: 0,
   stockStatus: 'out_of_stock',
+  lowStockThreshold: 100,
   inTransitQuantity: 0,
   inTransitByWarehouse: [],
   committedByWarehouse: [],
@@ -237,6 +238,17 @@ describe('ProductDetailPage', () => {
         screen.getByText('En tránsito', { selector: 'p, span' }).parentElement?.parentElement,
       ).toHaveTextContent('12')
       expect(screen.getByText('130')).toBeInTheDocument()
+    })
+
+    // TESIS-182: sin el umbral a la vista no se entiende por qué el badge dice
+    // «stock bajo» con las mismas unidades en un producto y no en otro.
+    it('shows the low stock threshold of the product', () => {
+      showProduct({ ...SEEDED_MOUSE, lowStockThreshold: 50 })
+      renderDetail()
+
+      expect(
+        screen.getByText('Stock mínimo', { selector: 'p, span' }).parentElement,
+      ).toHaveTextContent('50')
     })
 
     it('puts the incoming units on the row of their destination', () => {

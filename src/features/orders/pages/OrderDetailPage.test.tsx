@@ -46,6 +46,8 @@ const ORDER: OrderDetail = {
   externalOrderId: 'ORD-8829-X',
   customerName: 'Global Tech Solutions S.A.',
   customerDocument: '30-71234567-8',
+  customerEmail: null,
+  customerPhone: null,
   customerAddress: 'Av. Corrientes 3247',
   customerZipCode: 'C1193',
   customerCity: null,
@@ -227,6 +229,34 @@ describe('OrderDetailPage', () => {
     const customer = screen.getByRole('region', { name: 'Datos del cliente' })
     expect(within(customer).getByText('Global Tech Solutions S.A.')).toBeInTheDocument()
     expect(within(customer).getByText('Av. Corrientes 3247 · CP C1193')).toBeInTheDocument()
+  })
+
+  // TESIS-179: el contacto que mandó el canal se muestra; la nota de que falta
+  // queda sólo para cuando no hay ninguno de los dos.
+  it('shows the email and the phone of the customer when the order has them', () => {
+    mockQueries({
+      data: { ...ORDER, customerEmail: 'compras@globaltech.com', customerPhone: '1123423456' },
+    })
+
+    renderAt('/orders/8829')
+
+    const customer = screen.getByRole('region', { name: 'Datos del cliente' })
+    expect(within(customer).getByText('compras@globaltech.com')).toBeInTheDocument()
+    expect(within(customer).getByText('1123423456')).toBeInTheDocument()
+    expect(
+      within(customer).queryByText('La orden no registra contacto ni teléfono del cliente.'),
+    ).not.toBeInTheDocument()
+  })
+
+  it('says the order records no contact when it has neither', () => {
+    mockQueries({ data: ORDER })
+
+    renderAt('/orders/8829')
+
+    const customer = screen.getByRole('region', { name: 'Datos del cliente' })
+    expect(
+      within(customer).getByText('La orden no registra contacto ni teléfono del cliente.'),
+    ).toBeInTheDocument()
   })
 
   // Si el envío no se puede leer, la orden se muestra igual.

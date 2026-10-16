@@ -112,6 +112,8 @@ export const inventoryCopy = {
         committed: 'Comprometido',
         inTransit: 'En tránsito',
         availableToPromise: 'Disponible para prometer',
+        /** TESIS-182: con este total o menos, el producto está en stock bajo. */
+        lowStockThreshold: 'Stock mínimo',
       },
       edit: 'Editar stock',
     },
@@ -187,7 +189,10 @@ export const inventoryCopy = {
       width: 'Ancho (cm)',
       height: 'Alto (cm)',
       available: 'Disponible',
+      lowStockThreshold: 'Stock mínimo',
     },
+    /** TESIS-182: el umbral es de cada producto. */
+    lowStockThresholdHelper: 'Con este total o menos, el producto figura con stock bajo.',
     skuHelper: 'El SKU identifica al producto y no se edita.',
     categoryHelper: 'Se usa para agrupar y filtrar el catálogo.',
     noCategory: 'Sin categoría',
@@ -248,7 +253,10 @@ export const inventoryCopy = {
       warehousePrimary: 'Depósito principal',
       warehouse: 'Depósito',
       quantity: 'Cantidad',
+      lowStockThreshold: 'Stock mínimo',
     },
+    /** TESIS-182: el umbral es de cada producto. */
+    lowStockThresholdHelper: 'Con este total o menos, el producto figura con stock bajo.',
     placeholders: {
       name: 'ej. Servomotor industrial Z5',
       sku: 'SKU-XXXX-XXX',
@@ -279,5 +287,6 @@ export const inventoryCopy = {
     quantityInteger: 'La cantidad debe ser un número entero',
     warehouseRequired: 'Elegí un depósito',
     duplicateWarehouse: 'No repitas el mismo depósito en dos filas',
+    thresholdInteger: 'El stock mínimo debe ser un número entero',
   },
 } as const

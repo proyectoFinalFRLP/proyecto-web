@@ -13,6 +13,24 @@ on:
       - develop
 
 jobs:
+  # Equivalente al bundler-audit de la API (TESIS-130): corta con cualquier
+  # vulnerabilidad alta o crítica, de producción o de desarrollo. Lee sólo el
+  # lockfile, así que no necesita instalar las dependencias.
+  security:
+    name: Dependency Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Audit dependencies
+        run: npm audit --audit-level=high
+
   lint:
     name: Lint & Format
     runs-on: ubuntu-latest

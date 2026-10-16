@@ -38,6 +38,9 @@ export const createProductSchema = z.object({
   length: nonNegativeNumber,
   width: nonNegativeNumber,
   height: nonNegativeNumber,
+  // Entero y no negativo, como la columna (TESIS-182). Cero es válido: el
+  // producto sólo avisa cuando se agota.
+  lowStockThreshold: nonNegativeNumber.int(validation.thresholdInteger),
   stocks: z
     .array(stockRowSchema)
     // La card pide validar duplicados antes de mandar. Además de ser una mejor

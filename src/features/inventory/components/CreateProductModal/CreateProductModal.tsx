@@ -17,6 +17,7 @@ import {
 
 import { inventoryCopy } from '../../content'
 import { buildCreatePayload } from '../../utils/payload'
+import { DEFAULT_LOW_STOCK_THRESHOLD } from '../../utils/stockStatus'
 import { CategoryField } from '../CategoryField'
 
 import { createProductSchema } from './CreateProductModal.schema'
@@ -30,6 +31,7 @@ import {
   SpecDimensions,
   SpecGrid,
   StockList,
+  ThresholdField,
 } from './CreateProductModal.styles'
 import type { CreateProductModalProps } from './CreateProductModal.types'
 import { SectionHeading } from './SectionHeading'
@@ -57,6 +59,7 @@ const EMPTY_FORM: CreateProductFormData = {
   length: 0,
   width: 0,
   height: 0,
+  lowStockThreshold: DEFAULT_LOW_STOCK_THRESHOLD,
   stocks: [{ warehouseId: 0, quantity: 0 }],
 }
 
@@ -244,6 +247,22 @@ export function CreateProductModal({
                 </AddWarehouseButton>
               }
             />
+
+            <ThresholdField>
+              <LabeledField
+                label={copy.fields.lowStockThreshold}
+                helperText={copy.lowStockThresholdHelper}
+                error={errors.lowStockThreshold?.message}
+              >
+                <TextField
+                  {...register('lowStockThreshold', { valueAsNumber: true })}
+                  type="number"
+                  inputProps={{ min: 0, step: 1 }}
+                  error={errors.lowStockThreshold !== undefined}
+                  fullWidth
+                />
+              </LabeledField>
+            </ThresholdField>
 
             {warehouses.length === 0 ? (
               <Typography variant="bodyMd" sx={{ color: 'text.secondary' }}>

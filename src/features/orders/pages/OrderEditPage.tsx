@@ -2,11 +2,11 @@ import { Button, Stack, Typography } from '@mui/material'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ErrorFallback, LoadingSpinner, PageWrapper } from 'shared/components'
+import { formatOrderId } from 'shared/utils'
 
 import { OrderEditForm } from '../components/OrderEditForm'
 import { ordersCopy } from '../content'
 import { useOrder, useOrderShipment } from '../hooks/useOrderDetail'
-import { formatOrderId } from '../utils/format'
 
 const { detail } = ordersCopy
 

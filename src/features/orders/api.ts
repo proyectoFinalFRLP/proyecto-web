@@ -92,6 +92,9 @@ interface ApiOrderDetail {
   external_order_id: string | null
   customer_name: string
   customer_document: string | null
+  /** Opcionales: una API anterior a TESIS-179 no los manda. */
+  customer_email?: string | null
+  customer_phone?: string | null
   customer_address: string | null
   customer_zip_code: string | null
   customer_city: string | null
@@ -196,6 +199,8 @@ function toOrderDetail(data: ApiOrderDetail, version: string | null): OrderDetai
     externalOrderId: data.external_order_id,
     customerName: data.customer_name,
     customerDocument: data.customer_document,
+    customerEmail: data.customer_email ?? null,
+    customerPhone: data.customer_phone ?? null,
     customerAddress: data.customer_address,
     customerZipCode: data.customer_zip_code,
     customerCity: data.customer_city,

@@ -9,7 +9,7 @@ import type { ReactNode } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ErrorFallback, LoadingSpinner, PageWrapper } from 'shared/components'
 import { notify } from 'shared/store'
-import { formatInteger, formatMoney } from 'shared/utils'
+import { formatInteger, formatMoney, formatOrderId } from 'shared/utils'
 
 import { DispatchShipmentDialog } from '../components/DispatchShipmentDialog'
 import { InfoPanel } from '../components/InfoPanel'
@@ -27,7 +27,7 @@ import { useCreateOrderShipment } from '../hooks/useCreateOrderShipment'
 import { useOrder, useOrderShipment } from '../hooks/useOrderDetail'
 import type { OrderDetail, Shipment, ShipmentView } from '../types'
 import { canOpenShipment, dispatchableShipment } from '../utils/dispatch'
-import { formatOrderId, formatShortDate } from '../utils/format'
+import { formatShortDate } from '../utils/format'
 import { paymentSummary, totalUnits } from '../utils/payment'
 import { deliveredAt, headerStatus } from '../utils/shipment'
 
@@ -119,6 +119,11 @@ function carrierMetric(order: OrderDetail, courier: Shipment['courier']): OrderM
   }
 }
 
+/** La nota de «no registra contacto» sólo tiene sentido si falta todo el contacto. */
+function withoutContact(order: OrderDetail): boolean {
+  return order.customerEmail === null && order.customerPhone === null
+}
+
 function customerFields(order: OrderDetail): InfoField[] {
   const { fields, addressValue } = detail.customer
 
@@ -131,8 +136,19 @@ function customerFields(order: OrderDetail): InfoField[] {
       mono: order.customerDocument !== null,
       unknown: order.customerDocument === null,
     },
-    { id: 'contact', label: fields.contact, value: unknown, unknown: true },
-    { id: 'phone', label: fields.phone, value: unknown, unknown: true },
+    {
+      id: 'contact',
+      label: fields.contact,
+      value: order.customerEmail ?? unknown,
+      unknown: order.customerEmail === null,
+    },
+    {
+      id: 'phone',
+      label: fields.phone,
+      value: order.customerPhone ?? unknown,
+      mono: order.customerPhone !== null,
+      unknown: order.customerPhone === null,
+    },
     {
       id: 'address',
       label: fields.address,
@@ -306,7 +322,7 @@ export function OrderDetailPage() {
               title={detail.customer.title}
               icon={<PersonOutlineIcon aria-hidden />}
               fields={customerFields(order.data)}
-              footnote={detail.customer.footnote}
+              footnote={withoutContact(order.data) ? detail.customer.footnote : undefined}
             />
             {/* En un retiro el panel entero habla de algo que no va a existir:
                 decía «Pendiente de despacho» y «Se emite al despachar» de un
