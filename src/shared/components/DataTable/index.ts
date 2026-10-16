@@ -8,5 +8,7 @@ export type {
   DataTablePaginationLabels,
   DataTableProps,
   DataTableRowTone,
+  DataTableSort,
+  DataTableSortDirection,
   DataTableTab,
 } from './DataTable.types'

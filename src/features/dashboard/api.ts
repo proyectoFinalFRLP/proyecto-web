@@ -145,6 +145,8 @@ export const RECENT_ORDERS = 5
 interface ApiRecentOrder {
   id: number
   external_order_id: string | null
+  /** Opcional: una API anterior a TESIS-180 no lo manda. */
+  external_order_number?: string | null
   customer_address: string | null
   customer_zip_code: string | null
   status: RecentOrder['status']
@@ -167,6 +169,7 @@ export async function fetchRecentOrders(): Promise<RecentOrder[]> {
   return data.data.map((order) => ({
     id: order.id,
     externalOrderId: order.external_order_id,
+    externalOrderNumber: order.external_order_number ?? null,
     customerAddress: order.customer_address,
     customerZipCode: order.customer_zip_code,
     status: order.status,

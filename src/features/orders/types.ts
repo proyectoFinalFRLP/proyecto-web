@@ -1,3 +1,5 @@
+import type { DataTableSort } from 'shared/components'
+
 // Tipos del dominio de órdenes.
 //
 // Como en el resto de las features, el dominio se declara en camelCase y la
@@ -27,6 +29,8 @@ export type OrderStatus = 'pending' | 'paid' | 'cancelled'
 export interface OrderSummary {
   id: number
   externalOrderId: string | null
+  /** El número que muestra la tienda (TESIS-180): «#1001» en Shopify. `null` si el canal no lo manda. */
+  externalOrderNumber: string | null
   customerName: string
   customerAddress: string | null
   customerZipCode: string | null
@@ -75,6 +79,8 @@ export interface OrderLine {
 export interface OrderDetail {
   id: number
   externalOrderId: string | null
+  /** El número que muestra la tienda (TESIS-180): «#1001» en Shopify. `null` si el canal no lo manda. */
+  externalOrderNumber: string | null
   customerName: string
   customerDocument: string | null
   /** Contacto del comprador (TESIS-179). `null` si el canal no lo mandó o la orden es anterior. */
@@ -192,6 +198,8 @@ export interface OrderFilters {
   status?: OrderStatus
   /** Busca por id externo, nombre de cliente o dirección. */
   search?: string
+  /** Orden por columna (TESIS-184). Sin orden, el de siempre: las más nuevas primero. */
+  sort?: DataTableSort | null
 }
 
 /**

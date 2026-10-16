@@ -4,8 +4,9 @@ import { Box, Button, InputAdornment, Stack, TextField, Typography } from '@mui/
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ErrorFallback, LoadingSpinner, PageWrapper } from 'shared/components'
-import type { DataTableTab } from 'shared/components'
+import type { DataTableSort, DataTableTab } from 'shared/components'
 import { useDebouncedValue } from 'shared/hooks/useDebouncedValue'
+import { useSortParam } from 'shared/hooks/useSortParam'
 import { formatInteger } from 'shared/utils'
 
 import { OrdersTable } from '../components/OrdersTable'
@@ -13,6 +14,7 @@ import { ordersCopy } from '../content'
 import { ORDER_TABS, useOrderCounts, useOrderPage } from '../hooks/useOrders'
 import type { OrderTabId } from '../hooks/useOrders'
 import type { OrderSummary } from '../types'
+import { ORDER_SORT_KEYS } from '../utils/sort'
 
 const { page: pageCopy, tabs: tabCopy, pagination } = ordersCopy
 
@@ -39,13 +41,14 @@ export function OrdersPage() {
   const [tabId, setTabId] = useState<OrderTabId>('all')
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
+  const [sort, setSort] = useSortParam(ORDER_SORT_KEYS)
 
   // Lo que se tipea actualiza el campo en el acto; lo que viaja a la API espera
   // a que la persona deje de escribir.
   const debouncedSearch = useDebouncedValue(search)
 
   const status = ORDER_TABS.find((tab) => tab.id === tabId)?.status
-  const orders = useOrderPage({ page, perPage: PER_PAGE, status, search: debouncedSearch })
+  const orders = useOrderPage({ page, perPage: PER_PAGE, status, search: debouncedSearch, sort })
   const counts = useOrderCounts(debouncedSearch)
 
   // Cambiar de pestaña o de búsqueda vuelve a la primera página: quedarse en la
@@ -58,6 +61,13 @@ export function OrdersPage() {
 
   function changeSearch(value: string) {
     setSearch(value)
+    setPage(1)
+  }
+
+  // Mismo criterio para el orden (TESIS-184): la página 7 de un orden no es la
+  // 7 del otro.
+  function changeSort(next: DataTableSort) {
+    setSort(next)
     setPage(1)
   }
 
@@ -147,6 +157,8 @@ export function OrdersPage() {
         tabs={tabs}
         activeTabId={tabId}
         onTabChange={changeTab}
+        sort={sort}
+        onSortChange={changeSort}
         pagination={{
           page,
           pageCount,

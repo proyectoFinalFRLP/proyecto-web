@@ -1,4 +1,5 @@
 import { client } from 'shared/api/client'
+import { sortParams } from 'shared/utils'
 
 import type {
   CatalogCounts,
@@ -181,13 +182,14 @@ function toSummary(product: ApiProductSummary): ProductSummary {
 // backend filtre por cadena vacía y devuelva cero filas.
 // `page` y `perPage` son opcionales acá: `/products/counts` no pagina, y
 // mandarle una página sería decirle que cuente una porción (TESIS-163).
-function toParams({ page, perPage, status, search, category }: Partial<ProductFilters>) {
+function toParams({ page, perPage, status, search, category, sort }: Partial<ProductFilters>) {
   return {
     ...(page === undefined ? {} : { page }),
     ...(perPage === undefined ? {} : { per_page: perPage }),
     ...(status === undefined ? {} : { status }),
     ...(search === undefined || search === '' ? {} : { search }),
     ...(category === undefined ? {} : { category }),
+    ...sortParams(sort),
   }
 }
 

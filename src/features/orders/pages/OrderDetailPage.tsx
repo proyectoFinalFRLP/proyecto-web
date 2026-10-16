@@ -270,7 +270,11 @@ export function OrderDetailPage() {
   const status = headerStatus(order.data.status, shipment.data)
   const dispatchable = dispatchableShipment(order.data.status, shipmentView)
   const canOpen = canOpenShipment(order.data.status, shipmentView, order.data.requiresShipping)
-  const orderLabel = formatOrderId(order.data.externalOrderId, order.data.id)
+  const orderLabel = formatOrderId(
+    order.data.externalOrderId,
+    order.data.id,
+    order.data.externalOrderNumber,
+  )
   // El id suelto y no `order.data.id` dentro del callback: el angostado de los
   // returns de arriba no alcanza adentro de una función, que TypeScript no sabe
   // cuándo se llama.

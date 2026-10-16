@@ -18,6 +18,7 @@ function entry(overrides: Partial<ActivityEntry> = {}): ActivityEntry {
     orderId: 8829,
     customerName: 'Marina Rodríguez',
     externalOrderId: null,
+    externalOrderNumber: null,
     shipmentId: null,
     trackingNumber: null,
     courier: null,
@@ -94,6 +95,15 @@ describe('ActivityPanel', () => {
     renderPanel()
 
     expect(screen.getByText(/ML-1001/)).toBeInTheDocument()
+  })
+
+  // TESIS-180: el número que muestra la tienda, no el id de su API.
+  it('names a channel sale by the number its store shows', () => {
+    mockFeed([entry({ externalOrderId: '18948032757993', externalOrderNumber: '#1001' })])
+    renderPanel()
+
+    expect(screen.getByText(/#1001/)).toBeInTheDocument()
+    expect(screen.queryByText(/18948032757993/)).not.toBeInTheDocument()
   })
 
   it('names the courier of a dispatch', () => {

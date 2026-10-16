@@ -3,8 +3,9 @@ import { Box, InputAdornment, Stack, TextField, Typography } from '@mui/material
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ErrorFallback, LoadingSpinner, PageWrapper } from 'shared/components'
-import type { DataTableTab } from 'shared/components'
+import type { DataTableSort, DataTableTab } from 'shared/components'
 import { useDebouncedValue } from 'shared/hooks/useDebouncedValue'
+import { useSortParam } from 'shared/hooks/useSortParam'
 import { formatInteger } from 'shared/utils'
 
 import { ShipmentsTable } from '../components/ShipmentsTable'
@@ -12,6 +13,7 @@ import { shipmentsCopy } from '../content'
 import { SHIPMENT_TABS, useShipmentCounts, useShipmentPage } from '../hooks/useShipments'
 import type { ShipmentTabId } from '../hooks/useShipments'
 import type { ShipmentSummary } from '../types'
+import { SHIPMENT_SORT_KEYS } from '../utils/sort'
 
 const { page: pageCopy, tabs: tabCopy, table, pagination } = shipmentsCopy
 
@@ -46,6 +48,7 @@ export function ShipmentsPage() {
   const [tabId, setTabId] = useState<ShipmentTabId>('all')
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
+  const [sort, setSort] = useSortParam(SHIPMENT_SORT_KEYS)
 
   // Lo que se tipea actualiza el campo en el acto; lo que viaja a la API espera
   // a que la persona deje de escribir.
@@ -57,6 +60,7 @@ export function ShipmentsPage() {
     perPage: PER_PAGE,
     status,
     search: debouncedSearch,
+    sort,
   })
   // El término también va a los contadores: si no, las pestañas seguirían
   // diciendo cuántos envíos tiene la empresa mientras la tabla muestra tres.
@@ -72,6 +76,12 @@ export function ShipmentsPage() {
 
   function changeSearch(value: string) {
     setSearch(value)
+    setPage(1)
+  }
+
+  // Mismo criterio para el orden (TESIS-184).
+  function changeSort(next: DataTableSort) {
+    setSort(next)
     setPage(1)
   }
 
@@ -148,6 +158,8 @@ export function ShipmentsPage() {
           activeTabId={tabId}
           onTabChange={changeTab}
           onView={openOrder}
+          sort={sort}
+          onSortChange={changeSort}
           emptyMessage={debouncedSearch ? table.emptySearch : table.empty}
           pagination={{
             page,

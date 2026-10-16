@@ -1,4 +1,5 @@
 import { fireEvent, screen, within } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { renderWithTheme } from '../../../test/renderWithTheme'
@@ -11,6 +12,15 @@ import {
 import type { FailedEvent } from '../types'
 
 import { FailedEventsPage } from './FailedEventsPage'
+
+// La página lee el orden de la URL (TESIS-184): necesita un router.
+function renderPage(url = '/') {
+  return renderWithTheme(
+    <MemoryRouter initialEntries={[url]}>
+      <FailedEventsPage />
+    </MemoryRouter>,
+  )
+}
 
 vi.mock('../hooks/useFailedEvents', async (importOriginal) => ({
   ...(await importOriginal<typeof queueHooks>()),
@@ -75,7 +85,7 @@ const row = (text: string) => {
 
 describe('FailedEventsPage', () => {
   it('names each event in words with its direction, status and attempts', () => {
-    renderWithTheme(<FailedEventsPage />)
+    renderPage()
 
     const pending = row('Pedido a un canal o courier')
     expect(pending.getByText('Saliente')).toBeInTheDocument()
@@ -84,25 +94,25 @@ describe('FailedEventsPage', () => {
   })
 
   it('shows the last error with the HTTP status of the answer', () => {
-    renderWithTheme(<FailedEventsPage />)
+    renderPage()
 
     expect(row('Service Unavailable').getByText('HTTP 503')).toBeInTheDocument()
   })
 
   it('says when the next automatic retry is due', () => {
-    renderWithTheme(<FailedEventsPage />)
+    renderPage()
 
     expect(row('Service Unavailable').getByText('dentro de 4 minutos')).toBeInTheDocument()
   })
 
   it('shows the count of each tab', () => {
-    renderWithTheme(<FailedEventsPage />)
+    renderPage()
 
     expect(screen.getByRole('tab', { name: /Agotados/ })).toHaveTextContent('1')
   })
 
   it('retries an exhausted event right away', () => {
-    renderWithTheme(<FailedEventsPage />)
+    renderPage()
 
     fireEvent.click(screen.getByRole('button', { name: 'Reintentar el evento 11' }))
 
@@ -110,7 +120,7 @@ describe('FailedEventsPage', () => {
   })
 
   it('asks before discarding and then discards', () => {
-    renderWithTheme(<FailedEventsPage />)
+    renderPage()
 
     fireEvent.click(screen.getByRole('button', { name: 'Descartar el evento 12' }))
     fireEvent.click(
@@ -121,14 +131,14 @@ describe('FailedEventsPage', () => {
   })
 
   it('offers no action on an event that already went through', () => {
-    renderWithTheme(<FailedEventsPage />)
+    renderPage()
 
     expect(screen.queryByRole('button', { name: 'Reintentar el evento 13' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Descartar el evento 13' })).toBeNull()
   })
 
   it('asks the API for the status of the chosen tab, from the first page', () => {
-    renderWithTheme(<FailedEventsPage />)
+    renderPage()
 
     fireEvent.click(screen.getByRole('tab', { name: /Agotados/ }))
 
@@ -136,6 +146,26 @@ describe('FailedEventsPage', () => {
       page: 1,
       perPage: 20,
       status: 'dead',
+      sort: null,
     })
+  })
+
+  // TESIS-184: el orden sale de la URL y viaja a la API.
+  it('asks the API for the sort of the URL', () => {
+    renderPage('/?sort=attempts&direction=desc')
+
+    expect(vi.mocked(useFailedEventPage)).toHaveBeenLastCalledWith(
+      expect.objectContaining({ sort: { key: 'attempts', direction: 'desc' } }),
+    )
+  })
+
+  it('goes back to the first page and sorts when a header is clicked', () => {
+    renderPage()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Intentos' }))
+
+    expect(vi.mocked(useFailedEventPage)).toHaveBeenLastCalledWith(
+      expect.objectContaining({ page: 1, sort: { key: 'attempts', direction: 'desc' } }),
+    )
   })
 })

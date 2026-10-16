@@ -17,9 +17,30 @@ export type DataTableRowTone = 'default' | 'critical' | 'muted'
  */
 export type DataTableDensity = 'regular' | 'compact'
 
+/** Hacia dónde ordena una columna (TESIS-184). */
+export type DataTableSortDirection = 'asc' | 'desc'
+
+/** El orden activo: qué clave de la API y en qué dirección. */
+export interface DataTableSort {
+  key: string
+  direction: DataTableSortDirection
+}
+
 export interface DataTableColumn<Row> {
   id: string
   header: string
+  /**
+   * La clave con la que la API ordena por esta columna (`?sort=`). Sin ella la
+   * columna no se ordena. El orden lo resuelve la API y no la tabla: los
+   * listados paginan del lado del servidor, y ordenar acá ordenaría sólo la
+   * página visible.
+   */
+  sortKey?: string
+  /**
+   * La dirección del primer clic. Por defecto `asc`, que es lo natural para un
+   * texto; una fecha o un importe se miran primero de mayor a menor (`desc`).
+   */
+  firstSortDirection?: DataTableSortDirection
   /** Por defecto `left`. Los importes van `right` y las acciones `center`. */
   align?: DataTableAlign
   /** Ancho fijo en px. Sin esto la columna reparte el espacio sobrante. */
@@ -107,6 +128,11 @@ export interface DataTableProps<Row> {
   /** Etiquetas accesibles de los checkboxes. */
   selectAllLabel?: string
   selectRowLabel?: string
+
+  /** El orden activo. `null` o ausente: el listado sale en su orden de siempre. */
+  sort?: DataTableSort | null
+  /** Sin esto ninguna columna se ordena, aunque declare `sortKey`. */
+  onSortChange?: (sort: DataTableSort) => void
 
   pagination?: DataTablePagination
   /** Textos del paginador. Sin esto el paginador no se renderiza. */
