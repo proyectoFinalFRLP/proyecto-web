@@ -42,7 +42,7 @@ function buildColumns(onView: (order: OrderSummary) => void): DataTableColumn<Or
           // caía en la monoespaciada del sistema.
           sx={{ typography: 'dataMono', textAlign: 'left' }}
         >
-          {formatOrderId(order.externalOrderId, order.id)}
+          {formatOrderId(order.externalOrderId, order.id, order.externalOrderNumber)}
         </Link>
       ),
     },
@@ -159,7 +159,9 @@ export function OrdersTable({
       actions={actions}
       actionsHeader={columnCopy.actions}
       getActionsLabel={(order) =>
-        actionCopy.menuFor(formatOrderId(order.externalOrderId, order.id))
+        actionCopy.menuFor(
+          formatOrderId(order.externalOrderId, order.id, order.externalOrderNumber),
+        )
       }
       sort={sort}
       onSortChange={onSortChange}

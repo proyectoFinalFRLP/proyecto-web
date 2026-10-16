@@ -69,7 +69,11 @@ export function OrderEditPage() {
       <OrderEditForm
         key={reloads}
         order={order.data}
-        orderLabel={formatOrderId(order.data.externalOrderId, order.data.id)}
+        orderLabel={formatOrderId(
+          order.data.externalOrderId,
+          order.data.id,
+          order.data.externalOrderNumber,
+        )}
         shipment={shipment.data}
         ordersPath={ORDERS_PATH}
         detailPath={detailPath(order.data.id)}

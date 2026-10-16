@@ -21,6 +21,7 @@ const DISPATCHED: ShipmentSummary = {
   id: 31,
   orderId: 8829,
   externalOrderId: null,
+  externalOrderNumber: null,
   status: 'in_transit',
   trackingNumber: 'AND-9920-X8829-Z',
   shippingCost: 58300,
@@ -134,6 +135,14 @@ describe('ShipmentsPage', () => {
     renderPage()
 
     expect(screen.getByRole('button', { name: 'Orden #18948032757993' })).toBeInTheDocument()
+  })
+
+  it('prefers the number the store shows over the id of the channel (TESIS-180)', () => {
+    mockPage([{ ...DISPATCHED, externalOrderId: '18948032757993', externalOrderNumber: '#1001' }])
+
+    renderPage()
+
+    expect(screen.getByRole('button', { name: 'Orden #1001' })).toBeInTheDocument()
   })
 
   it('opens the order from the eye of its row, with no menu in between', () => {

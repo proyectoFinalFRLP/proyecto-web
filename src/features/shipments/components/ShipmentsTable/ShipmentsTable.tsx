@@ -66,7 +66,9 @@ function buildColumns(
           onClick={() => onView(shipment)}
           sx={{ typography: 'dataMono', textAlign: 'left' }}
         >
-          {cells.order(formatOrderId(shipment.externalOrderId, shipment.orderId))}
+          {cells.order(
+            formatOrderId(shipment.externalOrderId, shipment.orderId, shipment.externalOrderNumber),
+          )}
         </Link>
       ),
     },

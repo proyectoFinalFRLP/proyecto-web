@@ -27,6 +27,8 @@ interface ApiShipmentSummary {
   order_id: number
   /** El número del canal de la orden (TESIS-181). Opcional: una API anterior no lo manda. */
   external_order_id?: string | null
+  /** El número que muestra la tienda (TESIS-180). Opcional, igual que el id. */
+  external_order_number?: string | null
   status: ShipmentStatus
   tracking_number: string | null
   shipping_cost: number | null
@@ -50,6 +52,7 @@ function toShipment(shipment: ApiShipmentSummary): ShipmentSummary {
     id: shipment.id,
     orderId: shipment.order_id,
     externalOrderId: shipment.external_order_id ?? null,
+    externalOrderNumber: shipment.external_order_number ?? null,
     status: shipment.status,
     trackingNumber: shipment.tracking_number,
     shippingCost: shipment.shipping_cost,

@@ -52,6 +52,8 @@ export type OrderStatus = 'pending' | 'paid' | 'cancelled'
 export interface RecentOrder {
   id: number
   externalOrderId: string | null
+  /** El número que muestra la tienda (TESIS-180). */
+  externalOrderNumber: string | null
   customerAddress: string | null
   customerZipCode: string | null
   status: OrderStatus

@@ -46,6 +46,8 @@ interface ApiCourier {
 interface ApiOrderSummary {
   id: number
   external_order_id: string | null
+  /** Opcional: una API anterior a TESIS-180 no lo manda. */
+  external_order_number?: string | null
   customer_name: string
   customer_address: string | null
   customer_zip_code: string | null
@@ -91,6 +93,8 @@ interface ApiOrderItem {
 interface ApiOrderDetail {
   id: number
   external_order_id: string | null
+  /** Opcional: una API anterior a TESIS-180 no lo manda. */
+  external_order_number?: string | null
   customer_name: string
   customer_document: string | null
   /** Opcionales: una API anterior a TESIS-179 no los manda. */
@@ -152,6 +156,7 @@ function toOrder(order: ApiOrderSummary): OrderSummary {
   return {
     id: order.id,
     externalOrderId: order.external_order_id,
+    externalOrderNumber: order.external_order_number ?? null,
     customerName: order.customer_name,
     customerAddress: order.customer_address,
     customerZipCode: order.customer_zip_code,
@@ -198,6 +203,7 @@ function toOrderDetail(data: ApiOrderDetail, version: string | null): OrderDetai
   return {
     id: data.id,
     externalOrderId: data.external_order_id,
+    externalOrderNumber: data.external_order_number ?? null,
     customerName: data.customer_name,
     customerDocument: data.customer_document,
     customerEmail: data.customer_email ?? null,

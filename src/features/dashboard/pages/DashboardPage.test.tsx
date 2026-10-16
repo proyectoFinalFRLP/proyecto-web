@@ -20,6 +20,7 @@ const ORDERS: RecentOrder[] = [
   {
     id: 8829,
     externalOrderId: 'ORD-8829-X',
+    externalOrderNumber: null,
     customerAddress: 'Av. Rivadavia 1234',
     customerZipCode: 'C1033',
     status: 'paid',
@@ -29,6 +30,7 @@ const ORDERS: RecentOrder[] = [
   {
     id: 8826,
     externalOrderId: null,
+    externalOrderNumber: null,
     customerAddress: null,
     customerZipCode: null,
     status: 'cancelled',
