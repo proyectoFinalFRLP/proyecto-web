@@ -24,6 +24,8 @@ interface ApiCourier {
 interface ApiShipmentSummary {
   id: number
   order_id: number
+  /** El número del canal de la orden (TESIS-181). Opcional: una API anterior no lo manda. */
+  external_order_id?: string | null
   status: ShipmentStatus
   tracking_number: string | null
   shipping_cost: number | null
@@ -46,6 +48,7 @@ function toShipment(shipment: ApiShipmentSummary): ShipmentSummary {
   return {
     id: shipment.id,
     orderId: shipment.order_id,
+    externalOrderId: shipment.external_order_id ?? null,
     status: shipment.status,
     trackingNumber: shipment.tracking_number,
     shippingCost: shipment.shipping_cost,
