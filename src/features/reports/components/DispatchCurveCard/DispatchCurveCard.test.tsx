@@ -25,7 +25,7 @@ describe('DispatchCurveCard', () => {
     expect(
       screen.getByRole('img', { name: 'Curva de despacho: facturación por día' }),
     ).toBeVisible()
-    expect(screen.getByText('$1 MM')).toBeInTheDocument()
+    expect(screen.getByText('$800k')).toBeInTheDocument()
     expect(screen.queryByText('10k')).not.toBeInTheDocument()
   })
 
