@@ -1,3 +1,5 @@
+import type { DataTableSort } from 'shared/components'
+
 // Tipos del dominio de inventario.
 //
 // Se declaran en camelCase (convención del proyecto). La API Rails responde en
@@ -59,6 +61,8 @@ export interface ProductFilters {
   /** Busca por SKU o por nombre. */
   search?: string
   category?: ProductCategory
+  /** Orden por columna (TESIS-184). Sin orden, el de siempre: los más nuevos primero. */
+  sort?: DataTableSort | null
 }
 
 /** Depósito físico de la empresa. Espejo de `GET /api/v1/warehouses`. */

@@ -1,4 +1,12 @@
-import { Checkbox, Table, TableBody, TableHead, TableRow, Typography } from '@mui/material'
+import {
+  Checkbox,
+  Table,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableSortLabel,
+  Typography,
+} from '@mui/material'
 
 import {
   BodyCell,
@@ -14,10 +22,32 @@ import {
   ToolbarTitle,
   TruncatedContent,
 } from './DataTable.styles'
-import type { DataTableProps } from './DataTable.types'
+import type { DataTableColumn, DataTableProps, DataTableSort } from './DataTable.types'
 import { DataTablePaginationBar } from './DataTablePaginationBar'
 import { DataTableRowActions } from './DataTableRowActions'
 import { DataTableTabs } from './DataTableTabs'
+
+/**
+ * `aria-sort` y la flecha del encabezado: la dirección si esta columna es la
+ * que ordena, `false` si no.
+ */
+function sortDirectionOf<Row>(
+  column: DataTableColumn<Row>,
+  sort: DataTableSort | null | undefined,
+): DataTableSort['direction'] | false {
+  return column.sortKey !== undefined && sort?.key === column.sortKey ? sort.direction : false
+}
+
+/** Primer clic: la dirección natural de la columna. Segundo: la invierte. */
+function nextSort<Row>(
+  column: DataTableColumn<Row>,
+  sort: DataTableSort | null | undefined,
+): DataTableSort {
+  const key = column.sortKey ?? column.id
+  if (sort?.key !== key) return { key, direction: column.firstSortDirection ?? 'asc' }
+
+  return { key, direction: sort.direction === 'asc' ? 'desc' : 'asc' }
+}
 
 /**
  * Tabla de datos estándar del design system: pestañas de filtrado, selección
@@ -50,6 +80,8 @@ export function DataTable<Row>({
   actionsHeader = 'Acciones',
   selectAllLabel = 'Seleccionar todo',
   selectRowLabel = 'Seleccionar fila',
+  sort,
+  onSortChange,
   pagination,
   paginationLabels,
   toolbarActions,
@@ -138,8 +170,21 @@ export function DataTable<Row>({
                   hideBelow={column.hideBelow}
                   pinned={column.pinned}
                   style={column.width === undefined ? undefined : { width: column.width }}
+                  sortDirection={sortDirectionOf(column, sort)}
                 >
-                  {column.header}
+                  {column.sortKey === undefined || onSortChange === undefined ? (
+                    column.header
+                  ) : (
+                    <TableSortLabel
+                      active={sort?.key === column.sortKey}
+                      direction={
+                        sortDirectionOf(column, sort) || column.firstSortDirection || 'asc'
+                      }
+                      onClick={() => onSortChange(nextSort(column, sort))}
+                    >
+                      {column.header}
+                    </TableSortLabel>
+                  )}
                 </HeadCell>
               ))}
 

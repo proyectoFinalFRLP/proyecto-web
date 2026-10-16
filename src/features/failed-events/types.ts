@@ -1,3 +1,5 @@
+import type { DataTableSort } from 'shared/components'
+
 // Tipos de la cola de eventos fallidos (Dead Letter Queue), en camelCase.
 
 /** `FailedEvent::STATUSES`. */
@@ -30,6 +32,8 @@ export interface FailedEventFilters {
   perPage: number
   /** Sin estado, la API devuelve todos. */
   status?: FailedEventStatus
+  /** Orden por columna (TESIS-184). Sin orden, el de siempre: los más nuevos primero. */
+  sort?: DataTableSort | null
 }
 
 export interface FailedEventPage {

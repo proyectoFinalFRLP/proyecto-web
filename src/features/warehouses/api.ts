@@ -1,4 +1,6 @@
 import { client } from 'shared/api/client'
+import type { DataTableSort } from 'shared/components'
+import { sortParams } from 'shared/utils'
 
 import type { Warehouse, WarehouseInput, WarehousePayload } from './types'
 
@@ -44,8 +46,11 @@ export function toPayload(input: WarehouseInput): WarehousePayload {
   }
 }
 
-export async function fetchWarehouses(): Promise<Warehouse[]> {
-  const { data } = await client.get<ApiList<ApiWarehouse>>('/warehouses')
+/** Todos los depósitos, en el orden pedido (TESIS-184) o en el de siempre. */
+export async function fetchWarehouses(sort: DataTableSort | null = null): Promise<Warehouse[]> {
+  const { data } = await client.get<ApiList<ApiWarehouse>>('/warehouses', {
+    params: sortParams(sort),
+  })
 
   return data.data.map(toWarehouse)
 }

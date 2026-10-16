@@ -43,6 +43,8 @@ function buildColumns(
     {
       id: 'id',
       header: columnCopy.id,
+      sortKey: 'id',
+      firstSortDirection: 'desc',
       width: 110,
       render: (shipment) => (
         <Typography variant="dataMono">{cells.shipment(shipment.id)}</Typography>
@@ -69,6 +71,7 @@ function buildColumns(
     {
       id: 'courier',
       header: columnCopy.courier,
+      sortKey: 'courier',
       width: 170,
       hideBelow: 'md',
       render: (shipment) =>
@@ -81,6 +84,7 @@ function buildColumns(
     {
       id: 'tracking',
       header: columnCopy.tracking,
+      sortKey: 'tracking_number',
       render: (shipment) =>
         shipment.trackingNumber === null ? (
           <Missing>{cells.noTracking}</Missing>
@@ -93,6 +97,8 @@ function buildColumns(
     {
       id: 'cost',
       header: columnCopy.cost,
+      sortKey: 'shipping_cost',
+      firstSortDirection: 'desc',
       width: 120,
       align: 'right',
       // Sin cotizar no cuesta cero: no se cotizó. Un 0 ahí afirmaría un envío
@@ -107,6 +113,7 @@ function buildColumns(
     {
       id: 'status',
       header: columnCopy.status,
+      sortKey: 'status',
       width: 150,
       render: (shipment) => (
         <StatusBadge status={TONES[shipment.status]} label={statusCopy[shipment.status]} />
@@ -115,6 +122,8 @@ function buildColumns(
     {
       id: 'createdAt',
       header: columnCopy.createdAt,
+      sortKey: 'created_at',
+      firstSortDirection: 'desc',
       width: 124,
       hideBelow: 'md',
       render: (shipment) => (
@@ -159,6 +168,8 @@ export function ShipmentsTable({
   activeTabId,
   onTabChange,
   pagination,
+  sort,
+  onSortChange,
   emptyMessage,
   onView,
 }: ShipmentsTableProps) {
@@ -172,6 +183,8 @@ export function ShipmentsTable({
       activeTabId={activeTabId}
       onTabChange={onTabChange}
       emptyMessage={emptyMessage}
+      sort={sort}
+      onSortChange={onSortChange}
       pagination={pagination}
       paginationLabels={{
         previousLabel: shipmentsCopy.pagination.previous,
