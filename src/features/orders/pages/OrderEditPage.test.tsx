@@ -29,6 +29,8 @@ const ORDER: OrderDetail = {
   externalOrderId: 'ORD-8829-X',
   customerName: 'Global Tech Solutions S.A.',
   customerDocument: '30-71234567-8',
+  customerEmail: null,
+  customerPhone: null,
   customerAddress: 'Av. Corrientes 3247',
   customerZipCode: '1193',
   customerCity: 'CABA',

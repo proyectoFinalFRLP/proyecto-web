@@ -22,6 +22,8 @@ function order(overrides: Partial<OrderDetail> = {}): OrderDetail {
     externalOrderId: null,
     customerName: 'Global Tech Solutions S.A.',
     customerDocument: null,
+    customerEmail: null,
+    customerPhone: null,
     customerAddress: null,
     customerZipCode: null,
     customerCity: null,

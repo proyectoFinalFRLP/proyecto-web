@@ -11,6 +11,7 @@ import type {
   OrderDraftItem,
   OrderDraftOrigin,
 } from 'shared/store'
+import { formatOrderId } from 'shared/utils'
 
 import { FormSection } from '../components/FormSection'
 import { OrderConfirmCard } from '../components/OrderConfirmCard'
@@ -20,7 +21,6 @@ import { ordersCopy } from '../content'
 import { useConfirmDraftOrder } from '../hooks/useConfirmDraftOrder'
 import { useDraftQuotes } from '../hooks/useDraftQuotes'
 import { draftSubtotal, draftWeight } from '../utils/draft'
-import { formatOrderId } from '../utils/format'
 import { toCreateOrderPayload, toDispatchPayload, toDraftQuotePayload } from '../utils/shipping'
 
 const { wizard, carrier } = ordersCopy

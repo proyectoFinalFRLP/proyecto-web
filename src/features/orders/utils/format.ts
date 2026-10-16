@@ -42,18 +42,6 @@ export function formatEventTimestamp(iso: string): string {
   return `${formatShortDate(iso)} · ${formatOrderTime(iso)}`
 }
 
-/**
- * Lo que se muestra en la columna «ID de orden».
- *
- * Se prefiere el identificador del canal externo, que es con el que el operador
- * conoce la venta y con el que la va a buscar. Las ventas cargadas a mano no
- * tienen uno, y ahí se cae al id interno para que la columna nunca quede vacía:
- * es la que abre el detalle.
- */
-export function formatOrderId(externalOrderId: string | null, id: number): string {
-  return `#${externalOrderId ?? id}`
-}
-
 // Un decimal como en el diseño («46,9 kg»): el peso es una estimación para el
 // envío, no un dato facturado, y los gramos no cambian ninguna decisión.
 const WEIGHT = new Intl.NumberFormat('es-AR', {

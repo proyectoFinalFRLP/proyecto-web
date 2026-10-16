@@ -3,17 +3,11 @@ import { Button, Link, Typography } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
 import { DataTable, StackedCell, StatusBadge } from 'shared/components'
 import type { DataTableColumn } from 'shared/components'
-import { formatMoney } from 'shared/utils'
+import { formatMoney, formatOrderId } from 'shared/utils'
 
 import { dashboardCopy } from '../../content'
 import type { RecentOrder } from '../../types'
-import {
-  formatOrderId,
-  formatShortDate,
-  formatTime,
-  statusLabel,
-  statusVariant,
-} from '../../utils/recentOrders'
+import { formatShortDate, formatTime, statusLabel, statusVariant } from '../../utils/recentOrders'
 
 import type { RecentOrdersTableProps } from './RecentOrdersTable.types'
 
