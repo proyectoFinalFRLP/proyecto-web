@@ -11,6 +11,7 @@ import { formatInteger } from 'shared/utils'
 import { DeleteWarehouseDialog } from '../components/DeleteWarehouseDialog'
 import { WarehouseFormModal } from '../components/WarehouseFormModal'
 import { warehousesCopy } from '../content'
+import { useProvinces } from '../hooks/useProvinces'
 import {
   RESTRICTED_STATUS,
   useCreateWarehouse,
@@ -20,12 +21,15 @@ import {
 } from '../hooks/useWarehouses'
 import type { Warehouse, WarehouseInput } from '../types'
 import { deleteBlockerFrom } from '../utils/deleteBlocker'
+import { formatLocation } from '../utils/location'
 
 const { page, columns, actions: actionCopy, form } = warehousesCopy
 
 const COLUMNS: DataTableColumn<Warehouse>[] = [
   { id: 'name', header: columns.name, render: (warehouse) => warehouse.name },
-  { id: 'address', header: columns.address, render: (warehouse) => warehouse.address },
+  // Dirección, localidad y provincia en una sola columna (TESIS-185): es una
+  // sola respuesta a «dónde queda», y tres columnas angostas no entran a 800 px.
+  { id: 'address', header: columns.address, render: formatLocation },
   {
     id: 'zipCode',
     header: columns.zipCode,
@@ -56,6 +60,7 @@ export function WarehousesPage() {
   const createMutation = useCreateWarehouse()
   const updateMutation = useUpdateWarehouse()
   const deleteMutation = useDeleteWarehouse()
+  const provinces = useProvinces()
   const [formState, setFormState] = useState<FormState>({ mode: 'closed' })
   const [removing, setRemoving] = useState<Warehouse | undefined>(undefined)
 
@@ -168,6 +173,9 @@ export function WarehousesPage() {
         submitting={activeMutation.isPending}
         // El mensaje de la API viene en inglés: se muestra uno propio.
         error={activeMutation.isError ? form.failed : undefined}
+        provinces={provinces.data ?? []}
+        provincesLoading={provinces.isPending}
+        provincesError={provinces.isError}
         onSubmit={save}
         onClose={() => setFormState({ mode: 'closed' })}
       />

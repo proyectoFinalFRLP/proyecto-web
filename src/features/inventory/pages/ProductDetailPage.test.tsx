@@ -26,7 +26,9 @@ const PRODUCT: Product = {
   packaging: null,
   technicalStandard: null,
   weight: 4.5,
-  dimensions: null,
+  lengthCm: null,
+  widthCm: null,
+  heightCm: null,
   committed: 0,
   onHand: 0,
   availableToPromise: 0,
@@ -209,6 +211,20 @@ describe('ProductDetailPage', () => {
       renderDetail()
 
       expect(screen.getByText('Categoría').parentElement).toHaveTextContent('—')
+    })
+
+    // TESIS-185: las medidas son tres números en centímetros.
+    it('shows the measurements in centimeters, with their decimals', () => {
+      showProduct({ ...SEEDED_MOUSE, lengthCm: 16.5, widthCm: 7.8, heightCm: 0.9 })
+      renderDetail()
+
+      expect(screen.getByText('16,5 × 7,8 × 0,9 cm')).toBeInTheDocument()
+    })
+
+    it('shows the no-data mark for a product with no measurements', () => {
+      renderDetail()
+
+      expect(screen.getByText('Dimensiones').parentElement).toHaveTextContent('—')
     })
 
     // El titular es lo que hay en el estante —lo libre más lo vendido sin

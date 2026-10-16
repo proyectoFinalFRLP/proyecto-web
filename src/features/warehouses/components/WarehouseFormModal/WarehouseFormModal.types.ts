@@ -7,6 +7,10 @@ export interface WarehouseFormModalProps {
   submitting?: boolean
   /** Rechazo de la API, ya traducido. Se muestra dentro del modal. */
   error?: string
+  /** Las provincias del select (`Order::PROVINCES`), leídas de la API. */
+  provinces: string[]
+  provincesLoading?: boolean
+  provincesError?: boolean
   onSubmit: (input: WarehouseInput) => void
   onClose: () => void
 }

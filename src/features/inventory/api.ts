@@ -14,6 +14,7 @@ import type {
   UpdateProductPayload,
   Warehouse,
 } from './types'
+import { toCentimeters } from './utils/dimensions'
 import { DEFAULT_LOW_STOCK_THRESHOLD } from './utils/stockStatus'
 
 // Frontera con la API Rails. Todo lo que entra en snake_case se traduce acá y
@@ -68,7 +69,14 @@ interface ApiProduct {
   packaging: string | null
   technical_standard: string | null
   weight: number
-  dimensions: string | null
+  /**
+   * Centímetros (TESIS-185). Reemplazan al texto libre `dimensions`. Se
+   * aceptan como string por si el decimal llega sin convertir: ver
+   * `toCentimeters`.
+   */
+  length_cm?: number | string | null
+  width_cm?: number | string | null
+  height_cm?: number | string | null
   total_stock: number
   stock_status: StockStatus
   in_transit_quantity: number
@@ -121,7 +129,9 @@ function toProduct(product: ApiProduct, version: string | null = null): Product 
     packaging: product.packaging,
     technicalStandard: product.technical_standard,
     weight: product.weight,
-    dimensions: product.dimensions,
+    lengthCm: toCentimeters(product.length_cm),
+    widthCm: toCentimeters(product.width_cm),
+    heightCm: toCentimeters(product.height_cm),
     totalStock: product.total_stock,
     stockStatus: product.stock_status,
     lowStockThreshold: product.low_stock_threshold ?? DEFAULT_LOW_STOCK_THRESHOLD,
