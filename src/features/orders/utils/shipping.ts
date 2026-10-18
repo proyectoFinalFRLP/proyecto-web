@@ -96,6 +96,9 @@ export interface CreateOrderPayload {
   order: DestinationPayload & {
     customer_name: string
     customer_document: string
+    /** El contacto (TESIS-179): opcional, en blanco viaja `null`. */
+    customer_email?: string | null
+    customer_phone?: string | null
     /** Si la venta se despacha o la retira el cliente (TESIS-162). */
     requires_shipping: boolean
     items: {
@@ -107,7 +110,7 @@ export interface CreateOrderPayload {
   }
 }
 
-function blankToNull(value: string): string | null {
+export function blankToNull(value: string): string | null {
   const trimmed = value.trim()
   return trimmed === '' ? null : trimmed
 }
@@ -147,6 +150,8 @@ export function toCreateOrderPayload(
     order: {
       customer_name: `${customer.firstName.trim()} ${customer.lastName.trim()}`,
       customer_document: customer.document.trim(),
+      customer_email: blankToNull(customer.email ?? ''),
+      customer_phone: blankToNull(customer.phone ?? ''),
       ...toDestinationPayload(destination),
       // El backend asume `true` si no viaja (TESIS-162); se manda igual, para
       // que el cuerpo diga lo que el operador eligió y no lo que el default

@@ -3,8 +3,9 @@ import { Box, InputAdornment, Stack, TextField, Typography } from '@mui/material
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ErrorFallback, LoadingSpinner, PageWrapper } from 'shared/components'
-import type { DataTableSort, DataTableTab } from 'shared/components'
+import type { DataTableTab } from 'shared/components'
 import { useDebouncedValue } from 'shared/hooks/useDebouncedValue'
+import { sortResetKey, usePageNumber } from 'shared/hooks/usePageNumber'
 import { useSortParam } from 'shared/hooks/useSortParam'
 import { formatInteger } from 'shared/utils'
 
@@ -46,9 +47,10 @@ const TAB_LABELS: Record<ShipmentTabId, string> = {
 export function ShipmentsPage() {
   const navigate = useNavigate()
   const [tabId, setTabId] = useState<ShipmentTabId>('all')
-  const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
   const [sort, setSort] = useSortParam(SHIPMENT_SORT_KEYS)
+  // Otro orden vuelve a la página 1, venga del encabezado o de la URL.
+  const [page, setPage] = usePageNumber(sortResetKey(sort))
 
   // Lo que se tipea actualiza el campo en el acto; lo que viaja a la API espera
   // a que la persona deje de escribir.
@@ -76,12 +78,6 @@ export function ShipmentsPage() {
 
   function changeSearch(value: string) {
     setSearch(value)
-    setPage(1)
-  }
-
-  // Mismo criterio para el orden (TESIS-184).
-  function changeSort(next: DataTableSort) {
-    setSort(next)
     setPage(1)
   }
 
@@ -159,7 +155,7 @@ export function ShipmentsPage() {
           onTabChange={changeTab}
           onView={openOrder}
           sort={sort}
-          onSortChange={changeSort}
+          onSortChange={setSort}
           emptyMessage={debouncedSearch ? table.emptySearch : table.empty}
           pagination={{
             page,

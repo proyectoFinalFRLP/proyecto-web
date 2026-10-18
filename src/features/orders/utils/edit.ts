@@ -6,7 +6,7 @@ import type {
 } from '../types'
 
 import { lineSubtotal } from './payment'
-import { toDestinationPayload } from './shipping'
+import { blankToNull, toDestinationPayload } from './shipping'
 
 // Las reglas de la modificación de una orden (S09), fuera de los componentes
 // para probarlas sin montar la pantalla.
@@ -35,6 +35,9 @@ export interface EditLine {
 export interface EditHeader {
   customerName: string
   customerDocument: string
+  /** El contacto (TESIS-179). En blanco viaja `null`. */
+  customerEmail: string
+  customerPhone: string
   status: EditableOrderStatus
   address: string
   city: string
@@ -227,6 +230,8 @@ export function toUpdatePayload(
   const order: UpdateOrderPayload['order'] = {
     customer_name: header.customerName.trim(),
     customer_document: header.customerDocument.trim(),
+    customer_email: blankToNull(header.customerEmail),
+    customer_phone: blankToNull(header.customerPhone),
     ...(includeDestination ? toDestinationPayload(header) : {}),
     status: header.status,
   }

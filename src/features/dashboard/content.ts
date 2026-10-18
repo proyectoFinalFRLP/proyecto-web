@@ -37,12 +37,14 @@ export const dashboardCopy = {
     inventoryAlerts: {
       label: 'Alertas de inventario',
       tag: 'Crítico',
-      // La nota dice de qué está hecho el número: agotados y por debajo del
-      // umbral no son lo mismo y se trabajan distinto, pero los dos son alerta.
+      // La nota dice de qué está hecho el número: agotados y en o bajo su stock
+      // mínimo no son lo mismo y se trabajan distinto, pero los dos son alerta.
+      // «En o bajo» y no «por debajo»: con exactamente el mínimo ya es stock
+      // bajo (TESIS-182), igual que dice el modal del producto.
       note: (outOfStock: number, low: number) =>
         outOfStock === 0
-          ? `${formatInteger(low)} por debajo del umbral`
-          : `${formatInteger(outOfStock)} sin stock · ${formatInteger(low)} por debajo del umbral`,
+          ? `${formatInteger(low)} en o bajo el mínimo`
+          : `${formatInteger(outOfStock)} sin stock · ${formatInteger(low)} en o bajo el mínimo`,
       // Sin productos en alerta la tarjeta no grita: el borde rojo y el chip
       // «Crítico» afirmarían un problema que no existe.
       calmNote: 'Sin productos en alerta de stock',

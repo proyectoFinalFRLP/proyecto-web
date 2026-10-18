@@ -234,6 +234,30 @@ describe('DataTable · sort', () => {
     expect(onSortChange).toHaveBeenCalledWith({ key: 'total', direction: 'asc' })
   })
 
+  // Sin un orden pedido, la flecha dice cuál aplica la API.
+  it('shows the default sort while no other was asked for', () => {
+    renderTable({
+      columns: SORTABLE_COLUMNS,
+      defaultSort: { key: 'total', direction: 'desc' },
+      onSortChange: vi.fn(),
+    })
+
+    expect(screen.getAllByRole('columnheader')[1]).toHaveAttribute('aria-sort', 'descending')
+  })
+
+  it('inverts the default sort when its column is clicked', () => {
+    const onSortChange = vi.fn()
+    renderTable({
+      columns: SORTABLE_COLUMNS,
+      defaultSort: { key: 'total', direction: 'desc' },
+      onSortChange,
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Total' }))
+
+    expect(onSortChange).toHaveBeenCalledWith({ key: 'total', direction: 'asc' })
+  })
+
   it('announces the sort on the active header only', () => {
     renderTable({
       columns: SORTABLE_COLUMNS,

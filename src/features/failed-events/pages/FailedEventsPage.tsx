@@ -9,7 +9,8 @@ import {
   StackedCell,
   StatusBadge,
 } from 'shared/components'
-import type { DataTableColumn, DataTableTab } from 'shared/components'
+import type { DataTableColumn, DataTableSort, DataTableTab } from 'shared/components'
+import { sortResetKey, usePageNumber } from 'shared/hooks/usePageNumber'
 import { useSortParam } from 'shared/hooks/useSortParam'
 import { notify } from 'shared/store'
 import { formatRelativeTime, formatInteger } from 'shared/utils'
@@ -63,10 +64,14 @@ function lastErrorCell(event: FailedEvent) {
 /** Las claves por las que la API ordena la cola (`FailedEventsController::SORTS`). */
 const SORT_KEYS = ['status', 'attempts', 'next_retry_at', 'created_at']
 
+/** El orden que aplica la API sin pedirle otro: los más nuevos primero. */
+const DEFAULT_SORT: DataTableSort = { key: 'created_at', direction: 'desc' }
+
 export function FailedEventsPage() {
   const [tabId, setTabId] = useState<QueueTabId>('all')
-  const [pageNumber, setPageNumber] = useState(1)
   const [sort, setSort] = useSortParam(SORT_KEYS)
+  // Otro orden vuelve a la página 1, venga del encabezado o de la URL.
+  const [pageNumber, setPageNumber] = usePageNumber(sortResetKey(sort))
   const [discarding, setDiscarding] = useState<FailedEvent | undefined>(undefined)
 
   const status = QUEUE_TABS.find((tab) => tab.id === tabId)?.status
@@ -227,11 +232,8 @@ export function FailedEventsPage() {
         }}
         rowTone={(event) => (event.status === 'dead' ? 'critical' : 'default')}
         sort={sort}
-        // Otro orden vuelve a la primera página, como otra pestaña (TESIS-184).
-        onSortChange={(next) => {
-          setSort(next)
-          setPageNumber(1)
-        }}
+        defaultSort={DEFAULT_SORT}
+        onSortChange={setSort}
         pagination={{
           page: pageNumber,
           pageCount,
