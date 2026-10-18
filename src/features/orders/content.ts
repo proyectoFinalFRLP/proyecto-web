@@ -13,7 +13,8 @@ export const ordersCopy = {
     title: 'Órdenes',
     subtitle: 'Seguimiento y procesamiento de la operación diaria.',
     searchLabel: 'Buscar órdenes',
-    searchPlaceholder: 'Buscar por ID o destino',
+    // TESIS-180: el número de la tienda («#1001») entra en «número».
+    searchPlaceholder: 'Número, cliente o destino',
     create: 'Crear orden',
     tableLabel: 'Listado de órdenes',
     empty: 'No hay órdenes que coincidan con el filtro.',
@@ -257,16 +258,21 @@ export const ordersCopy = {
         firstName: 'Nombre',
         lastName: 'Apellido',
         document: 'DNI / CUIT',
+        email: 'Email',
+        phone: 'Teléfono',
       },
       placeholders: {
         firstName: 'Marina',
         lastName: 'Rodríguez',
         document: '20-31298744-9',
+        email: 'marina@empresa.com',
+        phone: '11 2342 3456',
       },
       validation: {
         firstNameRequired: 'Ingresá el nombre.',
         lastNameRequired: 'Ingresá el apellido.',
         documentRequired: 'Ingresá el DNI o CUIT.',
+        emailInvalid: 'Revisá el email.',
       },
     },
     products: {
@@ -317,6 +323,7 @@ export const ordersCopy = {
       firstName: 'el nombre',
       lastName: 'el apellido',
       document: 'el DNI / CUIT',
+      email: 'un email válido',
       noItems: 'al menos un producto',
       /** Una fila con la cantidad en blanco, en cero o con decimales. */
       invalidItems: 'una cantidad válida en cada producto',
@@ -500,11 +507,14 @@ export const ordersCopy = {
       fields: {
         customerName: 'Cliente o razón social',
         customerDocument: 'DNI / CUIT',
+        customerEmail: 'Email',
+        customerPhone: 'Teléfono',
         status: 'Estado',
       },
       validation: {
         customerNameRequired: 'Ingresá el nombre del cliente.',
         customerDocumentRequired: 'Ingresá el DNI o CUIT.',
+        customerEmailInvalid: 'Revisá el email.',
       },
     },
     shipment: {

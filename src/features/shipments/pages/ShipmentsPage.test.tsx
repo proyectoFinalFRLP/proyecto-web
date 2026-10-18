@@ -126,8 +126,6 @@ describe('ShipmentsPage', () => {
     expect(screen.getByText('Detalle de la orden')).toBeInTheDocument()
   })
 
-  // El ojito va directo en la fila: no hay un kebab que abrir para llegar a la
-  // única acción que tiene el listado.
   // TESIS-181: la misma venta con el mismo número que en el listado de órdenes.
   it('names the order with the number of its channel, as the orders listing does', () => {
     mockPage([{ ...DISPATCHED, externalOrderId: '18948032757993' }])
@@ -145,6 +143,8 @@ describe('ShipmentsPage', () => {
     expect(screen.getByRole('button', { name: 'Orden #1001' })).toBeInTheDocument()
   })
 
+  // El ojito va directo en la fila: no hay un kebab que abrir para llegar a la
+  // única acción que tiene el listado.
   it('opens the order from the eye of its row, with no menu in between', () => {
     renderPage()
 

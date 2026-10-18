@@ -107,7 +107,7 @@ export function DashboardPage() {
   }
 
   // El tono de alerta se enciende sólo si hay algo que alertar: con cero
-  // productos por debajo del umbral, el borde rojo y el chip «Crítico»
+  // productos en o bajo su mínimo, el borde rojo y el chip «Crítico»
   // afirmarían un problema inexistente. Mientras el número viaja tampoco se
   // enciende: `undefined` no es cero.
   const hasAlerts = alerts.value !== undefined && alerts.value > 0

@@ -68,7 +68,7 @@ const WAREHOUSES = [
   },
 ]
 
-// 18 por debajo del umbral y 6 agotados: 24 en alerta. El desglose importa
+// 18 en o bajo su mínimo y 6 agotados: 24 en alerta. El desglose importa
 // porque los agotados eran justo los que el contador dejaba afuera.
 function mockInventory(overrides: Partial<ReturnType<typeof useInventoryAlerts>> = {}) {
   vi.mocked(useInventoryAlerts).mockReturnValue({
@@ -155,7 +155,7 @@ describe('DashboardPage · inventory alerts', () => {
     renderPage()
 
     expect(
-      within(alertCard()).getByText('6 sin stock · 18 por debajo del umbral'),
+      within(alertCard()).getByText('6 sin stock · 18 en o bajo el mínimo'),
     ).toBeInTheDocument()
   })
 

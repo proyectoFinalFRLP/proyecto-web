@@ -112,6 +112,23 @@ describe('toCreateOrderPayload', () => {
     })
   })
 
+  // TESIS-179: el contacto del paso 1 viaja con la orden; en blanco, `null`.
+  it('sends the contact of the customer, a blank one as null', () => {
+    const contact = { ...customer, email: ' marina@empresa.com ', phone: '' }
+    const payload = toCreateOrderPayload(contact, [ROUTER], origin, destination)
+
+    expect(payload.order).toMatchObject({
+      customer_email: 'marina@empresa.com',
+      customer_phone: null,
+    })
+  })
+
+  it('sends no contact for a draft saved before it existed', () => {
+    const payload = toCreateOrderPayload(customer, [ROUTER], origin, destination)
+
+    expect(payload.order).toMatchObject({ customer_email: null, customer_phone: null })
+  })
+
   // TESIS-178: con retiro el domicilio es opcional, y la API rechazaba la
   // provincia vacía.
   it('sends a blank destination as null, not as empty text', () => {

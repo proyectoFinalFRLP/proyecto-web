@@ -35,6 +35,8 @@ function added(overrides: Partial<EditLine> = {}): EditLine {
 const HEADER: EditHeader = {
   customerName: ' Global Tech ',
   customerDocument: '30-71234567-8 ',
+  customerEmail: ' compras@globaltech.com ',
+  customerPhone: '',
   status: 'paid',
   address: 'Av. Corrientes 3247 ',
   city: ' CABA',
@@ -189,6 +191,16 @@ describe('toUpdatePayload', () => {
     ])
   })
 
+  // TESIS-179: el contacto viaja recortado, y en blanco como `null`.
+  it('sends the contact of the customer, a blank one as null', () => {
+    const payload = toUpdatePayload(HEADER, [line()], false)
+
+    expect(payload.order).toMatchObject({
+      customer_email: 'compras@globaltech.com',
+      customer_phone: null,
+    })
+  })
+
   it('sends a destination left blank as null', () => {
     const blank = { ...HEADER, address: '', city: '', province: '', zipCode: ' ' }
     const payload = toUpdatePayload(blank, [line()], false)
@@ -204,7 +216,13 @@ describe('toUpdatePayload', () => {
   it('leaves the address out when it was not touched', () => {
     const payload = toUpdatePayload(HEADER, [line()], false, false)
 
-    expect(Object.keys(payload.order)).toEqual(['customer_name', 'customer_document', 'status'])
+    expect(Object.keys(payload.order)).toEqual([
+      'customer_name',
+      'customer_document',
+      'customer_email',
+      'customer_phone',
+      'status',
+    ])
   })
 
   it('refuses to send a new line without a warehouse instead of inventing one', () => {

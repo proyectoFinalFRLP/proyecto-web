@@ -9,7 +9,8 @@ export const shipmentsCopy = {
     error: 'No pudimos cargar los envíos.',
     searchLabel: 'Buscar',
     /** Los dos códigos que el operador tiene en la mano cuando lo llaman. */
-    searchPlaceholder: 'Seguimiento u orden del canal',
+    // TESIS-180: también el número que muestra la tienda («#1001»).
+    searchPlaceholder: 'Seguimiento o número de orden',
   },
   tabs: {
     all: 'Todos',

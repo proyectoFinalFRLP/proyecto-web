@@ -1,4 +1,5 @@
 import type { ActivityEntry, ActivityType } from '../../api/activity'
+import { formatOrderId } from '../../utils/orderId'
 
 import { activityContent } from './content'
 
@@ -21,9 +22,10 @@ const LABELS: Record<ActivityType, (entry: ActivityEntry) => string> = {
       ? activityContent.orderCreated.manual(customer)
       : activityContent.orderCreated.channel(
           customer,
-          // El número que muestra la tienda, si lo hay (TESIS-180): el id de la
-          // API de Shopify no aparece en ninguna de sus pantallas.
-          entry.externalOrderNumber ?? entry.externalOrderId,
+          // Con la misma función que las tablas, así un canal se ve igual en el
+          // feed y en el listado: el número de la tienda si lo hay (TESIS-180),
+          // y si no, el id del canal, siempre con su `#`.
+          formatOrderId(entry.externalOrderId, entry.orderId ?? 0, entry.externalOrderNumber),
         )
   },
   shipment_dispatched: (entry) =>

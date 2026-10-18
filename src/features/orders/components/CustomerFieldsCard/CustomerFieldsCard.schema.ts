@@ -1,6 +1,7 @@
 import { z } from 'zod'
 
 import { ordersCopy } from '../../content'
+import { optionalEmail, optionalPhone } from '../../utils/contact'
 
 const { validation } = ordersCopy.draft.customer
 
@@ -16,6 +17,9 @@ export const customerSchema = z.object({
   firstName: z.string().trim().min(1, validation.firstNameRequired),
   lastName: z.string().trim().min(1, validation.lastNameRequired),
   document: z.string().trim().min(1, validation.documentRequired),
+  // El contacto es opcional (TESIS-179): la orden se crea igual sin él.
+  email: optionalEmail(validation.emailInvalid),
+  phone: optionalPhone,
 })
 
 export type CustomerFormData = z.infer<typeof customerSchema>
