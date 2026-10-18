@@ -14,7 +14,7 @@ export const ordersCopy = {
     subtitle: 'Seguimiento y procesamiento de la operación diaria.',
     searchLabel: 'Buscar órdenes',
     // TESIS-180: el número de la tienda («#1001») entra en «número».
-    searchPlaceholder: 'Buscar por número, cliente o destino',
+    searchPlaceholder: 'Número, cliente o destino',
     create: 'Crear orden',
     tableLabel: 'Listado de órdenes',
     empty: 'No hay órdenes que coincidan con el filtro.',

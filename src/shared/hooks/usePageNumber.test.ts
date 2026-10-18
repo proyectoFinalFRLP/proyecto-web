@@ -23,6 +23,18 @@ describe('usePageNumber', () => {
     expect(result.current[0]).toBe(1)
   })
 
+  it('stays on the first page when the key goes back to an earlier one', () => {
+    const { result, rerender } = renderHook(({ key }) => usePageNumber(key), {
+      initialProps: { key: 'total:asc' },
+    })
+    act(() => result.current[1](3))
+
+    rerender({ key: 'total:desc' })
+    rerender({ key: 'total:asc' })
+
+    expect(result.current[0]).toBe(1)
+  })
+
   it('takes an update from the current page', () => {
     const { result } = renderHook(() => usePageNumber(''))
     act(() => result.current[1](4))
