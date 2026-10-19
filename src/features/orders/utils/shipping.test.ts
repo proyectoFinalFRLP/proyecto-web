@@ -207,7 +207,9 @@ describe('toDraftQuotePayload', () => {
     )
   })
 
-  it('declares cents without float noise', () => {
+  // En pesos, como lo lee la API: la suma se hace en centavos para que 0,1 + 0,2
+  // no dé 0,30000000000000004, pero lo que viaja no se multiplica por 100.
+  it('declares pesos without float noise', () => {
     const cheap = [
       item({ unitPrice: 0.1, quantity: 1 }),
       item({ productId: 13, unitPrice: 0.2, quantity: 1 }),
