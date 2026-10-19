@@ -9,6 +9,12 @@ const { validation } = inventoryCopy
 // de "ingresá un número", no el de "negativo".
 const nonNegativeNumber = z.number({ error: validation.numberRequired }).min(0, validation.negative)
 
+// Mismas reglas que el alta: ver `measureSchema` en `CreateProductModal.schema.ts`.
+const measureSchema = z
+  .number({ error: validation.numberRequired })
+  .positive(validation.measurePositive)
+  .nullable()
+
 const stockFieldSchema = z.object({
   warehouseId: z.number().int(),
   warehouseName: z.string(),
@@ -28,9 +34,9 @@ export const editProductSchema = z.object({
   name: z.string().trim().min(1, validation.nameRequired),
   category: z.string(),
   weight: nonNegativeNumber,
-  length: nonNegativeNumber,
-  width: nonNegativeNumber,
-  height: nonNegativeNumber,
+  length: measureSchema,
+  width: measureSchema,
+  height: measureSchema,
   // Entero y no negativo, como la columna (TESIS-182). Cero es válido: el
   // producto sólo avisa cuando se agota.
   lowStockThreshold: nonNegativeNumber.int(validation.thresholdInteger),

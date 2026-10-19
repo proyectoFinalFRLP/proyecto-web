@@ -16,7 +16,7 @@ import { formatRelativeTime } from 'shared/utils'
 
 import { inventoryCopy } from '../../content'
 import type { Product } from '../../types'
-import { parseDimensions } from '../../utils/dimensions'
+import { measureFromInput } from '../../utils/dimensions'
 import { buildUpdatePayload } from '../../utils/payload'
 import { CategoryField } from '../CategoryField'
 
@@ -36,19 +36,18 @@ import { WarehouseStockField } from './WarehouseStockField'
 
 const { modal } = inventoryCopy
 
-// Aplana el producto de la API a la forma del formulario: las dimensiones se
-// abren en tres ejes y cada stock se acompaña del nombre del depósito para
-// poder pintar la fila sin volver a buscarlo en `warehouses`.
+// Aplana el producto de la API a la forma del formulario: cada stock se
+// acompaña del nombre del depósito para poder pintar la fila sin volver a
+// buscarlo en `warehouses`. Una medida sin cargar entra como `null` y el input
+// queda vacío.
 function buildDefaults(product: Product): EditProductFormData {
-  const { length, width, height } = parseDimensions(product.dimensions)
-
   return {
     name: product.name,
     category: product.category ?? '',
     weight: product.weight,
-    length,
-    width,
-    height,
+    length: product.lengthCm,
+    width: product.widthCm,
+    height: product.heightCm,
     lowStockThreshold: product.lowStockThreshold,
     stocks: product.stocks.map((stock) => ({
       warehouseId: stock.warehouseId,
@@ -210,9 +209,9 @@ export function EditProductModal({
 
                 <LabeledField label={modal.fields.length} error={errors.length?.message}>
                   <TextField
-                    {...register('length', { valueAsNumber: true })}
-                    type="number"
-                    inputProps={{ min: 0 }}
+                    {...register('length', { setValueAs: measureFromInput })}
+                    // Texto y no número: ver `measureFromInput`.
+                    inputProps={{ inputMode: 'decimal' }}
                     error={errors.length !== undefined}
                     fullWidth
                   />
@@ -220,9 +219,8 @@ export function EditProductModal({
 
                 <LabeledField label={modal.fields.width} error={errors.width?.message}>
                   <TextField
-                    {...register('width', { valueAsNumber: true })}
-                    type="number"
-                    inputProps={{ min: 0 }}
+                    {...register('width', { setValueAs: measureFromInput })}
+                    inputProps={{ inputMode: 'decimal' }}
                     error={errors.width !== undefined}
                     fullWidth
                   />
@@ -230,9 +228,8 @@ export function EditProductModal({
 
                 <LabeledField label={modal.fields.height} error={errors.height?.message}>
                   <TextField
-                    {...register('height', { valueAsNumber: true })}
-                    type="number"
-                    inputProps={{ min: 0 }}
+                    {...register('height', { setValueAs: measureFromInput })}
+                    inputProps={{ inputMode: 'decimal' }}
                     error={errors.height !== undefined}
                     fullWidth
                   />

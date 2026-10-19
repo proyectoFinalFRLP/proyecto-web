@@ -19,6 +19,10 @@ export const warehouseFormSchema = z.object({
     .trim()
     .min(1, validation.zipCodeRequired)
     .regex(ZIP_CODE, validation.zipCodeFormat),
+  // Opcionales (TESIS-185): `''` es «sin cargar» y viaja como `null`. La
+  // provincia no necesita validarse acá: el select sólo ofrece las de la API.
+  city: z.string().trim(),
+  province: z.string(),
 })
 
 export type WarehouseFormData = z.infer<typeof warehouseFormSchema>

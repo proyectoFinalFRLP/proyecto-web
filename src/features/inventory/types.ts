@@ -108,8 +108,8 @@ export interface IncomingTransit {
 /**
  * Producto del catálogo. Espejo de `GET /api/v1/products/:id`.
  *
- * `dimensions` es un único string en la API; el modal lo abre en largo/ancho/alto
- * para editarlo y lo vuelve a serializar al guardar (ver `utils/dimensions.ts`).
+ * Las medidas son tres números en centímetros desde TESIS-185 (antes, un texto
+ * libre `dimensions`): las necesita el courier para cotizar por volumen.
  */
 export interface Product {
   id: number
@@ -122,7 +122,12 @@ export interface Product {
   /** Norma del producto (IRAM, IEC). Es un código de un organismo externo. */
   technicalStandard: string | null
   weight: number
-  dimensions: string | null
+  /** Largo en centímetros. `null` = nadie lo cargó; nunca cero. */
+  lengthCm: number | null
+  /** Ancho en centímetros. */
+  widthCm: number | null
+  /** Alto en centímetros. */
+  heightCm: number | null
   /**
    * Los tres números del stock, que la API calcula desde TESIS-162. Ninguno se
    * deriva acá: `onHand` no es la suma de `stocks[].quantity` —lo vendido sin
@@ -193,7 +198,10 @@ export interface CreateProductPayload {
     /** `null` = sin categoría. El vocabulario es `GET /products/categories`. */
     category: string | null
     weight: number
-    dimensions: string | null
+    /** Centímetros, mayores a cero; `null` = sin cargar (TESIS-185). */
+    length_cm: number | null
+    width_cm: number | null
+    height_cm: number | null
     low_stock_threshold: number
     stocks: { warehouse_id: number; quantity: number }[]
   }
@@ -212,7 +220,10 @@ export interface UpdateProductPayload {
     description: string | null
     category: string | null
     weight: number
-    dimensions: string | null
+    /** Centímetros, mayores a cero; `null` = sin cargar (TESIS-185). */
+    length_cm: number | null
+    width_cm: number | null
+    height_cm: number | null
     low_stock_threshold: number
     stocks: { warehouse_id: number; quantity: number }[]
   }

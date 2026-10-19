@@ -338,6 +338,8 @@ describe('OrderEditPage', { timeout: 15_000 }, () => {
           shippingCost: 58300,
           courier: { id: 4, serviceId: 7, name: 'Andreani' },
           labelUrl: null,
+          labelAvailable: false,
+          externalReference: null,
           events: [],
         },
       },

@@ -16,6 +16,7 @@ import {
 } from 'shared/components'
 
 import { inventoryCopy } from '../../content'
+import { measureFromInput } from '../../utils/dimensions'
 import { buildCreatePayload } from '../../utils/payload'
 import { DEFAULT_LOW_STOCK_THRESHOLD } from '../../utils/stockStatus'
 import { CategoryField } from '../CategoryField'
@@ -56,9 +57,10 @@ const EMPTY_FORM: CreateProductFormData = {
   sku: '',
   category: '',
   weight: 0,
-  length: 0,
-  width: 0,
-  height: 0,
+  // Las medidas son opcionales: arrancan vacías y no en 0, que no es una medida.
+  length: null,
+  width: null,
+  height: null,
   lowStockThreshold: DEFAULT_LOW_STOCK_THRESHOLD,
   stocks: [{ warehouseId: 0, quantity: 0 }],
 }
@@ -200,28 +202,34 @@ export function CreateProductModal({
                 >
                   <DimensionsRow>
                     <TextField
-                      {...register('length', { valueAsNumber: true })}
-                      type="number"
+                      {...register('length', { setValueAs: measureFromInput })}
                       placeholder={copy.placeholders.length}
-                      inputProps={{ min: 0 }}
+                      // El rótulo visible es uno para los tres: cada input
+                      // necesita el suyo para el lector de pantalla. Texto y
+                      // no número: ver `measureFromInput`.
+                      inputProps={{ inputMode: 'decimal', 'aria-label': copy.fields.length }}
                       error={errors.length !== undefined}
                       fullWidth
                     />
                     <DimensionsSeparator aria-hidden>×</DimensionsSeparator>
                     <TextField
-                      {...register('width', { valueAsNumber: true })}
-                      type="number"
+                      {...register('width', { setValueAs: measureFromInput })}
                       placeholder={copy.placeholders.width}
-                      inputProps={{ min: 0 }}
+                      // El rótulo visible es uno para los tres: cada input
+                      // necesita el suyo para el lector de pantalla. Texto y
+                      // no número: ver `measureFromInput`.
+                      inputProps={{ inputMode: 'decimal', 'aria-label': copy.fields.width }}
                       error={errors.width !== undefined}
                       fullWidth
                     />
                     <DimensionsSeparator aria-hidden>×</DimensionsSeparator>
                     <TextField
-                      {...register('height', { valueAsNumber: true })}
-                      type="number"
+                      {...register('height', { setValueAs: measureFromInput })}
                       placeholder={copy.placeholders.height}
-                      inputProps={{ min: 0 }}
+                      // El rótulo visible es uno para los tres: cada input
+                      // necesita el suyo para el lector de pantalla. Texto y
+                      // no número: ver `measureFromInput`.
+                      inputProps={{ inputMode: 'decimal', 'aria-label': copy.fields.height }}
                       error={errors.height !== undefined}
                       fullWidth
                     />

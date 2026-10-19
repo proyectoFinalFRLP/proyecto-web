@@ -1,64 +1,74 @@
-// El Figma edita largo / ancho / alto por separado, pero `products.dimensions`
-// es una sola columna `string` en la API. Estas funciones son el contrato entre
-// ambas formas, y el formato canónico se define acá y en ningún otro lado.
-//
-// Formato: `"<largo>x<ancho>x<alto>"` en centímetros, sin unidades ni espacios.
-// Ejemplo: `"45x30x30"`.
+import { formatMeasure } from 'shared/utils'
 
+// Las medidas del producto en centímetros (TESIS-185). Hasta esa card eran un
+// solo texto libre (`"45x30x20"`) que este módulo partía y volvía a armar; la
+// API las guarda ahora en tres columnas numéricas —`length_cm`, `width_cm`,
+// `height_cm`— porque el courier (OCA) cotiza con el volumen y un texto no se
+// puede multiplicar. Cada una es opcional: `null` es «nadie la cargó».
+
+/** Los tres ejes de un producto, en centímetros. */
 export interface Dimensions {
-  length: number
-  width: number
-  height: number
+  lengthCm: number | null
+  widthCm: number | null
+  heightCm: number | null
 }
 
-const SEPARATOR = 'x'
-const EMPTY: Dimensions = { length: 0, width: 0, height: 0 }
+/** Marca de «sin dato» del DS, la misma que usa el resto del producto. */
+const ABSENT = '—'
 
-// Devuelve los tres ejes, o `null` si el string no sigue el formato canónico.
-// El campo es texto libre en la DB y puede tener cargas viejas ("grande",
-// "45 x 30"), así que distinguir "no se entiende" de "es cero" importa.
-function tryParse(value: string | null | undefined): Dimensions | null {
-  if (!value) return null
+/**
+ * Lee una medida de la API. Viene como número, pero un decimal de Rails se
+ * serializa como string si el serializer no lo convierte: se aceptan las dos
+ * formas para no depender de ese detalle. Lo que no es un número positivo es
+ * «sin dato», nunca un cero que después habría que interpretar.
+ */
+export function toCentimeters(value: number | string | null | undefined): number | null {
+  if (value === null || value === undefined || value === '') return null
 
-  const parts = value.toLowerCase().split(SEPARATOR)
-  if (parts.length !== 3) return null
+  const centimeters = typeof value === 'number' ? value : Number(value)
+  return Number.isFinite(centimeters) && centimeters > 0 ? centimeters : null
+}
 
-  const axes = parts.map((part) => Number.parseFloat(part.trim()))
-  if (axes.some((axis) => !Number.isFinite(axis) || axis < 0)) return null
-
-  const [length, width, height] = axes
-  return { length, width, height }
+/** ¿Tiene cargada al menos una medida? */
+export function hasDimensions({ lengthCm, widthCm, heightCm }: Dimensions): boolean {
+  return lengthCm !== null || widthCm !== null || heightCm !== null
 }
 
 /**
- * Abre el string de la API en sus tres ejes.
- *
- * Lo que no se entiende cae en 0 en vez de romper el modal: el usuario ve los
- * campos vacíos y puede cargar las medidas bien.
+ * Las medidas como las lee el operador: `"16,5 × 7,8 × 0,9 cm"`, en el orden
+ * largo × ancho × alto. Sin ninguna medida sale «—»; con alguna suelta, el eje
+ * que falta va con «—» y no se inventa.
  */
-export function parseDimensions(value: string | null | undefined): Dimensions {
-  return tryParse(value) ?? EMPTY
+export function formatDimensions(dimensions: Dimensions): string {
+  if (!hasDimensions(dimensions)) return ABSENT
+
+  const axes = [dimensions.lengthCm, dimensions.widthCm, dimensions.heightCm].map((axis) =>
+    axis === null ? ABSENT : formatMeasure(axis),
+  )
+
+  return `${axes.join(' × ')} cm`
 }
 
-/**
- * ¿El valor guardado sigue el formato canónico?
- *
- * Lo usa el submit para no pisar con `null` una carga vieja que el formulario
- * no supo mostrar: si no es parseable y el usuario no cargó medidas, se conserva.
- */
-export function isParseableDimensions(value: string | null | undefined): boolean {
-  return tryParse(value) !== null
-}
+/** Un número con punto o coma decimal: `16.5`, `16,5`, `,5`. El signo se deja
+ * pasar para que un negativo muestre «tiene que ser mayor a 0». */
+const TYPED_MEASURE = /^-?(?:\d+(?:[.,]\d+)?|[.,]\d+)$/
 
 /**
- * Serializa los tres ejes al string de la API.
+ * Lo que entrega el input de una medida al formulario: el campo vacío es `null`
+ * (la medida es opcional), y lo que no es un número es `NaN`, que el schema
+ * rechaza como «ingresá un número».
  *
- * Devuelve `null` cuando los tres son 0: un producto sin medidas cargadas deja
- * la columna vacía en vez de guardar un `"0x0x0"` que después habría que
- * interpretar como "sin dato".
+ * El input es de texto y no `type="number"`: con este, lo que el navegador no
+ * entiende (`16-`, `1e`, `16.5.2`) llega como `""`, igual que un campo vacío, y
+ * se guardaba en silencio como «sin medida», borrando la que había. Y en Chrome
+ * con el idioma en español, `16,5` quedaba en `165`. Acá la coma es decimal.
  */
-export function formatDimensions({ length, width, height }: Dimensions): string | null {
-  if (length === 0 && width === 0 && height === 0) return null
+export function measureFromInput(value: unknown): number | null {
+  if (typeof value === 'number') return value
+  if (value === null || value === undefined) return null
 
-  return [length, width, height].join(SEPARATOR)
+  const typed = String(value).trim()
+  if (typed === '') return null
+
+  return TYPED_MEASURE.test(typed) ? Number(typed.replace(',', '.')) : Number.NaN
 }

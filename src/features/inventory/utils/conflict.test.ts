@@ -33,7 +33,9 @@ function product(overrides: Partial<Product> = {}): Product {
     packaging: null,
     technicalStandard: null,
     weight: 12.4,
-    dimensions: '45x30x20',
+    lengthCm: 45,
+    widthCm: 30,
+    heightCm: 20,
     committed: 0,
     onHand: 10,
     availableToPromise: 10,
@@ -80,13 +82,16 @@ describe('describeConflict', () => {
     expect(texts(product({ description: null }), product())).toEqual([
       'Descripción: — → Rollo de 305 metros',
     ])
-    expect(texts(product(), product({ dimensions: null }))).toEqual(['Medidas: 45x30x20 → —'])
+    expect(texts(product(), product({ lengthCm: null, widthCm: null, heightCm: null }))).toEqual([
+      'Medidas: 45 × 30 × 20 cm → —',
+    ])
   })
 
+  // TESIS-185: las tres medidas se nombran juntas, como las muestra el detalle.
   it('reports weight and dimensions', () => {
-    expect(texts(product(), product({ weight: 13, dimensions: '50x30x20' }))).toEqual([
+    expect(texts(product(), product({ weight: 13, lengthCm: 50.5 }))).toEqual([
       'Peso: 12.4 → 13',
-      'Medidas: 45x30x20 → 50x30x20',
+      'Medidas: 45 × 30 × 20 cm → 50,5 × 30 × 20 cm',
     ])
   })
 

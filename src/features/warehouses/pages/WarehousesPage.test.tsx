@@ -3,6 +3,7 @@ import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { renderWithTheme } from '../../../test/renderWithTheme'
+import { useProvinces } from '../hooks/useProvinces'
 import type * as warehouseHooks from '../hooks/useWarehouses'
 import {
   useCreateWarehouse,
@@ -13,6 +14,8 @@ import {
 import type { Warehouse } from '../types'
 
 import { WarehousesPage } from './WarehousesPage'
+
+vi.mock('../hooks/useProvinces', () => ({ useProvinces: vi.fn() }))
 
 // La página lee el orden de la URL (TESIS-184): necesita un router.
 function renderPage(url = '/') {
@@ -32,8 +35,24 @@ vi.mock('../hooks/useWarehouses', async (importOriginal) => ({
 }))
 
 const WAREHOUSES: Warehouse[] = [
-  { id: 1, name: 'Depósito Central', address: 'Av. 7 N° 1234', zipCode: '1900', storedUnits: 1230 },
-  { id: 2, name: 'Depósito Satélite', address: 'Calle 25 N° 456', zipCode: '1602', storedUnits: 0 },
+  {
+    id: 1,
+    name: 'Depósito Central',
+    address: 'Av. 7 N° 1234',
+    zipCode: '1900',
+    city: 'La Plata',
+    province: 'Buenos Aires',
+    storedUnits: 1230,
+  },
+  {
+    id: 2,
+    name: 'Depósito Satélite',
+    address: 'Calle 25 N° 456',
+    zipCode: '1602',
+    city: null,
+    province: null,
+    storedUnits: 0,
+  },
 ]
 
 function idleMutation(overrides: object = {}) {
@@ -56,6 +75,11 @@ beforeEach(() => {
   vi.mocked(useCreateWarehouse).mockReturnValue(idleMutation() as never)
   vi.mocked(useUpdateWarehouse).mockReturnValue(idleMutation() as never)
   vi.mocked(useDeleteWarehouse).mockReturnValue(idleMutation() as never)
+  vi.mocked(useProvinces).mockReturnValue({
+    data: ['Buenos Aires', 'Córdoba'],
+    isPending: false,
+    isError: false,
+  } as never)
 })
 
 const row = (name: string) => {
@@ -74,9 +98,18 @@ describe('WarehousesPage', () => {
   it('lists the warehouses with their address, postal code and units', () => {
     renderPage()
 
-    expect(row('Depósito Central').getByText('Av. 7 N° 1234')).toBeInTheDocument()
+    expect(
+      row('Depósito Central').getByText('Av. 7 N° 1234, La Plata, Buenos Aires'),
+    ).toBeInTheDocument()
     expect(row('Depósito Central').getByText('1900')).toBeInTheDocument()
     expect(row('Depósito Central').getByText('1.230')).toBeInTheDocument()
+  })
+
+  // TESIS-185: un depósito anterior no tiene localidad ni provincia.
+  it('shows only the address of a warehouse with no city or province', () => {
+    renderPage()
+
+    expect(row('Depósito Satélite').getByText('Calle 25 N° 456')).toBeInTheDocument()
   })
 
   it('opens the creation form', () => {

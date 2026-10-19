@@ -7,6 +7,13 @@ export interface Warehouse {
   name: string
   address: string
   zipCode: string
+  /**
+   * Localidad y provincia (TESIS-185): el courier (OCA) las pide para el
+   * origen del envío. Opcionales: los depósitos anteriores no las tienen.
+   */
+  city: string | null
+  /** Una de `Order::PROVINCES`, la misma lista que el domicilio de una orden. */
+  province: string | null
   /** Unidades guardadas sumando todos los productos. Cero es un dato, nunca null. */
   storedUnits: number
 }
@@ -16,6 +23,10 @@ export interface WarehouseInput {
   name: string
   address: string
   zipCode: string
+  /** `''` = sin cargar: un input de texto no tiene `null`. */
+  city: string
+  /** `''` = sin provincia, como el «sin categoría» del producto. */
+  province: string
 }
 
 /** Cuerpo de `POST`/`PUT /api/v1/warehouses`, en el snake_case que espera Rails. */
@@ -24,6 +35,8 @@ export interface WarehousePayload {
     name: string
     address: string
     zip_code: string
+    city: string | null
+    province: string | null
   }
 }
 
