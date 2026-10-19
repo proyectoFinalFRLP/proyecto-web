@@ -203,33 +203,33 @@ export function CreateProductModal({
                   <DimensionsRow>
                     <TextField
                       {...register('length', { setValueAs: measureFromInput })}
-                      type="number"
                       placeholder={copy.placeholders.length}
                       // El rótulo visible es uno para los tres: cada input
-                      // necesita el suyo para el lector de pantalla.
-                      inputProps={{ min: 0, step: 'any', 'aria-label': copy.fields.length }}
+                      // necesita el suyo para el lector de pantalla. Texto y
+                      // no número: ver `measureFromInput`.
+                      inputProps={{ inputMode: 'decimal', 'aria-label': copy.fields.length }}
                       error={errors.length !== undefined}
                       fullWidth
                     />
                     <DimensionsSeparator aria-hidden>×</DimensionsSeparator>
                     <TextField
                       {...register('width', { setValueAs: measureFromInput })}
-                      type="number"
                       placeholder={copy.placeholders.width}
                       // El rótulo visible es uno para los tres: cada input
-                      // necesita el suyo para el lector de pantalla.
-                      inputProps={{ min: 0, step: 'any', 'aria-label': copy.fields.width }}
+                      // necesita el suyo para el lector de pantalla. Texto y
+                      // no número: ver `measureFromInput`.
+                      inputProps={{ inputMode: 'decimal', 'aria-label': copy.fields.width }}
                       error={errors.width !== undefined}
                       fullWidth
                     />
                     <DimensionsSeparator aria-hidden>×</DimensionsSeparator>
                     <TextField
                       {...register('height', { setValueAs: measureFromInput })}
-                      type="number"
                       placeholder={copy.placeholders.height}
                       // El rótulo visible es uno para los tres: cada input
-                      // necesita el suyo para el lector de pantalla.
-                      inputProps={{ min: 0, step: 'any', 'aria-label': copy.fields.height }}
+                      // necesita el suyo para el lector de pantalla. Texto y
+                      // no número: ver `measureFromInput`.
+                      inputProps={{ inputMode: 'decimal', 'aria-label': copy.fields.height }}
                       error={errors.height !== undefined}
                       fullWidth
                     />

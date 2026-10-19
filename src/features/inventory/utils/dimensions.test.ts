@@ -55,4 +55,20 @@ describe('measureFromInput', () => {
   it('reads what was typed as a number', () => {
     expect(measureFromInput('16.5')).toBe(16.5)
   })
+
+  it('takes a comma as the decimal mark', () => {
+    expect(measureFromInput(' 16,5 ')).toBe(16.5)
+  })
+
+  // Con `type="number"` esto llegaba como "" y se guardaba como «sin medida».
+  it.each(['16-', '1e', '16.5.2', 'abc'])(
+    'turns %s into NaN so the form says it is wrong',
+    (typed) => {
+      expect(measureFromInput(typed)).toBeNaN()
+    },
+  )
+
+  it('keeps the sign, so a negative measure is refused as such', () => {
+    expect(measureFromInput('-2')).toBe(-2)
+  })
 })

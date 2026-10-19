@@ -293,7 +293,7 @@ describe('EditProductModal', () => {
   })
   // TESIS-185: tres medidas en centímetros, cada una opcional.
   describe('the measurements', () => {
-    const measure = (name: string) => screen.getByRole('spinbutton', { name })
+    const measure = (name: string) => screen.getByRole('textbox', { name })
 
     async function submittedProduct(props: { onSubmit: ReturnType<typeof vi.fn> }) {
       fireEvent.click(screen.getByRole('button', { name: 'Guardar cambios' }))
@@ -304,15 +304,26 @@ describe('EditProductModal', () => {
     it('opens with the measurements of the product', () => {
       renderModal(product({ lengthCm: 16.5, widthCm: 7.8, heightCm: 0.9 }))
 
-      expect(measure('Largo (cm)')).toHaveValue(16.5)
-      expect(measure('Ancho (cm)')).toHaveValue(7.8)
-      expect(measure('Alto (cm)')).toHaveValue(0.9)
+      expect(measure('Largo (cm)')).toHaveValue('16.5')
+      expect(measure('Ancho (cm)')).toHaveValue('7.8')
+      expect(measure('Alto (cm)')).toHaveValue('0.9')
     })
 
     it('leaves empty a measurement nobody loaded', () => {
       renderModal(product({ lengthCm: null, widthCm: null, heightCm: null }))
 
-      expect(measure('Largo (cm)')).toHaveValue(null)
+      expect(measure('Largo (cm)')).toHaveValue('')
+    })
+
+    // Con `type="number"`, «16-» llegaba vacío y el guardado borraba la medida
+    // que el producto tenía.
+    it('keeps a loaded measure when what was typed cannot be read', async () => {
+      const { props } = renderModal(product())
+      fireEvent.change(measure('Alto (cm)'), { target: { value: '16-' } })
+      fireEvent.click(screen.getByRole('button', { name: 'Guardar cambios' }))
+
+      expect(await screen.findByText('Ingresá un número')).toBeVisible()
+      expect(props.onSubmit).not.toHaveBeenCalled()
     })
 
     it('sends the measurements as numbers in centimeters', async () => {

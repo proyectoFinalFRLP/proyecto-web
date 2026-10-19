@@ -49,13 +49,26 @@ export function formatDimensions(dimensions: Dimensions): string {
   return `${axes.join(' × ')} cm`
 }
 
+/** Un número con punto o coma decimal: `16.5`, `16,5`, `,5`. El signo se deja
+ * pasar para que un negativo muestre «tiene que ser mayor a 0». */
+const TYPED_MEASURE = /^-?(?:\d+(?:[.,]\d+)?|[.,]\d+)$/
+
 /**
- * Lo que entrega un input numérico de medida al formulario: el campo vacío es
- * `null` (la medida es opcional) y no el `NaN` de `valueAsNumber`, que el
- * schema rechazaría como «ingresá un número».
+ * Lo que entrega el input de una medida al formulario: el campo vacío es `null`
+ * (la medida es opcional), y lo que no es un número es `NaN`, que el schema
+ * rechaza como «ingresá un número».
+ *
+ * El input es de texto y no `type="number"`: con este, lo que el navegador no
+ * entiende (`16-`, `1e`, `16.5.2`) llega como `""`, igual que un campo vacío, y
+ * se guardaba en silencio como «sin medida», borrando la que había. Y en Chrome
+ * con el idioma en español, `16,5` quedaba en `165`. Acá la coma es decimal.
  */
 export function measureFromInput(value: unknown): number | null {
-  if (value === null || value === undefined || value === '') return null
+  if (typeof value === 'number') return value
+  if (value === null || value === undefined) return null
 
-  return typeof value === 'number' ? value : Number(value)
+  const typed = String(value).trim()
+  if (typed === '') return null
+
+  return TYPED_MEASURE.test(typed) ? Number(typed.replace(',', '.')) : Number.NaN
 }

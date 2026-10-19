@@ -16,7 +16,7 @@ function renderModal() {
   return onSubmit
 }
 
-const measure = (name: string) => screen.getByRole('spinbutton', { name })
+const measure = (name: string) => screen.getByRole('textbox', { name })
 
 async function fillRequired() {
   fireEvent.change(screen.getByPlaceholderText('ej. Servomotor industrial Z5'), {
@@ -39,9 +39,9 @@ describe('CreateProductModal · the measurements', () => {
   it('names each of the three inputs', () => {
     renderModal()
 
-    expect(measure('Largo (cm)')).toHaveValue(null)
-    expect(measure('Ancho (cm)')).toHaveValue(null)
-    expect(measure('Alto (cm)')).toHaveValue(null)
+    expect(measure('Largo (cm)')).toHaveValue('')
+    expect(measure('Ancho (cm)')).toHaveValue('')
+    expect(measure('Alto (cm)')).toHaveValue('')
   })
 
   it('creates a product without measurements', async () => {
@@ -65,6 +65,25 @@ describe('CreateProductModal · the measurements', () => {
     const product = await submittedProduct(onSubmit)
     expect(product).toMatchObject({ length_cm: 16.5, width_cm: 7.8, height_cm: 0.9 })
     expect(product).not.toHaveProperty('dimensions')
+  })
+
+  it('takes a comma as the decimal mark', async () => {
+    const onSubmit = renderModal()
+    await fillRequired()
+    fireEvent.change(measure('Largo (cm)'), { target: { value: '16,5' } })
+
+    expect(await submittedProduct(onSubmit)).toMatchObject({ length_cm: 16.5 })
+  })
+
+  // Con `type="number"`, «16-» llegaba vacío y se creaba sin la medida.
+  it('says a measure it cannot read is wrong instead of dropping it', async () => {
+    const onSubmit = renderModal()
+    await fillRequired()
+    fireEvent.change(measure('Alto (cm)'), { target: { value: '16-' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Crear producto' }))
+
+    expect(await screen.findByText('Ingresá un número')).toBeVisible()
+    expect(onSubmit).not.toHaveBeenCalled()
   })
 
   it('does not take a negative measurement', async () => {

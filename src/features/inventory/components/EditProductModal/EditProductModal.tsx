@@ -210,8 +210,8 @@ export function EditProductModal({
                 <LabeledField label={modal.fields.length} error={errors.length?.message}>
                   <TextField
                     {...register('length', { setValueAs: measureFromInput })}
-                    type="number"
-                    inputProps={{ min: 0, step: 'any' }}
+                    // Texto y no número: ver `measureFromInput`.
+                    inputProps={{ inputMode: 'decimal' }}
                     error={errors.length !== undefined}
                     fullWidth
                   />
@@ -220,8 +220,7 @@ export function EditProductModal({
                 <LabeledField label={modal.fields.width} error={errors.width?.message}>
                   <TextField
                     {...register('width', { setValueAs: measureFromInput })}
-                    type="number"
-                    inputProps={{ min: 0, step: 'any' }}
+                    inputProps={{ inputMode: 'decimal' }}
                     error={errors.width !== undefined}
                     fullWidth
                   />
@@ -230,8 +229,7 @@ export function EditProductModal({
                 <LabeledField label={modal.fields.height} error={errors.height?.message}>
                   <TextField
                     {...register('height', { setValueAs: measureFromInput })}
-                    type="number"
-                    inputProps={{ min: 0, step: 'any' }}
+                    inputProps={{ inputMode: 'decimal' }}
                     error={errors.height !== undefined}
                     fullWidth
                   />
