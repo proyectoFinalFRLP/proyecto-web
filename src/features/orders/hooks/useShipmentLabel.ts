@@ -18,6 +18,11 @@ export const LABEL_URL_LIFETIME_MS = 60_000
 
 type LabelTab = Window | null
 
+interface LabelRequest {
+  shipment: Pick<Shipment, 'id' | 'labelUrl'>
+  tab: LabelTab
+}
+
 function showPdf(tab: LabelTab, pdf: Blob) {
   const url = URL.createObjectURL(pdf)
 
@@ -53,37 +58,39 @@ function openExternal(tab: LabelTab, url: string) {
  * redirección: lo que vuelve no es un PDF, o directamente no se puede leer
  * (otro dominio, sin CORS). En los dos casos se abre esa URL, que es la
  * etiqueta. Un 404 o un 502 cierran la pestaña y se avisan.
+ *
+ * Qué hacer con la respuesta va en `useMutation` y no en `mutate`: los
+ * callbacks de `mutate` no corren si la pantalla se desmontó mientras el
+ * courier armaba el PDF, y la pestaña vacía quedaba abierta para siempre.
+ * La pestaña y el envío viajan como variables de la mutación.
  */
 export function useShipmentLabel() {
-  const mutation = useMutation<Blob | null, ApiRequestError, number>({
-    mutationFn: fetchShipmentLabel,
+  const mutation = useMutation<Blob | null, ApiRequestError, LabelRequest>({
+    mutationFn: ({ shipment }) => fetchShipmentLabel(shipment.id),
+    onSuccess: (pdf, { shipment, tab }) => {
+      if (pdf !== null) showPdf(tab, pdf)
+      else if (shipment.labelUrl !== null) openExternal(tab, shipment.labelUrl)
+      else {
+        tab?.close()
+        notify(labelCopy.errors.courier, 'error')
+      }
+    },
+    onError: (error, { shipment, tab }) => {
+      // Sin status no contestó la API sino la red: la redirección al sitio
+      // del courier que no deja leer su respuesta.
+      if (error.status === undefined && shipment.labelUrl !== null) {
+        openExternal(tab, shipment.labelUrl)
+        return
+      }
+
+      tab?.close()
+      const message = labelErrorMessage(error.status)
+      if (message !== null) notify(message, 'error')
+    },
   })
 
-  function print(shipment: Pick<Shipment, 'id' | 'labelUrl'>) {
-    const tab = window.open('', '_blank')
-
-    mutation.mutate(shipment.id, {
-      onSuccess: (pdf) => {
-        if (pdf !== null) showPdf(tab, pdf)
-        else if (shipment.labelUrl !== null) openExternal(tab, shipment.labelUrl)
-        else {
-          tab?.close()
-          notify(labelCopy.errors.courier, 'error')
-        }
-      },
-      onError: (error) => {
-        // Sin status no contestó la API sino la red: la redirección al sitio
-        // del courier que no deja leer su respuesta.
-        if (error.status === undefined && shipment.labelUrl !== null) {
-          openExternal(tab, shipment.labelUrl)
-          return
-        }
-
-        tab?.close()
-        const message = labelErrorMessage(error.status)
-        if (message !== null) notify(message, 'error')
-      },
-    })
+  function print(shipment: LabelRequest['shipment']) {
+    mutation.mutate({ shipment, tab: window.open('', '_blank') })
   }
 
   return { print, printing: mutation.isPending }

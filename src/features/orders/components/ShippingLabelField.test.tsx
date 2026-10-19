@@ -54,7 +54,7 @@ let tab: FakeTab
 function renderField(shipment: Shipment | null) {
   const queryClient = new QueryClient({ defaultOptions: { mutations: { retry: false } } })
 
-  renderWithTheme(
+  return renderWithTheme(
     <QueryClientProvider client={queryClient}>
       <ShippingLabelField shipment={shipment} />
     </QueryClientProvider>,
@@ -131,9 +131,35 @@ describe('ShippingLabelField', () => {
     // navegador la bloquearía como popup.
     expect(window.open).toHaveBeenCalledWith('', '_blank')
     await waitFor(() => expect(tab.location.href).toBe('blob:http://localhost/etiqueta'))
-    expect(fetchLabel).toHaveBeenCalledWith(31, expect.anything())
+    expect(fetchLabel).toHaveBeenCalledWith(31)
     expect(URL.createObjectURL).toHaveBeenCalledWith(PDF)
     expect(notify).not.toHaveBeenCalled()
+  })
+
+  // OCA puede tardar: si en ese rato el operador se va de la pantalla, la
+  // pestaña igual recibe la etiqueta, y no queda vacía para siempre.
+  it('fills the tab even if the screen was left while the courier answered', async () => {
+    let answer: (pdf: Blob) => void = () => undefined
+    vi.spyOn(api, 'fetchShipmentLabel').mockReturnValue(
+      new Promise<Blob>((resolve) => (answer = resolve)),
+    )
+    const { unmount } = renderField(DISPATCHED)
+    clickPrint()
+
+    unmount()
+    answer(PDF)
+
+    await waitFor(() => expect(tab.location.href).toBe('blob:http://localhost/etiqueta'))
+  })
+
+  it('closes the tab and warns even if the screen was left while the api answered', async () => {
+    failWith(404)
+    const { unmount } = renderField(DISPATCHED)
+    clickPrint()
+    unmount()
+
+    await waitFor(() => expect(tab.close).toHaveBeenCalled())
+    expect(notify).toHaveBeenCalledWith('El envío no tiene una etiqueta para imprimir.', 'error')
   })
 
   it('frees the pdf once the tab had time to load it', async () => {
