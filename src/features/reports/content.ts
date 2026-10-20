@@ -6,9 +6,6 @@ export const reportsCopy = {
   page: {
     title: 'Reportes',
     subtitle: 'Volumen, facturación y cumplimiento de la operación.',
-    /** Distintivo junto al título para un dataset que no sale de la API. */
-    sampleData: 'Datos de muestra',
-    sampleDataHint: 'Los valores son ilustrativos: no salen de la operación de la empresa.',
     error: 'No pudimos cargar los reportes.',
   },
   period: {
@@ -22,8 +19,53 @@ export const reportsCopy = {
   },
   actions: {
     export: 'Exportar reporte',
-    /** Sin endpoint de exportación: la acción queda visible y apagada. */
-    exportPending: 'El reporte todavía no se puede exportar desde el sistema.',
+  },
+  /**
+   * El CSV del reporte: lo que muestra la pantalla para el período elegido,
+   * bloque por bloque. Los rótulos dicen la unidad, porque en la planilla el
+   * número va crudo y sin formato.
+   */
+  export: {
+    /** "reporte-30d-2026-10-19.csv". */
+    filename: (period: string, to: string) => `reporte-${period}-${to}.csv`,
+    title: 'Reporte de la operación',
+    period: 'Período',
+    from: 'Desde',
+    to: 'Hasta',
+    kpis: {
+      header: ['Métrica', 'Valor', 'Variación vs. período anterior (%)'],
+      revenue: 'Facturación ($)',
+      dispatchedUnits: 'Volumen despachado (unidades)',
+      onTimeDelivery: 'Cumplimiento de entregas (%)',
+      /** Ninguna entrega del período tenía fecha comprometida. */
+      onTimeUnavailable: 'Sin entregas con fecha comprometida',
+      activeAnomalies: 'Anomalías activas (hoy)',
+      critical: 'Hay al menos una crítica',
+    },
+    curve: {
+      title: 'Curva de ventas',
+      header: (granularity: 'day' | 'week') => [
+        granularity === 'week' ? 'Semana desde' : 'Día',
+        'Órdenes',
+        'Facturación ($)',
+      ],
+    },
+    carriers: {
+      title: 'Entregas por operador',
+      header: ['Operador', 'Despachados', 'Entregados'],
+    },
+    anomalies: {
+      title: 'Envíos demorados',
+      header: [
+        'Orden',
+        'Depósito de origen',
+        'Operador',
+        'Entrega comprometida',
+        'Días de demora',
+        'Unidades',
+        'Estado',
+      ],
+    },
   },
   // Vocabulario y orden del diseño (S14-Reportes).
   kpis: {
@@ -32,13 +74,17 @@ export const reportsCopy = {
     onTimeDelivery: 'Cumplimiento de entregas',
     activeAnomalies: 'Anomalías activas',
     critical: 'Crítico',
-    /** Valor de una métrica que el modelo todavía no puede calcular. */
+    /** Valor de una métrica sin con qué calcularla en el período. */
     unavailable: '—',
-    onTimeUnavailable: 'Requiere la fecha de entrega comprometida, que el sistema no registra.',
-    anomaliesUnavailable: 'El sistema todavía no registra anomalías.',
+    /** `null`: no es un 0%, es que no hubo plazo contra el cual medir. */
+    onTimeUnavailable: 'Ninguna entrega del período tenía fecha comprometida.',
+    /** Las anomalías activas son de hoy, no del período elegido. */
+    anomaliesNote: 'Envíos en curso con la fecha comprometida vencida, hoy.',
   },
+  // Órdenes creadas y facturación por día o semana: son ventas, no despachos.
+  // Se llamaba «Curva de despacho» y no dibujaba ningún despacho.
   curve: {
-    title: 'Curva de despacho',
+    title: 'Curva de ventas',
     /** Nombre accesible del segmentado que elige la serie. */
     metricLabel: 'Serie de la curva',
     metrics: {
@@ -47,7 +93,7 @@ export const reportsCopy = {
     },
     /** Descripción del gráfico para el lector de pantalla. */
     chartLabel: (metric: string, granularity: 'day' | 'week') =>
-      `Curva de despacho: ${metric.toLowerCase()} por ${granularity === 'week' ? 'semana' : 'día'}`,
+      `Curva de ventas: ${metric.toLowerCase()} por ${granularity === 'week' ? 'semana' : 'día'}`,
   },
   serviceLevel: {
     title: 'Entregas por operador',
@@ -56,27 +102,29 @@ export const reportsCopy = {
     barLabel: (carrier: string) => `Envíos entregados de ${carrier}`,
     empty: 'No se despacharon envíos en el período.',
   },
+  /** Una anomalía es un envío demorado: pasó su fecha comprometida. */
   anomalies: {
     title: 'Anomalías recientes',
-    tableLabel: 'Anomalías regionales recientes',
+    tableLabel: 'Envíos demorados recientes',
+    /** Lleva al listado de envíos filtrado por los demorados. */
     viewLog: 'Ver bitácora completa',
-    /** No hay pantalla de bitácora: la acción queda visible y apagada. */
-    viewLogPending: 'La bitácora de anomalías todavía no existe en el sistema.',
     columns: {
-      id: 'Incidente',
-      node: 'Nodo',
-      varianceType: 'Tipo de desvío',
-      impactedUnits: 'Volumen impactado',
+      order: 'Orden',
+      origin: 'Depósito de origen',
+      courier: 'Operador',
+      promised: 'Entrega comprometida',
+      units: 'Unidades',
       status: 'Estado',
     },
+    /** "4 días de demora": debajo de la fecha comprometida. */
+    daysLate: (days: number) => `${days} ${days === 1 ? 'día' : 'días'} de demora`,
+    /** Origen u operador que el envío no registra. */
+    missing: '—',
     status: {
       investigating: 'En análisis',
       critical: 'Crítico',
       resolved: 'Resuelto',
     },
-    empty: 'No hay anomalías registradas en el período.',
-    /** El modelo no tiene anomalías: no es lo mismo que «ninguna en el período». */
-    unavailable:
-      'El sistema todavía no registra anomalías: esta tabla se completa cuando exista ese dato.',
+    empty: 'No hay envíos demorados en el período.',
   },
 } as const

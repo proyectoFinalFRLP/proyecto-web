@@ -33,6 +33,28 @@ describe('ReportMetrics', () => {
     expect(screen.getByText('Crítico')).toBeInTheDocument()
   })
 
+  // Sin entregas con fecha comprometida, el cumplimiento no es un 0%.
+  it('says why there is no on time rate instead of showing a number', () => {
+    renderWithTheme(<ReportMetrics kpis={{ ...KPIS, onTimeDeliveryRate: null }} />)
+
+    expect(
+      screen.getByText('Ninguna entrega del período tenía fecha comprometida.'),
+    ).toBeInTheDocument()
+    expect(screen.getByText('—')).toBeInTheDocument()
+  })
+
+  // Cero es un dato: la tarjeta lo muestra, no un «sin dato».
+  it('shows zero active anomalies as a number, and says they are those of today', () => {
+    renderWithTheme(
+      <ReportMetrics kpis={{ ...KPIS, activeAnomalies: { count: 0, critical: false } }} />,
+    )
+
+    expect(screen.getByText('0')).toBeInTheDocument()
+    expect(
+      screen.getByText('Envíos en curso con la fecha comprometida vencida, hoy.'),
+    ).toBeInTheDocument()
+  })
+
   it('drops the critical chip when no anomaly is critical', () => {
     const kpis: ReportsKpis = { ...KPIS, activeAnomalies: { count: 3, critical: false } }
 

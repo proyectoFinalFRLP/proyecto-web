@@ -1,4 +1,4 @@
-import { fireEvent, screen, within } from '@testing-library/react'
+import { act, fireEvent, screen, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { notify } from 'shared/store'
 import type * as sharedStore from 'shared/store'
@@ -95,6 +95,9 @@ const SHIPMENT: Shipment = {
   labelUrl: null,
   labelAvailable: false,
   externalReference: null,
+  originWarehouse: null,
+  promisedDeliveryOn: null,
+  delayed: false,
   events: [],
 }
 
@@ -349,6 +352,136 @@ describe('OrderDetailPage', () => {
     renderAt('/orders/8829')
 
     expect(screen.queryByText('Orden de retiro')).not.toBeInTheDocument()
+  })
+
+  describe('the shipping panel', () => {
+    const panel = () => screen.getByRole('region', { name: 'Datos del envío' })
+
+    // «Tipo de servicio» no lo informa ningún courier ni lo guarda el modelo.
+    it('no longer shows a service type that nothing records', () => {
+      mockQueries({ data: ORDER })
+
+      renderAt('/orders/8829')
+
+      expect(screen.queryByText('Tipo de servicio')).not.toBeInTheDocument()
+      expect(screen.queryByText(/Tipo de servicio sin registrar/)).not.toBeInTheDocument()
+    })
+
+    it('names the warehouse the shipment left from', () => {
+      mockQueries(
+        { data: ORDER },
+        {
+          data: {
+            kind: 'single',
+            shipment: { ...SHIPMENT, originWarehouse: { id: 1, name: 'Depósito Central' } },
+          },
+        },
+      )
+
+      renderAt('/orders/8829')
+
+      expect(within(panel()).getByText('Depósito Central')).toBeInTheDocument()
+      expect(within(panel()).queryByText(/antes de que el sistema/)).not.toBeInTheDocument()
+    })
+
+    // El depósito lo elige el despacho: antes no hay uno que mostrar.
+    it('says the origin is chosen on dispatch while the shipment is pending', () => {
+      mockQueries(
+        { data: ORDER },
+        { data: { kind: 'single', shipment: { ...SHIPMENT, status: 'pending' } } },
+      )
+
+      renderAt('/orders/8829')
+
+      expect(within(panel()).getByText('Se define al despachar')).toBeInTheDocument()
+    })
+
+    // Un envío despachado antes de que se guardara el depósito no lo «perdió».
+    it('explains a dispatched shipment that did not record its origin', () => {
+      mockQueries({ data: ORDER })
+
+      renderAt('/orders/8829')
+
+      expect(
+        within(panel()).getByText(
+          'Este envío se despachó antes de que el sistema guardara el depósito de origen.',
+        ),
+      ).toBeInTheDocument()
+    })
+
+    it('shows the promised delivery date, without a delay while it is on time', () => {
+      mockQueries(
+        { data: ORDER },
+        { data: { kind: 'single', shipment: { ...SHIPMENT, promisedDeliveryOn: '2026-10-22' } } },
+      )
+
+      renderAt('/orders/8829')
+
+      expect(within(panel()).getByText('Entrega comprometida')).toBeInTheDocument()
+      expect(within(panel()).getByText('22 oct')).toBeInTheDocument()
+      expect(within(panel()).queryByText('Demorado')).not.toBeInTheDocument()
+    })
+
+    it('marks the promised date as delayed when it already passed', () => {
+      mockQueries(
+        { data: ORDER },
+        {
+          data: {
+            kind: 'single',
+            shipment: { ...SHIPMENT, promisedDeliveryOn: '2026-10-15', delayed: true },
+          },
+        },
+      )
+
+      renderAt('/orders/8829')
+
+      expect(within(panel()).getByText('Demorado')).toBeInTheDocument()
+      // La métrica de entrega del encabezado también lo dice.
+      expect(screen.getByText('Demorada')).toBeInTheDocument()
+    })
+
+    // Sin plazo informado no hay fecha que mostrar: la fila no aparece.
+    it('leaves out the promised date when the shipment has none', () => {
+      mockQueries({ data: ORDER })
+
+      renderAt('/orders/8829')
+
+      expect(screen.queryByText('Entrega comprometida')).not.toBeInTheDocument()
+      expect(screen.getByText('Sin fecha comprometida')).toBeInTheDocument()
+    })
+  })
+
+  // El remito lo arma el navegador: se monta, se imprime y se va.
+  describe('printing the delivery note', () => {
+    it('mounts the delivery note and opens the print dialog', () => {
+      const print = vi.spyOn(window, 'print').mockImplementation(() => {
+        expect(document.querySelector('[data-delivery-note]')).not.toBeNull()
+      })
+      mockQueries({ data: ORDER })
+
+      renderAt('/orders/8829')
+      expect(document.querySelector('[data-delivery-note]')).toBeNull()
+      fireEvent.click(screen.getByRole('button', { name: 'Imprimir remito' }))
+
+      expect(print).toHaveBeenCalledTimes(1)
+      print.mockRestore()
+    })
+
+    // Montado de más, sus textos duplicarían los de la pantalla.
+    it('takes it down once the printing is over', () => {
+      const print = vi.spyOn(window, 'print').mockImplementation(() => undefined)
+      mockQueries({ data: ORDER })
+
+      renderAt('/orders/8829')
+      fireEvent.click(screen.getByRole('button', { name: 'Imprimir remito' }))
+      expect(document.querySelector('[data-delivery-note]')).not.toBeNull()
+      act(() => {
+        window.dispatchEvent(new Event('afterprint'))
+      })
+
+      expect(document.querySelector('[data-delivery-note]')).toBeNull()
+      print.mockRestore()
+    })
   })
 
   // Un retiro no está «sin cotizar»: no se va a cotizar nunca.

@@ -11,13 +11,22 @@ import type { DispatchedShipment, RecentOrder, WarehouseLoad } from './types'
 // filtrado, con un request de una fila por métrica (ver `fetchCount`).
 
 /**
- * Estado que define cada KPI. Son literales sueltos y no una unión completa a
- * propósito: el panel sólo necesita **uno** por recurso, y el vocabulario
- * entero (`Order::STATUSES`, `Shipment::STATUSES`) es de las features que lo
- * editan, no de la que lo cuenta.
+ * Estado que define el KPI de órdenes. Es un literal suelto y no una unión
+ * completa a propósito: el panel sólo necesita **uno**, y el vocabulario entero
+ * (`Order::STATUSES`) es de la feature que lo edita, no de la que lo cuenta.
  */
 export const PENDING_ORDER_STATUS = 'pending'
-export const ACTIVE_SHIPMENT_STATUS = 'in_transit'
+
+/**
+ * Los estados que cuentan como «envío activo»: los que ya salieron del depósito
+ * o están por salir y todavía no llegaron. Son los mismos dos que el backend
+ * llama en curso (`Shipment::IN_FLIGHT_STATUSES`) y los que pueden quedar
+ * demorados. Contar sólo `in_transit` dejaba afuera los despachados que el
+ * courier todavía no levantó, que son justamente los que la operación persigue.
+ */
+export const ACTIVE_SHIPMENT_STATUSES = ['ready_to_ship', 'in_transit'] as const
+
+type ActiveShipmentStatus = (typeof ACTIVE_SHIPMENT_STATUSES)[number]
 
 /** `GET /api/v1/orders?status=pending&per_page=1` → `meta.total`. */
 export function fetchPendingOrderCount(): Promise<number> {
@@ -25,14 +34,19 @@ export function fetchPendingOrderCount(): Promise<number> {
 }
 
 /**
- * `GET /api/v1/shipments?status=in_transit&per_page=1` → `meta.total`.
+ * `GET /api/v1/shipments/counts` → `ready_to_ship + in_transit`.
  *
- * Contra datos reales va a dar 0 hasta que la operación despache: hoy los
- * envíos se crean con TESIS-105 y avanzan a `in_transit` con el tracking del
- * courier (TESIS-48), que todavía no está. No es un bug del panel.
+ * Un solo request y no un `fetchCount` por estado: el endpoint de las pestañas
+ * del listado (TESIS-165) ya cuenta cada estado sobre el mismo scope, así que
+ * las dos partes de la suma salen de la misma foto y no de dos consultas que
+ * pueden ver la base en momentos distintos.
  */
-export function fetchActiveShipmentCount(): Promise<number> {
-  return fetchCount('/shipments', { status: ACTIVE_SHIPMENT_STATUS })
+export async function fetchActiveShipmentCount(): Promise<number> {
+  const { data } = await client.get<{ data: Record<ActiveShipmentStatus, number> }>(
+    '/shipments/counts',
+  )
+
+  return ACTIVE_SHIPMENT_STATUSES.reduce((sum, status) => sum + data.data[status], 0)
 }
 
 /**

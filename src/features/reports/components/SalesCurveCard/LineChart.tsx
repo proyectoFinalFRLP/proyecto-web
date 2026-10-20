@@ -21,9 +21,9 @@ import {
   GridLine,
   LabelsRow,
   LinePath,
-} from './DispatchCurveCard.styles'
-import type { DayLabelAnchor } from './DispatchCurveCard.styles'
-import type { LineChartProps } from './DispatchCurveCard.types'
+} from './SalesCurveCard.styles'
+import type { DayLabelAnchor } from './SalesCurveCard.styles'
+import type { LineChartProps } from './SalesCurveCard.types'
 
 function anchorOf(index: number, last: number): DayLabelAnchor {
   if (index === 0) return 'start'
@@ -31,7 +31,7 @@ function anchorOf(index: number, last: number): DayLabelAnchor {
 }
 
 /**
- * Gráfico de líneas de la curva de despacho: grilla, área y trazo suave sobre
+ * Gráfico de líneas de la curva de ventas: grilla, área y trazo suave sobre
  * un SVG propio, como lo dibuja el diseño. No hay librería de gráficos en el
  * stack y un solo gráfico no la justifica: la geometría vive en `utils/chart`.
  *

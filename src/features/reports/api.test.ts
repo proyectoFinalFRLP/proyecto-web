@@ -8,17 +8,30 @@ const API_OVERVIEW = {
   to: '2026-10-02T01:30:00-03:00',
   granularity: 'day' as const,
   kpis: {
-    orders: { value: 3, trend: null },
     revenue: { value: 4500, trend: 12.5 },
     dispatched_units: { value: 9, trend: -10 },
     on_time_delivery_rate: null,
-    active_anomalies: null,
+    active_anomalies: { count: 0, critical: false },
   },
   curve: [
     { date: '2026-09-26', orders: 1, revenue: 1500 },
     { date: '2026-09-27', orders: 0, revenue: 0 },
   ],
   carriers: [{ company_integration_id: 3, name: 'Andreani', dispatched: 4, delivered: 1 }],
+  anomalies: [
+    {
+      shipment_id: 12,
+      order_id: 40,
+      external_order_id: null,
+      external_order_number: '#1001',
+      courier: { id: 3, service_id: 5, name: 'Andreani' },
+      origin_warehouse: { id: 1, name: 'Depósito Central' },
+      promised_delivery_on: '2026-09-29',
+      days_late: 4,
+      units: 6,
+      status: 'critical' as const,
+    },
+  ],
 }
 
 describe('curveLabel', () => {
@@ -45,18 +58,61 @@ describe('toOverview', () => {
     expect(kpis.dispatchedUnits).toEqual({ value: 9, trend: -10 })
   })
 
-  it('leaves without value what the model cannot compute', () => {
+  // `null` es «ninguna entrega con fecha comprometida en el período», no un 0%.
+  it('keeps an on time rate without deliveries to measure as null', () => {
+    expect(toOverview(API_OVERVIEW).kpis.onTimeDeliveryRate).toBeNull()
+  })
+
+  it('keeps the rate and its trend when there is one', () => {
+    const { kpis } = toOverview({
+      ...API_OVERVIEW,
+      kpis: { ...API_OVERVIEW.kpis, on_time_delivery_rate: { value: 87.5, trend: -3.2 } },
+    })
+
+    expect(kpis.onTimeDeliveryRate).toEqual({ value: 87.5, trend: -3.2 })
+  })
+
+  // Siempre llega: cero anomalías es un dato, no la falta de uno.
+  it('reads the active anomalies as a count, zero included', () => {
+    expect(toOverview(API_OVERVIEW).kpis.activeAnomalies).toEqual({ count: 0, critical: false })
+  })
+
+  it('translates each delayed shipment to the domain', () => {
+    expect(toOverview(API_OVERVIEW).anomalies).toEqual([
+      {
+        shipmentId: 12,
+        order: { id: 40, externalOrderId: null, externalOrderNumber: '#1001' },
+        courier: 'Andreani',
+        originWarehouse: 'Depósito Central',
+        promisedDeliveryOn: '2026-09-29',
+        daysLate: 4,
+        units: 6,
+        status: 'critical',
+      },
+    ])
+  })
+
+  it('leaves the courier and the origin null when the shipment has none', () => {
+    const [anomaly] = toOverview({
+      ...API_OVERVIEW,
+      anomalies: [{ ...API_OVERVIEW.anomalies[0], courier: null, origin_warehouse: null }],
+    }).anomalies
+
+    expect(anomaly).toMatchObject({ courier: null, originWarehouse: null })
+  })
+
+  // El día de adelante ya es el de Argentina: convertirlo lo correría.
+  it('keeps the window of the report as calendar days', () => {
     const overview = toOverview(API_OVERVIEW)
 
-    expect(overview.kpis.onTimeDeliveryRate).toBeNull()
-    expect(overview.kpis.activeAnomalies).toBeNull()
-    expect(overview.anomalies).toBeNull()
+    expect(overview.from).toBe('2026-09-26')
+    expect(overview.to).toBe('2026-10-02')
   })
 
   it('turns the dates of the curve into axis labels, empty days included', () => {
     expect(toOverview(API_OVERVIEW).curve).toEqual([
-      { label: 'sáb', orders: 1, revenue: 1500 },
-      { label: 'dom', orders: 0, revenue: 0 },
+      { date: '2026-09-26', label: 'sáb', orders: 1, revenue: 1500 },
+      { date: '2026-09-27', label: 'dom', orders: 0, revenue: 0 },
     ])
   })
 

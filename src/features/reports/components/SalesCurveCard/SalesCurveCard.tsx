@@ -6,9 +6,9 @@ import { reportsCopy } from '../../content'
 import type { CurveMetric } from '../../types'
 import { formatCompact, formatCompactMoney } from '../../utils/format'
 
-import { CardHeading, CurveCard } from './DispatchCurveCard.styles'
-import type { DispatchCurveCardProps } from './DispatchCurveCard.types'
 import { LineChart } from './LineChart'
+import { CardHeading, CurveCard } from './SalesCurveCard.styles'
+import type { SalesCurveCardProps } from './SalesCurveCard.types'
 
 const { curve: copy } = reportsCopy
 
@@ -20,11 +20,14 @@ const AXIS_FORMAT: Record<CurveMetric, (value: number) => string> = {
 }
 
 /**
- * «Curva de despacho» de S14: la serie diaria del período con el segmentado
- * para alternar entre órdenes y facturación. Los puntos traen las dos series;
- * cuál se dibuja es estado de la tarjeta y de nadie más.
+ * «Curva de ventas» de S14: la serie del período con el segmentado para
+ * alternar entre órdenes creadas y facturación. Los puntos traen las dos
+ * series; cuál se dibuja es estado de la tarjeta y de nadie más.
+ *
+ * El diseño la llamaba «Curva de despacho», pero lo que dibuja son ventas —las
+ * órdenes que entraron y lo que facturaron—, no despachos.
  */
-export function DispatchCurveCard({ points, granularity = 'day' }: DispatchCurveCardProps) {
+export function SalesCurveCard({ points, granularity = 'day' }: SalesCurveCardProps) {
   const [metric, setMetric] = useState<CurveMetric>('orders')
 
   // El segmentado es exclusivo: soltar la opción activa devuelve `null`, y una

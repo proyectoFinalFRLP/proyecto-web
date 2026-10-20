@@ -1,19 +1,22 @@
 import { client } from 'shared/api/client'
 
 import type {
+  AnomalyStatus,
   CurveGranularity,
   CurvePoint,
   ReportPeriod,
   ReportsOverview,
+  ShipmentAnomaly,
   TrendedValue,
 } from './types'
 
 // Frontera con `GET /api/v1/reports/overview` (TESIS-999007). Ningún
 // componente ve el snake_case ni las fechas crudas de la curva.
 //
-// La API calcula sólo lo que el modelo permite: el cumplimiento de plazo y las
-// anomalías llegan como `null` explícito (no hay fecha comprometida en los
-// envíos ni una entidad de anomalía). La pantalla los muestra sin dato.
+// Desde que el envío guarda su fecha comprometida, la API calcula también el
+// cumplimiento de plazo y las anomalías (los envíos demorados). El
+// cumplimiento puede llegar en `null`: ninguna entrega del período tenía fecha
+// comprometida contra la cual medirlo. Las anomalías llegan siempre.
 
 interface ApiTrended {
   value: number
@@ -26,11 +29,10 @@ interface ApiOverview {
   to: string
   granularity: CurveGranularity
   kpis: {
-    orders: ApiTrended
     revenue: ApiTrended
     dispatched_units: ApiTrended
     on_time_delivery_rate: ApiTrended | null
-    active_anomalies: { count: number; critical: boolean } | null
+    active_anomalies: { count: number; critical: boolean }
   }
   curve: { date: string; orders: number; revenue: number }[]
   carriers: {
@@ -39,6 +41,20 @@ interface ApiOverview {
     dispatched: number
     delivered: number
   }[]
+  anomalies: ApiAnomaly[]
+}
+
+interface ApiAnomaly {
+  shipment_id: number
+  order_id: number
+  external_order_id: string | null
+  external_order_number: string | null
+  courier: { id: number; service_id: number; name: string } | null
+  origin_warehouse: { id: number; name: string } | null
+  promised_delivery_on: string
+  days_late: number
+  units: number
+  status: AnomalyStatus
 }
 
 // Las fechas de la curva son días calendario (`2026-09-26`) ya cortados en
@@ -68,16 +84,43 @@ function toTrended(value: ApiTrended): TrendedValue {
 
 function toCurve(points: ApiOverview['curve'], period: ReportPeriod): CurvePoint[] {
   return points.map((point) => ({
+    date: point.date,
     label: curveLabel(point.date, period),
     orders: point.orders,
     revenue: point.revenue,
   }))
 }
 
+function toAnomaly(anomaly: ApiAnomaly): ShipmentAnomaly {
+  return {
+    shipmentId: anomaly.shipment_id,
+    order: {
+      id: anomaly.order_id,
+      externalOrderId: anomaly.external_order_id,
+      externalOrderNumber: anomaly.external_order_number,
+    },
+    courier: anomaly.courier?.name ?? null,
+    originWarehouse: anomaly.origin_warehouse?.name ?? null,
+    promisedDeliveryOn: anomaly.promised_delivery_on,
+    daysLate: anomaly.days_late,
+    units: anomaly.units,
+    status: anomaly.status,
+  }
+}
+
+// `from` y `to` llegan como instantes en hora de Argentina
+// (`2026-09-26T00:00:00-03:00`): la fecha de adelante ya es el día local, y
+// cortarla ahí evita convertirla a la zona del navegador.
+function calendarDay(instant: string): string {
+  return instant.slice(0, 10)
+}
+
 export function toOverview(data: ApiOverview): ReportsOverview {
   const { kpis } = data
 
   return {
+    from: calendarDay(data.from),
+    to: calendarDay(data.to),
     kpis: {
       dispatchedUnits: toTrended(kpis.dispatched_units),
       revenue: toTrended(kpis.revenue),
@@ -92,8 +135,7 @@ export function toOverview(data: ApiOverview): ReportsOverview {
       dispatched: carrier.dispatched,
       delivered: carrier.delivered,
     })),
-    // La API no tiene anomalías: no es "ninguna en el período", es "no existen".
-    anomalies: null,
+    anomalies: data.anomalies.map(toAnomaly),
   }
 }
 

@@ -33,7 +33,7 @@ export function formatPercent(rate: number): string {
   return `${ONE_DECIMAL.format(rate)}%`
 }
 
-/** «4.200 u» — el volumen impactado de una anomalía, en unidades. */
+/** «4.200 u» — las unidades de un envío demorado. */
 export function formatUnits(value: number): string {
   return `${formatInteger(value)} u`
 }

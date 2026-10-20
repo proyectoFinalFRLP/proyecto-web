@@ -33,9 +33,10 @@ describe('PaymentSummaryCard', () => {
     expect(within(summary()).getByText('Sin cotizar')).toBeInTheDocument()
   })
 
-  it('keeps the invoice download visible but disabled', () => {
+  // Facturar queda fuera del alcance: no hay un botón apagado que lo prometa.
+  it('offers no invoice download', () => {
     renderWithTheme(<PaymentSummaryCard subtotal="$ 0,00" shipping={null} total="$ 0,00" />)
 
-    expect(screen.getByRole('button', { name: 'Descargar factura' })).toBeDisabled()
+    expect(screen.queryByRole('button', { name: /factura/i })).not.toBeInTheDocument()
   })
 })

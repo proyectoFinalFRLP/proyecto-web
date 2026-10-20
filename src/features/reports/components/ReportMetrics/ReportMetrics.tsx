@@ -51,8 +51,9 @@ export function ReportMetrics({ kpis }: ReportMetricsProps) {
         trend={trendOf(revenue)}
         icon={<PaymentsOutlinedIcon />}
       />
-      {/* Sin fecha comprometida no hay cumplimiento que medir: la tarjeta del
-          diseño queda, sin valor y diciendo por qué, en vez de un número. */}
+      {/* Sin entregas con fecha comprometida en el período no hay cumplimiento
+          que medir: la tarjeta queda, sin valor y diciendo por qué, en vez de
+          un 0% que se leería como «ninguna llegó a tiempo». */}
       {onTimeDeliveryRate === null ? (
         <StatCard
           label={copy.onTimeDelivery}
@@ -69,25 +70,18 @@ export function ReportMetrics({ kpis }: ReportMetricsProps) {
         />
       )}
       {/* Con una anomalía crítica la tarjeta entera pasa a alerta: borde,
-          ícono y chip, como el `critical` del MetricCard del diseño. */}
-      {activeAnomalies === null ? (
-        <StatCard
-          label={copy.activeAnomalies}
-          value={copy.unavailable}
-          note={copy.anomaliesUnavailable}
-          icon={<WarningAmberOutlinedIcon />}
-        />
-      ) : (
-        <StatCard
-          label={copy.activeAnomalies}
-          value={formatInteger(activeAnomalies.count)}
-          tone={activeAnomalies.critical ? 'error' : 'primary'}
-          tag={activeAnomalies.critical ? copy.critical : undefined}
-          tagTone="error"
-          tagIcon={<WarningAmberOutlinedIcon />}
-          icon={<WarningAmberOutlinedIcon />}
-        />
-      )}
+          ícono y chip, como el `critical` del MetricCard del diseño. La nota
+          aclara que es la foto de hoy: las otras tres hablan del período. */}
+      <StatCard
+        label={copy.activeAnomalies}
+        value={formatInteger(activeAnomalies.count)}
+        note={copy.anomaliesNote}
+        tone={activeAnomalies.critical ? 'error' : 'primary'}
+        tag={activeAnomalies.critical ? copy.critical : undefined}
+        tagTone="error"
+        tagIcon={<WarningAmberOutlinedIcon />}
+        icon={<WarningAmberOutlinedIcon />}
+      />
     </MetricsGrid>
   )
 }

@@ -6,11 +6,13 @@ import PersonOutlineIcon from '@mui/icons-material/PersonOutline'
 import { Box, Button, Stack, Typography } from '@mui/material'
 import { useState } from 'react'
 import type { ReactNode } from 'react'
+import { flushSync } from 'react-dom'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ErrorFallback, LoadingSpinner, PageWrapper } from 'shared/components'
-import { notify } from 'shared/store'
-import { formatInteger, formatMoney, formatOrderId } from 'shared/utils'
+import { notify, useTenantName } from 'shared/store'
+import { formatCalendarDate, formatInteger, formatMoney, formatOrderId } from 'shared/utils'
 
+import { DeliveryNote } from '../components/DeliveryNote'
 import { DispatchShipmentDialog } from '../components/DispatchShipmentDialog'
 import { InfoPanel } from '../components/InfoPanel'
 import type { InfoField } from '../components/InfoPanel'
@@ -57,14 +59,13 @@ function resolvedShipment(view: ShipmentView): Shipment | null {
 }
 
 /**
- * Las cuatro métricas del encabezado. Lo que el modelo no registra —medio de
- * pago, tipo de servicio, fecha comprometida— va como aclaración sin dato en
- * vez de rellenarse con un valor plausible.
+ * Las cuatro métricas del encabezado. Lo que el modelo no registra —el medio de
+ * pago— va como aclaración sin dato en vez de rellenarse con un valor
+ * plausible.
  */
 function buildMetrics(order: OrderDetail, shipment: Shipment | null, total: number): OrderMetric[] {
   const { metrics } = detail
   const courier = shipment?.courier ?? null
-  const delivered = shipment === null ? null : deliveredAt(shipment)
 
   return [
     {
@@ -82,15 +83,35 @@ function buildMetrics(order: OrderDetail, shipment: Shipment | null, total: numb
       icon: <Inventory2OutlinedIcon />,
     },
     carrierMetric(order, courier),
-    {
-      id: 'delivery',
-      label: metrics.delivery,
-      value: delivered === null ? unknown : formatShortDate(delivered),
-      note: delivered === null ? metrics.noEstimate : metrics.delivered,
-      icon: <CalendarTodayOutlinedIcon />,
-      unknown: delivered === null,
-    },
+    deliveryMetric(shipment),
   ]
+}
+
+/**
+ * La entrega: el día en que llegó, si ya llegó; si no, el que se le prometió al
+ * cliente, con el chip de demora cuando ya pasó. Lo que decide la demora es la
+ * API (`delayed`), no una cuenta con el reloj del navegador.
+ */
+function deliveryMetric(shipment: Shipment | null): OrderMetric {
+  const { metrics } = detail
+  const base = { id: 'delivery', label: metrics.delivery, icon: <CalendarTodayOutlinedIcon /> }
+  const delivered = shipment === null ? null : deliveredAt(shipment)
+  const promised = shipment?.promisedDeliveryOn ?? null
+
+  if (delivered !== null) {
+    return { ...base, value: formatShortDate(delivered), note: metrics.delivered }
+  }
+
+  if (promised === null) {
+    return { ...base, value: unknown, note: metrics.noEstimate, unknown: true }
+  }
+
+  return {
+    ...base,
+    value: formatCalendarDate(promised),
+    note: metrics.promised,
+    tag: shipment?.delayed ? { label: metrics.delayed, tone: 'warning' } : undefined,
+  }
 }
 
 /**
@@ -111,12 +132,7 @@ function carrierMetric(order: OrderDetail, courier: Shipment['courier']): OrderM
     }
   }
 
-  return {
-    ...base,
-    value: courier?.name ?? metrics.noCarrier,
-    note: courier === null ? undefined : metrics.serviceTypeUnknown,
-    unknown: courier === null,
-  }
+  return { ...base, value: courier?.name ?? metrics.noCarrier, unknown: courier === null }
 }
 
 /** La nota de «no registra contacto» sólo tiene sentido si falta todo el contacto. */
@@ -161,25 +177,66 @@ function customerFields(order: OrderDetail): InfoField[] {
   ]
 }
 
-// El tipo de servicio y el depósito de origen están en S08 pero no en el modelo.
-const SHIPPING_FIELDS: InfoField[] = [
-  { id: 'serviceType', label: detail.shipping.fields.serviceType, value: unknown, unknown: true },
-  { id: 'origin', label: detail.shipping.fields.origin, value: unknown, unknown: true },
-]
+/** Despachado: salió del estado `pending`, que es cuando el despacho elige el depósito. */
+function isDispatched(shipment: Shipment | null): shipment is Shipment {
+  return shipment !== null && shipment.status !== 'pending'
+}
+
+/**
+ * El depósito de origen, que guarda el despacho. Antes de despachar no hay uno
+ * —lo elige el despacho—, y un envío despachado sin depósito es uno de antes de
+ * que se guardara: «—», con la nota al pie que lo explica.
+ *
+ * «Tipo de servicio» se fue: S08 lo dibuja, pero ningún courier lo informa ni
+ * el modelo lo guarda, y un campo siempre en «—» no le decía nada a nadie.
+ */
+function originField(shipment: Shipment | null): InfoField {
+  const { fields, originPending } = detail.shipping
+  const base = { id: 'origin', label: fields.origin }
+  const origin = shipment?.originWarehouse ?? null
+
+  if (origin !== null) return { ...base, value: origin.name }
+  if (!isDispatched(shipment)) return { ...base, value: originPending, unknown: true }
+  return { ...base, value: unknown, unknown: true }
+}
 
 /**
  * Los campos del panel del envío. La orden de retiro (TESIS-186) va primero
  * cuando el courier la devolvió; si no, la fila no se muestra: no es un dato
- * que falte, es uno que ese courier no tiene.
+ * que falte, es uno que ese courier no tiene. La entrega comprometida sigue el
+ * mismo criterio: sin plazo informado no hay fila, y con la fecha vencida lleva
+ * el badge de demora.
  */
 function shippingFields(shipment: Shipment | null): InfoField[] {
+  const { fields } = detail.shipping
   const reference = shipment?.externalReference ?? null
-  if (reference === null) return SHIPPING_FIELDS
+  const promised = shipment?.promisedDeliveryOn ?? null
 
   return [
-    { id: 'pickupOrder', label: detail.shipping.fields.pickupOrder, value: reference, mono: true },
-    ...SHIPPING_FIELDS,
+    ...(reference === null
+      ? []
+      : [{ id: 'pickupOrder', label: fields.pickupOrder, value: reference, mono: true }]),
+    originField(shipment),
+    ...(promised === null
+      ? []
+      : [
+          {
+            id: 'promised',
+            label: fields.promised,
+            value: formatCalendarDate(promised),
+            badge: shipment?.delayed
+              ? { status: 'warning' as const, label: detail.shipping.delayed }
+              : undefined,
+          },
+        ]),
   ]
+}
+
+/** La nota al pie sólo cuando hay algo que explicar: un despachado sin depósito. */
+function shippingFootnote(shipment: Shipment | null): string | undefined {
+  return isDispatched(shipment) && shipment.originWarehouse === null
+    ? detail.shipping.originMissingFootnote
+    : undefined
 }
 
 /**
@@ -267,6 +324,11 @@ export function OrderDetailPage() {
   // todavía a la vista porque el envío dejó de estar pendiente.
   const [dispatchingId, setDispatchingId] = useState<number | null>(null)
   const openShipment = useCreateOrderShipment()
+  const companyName = useTenantName()
+  // Cuándo se pidió el remito, mientras se imprime. El remito se monta recién
+  // ahí: montado siempre, sus textos (el cliente, cada SKU) duplicarían los de
+  // la pantalla para el lector de pantalla y para cualquier búsqueda de texto.
+  const [printingAt, setPrintingAt] = useState<string | null>(null)
 
   if (id === undefined || order.error?.status === NOT_FOUND_STATUS) return <NotFound />
 
@@ -295,6 +357,16 @@ export function OrderDetailPage() {
   // cuándo se llama.
   const loadedOrderId = order.data.id
 
+  // `flushSync` para que el remito esté en el DOM antes de que el navegador
+  // arme la hoja. Se desmonta con `afterprint` y no al volver de `print()`: en
+  // algunos navegadores esa llamada no bloquea, y desmontarlo en seguida
+  // imprimiría la pantalla sin remito.
+  function printDeliveryNote() {
+    window.addEventListener('afterprint', () => setPrintingAt(null), { once: true })
+    flushSync(() => setPrintingAt(new Date().toISOString()))
+    window.print()
+  }
+
   // Un 409 no es un fallo que haya que reintentar: el envío ya existe (lo abrió
   // el asistente, u otra pestaña) y la invalidación de `onSettled` ya lo trae.
   function createShipment() {
@@ -316,6 +388,7 @@ export function OrderDetailPage() {
           statusVariant={status.variant}
           ordersPath={ORDERS_PATH}
           onModify={() => void navigate(editPath(order.data.id))}
+          onPrint={printDeliveryNote}
         />
 
         <OrderMetrics metrics={buildMetrics(order.data, resolved, payment.total)} />
@@ -352,7 +425,7 @@ export function OrderDetailPage() {
                 title={detail.shipping.title}
                 icon={<LocalShippingOutlinedIcon aria-hidden />}
                 fields={shippingFields(resolved)}
-                footnote={detail.shipping.footnote}
+                footnote={shippingFootnote(resolved)}
               >
                 {/* Sin envío resuelto el tracking tampoco existe: el panel dice
                     «Pendiente de despacho», que es lo mismo que ve el operador
@@ -371,6 +444,15 @@ export function OrderDetailPage() {
           </Stack>
         </Box>
       </Stack>
+
+      {printingAt === null ? null : (
+        <DeliveryNote
+          order={order.data}
+          orderLabel={orderLabel}
+          companyName={companyName}
+          issuedAt={printingAt}
+        />
+      )}
 
       {/* Se monta al abrirlo: los depósitos y la cotización se piden recién
           cuando el operador decide despachar, no en cada visita al detalle. */}
