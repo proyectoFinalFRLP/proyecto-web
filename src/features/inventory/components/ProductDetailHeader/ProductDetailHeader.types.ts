@@ -11,4 +11,6 @@ export interface ProductDetailHeaderProps {
   /** Ruta del catálogo, para el tramo navegable del breadcrumb. */
   catalogPath: string
   onEdit: () => void
+  /** «Exportar datos»: baja el CSV de la ficha. */
+  onExport: () => void
 }

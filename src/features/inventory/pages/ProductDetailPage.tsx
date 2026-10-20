@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { ErrorFallback, LoadingSpinner, PageWrapper } from 'shared/components'
 import { notify, useTenantFeature } from 'shared/store'
-import { formatDecimal, formatInteger } from 'shared/utils'
+import { downloadCsv, formatDecimal, formatInteger } from 'shared/utils'
 
 import { EditProductModal } from '../components/EditProductModal'
 import type { EditScope } from '../components/EditProductModal'
@@ -30,6 +30,7 @@ import {
 import type { Product, UpdateProductPayload } from '../types'
 import { describeConflict } from '../utils/conflict'
 import { formatDimensions, hasDimensions } from '../utils/dimensions'
+import { buildProductCsv } from '../utils/export'
 import { formatSpecTimestamp } from '../utils/format'
 import { distributionPositions } from '../utils/stock'
 import { stockLabel, stockRowTone, stockVariant } from '../utils/stockStatus'
@@ -302,6 +303,11 @@ export function ProductDetailPage() {
           statusVariant={stockVariant(product.data.stockStatus)}
           catalogPath={CATALOG_PATH}
           onEdit={() => openEditor('product')}
+          // Del lado del cliente y con el producto ya leído: lo que baja es lo
+          // que se está viendo, sin un endpoint de exportación.
+          onExport={() =>
+            downloadCsv(detail.export.filename(product.data.sku), buildProductCsv(product.data))
+          }
         />
 
         <ProductSpecsCard
