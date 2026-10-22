@@ -1,7 +1,7 @@
 import DownloadOutlinedIcon from '@mui/icons-material/DownloadOutlined'
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
 import NavigateNextIcon from '@mui/icons-material/NavigateNext'
-import { Box, Button, Tooltip, Typography } from '@mui/material'
+import { Box, Button, Typography } from '@mui/material'
 import { Link } from 'react-router-dom'
 import { StatusBadge } from 'shared/components'
 
@@ -34,6 +34,7 @@ export function ProductDetailHeader({
   statusVariant,
   catalogPath,
   onEdit,
+  onExport,
 }: ProductDetailHeaderProps) {
   return (
     <Box>
@@ -62,15 +63,9 @@ export function ProductDetailHeader({
         </TitleGroup>
 
         <Actions>
-          {/* El botón deshabilitado no dispara eventos de puntero, así que el
-              Tooltip necesita un envoltorio propio para poder recibir el hover. */}
-          <Tooltip title={actions.exportPending}>
-            <Box component="span">
-              <Button variant="outlined" startIcon={<DownloadOutlinedIcon />} disabled>
-                {actions.export}
-              </Button>
-            </Box>
-          </Tooltip>
+          <Button variant="outlined" startIcon={<DownloadOutlinedIcon />} onClick={onExport}>
+            {actions.export}
+          </Button>
           <Button variant="contained" startIcon={<EditOutlinedIcon />} onClick={onEdit}>
             {actions.edit}
           </Button>

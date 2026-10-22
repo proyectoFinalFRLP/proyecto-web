@@ -5,33 +5,31 @@ import { renderWithTheme } from '../../../../test/renderWithTheme'
 import { SAMPLE_OVERVIEW } from '../../sampleData'
 import type { CurvePoint } from '../../types'
 
-import { DispatchCurveCard } from './DispatchCurveCard'
+import { SalesCurveCard } from './SalesCurveCard'
 
-describe('DispatchCurveCard', () => {
+describe('SalesCurveCard', () => {
   it('opens on the orders series, with its axis in units', () => {
-    renderWithTheme(<DispatchCurveCard points={SAMPLE_OVERVIEW.curve} />)
+    renderWithTheme(<SalesCurveCard points={SAMPLE_OVERVIEW.curve} />)
 
     expect(screen.getByRole('button', { name: 'Órdenes', pressed: true })).toBeInTheDocument()
-    expect(screen.getByRole('img', { name: 'Curva de despacho: órdenes por día' })).toBeVisible()
+    expect(screen.getByRole('img', { name: 'Curva de ventas: órdenes por día' })).toBeVisible()
     expect(screen.getByText('10k')).toBeInTheDocument()
   })
 
   it('switches to revenue and reformats the axis in pesos', () => {
-    renderWithTheme(<DispatchCurveCard points={SAMPLE_OVERVIEW.curve} />)
+    renderWithTheme(<SalesCurveCard points={SAMPLE_OVERVIEW.curve} />)
 
     fireEvent.click(screen.getByRole('button', { name: 'Facturación' }))
 
     expect(screen.getByRole('button', { name: 'Facturación', pressed: true })).toBeInTheDocument()
-    expect(
-      screen.getByRole('img', { name: 'Curva de despacho: facturación por día' }),
-    ).toBeVisible()
+    expect(screen.getByRole('img', { name: 'Curva de ventas: facturación por día' })).toBeVisible()
     expect(screen.getByText('$800k')).toBeInTheDocument()
     expect(screen.queryByText('10k')).not.toBeInTheDocument()
   })
 
   // El segmentado es exclusivo: soltar la opción activa no deja la curva sin serie.
   it('keeps the current series when its option is clicked again', () => {
-    renderWithTheme(<DispatchCurveCard points={SAMPLE_OVERVIEW.curve} />)
+    renderWithTheme(<SalesCurveCard points={SAMPLE_OVERVIEW.curve} />)
 
     fireEvent.click(screen.getByRole('button', { name: 'Órdenes' }))
 
@@ -39,7 +37,7 @@ describe('DispatchCurveCard', () => {
   })
 
   it('draws one path for the line and one for the area', () => {
-    const { container } = renderWithTheme(<DispatchCurveCard points={SAMPLE_OVERVIEW.curve} />)
+    const { container } = renderWithTheme(<SalesCurveCard points={SAMPLE_OVERVIEW.curve} />)
 
     const paths = container.querySelectorAll('path')
     expect(paths).toHaveLength(2)
@@ -49,6 +47,7 @@ describe('DispatchCurveCard', () => {
   describe('X axis labels', () => {
     // El período de 30 días: un rótulo «dd/mm» por día.
     const month: CurvePoint[] = Array.from({ length: 30 }, (_, index) => ({
+      date: `2026-09-${String(index + 1).padStart(2, '0')}`,
       label: `${String(index + 1).padStart(2, '0')}/09`,
       orders: 100 + index,
       revenue: 10_000 + index,
@@ -64,7 +63,7 @@ describe('DispatchCurveCard', () => {
     // 30 rótulos de 48px no entran en 300px: entran 6, uno cada 5 días.
     it('shows one label every few days when they do not fit', () => {
       layoutWidth(300)
-      renderWithTheme(<DispatchCurveCard points={month} />)
+      renderWithTheme(<SalesCurveCard points={month} />)
 
       expect(screen.getByText('01/09')).toBeInTheDocument()
       expect(screen.queryByText('02/09')).not.toBeInTheDocument()
@@ -75,7 +74,7 @@ describe('DispatchCurveCard', () => {
 
     it('shows every label when they fit', () => {
       layoutWidth(1600)
-      renderWithTheme(<DispatchCurveCard points={month} />)
+      renderWithTheme(<SalesCurveCard points={month} />)
 
       expect(screen.getByText('02/09')).toBeInTheDocument()
       expect(screen.getByText('30/09')).toBeInTheDocument()
@@ -84,7 +83,7 @@ describe('DispatchCurveCard', () => {
     // Cada rótulo cae debajo de su punto, con las puntas ancladas a los bordes
     // para no salirse del lienzo.
     it('places each label under its point', () => {
-      renderWithTheme(<DispatchCurveCard points={SAMPLE_OVERVIEW.curve} />)
+      renderWithTheme(<SalesCurveCard points={SAMPLE_OVERVIEW.curve} />)
 
       const labels = SAMPLE_OVERVIEW.curve.map((point) => screen.getByText(point.label))
       expect(labels[0]).toHaveStyle({ left: '0%', transform: 'none' })

@@ -33,6 +33,13 @@ interface ApiShipmentSummary {
   tracking_number: string | null
   shipping_cost: number | null
   courier: ApiCourier | null
+  /**
+   * Lo que guarda el despacho desde que el envío recuerda su origen y su plazo.
+   * Opcionales: una API anterior no los manda.
+   */
+  origin_warehouse?: { id: number; name: string } | null
+  promised_delivery_on?: string | null
+  delayed?: boolean
   created_at: string
 }
 
@@ -57,6 +64,10 @@ function toShipment(shipment: ApiShipmentSummary): ShipmentSummary {
     trackingNumber: shipment.tracking_number,
     shippingCost: shipment.shipping_cost,
     courier: toCourier(shipment.courier),
+    originWarehouse: shipment.origin_warehouse ?? null,
+    promisedDeliveryOn: shipment.promised_delivery_on ?? null,
+    // `?? false`: sin el campo no hay con qué afirmar que se demoró.
+    delayed: shipment.delayed ?? false,
     createdAt: shipment.created_at,
   }
 }
@@ -65,13 +76,17 @@ function toShipment(shipment: ApiShipmentSummary): ShipmentSummary {
 // filtre por el string vacío y devuelva cero filas. Con `search` el backend sí
 // tolera el vacío —corta antes de armar la condición—, pero mandarlo igual
 // ensucia la URL y la clave de caché, así que se omite por el mismo criterio.
-function toParams({ page, perPage, status, orderId, search, sort }: ShipmentFilters) {
+//
+// `delayed` viaja sólo encendido: `delayed=false` no es un filtro que la API
+// conozca (no hay «sólo los que no se demoraron»), y mandarlo sería afirmarlo.
+function toParams({ page, perPage, status, orderId, search, delayed, sort }: ShipmentFilters) {
   return {
     page,
     per_page: perPage,
     ...(status === undefined ? {} : { status }),
     ...(orderId === undefined ? {} : { order_id: orderId }),
     ...(search ? { search } : {}),
+    ...(delayed ? { delayed: true } : {}),
     ...sortParams(sort),
   }
 }
@@ -96,10 +111,12 @@ export async function fetchShipmentPage(filters: ShipmentFilters): Promise<Shipm
  * leer su `meta.total`. El backend los devuelve juntos desde TESIS-165,
  * respetando el mismo buscador que el listado: si no lo hiciera, buscar un
  * seguimiento dejaría la tabla con una fila y la pestaña diciendo «Todos (20)».
+ * Lo mismo con el filtro de demorados: con él puesto, cada pestaña cuenta sus
+ * demorados.
  */
-export async function fetchShipmentCounts(search = ''): Promise<ShipmentCounts> {
+export async function fetchShipmentCounts(search = '', delayed = false): Promise<ShipmentCounts> {
   const { data } = await client.get<{ data: ShipmentCounts }>('/shipments/counts', {
-    params: search ? { search } : {},
+    params: { ...(search ? { search } : {}), ...(delayed ? { delayed: true } : {}) },
   })
 
   return data.data

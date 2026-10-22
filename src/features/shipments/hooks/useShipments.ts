@@ -53,11 +53,13 @@ export function useShipmentPage(filters: ShipmentFilters) {
  * `keepPreviousData` por el mismo motivo que el listado: el término entra en la
  * clave, así que cada letra tipeada estrena consulta y sin esto las cinco
  * pestañas se quedarían sin número en cada pulsación.
+ *
+ * El filtro de demorados también los acota, por la misma razón que el término.
  */
-export function useShipmentCounts(search = '') {
+export function useShipmentCounts(search = '', delayed = false) {
   return useQuery<ShipmentCounts>({
-    queryKey: shipmentKeys.tabCounts(search),
-    queryFn: () => fetchShipmentCounts(search),
+    queryKey: shipmentKeys.tabCounts(search, delayed),
+    queryFn: () => fetchShipmentCounts(search, delayed),
     placeholderData: keepPreviousData,
   })
 }

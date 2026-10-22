@@ -3,16 +3,6 @@ export interface ApiResponse<T> {
   message?: string
 }
 
-export interface PaginatedResponse<T> {
-  data: T[]
-  meta: {
-    currentPage: number
-    totalPages: number
-    totalCount: number
-    perPage: number
-  }
-}
-
 export interface ApiError {
   message: string
   status?: number

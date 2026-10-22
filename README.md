@@ -280,20 +280,11 @@ Los tipos de respuesta esperados están en `src/shared/api/types.ts`:
 
 ```ts
 ApiResponse<T> // { data: T, message?: string }
-PaginatedResponse<T> // { data: T[], meta: { currentPage, totalPages, ... } }
 ApiError // { message, status?, errors? }
 ```
 
-Para consultas paginadas, usar el hook genérico `usePaginatedQuery`:
-
-```ts
-import { usePaginatedQuery } from 'shared/hooks/usePaginatedQuery'
-
-const { data } = usePaginatedQuery<Producto>({
-  endpoint: '/productos',
-  params: { page: 1, perPage: 10 },
-})
-```
+Los listados paginados vienen como `{ data: [...], meta: { page, per_page, total } }`: cada
+feature traduce ese `meta` en su `api.ts` y arma su propia query.
 
 ---
 

@@ -64,7 +64,8 @@ const COLUMNS: DataTableColumn<RecentOrder>[] = [
     id: 'total',
     header: copy.columns.total,
     align: 'right',
-    width: 128,
+    // Lo que pide «Total productos» en versalitas sin partirse.
+    width: 160,
     render: (order) => (
       <Typography
         variant="dataMono"

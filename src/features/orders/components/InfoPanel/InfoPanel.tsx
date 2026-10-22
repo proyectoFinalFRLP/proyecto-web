@@ -1,5 +1,6 @@
 import { Typography } from '@mui/material'
 import { useId } from 'react'
+import { StatusBadge } from 'shared/components'
 
 import { Field, FieldList, FieldValue, PanelCard, PanelHeading } from './InfoPanel.styles'
 import type { InfoPanelProps } from './InfoPanel.types'
@@ -33,6 +34,11 @@ export function InfoPanel({ title, icon, fields, children, footnote }: InfoPanel
             </Typography>
             <FieldValue component="dd" mono={Boolean(field.mono)} unknown={Boolean(field.unknown)}>
               {field.value}
+              {/* Adentro del `dd`: el lector de pantalla lo anuncia con el valor
+                  y su rótulo, no como un dato suelto. */}
+              {field.badge === undefined ? null : (
+                <StatusBadge status={field.badge.status} label={field.badge.label} size="sm" />
+              )}
             </FieldValue>
           </Field>
         ))}

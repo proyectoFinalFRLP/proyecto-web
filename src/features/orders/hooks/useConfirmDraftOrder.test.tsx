@@ -24,7 +24,12 @@ const INPUT: ConfirmDraftOrderInput = {
     },
   },
   dispatch: {
-    dispatch: { company_integration_id: 4, origin_warehouse_id: 3, shipping_cost: 58300 },
+    dispatch: {
+      company_integration_id: 4,
+      origin_warehouse_id: 3,
+      shipping_cost: 58300,
+      estimated_days: 2,
+    },
   },
 }
 

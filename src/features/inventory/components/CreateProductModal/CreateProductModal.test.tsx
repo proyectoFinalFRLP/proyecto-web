@@ -114,3 +114,33 @@ describe('CreateProductModal', () => {
     ).toBeInTheDocument()
   })
 })
+
+describe('CreateProductModal · the free texts', () => {
+  const field = (name: string) => screen.getByRole('textbox', { name })
+
+  // Antes la descripción viajaba siempre en `null`: el alta no tenía el campo.
+  it('sends the description, packaging and technical standard the user typed', async () => {
+    const onSubmit = renderModal()
+    await fillRequired()
+    fireEvent.change(field('Descripción (opcional)'), { target: { value: 'Mouse de 3 botones' } })
+    fireEvent.change(field('Empaque (opcional)'), { target: { value: 'Caja x 1' } })
+    fireEvent.change(field('Norma técnica (opcional)'), { target: { value: 'IEC 60950' } })
+
+    expect(await submittedProduct(onSubmit)).toMatchObject({
+      description: 'Mouse de 3 botones',
+      packaging: 'Caja x 1',
+      technical_standard: 'IEC 60950',
+    })
+  })
+
+  it('creates a product without them', async () => {
+    const onSubmit = renderModal()
+    await fillRequired()
+
+    expect(await submittedProduct(onSubmit)).toMatchObject({
+      description: null,
+      packaging: null,
+      technical_standard: null,
+    })
+  })
+})

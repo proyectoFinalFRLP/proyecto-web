@@ -21,6 +21,8 @@ export function OrderMetrics({ metrics }: OrderMetricsProps) {
           note={metric.note}
           icon={metric.icon}
           tone={metric.unknown ? 'neutral' : 'primary'}
+          tag={metric.tag?.label}
+          tagTone={metric.tag?.tone}
         />
       ))}
     </MetricsGrid>

@@ -1,5 +1,5 @@
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined'
-import { IconButton, Link, Tooltip, Typography } from '@mui/material'
+import { IconButton, Link, Stack, Tooltip, Typography } from '@mui/material'
 import { DataTable, StackedCell, StatusBadge } from 'shared/components'
 import type { DataTableColumn, StatusVariant } from 'shared/components'
 import { formatOrderId, formatRoundMoney } from 'shared/utils'
@@ -120,8 +120,15 @@ function buildColumns(
       header: columnCopy.status,
       sortKey: 'status',
       width: 150,
+      // La demora va debajo del estado y no lo reemplaza: un envío demorado
+      // sigue «En tránsito», sólo que pasó el día que se le prometió al cliente.
       render: (shipment) => (
-        <StatusBadge status={TONES[shipment.status]} label={statusCopy[shipment.status]} />
+        <Stack spacing={0.5} sx={{ alignItems: 'flex-start' }}>
+          <StatusBadge status={TONES[shipment.status]} label={statusCopy[shipment.status]} />
+          {shipment.delayed ? (
+            <StatusBadge status="warning" size="sm" label={cells.delayed} />
+          ) : null}
+        </Stack>
       ),
     },
     {

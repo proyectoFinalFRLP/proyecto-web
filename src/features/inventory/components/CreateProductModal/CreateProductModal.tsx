@@ -56,6 +56,9 @@ const EMPTY_FORM: CreateProductFormData = {
   name: '',
   sku: '',
   category: '',
+  description: '',
+  packaging: '',
+  technicalStandard: '',
   weight: 0,
   // Las medidas son opcionales: arrancan vacías y no en 0, que no es una medida.
   length: null,
@@ -176,6 +179,16 @@ export function CreateProductModal({
                   />
                 )}
               />
+
+              <LabeledField label={copy.fields.description} fullWidth>
+                <TextField
+                  {...register('description')}
+                  placeholder={copy.placeholders.description}
+                  multiline
+                  minRows={2}
+                  fullWidth
+                />
+              </LabeledField>
             </BasicGrid>
           </SectionRoot>
 
@@ -237,6 +250,25 @@ export function CreateProductModal({
                 </LabeledField>
               </SpecDimensions>
             </SpecGrid>
+            {/* Mismo criterio que la edición: los dos textos libres van en su
+                propia grilla de dos columnas, no en la de cuatro. */}
+            <BasicGrid>
+              <LabeledField label={copy.fields.packaging}>
+                <TextField
+                  {...register('packaging')}
+                  placeholder={copy.placeholders.packaging}
+                  fullWidth
+                />
+              </LabeledField>
+
+              <LabeledField label={copy.fields.technicalStandard}>
+                <TextField
+                  {...register('technicalStandard')}
+                  placeholder={copy.placeholders.technicalStandard}
+                  fullWidth
+                />
+              </LabeledField>
+            </BasicGrid>
           </SectionRoot>
 
           <Divider />

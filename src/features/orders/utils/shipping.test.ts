@@ -240,6 +240,18 @@ describe('toDispatchPayload', () => {
       shipping_cost: 58300,
     })
   })
+
+  // Con el plazo la API fija la fecha comprometida, contra la que se mide la demora.
+  it('carries the estimated days of the chosen option', () => {
+    expect(toDispatchPayload(quote, 3).dispatch.estimated_days).toBe(2)
+  })
+
+  // Sin plazo no se inventa uno: el envío queda sin fecha comprometida.
+  it('sends null days for an option that did not say how long it takes', () => {
+    expect(toDispatchPayload({ ...quote, estimatedDays: null }, 3).dispatch.estimated_days).toBe(
+      null,
+    )
+  })
 })
 
 describe('totalWithShipping', () => {

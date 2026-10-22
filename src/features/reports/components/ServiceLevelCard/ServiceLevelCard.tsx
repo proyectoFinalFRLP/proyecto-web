@@ -23,11 +23,11 @@ function deliveredRate({ dispatched, delivered }: { dispatched: number; delivere
 }
 
 /**
- * La columna lateral de S14, con lo que el modelo puede afirmar: cuántos de
- * los envíos que despachó cada operador en el período ya llegaron.
+ * La columna lateral de S14, con lo que la API desglosa por operador: cuántos
+ * de los envíos que despachó cada uno en el período ya llegaron.
  *
- * El diseño muestra acá las entregas **en plazo**, que necesitan una fecha
- * comprometida que los envíos no guardan. Un envío despachado ayer que todavía
+ * El diseño muestra acá las entregas **en plazo**, y la API mide el plazo para
+ * la empresa entera, no por operador. Un envío despachado ayer que todavía
  * viaja no es un incumplimiento, así que la barra va en un solo tono: el color
  * semántico del diseño diría «mal servicio» de algo que sólo está en camino.
  */

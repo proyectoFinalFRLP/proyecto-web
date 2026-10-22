@@ -2,7 +2,12 @@ import type { AxiosResponse } from 'axios'
 import { client } from 'shared/api/client'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { fetchRecentShipments, fetchWarehouseLoads, RECENT_SHIPMENTS } from './api'
+import {
+  fetchActiveShipmentCount,
+  fetchRecentShipments,
+  fetchWarehouseLoads,
+  RECENT_SHIPMENTS,
+} from './api'
 
 function respond(data: unknown): AxiosResponse {
   return { data, headers: {} } as AxiosResponse
@@ -31,6 +36,26 @@ const SHIPMENT = {
 
 beforeEach(() => {
   vi.restoreAllMocks()
+})
+
+// Activo es lo que ya salió o está por salir y todavía no llegó: contar sólo
+// `in_transit` dejaba afuera los despachados que el courier no levantó.
+describe('fetchActiveShipmentCount', () => {
+  const COUNTS = { all: 20, pending: 2, ready_to_ship: 3, in_transit: 6, delivered: 9 }
+
+  it('adds the shipments ready to ship to the ones in transit', async () => {
+    capture({ data: COUNTS })
+
+    expect(await fetchActiveShipmentCount()).toBe(9)
+  })
+
+  it('reads both numbers from a single counts request', async () => {
+    capture({ data: COUNTS })
+    await fetchActiveShipmentCount()
+
+    expect(client.get).toHaveBeenCalledTimes(1)
+    expect(client.get).toHaveBeenCalledWith('/shipments/counts')
+  })
 })
 
 describe('fetchRecentShipments', () => {
