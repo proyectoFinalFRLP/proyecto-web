@@ -127,6 +127,18 @@ export function closedWithoutDelivery(status: ShipmentStatus): boolean {
   return CLOSED_SHIPMENT_STATUSES.includes(status)
 }
 
+/**
+ * Por qué el envío no se va a entregar, o null si todavía puede llegar (o ya
+ * llegó). La pantalla lo muestra en lugar de la fecha comprometida: un devuelto
+ * o un cancelado con «22 oct» al lado parecía que seguía en camino.
+ */
+export function undeliveredReason(status: ShipmentStatus): string | null {
+  const { reasons } = ordersCopy.detail.undelivered
+  if (status === 'returned') return reasons.returned
+  if (status === 'cancelled') return reasons.cancelled
+  return null
+}
+
 // Mapas explícitos por el mismo motivo que en `status.ts`: si el tipo suma un
 // estado, el compilador marca este archivo. Si lo suma la API antes que el
 // tipo, `lookup` lo muestra como desconocido en vez de reventar.

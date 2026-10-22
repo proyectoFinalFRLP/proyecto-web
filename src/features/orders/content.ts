@@ -191,6 +191,19 @@ export const ordersCopy = {
       /** Sin despachar, o despachado con una opción que no informó plazo. */
       noEstimate: 'Sin fecha comprometida',
     },
+    /**
+     * Devuelto o cancelado (TESIS-188): el envío terminó sin entregarse, así que
+     * la fecha comprometida ya no promete nada y la demora no corre.
+     */
+    undelivered: {
+      value: 'No se entrega',
+      reasons: {
+        returned: 'Devuelto al remitente',
+        cancelled: 'Envío cancelado',
+      },
+      /** "No se entrega · Devuelto al remitente", para el panel del envío. */
+      summary: (reason: string) => `No se entrega · ${reason}`,
+    },
     customer: {
       title: 'Datos del cliente',
       fields: {

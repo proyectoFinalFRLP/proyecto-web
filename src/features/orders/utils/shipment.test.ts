@@ -16,6 +16,7 @@ import {
   printableLabel,
   shipmentStatusLabel,
   shipmentStatusVariant,
+  undeliveredReason,
 } from './shipment'
 
 let nextEventId = 1
@@ -368,5 +369,16 @@ describe('labelFileName', () => {
 
   it('falls back to the shipment id without a tracking number', () => {
     expect(labelFileName({ id: 31, trackingNumber: null }, null)).toBe('etiqueta-envio-31.pdf')
+  })
+})
+
+describe('undeliveredReason', () => {
+  it('says why a returned or cancelled shipment will not be delivered', () => {
+    expect(undeliveredReason('returned')).toBe('Devuelto al remitente')
+    expect(undeliveredReason('cancelled')).toBe('Envío cancelado')
+  })
+
+  it('has no reason for a shipment that can still arrive or already did', () => {
+    for (const status of SHIPMENT_STAGES) expect(undeliveredReason(status)).toBeNull()
   })
 })
