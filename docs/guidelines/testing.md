@@ -55,8 +55,8 @@ import { describe, expect, it } from 'vitest'
 import { formatDimensions } from './dimensions'
 
 describe('formatDimensions', () => {
-  it('returns null when the three axes are zero', () => {
-    expect(formatDimensions({ length: 0, width: 0, height: 0 })).toBeNull()
+  it('says there is no data when no measure was loaded', () => {
+    expect(formatDimensions({ lengthCm: null, widthCm: null, heightCm: null })).toBe('—')
   })
 })
 ```
@@ -64,7 +64,7 @@ describe('formatDimensions', () => {
 Los nombres de los `it` van **en inglés**, como los commits y los PRs. Los comentarios van en
 español, como el resto del código.
 
-El nombre describe **el comportamiento, no la función**: `returns null when the three axes are zero`,
+El nombre describe **el comportamiento, no la función**: `says there is no data when no measure was loaded`,
 no `test formatDimensions`. Si el nombre no se puede escribir sin decir "correctamente",
 probablemente el caso todavía no está pensado.
 
