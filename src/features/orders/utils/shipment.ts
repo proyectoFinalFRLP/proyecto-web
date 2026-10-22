@@ -58,6 +58,55 @@ export function labelErrorMessage(status: number | undefined): string | null {
   return errors.failed
 }
 
+// Lo que no puede ir en el nombre de un archivo en ningún sistema: separadores
+// de carpeta, comodines, comillas y caracteres de control.
+// eslint-disable-next-line no-control-regex
+const UNSAFE_FILE_NAME = /[\\/:*?"<>|\u0000-\u001f]+/g
+
+function safeFileName(name: string): string | null {
+  const cleaned = name.replace(UNSAFE_FILE_NAME, '-').trim()
+  return cleaned === '' || cleaned === '.' || cleaned === '..' ? null : cleaned
+}
+
+/**
+ * El nombre de archivo de un `Content-Disposition`, o null si no trae uno.
+ *
+ * Prefiere `filename*` (RFC 6266, en UTF-8 y con escapes `%`), que es el que
+ * lleva tildes, y si no `filename`, con comillas o sin ellas. Lo que llega se
+ * limpia: viene de la red, y un `../` en el nombre no tiene que llegar al
+ * diálogo de guardado.
+ */
+export function fileNameFromDisposition(header: string): string | null {
+  const extended = /filename\*\s*=\s*[^']*'[^']*'([^;]+)/i.exec(header)
+  if (extended !== null) {
+    try {
+      return safeFileName(decodeURIComponent(extended[1].trim()))
+    } catch {
+      // Un escape roto: se prueba con el `filename` común.
+    }
+  }
+
+  const plain = /filename\s*=\s*(?:"([^"]*)"|([^;]+))/i.exec(header)
+  if (plain === null) return null
+
+  return safeFileName(plain[1] ?? plain[2])
+}
+
+/**
+ * Con qué nombre se guarda la etiqueta (TESIS-188): el que sugiere la API o,
+ * si no llegó, `etiqueta-<seguimiento>.pdf`. Antes el PDF se guardaba con el
+ * UUID de la URL `blob:`, que no le dice nada a quien lo busca en Descargas.
+ */
+export function labelFileName(
+  shipment: Pick<Shipment, 'id' | 'trackingNumber'>,
+  suggested: string | null,
+): string {
+  if (suggested !== null) return suggested
+
+  const tracking = shipment.trackingNumber === null ? null : safeFileName(shipment.trackingNumber)
+  return ordersCopy.detail.shipping.label.fileName(tracking ?? `envio-${shipment.id}`)
+}
+
 /** Las etapas del ciclo, en orden. Es el mismo vocabulario que `Shipment::STATUSES`. */
 export const SHIPMENT_STAGES: readonly ShipmentStatus[] = [
   'pending',

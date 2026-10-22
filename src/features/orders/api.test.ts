@@ -182,14 +182,29 @@ describe('fetchShipmentLabel', () => {
       .spyOn(client, 'get')
       .mockResolvedValueOnce(respond(pdf, { 'content-type': 'application/pdf' }))
 
-    await expect(fetchShipmentLabel(31)).resolves.toBe(pdf)
+    await expect(fetchShipmentLabel(31)).resolves.toEqual({ pdf, fileName: null })
     expect(get).toHaveBeenCalledWith('/shipments/31/label', { responseType: 'blob' })
   })
 
   it('reads the type of the file when the response has no content type', async () => {
     vi.spyOn(client, 'get').mockResolvedValueOnce(respond(pdf))
 
-    await expect(fetchShipmentLabel(31)).resolves.toBe(pdf)
+    await expect(fetchShipmentLabel(31)).resolves.toEqual({ pdf, fileName: null })
+  })
+
+  // TESIS-188: con el nombre de la API, la etiqueta se guarda legible.
+  it('reads the file name the api suggests', async () => {
+    vi.spyOn(client, 'get').mockResolvedValueOnce(
+      respond(pdf, {
+        'content-type': 'application/pdf',
+        'content-disposition': 'inline; filename="etiqueta-OCA-1.pdf"',
+      }),
+    )
+
+    await expect(fetchShipmentLabel(31)).resolves.toEqual({
+      pdf,
+      fileName: 'etiqueta-OCA-1.pdf',
+    })
   })
 
   // El backend redirige a la URL del courier y el navegador la sigue: lo que

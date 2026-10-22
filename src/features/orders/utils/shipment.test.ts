@@ -6,8 +6,10 @@ import {
   buildLifecycle,
   deliveredAt,
   eventsNewestFirst,
+  fileNameFromDisposition,
   headerStatus,
   labelErrorMessage,
+  labelFileName,
   lifecycleProgress,
   SHIPMENT_STAGES,
   printableLabel,
@@ -209,5 +211,68 @@ describe('labelErrorMessage', () => {
   it('says nothing about an expired session or a missing permission', () => {
     expect(labelErrorMessage(401)).toBeNull()
     expect(labelErrorMessage(403)).toBeNull()
+  })
+})
+
+describe('fileNameFromDisposition', () => {
+  it('reads a quoted file name', () => {
+    expect(fileNameFromDisposition('attachment; filename="etiqueta-OCA-1.pdf"')).toBe(
+      'etiqueta-OCA-1.pdf',
+    )
+  })
+
+  it('reads an unquoted one', () => {
+    expect(fileNameFromDisposition('inline; filename=etiqueta.pdf')).toBe('etiqueta.pdf')
+  })
+
+  // `filename*` es el que lleva tildes: gana sobre el común.
+  it('prefers the utf-8 name over the plain one', () => {
+    expect(
+      fileNameFromDisposition(
+        'attachment; filename="etiqueta.pdf"; filename*=UTF-8\'\'etiqueta-env%C3%ADo.pdf',
+      ),
+    ).toBe('etiqueta-envío.pdf')
+  })
+
+  it('falls back to the plain name when the utf-8 one is badly escaped', () => {
+    expect(
+      fileNameFromDisposition('attachment; filename="etiqueta.pdf"; filename*=UTF-8\'\'%E0%A4%A'),
+    ).toBe('etiqueta.pdf')
+  })
+
+  it('has no name when the header does not carry one', () => {
+    expect(fileNameFromDisposition('inline')).toBeNull()
+    expect(fileNameFromDisposition('attachment; filename=""')).toBeNull()
+  })
+
+  // Viene de la red: una carpeta en el nombre no llega al diálogo de guardado.
+  it('strips folder separators from the name', () => {
+    expect(fileNameFromDisposition('attachment; filename="../../etc/passwd"')).toBe(
+      '..-..-etc-passwd',
+    )
+  })
+})
+
+describe('labelFileName', () => {
+  it('keeps the name the api suggested', () => {
+    expect(labelFileName({ id: 31, trackingNumber: 'OCA-1' }, 'de-la-api.pdf')).toBe(
+      'de-la-api.pdf',
+    )
+  })
+
+  it('names the file after the tracking number otherwise', () => {
+    expect(labelFileName({ id: 31, trackingNumber: 'OCA-0012345678' }, null)).toBe(
+      'etiqueta-OCA-0012345678.pdf',
+    )
+  })
+
+  it('cleans a tracking number that could not be a file name', () => {
+    expect(labelFileName({ id: 31, trackingNumber: 'AND/99:20' }, null)).toBe(
+      'etiqueta-AND-99-20.pdf',
+    )
+  })
+
+  it('falls back to the shipment id without a tracking number', () => {
+    expect(labelFileName({ id: 31, trackingNumber: null }, null)).toBe('etiqueta-envio-31.pdf')
   })
 })

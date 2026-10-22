@@ -184,6 +184,15 @@ export const ordersCopy = {
       label: {
         title: 'Etiqueta de envío',
         action: 'Imprimir etiqueta',
+        /** Guarda el PDF con un nombre legible, en vez del UUID del `blob:` (TESIS-188). */
+        download: 'Descargar',
+        /** "etiqueta-OCA-0012345678.pdf": recibe el seguimiento ya limpio. */
+        fileName: (tracking: string) => `etiqueta-${tracking}.pdf`,
+        /** Lo que muestra la pestaña nueva mientras el courier arma el PDF. */
+        loading: 'Cargando etiqueta…',
+        /** El navegador no dejó abrir la pestaña: se guarda el PDF en su lugar. */
+        popupBlocked:
+          'El navegador bloqueó la pestaña de la etiqueta. La descargamos: la encontrás en tus descargas.',
         /** Sin despachar no hay etiqueta: la emite el courier (TESIS-47). */
         pending: 'Se emite al despachar.',
         /** Despachado y sin etiqueta: el courier no la devolvió. */

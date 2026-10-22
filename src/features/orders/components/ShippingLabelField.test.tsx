@@ -6,7 +6,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { renderWithTheme } from '../../../test/renderWithTheme'
 import * as api from '../api'
-import { LABEL_URL_LIFETIME_MS } from '../hooks/useShipmentLabel'
+import type { ShipmentLabel } from '../api'
+import {
+  DOWNLOAD_URL_LIFETIME_MS,
+  LABEL_URL_LIFETIME_MS,
+  TAB_CLOSED_POLL_MS,
+} from '../hooks/useShipmentLabel'
 import type { Shipment } from '../types'
 
 import { ShippingLabelField } from './ShippingLabelField'
@@ -41,15 +46,22 @@ const PENDING: Shipment = {
 
 const COURIER_URL = 'https://andreani.test/etiquetas/AND-9920.pdf'
 const PDF = new Blob(['%PDF-1.4'], { type: 'application/pdf' })
+const LABEL: ShipmentLabel = { pdf: PDF, fileName: null }
 
 // La pestaña que se abre en el clic y se completa cuando llega la etiqueta.
 interface FakeTab {
   location: { href: string }
   opener: unknown
+  closed: boolean
+  document: { title: string; body: { textContent: string } }
   close: ReturnType<typeof vi.fn>
 }
 
 let tab: FakeTab
+
+// Lo que se guardó con `<a download>`: jsdom no descarga, así que se registra
+// el clic en el enlace.
+let saved: { href: string; download: string }[]
 
 function renderField(shipment: Shipment | null) {
   const queryClient = new QueryClient({ defaultOptions: { mutations: { retry: false } } })
@@ -76,8 +88,20 @@ function failWith(status: number | undefined) {
 }
 
 beforeEach(() => {
-  tab = { location: { href: '' }, opener: window, close: vi.fn() }
+  tab = {
+    location: { href: '' },
+    opener: window,
+    closed: false,
+    document: { title: '', body: { textContent: '' } },
+    close: vi.fn(),
+  }
   vi.spyOn(window, 'open').mockReturnValue(tab as unknown as Window)
+  saved = []
+  vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (
+    this: HTMLAnchorElement,
+  ) {
+    saved.push({ href: this.href, download: this.download })
+  })
   URL.createObjectURL = vi.fn(() => 'blob:http://localhost/etiqueta')
   URL.revokeObjectURL = vi.fn()
   vi.mocked(notify).mockClear()
@@ -122,7 +146,7 @@ describe('ShippingLabelField', () => {
   })
 
   it('downloads the label of the shipment and opens the pdf in the tab it opened', async () => {
-    const fetchLabel = vi.spyOn(api, 'fetchShipmentLabel').mockResolvedValue(PDF)
+    const fetchLabel = vi.spyOn(api, 'fetchShipmentLabel').mockResolvedValue(LABEL)
     renderField(DISPATCHED)
 
     clickPrint()
@@ -139,15 +163,15 @@ describe('ShippingLabelField', () => {
   // OCA puede tardar: si en ese rato el operador se va de la pantalla, la
   // pestaña igual recibe la etiqueta, y no queda vacía para siempre.
   it('fills the tab even if the screen was left while the courier answered', async () => {
-    let answer: (pdf: Blob) => void = () => undefined
+    let answer: (label: ShipmentLabel) => void = () => undefined
     vi.spyOn(api, 'fetchShipmentLabel').mockReturnValue(
-      new Promise<Blob>((resolve) => (answer = resolve)),
+      new Promise<ShipmentLabel>((resolve) => (answer = resolve)),
     )
     const { unmount } = renderField(DISPATCHED)
     clickPrint()
 
     unmount()
-    answer(PDF)
+    answer(LABEL)
 
     await waitFor(() => expect(tab.location.href).toBe('blob:http://localhost/etiqueta'))
   })
@@ -162,29 +186,145 @@ describe('ShippingLabelField', () => {
     expect(notify).toHaveBeenCalledWith('El envío no tiene una etiqueta para imprimir.', 'error')
   })
 
-  it('frees the pdf once the tab had time to load it', async () => {
+  // Mientras el courier arma el PDF, la pestaña dice qué espera.
+  it('says the label is loading in the tab it opened', () => {
+    vi.spyOn(api, 'fetchShipmentLabel').mockReturnValue(new Promise(() => {}))
+    renderField(DISPATCHED)
+
+    clickPrint()
+
+    expect(tab.document.title).toBe('Cargando etiqueta…')
+    expect(tab.document.body.textContent).toBe('Cargando etiqueta…')
+  })
+
+  // Al minuto se revocaba, y recargar la pestaña daba error (TESIS-188).
+  it('keeps the pdf alive while the tab is open, well past a minute', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true })
-    vi.spyOn(api, 'fetchShipmentLabel').mockResolvedValue(PDF)
+    vi.spyOn(api, 'fetchShipmentLabel').mockResolvedValue(LABEL)
     renderField(DISPATCHED)
 
     clickPrint()
     await waitFor(() => expect(tab.location.href).not.toBe(''))
 
+    vi.advanceTimersByTime(10 * 60_000)
     expect(URL.revokeObjectURL).not.toHaveBeenCalled()
-    vi.advanceTimersByTime(LABEL_URL_LIFETIME_MS)
+  })
+
+  it('frees the pdf once the tab is closed', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    vi.spyOn(api, 'fetchShipmentLabel').mockResolvedValue(LABEL)
+    renderField(DISPATCHED)
+
+    clickPrint()
+    await waitFor(() => expect(tab.location.href).not.toBe(''))
+
+    tab.closed = true
+    vi.advanceTimersByTime(TAB_CLOSED_POLL_MS)
     expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:http://localhost/etiqueta')
   })
 
-  it('opens the pdf in a new tab when the browser blocked the empty one', async () => {
+  it('frees the pdf of a tab left open once its lifetime is over', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    vi.spyOn(api, 'fetchShipmentLabel').mockResolvedValue(LABEL)
+    renderField(DISPATCHED)
+
+    clickPrint()
+    await waitFor(() => expect(tab.location.href).not.toBe(''))
+
+    vi.advanceTimersByTime(LABEL_URL_LIFETIME_MS)
+    expect(URL.revokeObjectURL).toHaveBeenCalledTimes(1)
+  })
+
+  // Abrir otra pestaña después de esperar al courier también se bloquearía: se
+  // descarga, y se avisa para que no parezca que el botón no hizo nada.
+  it('downloads the pdf and warns when the browser blocked the tab', async () => {
     vi.mocked(window.open).mockReturnValue(null)
-    vi.spyOn(api, 'fetchShipmentLabel').mockResolvedValue(PDF)
+    vi.spyOn(api, 'fetchShipmentLabel').mockResolvedValue(LABEL)
     renderField(DISPATCHED)
 
     clickPrint()
 
     await waitFor(() =>
-      expect(window.open).toHaveBeenLastCalledWith('blob:http://localhost/etiqueta', '_blank'),
+      expect(saved).toEqual([
+        { href: 'blob:http://localhost/etiqueta', download: 'etiqueta-OCA-0012345678.pdf' },
+      ]),
     )
+    expect(window.open).toHaveBeenCalledTimes(1)
+    expect(notify).toHaveBeenCalledWith(
+      'El navegador bloqueó la pestaña de la etiqueta. La descargamos: la encontrás en tus descargas.',
+      'warning',
+    )
+  })
+
+  describe('the download', () => {
+    const downloadButton = () => screen.getByRole('button', { name: 'Descargar' })
+
+    it('saves the pdf named after the tracking number, without opening a tab', async () => {
+      const fetchLabel = vi.spyOn(api, 'fetchShipmentLabel').mockResolvedValue(LABEL)
+      renderField(DISPATCHED)
+
+      fireEvent.click(downloadButton())
+
+      await waitFor(() =>
+        expect(saved).toEqual([
+          { href: 'blob:http://localhost/etiqueta', download: 'etiqueta-OCA-0012345678.pdf' },
+        ]),
+      )
+      expect(fetchLabel).toHaveBeenCalledWith(31)
+      expect(window.open).not.toHaveBeenCalled()
+      expect(notify).not.toHaveBeenCalled()
+    })
+
+    it('uses the name the api suggests when it sends one', async () => {
+      vi.spyOn(api, 'fetchShipmentLabel').mockResolvedValue({
+        pdf: PDF,
+        fileName: 'OCA-0012345678.pdf',
+      })
+      renderField(DISPATCHED)
+
+      fireEvent.click(downloadButton())
+
+      await waitFor(() => expect(saved[0]?.download).toBe('OCA-0012345678.pdf'))
+    })
+
+    it('frees the pdf after the browser had time to read it', async () => {
+      vi.useFakeTimers({ shouldAdvanceTime: true })
+      vi.spyOn(api, 'fetchShipmentLabel').mockResolvedValue(LABEL)
+      renderField(DISPATCHED)
+
+      fireEvent.click(downloadButton())
+      await waitFor(() => expect(saved).toHaveLength(1))
+
+      expect(URL.revokeObjectURL).not.toHaveBeenCalled()
+      vi.advanceTimersByTime(DOWNLOAD_URL_LIFETIME_MS)
+      expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:http://localhost/etiqueta')
+    })
+
+    // Es el mismo PDF: mientras se pide uno, el otro botón espera.
+    it('holds both actions while the label is on its way', async () => {
+      vi.spyOn(api, 'fetchShipmentLabel').mockReturnValue(new Promise(() => {}))
+      renderField(DISPATCHED)
+
+      fireEvent.click(downloadButton())
+
+      await waitFor(() => expect(downloadButton()).toBeDisabled())
+      expect(printButton()).toBeDisabled()
+    })
+
+    it('warns like the print when the api has no label', async () => {
+      failWith(404)
+      renderField(DISPATCHED)
+
+      fireEvent.click(downloadButton())
+
+      await waitFor(() =>
+        expect(notify).toHaveBeenCalledWith(
+          'El envío no tiene una etiqueta para imprimir.',
+          'error',
+        ),
+      )
+      expect(saved).toEqual([])
+    })
   })
 
   it('holds the button while the courier issues the label', async () => {

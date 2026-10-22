@@ -19,7 +19,7 @@ import type {
   UpdateOrderPayload,
 } from './types'
 import type { OrderQuotePayload } from './utils/dispatch'
-import { printableLabel } from './utils/shipment'
+import { fileNameFromDisposition, printableLabel } from './utils/shipment'
 import type { CreateOrderPayload, DispatchPayload, DraftQuotePayload } from './utils/shipping'
 
 // Frontera con la API Rails. Lo que entra en snake_case se traduce acá y sale
@@ -482,6 +482,13 @@ export async function dispatchShipment(
 
 const PDF_TYPE = 'application/pdf'
 
+/** El PDF de la etiqueta y el nombre con el que la API sugiere guardarlo. */
+export interface ShipmentLabel {
+  pdf: Blob
+  /** El de `Content-Disposition`, o null si no vino o no se pudo leer. */
+  fileName: string | null
+}
+
 /**
  * La etiqueta del envío para imprimir (`GET /shipments/:id/label`, TESIS-186).
  *
@@ -494,12 +501,20 @@ const PDF_TYPE = 'application/pdf'
  * Un 404 (sin etiqueta) o un 502 (el courier contestó otra cosa que un PDF)
  * llegan como el error del cliente, con su status.
  */
-export async function fetchShipmentLabel(shipmentId: number): Promise<Blob | null> {
+export async function fetchShipmentLabel(shipmentId: number): Promise<ShipmentLabel | null> {
   const response = await client.get<Blob>(`/shipments/${shipmentId}/label`, {
     responseType: 'blob',
   })
   const header: unknown = response.headers['content-type']
   const type = typeof header === 'string' ? header : response.data.type
+  if (!type.toLowerCase().startsWith(PDF_TYPE)) return null
 
-  return type.toLowerCase().startsWith(PDF_TYPE) ? response.data : null
+  // El nombre con el que la API sugiere guardarlo (TESIS-188). Desde otro
+  // origen el navegador sólo deja leer el header si la API lo expone en CORS
+  // (`expose`); si no llega, quien guarda el PDF arma uno con el seguimiento.
+  const disposition: unknown = response.headers['content-disposition']
+  return {
+    pdf: response.data,
+    fileName: typeof disposition === 'string' ? fileNameFromDisposition(disposition) : null,
+  }
 }
