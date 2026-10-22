@@ -13,6 +13,7 @@ describe('toPayload', () => {
         zipCode: ' b1900abc ',
         city: ' La Plata ',
         province: 'Buenos Aires',
+        capacity: ' 5000 ',
       }),
     ).toEqual({
       warehouse: {
@@ -21,6 +22,7 @@ describe('toPayload', () => {
         zip_code: 'B1900ABC',
         city: 'La Plata',
         province: 'Buenos Aires',
+        capacity: 5000,
       },
     })
   })
@@ -28,9 +30,29 @@ describe('toPayload', () => {
   // TESIS-185: la provincia se valida contra una lista, y `""` no está en ella.
   it('sends a blank city and province as null', () => {
     expect(
-      toPayload({ name: 'Central', address: 'Av. 7', zipCode: '1900', city: '  ', province: '' })
-        .warehouse,
+      toPayload({
+        name: 'Central',
+        address: 'Av. 7',
+        zipCode: '1900',
+        city: '  ',
+        province: '',
+        capacity: '',
+      }).warehouse,
     ).toMatchObject({ city: null, province: null })
+  })
+
+  // Sin declarar no es cero: la API rechaza el 0 y el panel no dibuja la barra.
+  it('sends a blank capacity as null', () => {
+    expect(
+      toPayload({
+        name: 'Central',
+        address: 'Av. 7',
+        zipCode: '1900',
+        city: '',
+        province: '',
+        capacity: ' ',
+      }).warehouse.capacity,
+    ).toBeNull()
   })
 })
 
@@ -47,6 +69,7 @@ describe('fetchWarehouses', () => {
             city: 'La Plata',
             province: 'Buenos Aires',
             stored_units: 3,
+            capacity: 800,
           },
         ],
         meta: { page: 1, per_page: 100, total: 1 },
@@ -62,6 +85,7 @@ describe('fetchWarehouses', () => {
         city: 'La Plata',
         province: 'Buenos Aires',
         storedUnits: 3,
+        capacity: 800,
       },
     ])
   })
@@ -75,7 +99,11 @@ describe('fetchWarehouses', () => {
       },
     } as AxiosResponse)
 
-    expect((await fetchWarehouses())[0]).toMatchObject({ city: null, province: null })
+    expect((await fetchWarehouses())[0]).toMatchObject({
+      city: null,
+      province: null,
+      capacity: null,
+    })
   })
 })
 

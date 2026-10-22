@@ -8,8 +8,3 @@ export interface Option<T = string> {
   label: string
   value: T
 }
-
-export interface PaginationParams {
-  page: number
-  perPage: number
-}

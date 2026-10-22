@@ -21,23 +21,30 @@ export interface ReportsKpis {
   /** Facturación del período, en pesos, sin las órdenes canceladas. */
   revenue: TrendedValue
   /**
-   * Porcentaje (0-100) de entregas dentro del plazo comprometido. `null`: el
-   * modelo no guarda una fecha comprometida contra la cual medirlo.
+   * Porcentaje (0-100) de los envíos entregados en el período que llegaron
+   * para su fecha comprometida. `null`: ninguna entrega del período tenía
+   * fecha comprometida, así que no hay plazo contra el cual medir (no es un 0%).
+   * Su `trend` va en puntos y no es relativo: de 50% a 75% es `25`.
    */
   onTimeDeliveryRate: TrendedValue | null
-  /** `null`: el sistema todavía no registra anomalías. */
+  /**
+   * Los envíos en curso que hoy están demorados. No depende del período: es la
+   * foto de ahora. Siempre llega, con `count: 0` si no hay ninguno.
+   */
   activeAnomalies: {
     count: number
-    /** Alguna de las anomalías abiertas es crítica: la tarjeta pasa a alerta. */
+    /** Alguno lleva 3 días o más de demora: la tarjeta pasa a alerta. */
     critical: boolean
-  } | null
+  }
 }
 
-/** Qué serie dibuja la curva de despacho. */
+/** Qué serie dibuja la curva de ventas. */
 export type CurveMetric = 'orders' | 'revenue'
 
-/** Un punto de la curva: el rótulo del eje X y el valor de cada serie. */
+/** Un punto de la curva: el día, su rótulo del eje X y el valor de cada serie. */
 export interface CurvePoint {
+  /** El día (`2026-09-26`), o el lunes que abre la semana en la curva semanal. */
+  date: string
   label: string
   orders: number
   revenue: number
@@ -48,8 +55,8 @@ export type CurveGranularity = 'day' | 'week'
 
 /**
  * Envíos despachados en el período con un operador logístico, y cuántos de
- * esos ya llegaron. No es el cumplimiento de plazo del diseño: sin fecha
- * comprometida, es lo que el modelo puede afirmar.
+ * esos ya llegaron. No es el cumplimiento de plazo del diseño: la API mide el
+ * plazo para la empresa entera (`onTimeDeliveryRate`), no por operador.
  */
 export interface CarrierDeliveries {
   /** Nombre del operador logístico, tal como lo devuelve la integración. */
@@ -58,23 +65,41 @@ export interface CarrierDeliveries {
   delivered: number
 }
 
+/**
+ * Cómo está un envío demorado: `investigating` en curso con 1 o 2 días de
+ * demora, `critical` en curso con 3 o más, `resolved` ya entregado pero
+ * después de su fecha comprometida.
+ */
 export type AnomalyStatus = 'investigating' | 'critical' | 'resolved'
 
-export interface RegionalAnomaly {
-  /** Identificador del incidente («INC-8892»), sin el numeral. */
-  id: string
-  /** Centro de distribución afectado: nombre y código («CD Ezeiza», «BUE-4»). */
-  node: { name: string; code: string }
-  varianceType: string
-  impactedUnits: number
+/**
+ * Una anomalía es un envío demorado: pasó su fecha comprometida sin llegar, o
+ * llegó después. No hay una entidad de incidente aparte: el dato es el envío.
+ */
+export interface ShipmentAnomaly {
+  shipmentId: number
+  /** La orden del envío, con lo que hace falta para nombrarla (`formatOrderId`). */
+  order: { id: number; externalOrderId: string | null; externalOrderNumber: string | null }
+  /** Nombre del operador logístico; `null` si el envío no lo registra. */
+  courier: string | null
+  /** Nombre del depósito del que salió; `null` en los envíos anteriores a guardarlo. */
+  originWarehouse: string | null
+  /** La fecha comprometida (`2026-10-15`, día calendario). */
+  promisedDeliveryOn: string
+  /** Días de demora: hasta hoy si sigue en curso, hasta la entrega si ya llegó. */
+  daysLate: number
+  units: number
   status: AnomalyStatus
 }
 
 export interface ReportsOverview {
+  /** La ventana del reporte, en días calendario (`2026-09-20`). */
+  from: string
+  to: string
   kpis: ReportsKpis
   granularity: CurveGranularity
   curve: CurvePoint[]
   carriers: CarrierDeliveries[]
-  /** `null`: el sistema todavía no registra anomalías (no es lo mismo que cero). */
-  anomalies: RegionalAnomaly[] | null
+  /** Hasta diez, las abiertas primero. Vacío es «ninguna»: el dato existe. */
+  anomalies: ShipmentAnomaly[]
 }

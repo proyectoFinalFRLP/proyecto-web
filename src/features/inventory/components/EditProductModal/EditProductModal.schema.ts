@@ -15,6 +15,9 @@ const measureSchema = z
   .positive(validation.measurePositive)
   .nullable()
 
+// Mismo criterio que el alta: ver `optionalTextSchema` en `CreateProductModal.schema.ts`.
+const optionalTextSchema = z.string()
+
 const stockFieldSchema = z.object({
   warehouseId: z.number().int(),
   warehouseName: z.string(),
@@ -28,11 +31,15 @@ const stockFieldSchema = z.object({
  *
  * El SKU queda fuera del schema a propósito: es de solo lectura por diseño, se
  * pinta pero no se edita ni se envía. La categoría sí se edita: `''` es «sin
- * categoría» (ver `CreateProductModal.schema.ts`).
+ * categoría» (ver `CreateProductModal.schema.ts`), y lo mismo la descripción,
+ * el empaque y la norma técnica: `''` es «sin cargar».
  */
 export const editProductSchema = z.object({
   name: z.string().trim().min(1, validation.nameRequired),
   category: z.string(),
+  description: optionalTextSchema,
+  packaging: optionalTextSchema,
+  technicalStandard: optionalTextSchema,
   weight: nonNegativeNumber,
   length: measureSchema,
   width: measureSchema,

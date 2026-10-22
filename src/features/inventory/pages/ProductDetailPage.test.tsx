@@ -1,5 +1,7 @@
 import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
+import { downloadCsv } from 'shared/utils'
+import type * as sharedUtils from 'shared/utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { renderWithTheme } from '../../../test/renderWithTheme'
@@ -15,6 +17,13 @@ vi.mock('../hooks/useInventory', async (importOriginal) => ({
   useWarehouses: vi.fn(),
   useCategories: vi.fn(),
   useUpdateProduct: vi.fn(),
+}))
+
+// La descarga en sí tiene sus pruebas en `shared/utils/csv.test.ts`: acá
+// importa qué se manda a descargar.
+vi.mock('shared/utils', async (importOriginal) => ({
+  ...(await importOriginal<typeof sharedUtils>()),
+  downloadCsv: vi.fn(),
 }))
 
 const PRODUCT: Product = {
@@ -297,5 +306,22 @@ describe('ProductDetailPage · closing the stock editor', () => {
 
     // Mientras el modal se va, lo que se ve sigue siendo el alcance de stock.
     expect(screen.queryByRole('textbox', { name: /Nombre/ })).not.toBeInTheDocument()
+  })
+})
+
+describe('ProductDetailPage · exporting', () => {
+  // La ficha y el stock por depósito, en CSV, con el SKU en el nombre del archivo.
+  it('downloads the record of the product on screen', () => {
+    vi.mocked(downloadCsv).mockClear()
+    showProduct(SEEDED_MOUSE)
+    renderDetail()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Exportar datos' }))
+
+    expect(downloadCsv).toHaveBeenCalledTimes(1)
+    const [filename, rows] = vi.mocked(downloadCsv).mock.calls[0]
+    expect(filename).toBe('producto-NOR-003.csv')
+    expect(rows).toContainEqual(['SKU', 'NOR-003'])
+    expect(rows).toContainEqual(['Depósito Central', 'Av. 7 N° 1234', 100, 0, 0, 'Stock bajo'])
   })
 })

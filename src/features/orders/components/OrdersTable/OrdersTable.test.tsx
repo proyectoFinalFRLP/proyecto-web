@@ -62,7 +62,7 @@ describe('OrdersTable', () => {
       'Destino',
       'Estado',
       'Operador logístico',
-      'Total',
+      'Total productos',
       'Acciones',
     ])
   })

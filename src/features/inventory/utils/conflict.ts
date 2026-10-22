@@ -15,6 +15,8 @@ export interface ConflictChange {
 export interface ConflictLabels {
   name: string
   description: string
+  packaging: string
+  technicalStandard: string
   weight: string
   dimensions: string
   stockIn: (warehouse: string) => string
@@ -32,9 +34,10 @@ const ABSENT = '—'
  *
  * Compara **los mismos campos que el backend digiere para el ETag**
  * (`Catalog::ProductVersion#edited_fields` más el stock por depósito), y no
- * los que el modal edita. Son conjuntos distintos: `description` entra en la
- * versión pero el modal no la muestra, así que si no se comparara, un conflicto
- * causado sólo por ese campo aparecería como "no pudimos determinar qué cambió".
+ * los que el modal edita. Hoy coinciden —el modal edita también la
+ * descripción, el empaque y la norma técnica—, pero el criterio es el de la
+ * versión: un campo que la mueve y no se comparara haría que un conflicto
+ * causado sólo por él apareciera como "no pudimos determinar qué cambió".
  */
 export function describeConflict(
   before: Product,
@@ -47,11 +50,19 @@ export function describeConflict(
     changes.push({ id: 'name', text: `${labels.name}: ${before.name} → ${after.name}` })
   }
 
-  if (before.description !== after.description) {
-    changes.push({
-      id: 'description',
-      text: `${labels.description}: ${before.description ?? ABSENT} → ${after.description ?? ABSENT}`,
-    })
+  // Los tres textos libres, con la misma forma: «Empaque: — → Caja x 10 u».
+  const texts = [
+    ['description', labels.description, before.description, after.description],
+    ['packaging', labels.packaging, before.packaging, after.packaging],
+    [
+      'technicalStandard',
+      labels.technicalStandard,
+      before.technicalStandard,
+      after.technicalStandard,
+    ],
+  ] as const
+  for (const [id, label, was, now] of texts) {
+    if (was !== now) changes.push({ id, text: `${label}: ${was ?? ABSENT} → ${now ?? ABSENT}` })
   }
 
   if (before.weight !== after.weight) {

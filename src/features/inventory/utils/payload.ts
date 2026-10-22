@@ -11,11 +11,17 @@ function categoryOf(value: string): string | null {
 }
 
 /**
+ * Los textos opcionales (descripción, empaque, norma técnica) en blanco viajan
+ * en `null` y no como `""`: un espacio suelto no es un dato, y el detalle
+ * muestra «—» para el `null`, no para el texto vacío.
+ */
+function textOrNull(value: string): string | null {
+  const trimmed = value.trim()
+  return trimmed === '' ? null : trimmed
+}
+
+/**
  * Traduce el formulario de alta al cuerpo de `POST /api/v1/products`.
- *
- * `description` viaja en `null`: el frame del modal no tiene ese campo, aunque
- * la API lo acepta y el alcance de la card lo menciona. Se manda explícito para
- * dejar dicho que es una ausencia deliberada y no un olvido.
  *
  * La clave anidada es `stocks` y no `stocks_attributes` — ver `types.ts`.
  */
@@ -24,8 +30,10 @@ export function buildCreatePayload(data: CreateProductFormData): CreateProductPa
     product: {
       sku: data.sku,
       name: data.name,
-      description: null,
+      description: textOrNull(data.description),
       category: categoryOf(data.category),
+      packaging: textOrNull(data.packaging),
+      technical_standard: textOrNull(data.technicalStandard),
       weight: data.weight,
       length_cm: data.length,
       width_cm: data.width,
@@ -42,15 +50,16 @@ export function buildCreatePayload(data: CreateProductFormData): CreateProductPa
 /**
  * Traduce el formulario al cuerpo de `PUT /api/v1/products/:id`.
  *
- * Concentra las dos reglas que no son obvias mirando el Figma:
+ * Concentra la regla que no es obvia mirando el Figma: **los depósitos
+ * quitados viajan en 0.** `Products::UpdateProduct` hace upsert por
+ * `warehouse_id` y nunca destruye: omitir un depósito del array no lo
+ * desasigna, deja la fila con su cantidad anterior. Mandarlo explícitamente en
+ * 0 es lo más cerca del borrado que permite la API de hoy.
  *
- * 1. **Depósitos quitados viajan en 0.** `Products::UpdateProduct` hace upsert
- *    por `warehouse_id` y nunca destruye: omitir un depósito del array no lo
- *    desasigna, deja la fila con su cantidad anterior. Mandarlo explícitamente
- *    en 0 es lo más cerca del borrado que permite la API de hoy.
- * 2. **`description` se reenvía tal cual.** El modal no la edita; si no viajara,
- *    el update la dejaría intacta, pero mandarla explícita evita depender de ese
- *    detalle del backend.
+ * La descripción ya no se reenvía tal cual vino: el modal la edita, junto con
+ * el empaque y la norma técnica. Con alcance `stock` el formulario no los
+ * muestra, pero sí los tiene —se cargan del producto al abrir—, así que viajan
+ * sin cambios.
  *
  * Las medidas viajan tal cual: tres números en centímetros o `null`
  * (TESIS-185). Ya no hay texto libre que conservar si el formulario no lo
@@ -69,8 +78,10 @@ export function buildUpdatePayload(
   return {
     product: {
       name: data.name,
-      description: product.description,
+      description: textOrNull(data.description),
       category: categoryOf(data.category),
+      packaging: textOrNull(data.packaging),
+      technical_standard: textOrNull(data.technicalStandard),
       weight: data.weight,
       length_cm: data.length,
       width_cm: data.width,

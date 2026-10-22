@@ -14,6 +14,7 @@ const CENTRAL: Warehouse = {
   city: 'La Plata',
   province: 'Buenos Aires',
   storedUnits: 230,
+  capacity: 5000,
 }
 
 const PROVINCES = ['Buenos Aires', 'Córdoba', 'Santa Fe']
@@ -61,6 +62,7 @@ describe('WarehouseFormModal', () => {
           zipCode: 'B8000ABC',
           city: '',
           province: '',
+          capacity: '',
         },
         expect.anything(),
       ),
@@ -143,6 +145,71 @@ describe('WarehouseFormModal', () => {
           expect.anything(),
         ),
       )
+    })
+  })
+
+  // TESIS-162: con la capacidad, el panel mide la ocupación del depósito.
+  describe('the capacity', () => {
+    it('opens the edition with the current capacity', () => {
+      renderModal(CENTRAL)
+
+      expect(field('Capacidad')).toHaveValue('5000')
+    })
+
+    it('leaves it empty for a warehouse that never declared one', () => {
+      renderModal({ ...CENTRAL, capacity: null })
+
+      expect(field('Capacidad')).toHaveValue('')
+    })
+
+    it('sends the capacity the user typed', async () => {
+      const onSubmit = renderModal(CENTRAL)
+      fill('Capacidad', '12000')
+      fireEvent.click(screen.getByRole('button', { name: 'Guardar cambios' }))
+
+      await waitFor(() =>
+        expect(onSubmit).toHaveBeenCalledWith(
+          expect.objectContaining({ capacity: '12000' }),
+          expect.anything(),
+        ),
+      )
+    })
+
+    // La API la pide mayor a cero: un depósito donde no entra nada no guarda nada.
+    it('refuses zero, and says how to leave it undeclared', async () => {
+      const onSubmit = renderModal(CENTRAL)
+      fill('Capacidad', '0')
+      fireEvent.click(screen.getByRole('button', { name: 'Guardar cambios' }))
+
+      expect(
+        await screen.findByText('Tiene que ser mayor a 0. Dejala vacía si no la sabés.'),
+      ).toBeInTheDocument()
+      expect(onSubmit).not.toHaveBeenCalled()
+    })
+
+    it('refuses a fraction or a thousands separator', async () => {
+      const onSubmit = renderModal(CENTRAL)
+      fill('Capacidad', '1.500')
+      fireEvent.click(screen.getByRole('button', { name: 'Guardar cambios' }))
+
+      expect(
+        await screen.findByText(
+          'Ingresá una cantidad entera de unidades, sin puntos ni decimales.',
+        ),
+      ).toBeInTheDocument()
+      expect(onSubmit).not.toHaveBeenCalled()
+    })
+
+    // La columna es `integer`: más que eso reventaba al guardar.
+    it('refuses a number the column cannot hold', async () => {
+      const onSubmit = renderModal(CENTRAL)
+      fill('Capacidad', '3000000000')
+      fireEvent.click(screen.getByRole('button', { name: 'Guardar cambios' }))
+
+      expect(
+        await screen.findByText('Es más de lo que se puede guardar. Revisá el número.'),
+      ).toBeInTheDocument()
+      expect(onSubmit).not.toHaveBeenCalled()
     })
   })
 })

@@ -19,6 +19,9 @@ const PENDING: Shipment = {
   labelUrl: null,
   labelAvailable: false,
   externalReference: null,
+  originWarehouse: null,
+  promisedDeliveryOn: null,
+  delayed: false,
   events: [],
 }
 

@@ -77,13 +77,41 @@ export const inventoryCopy = {
       label: 'Ruta de navegación',
     },
     actions: {
+      /** Baja un CSV con la ficha y el stock por depósito: lo que muestra la pantalla. */
       export: 'Exportar datos',
-      // El export queda fuera del alcance mientras el modelo de datos siga
-      // incompleto (misma decisión que en el dashboard). El botón se maqueta
-      // igual que en el diseño, pero deshabilitado y diciendo por qué: prometer
-      // una descarga que no existe es peor que mostrar la acción apagada.
-      exportPending: 'La exportación se habilita cuando el modelo de datos esté completo.',
       edit: 'Editar producto',
+    },
+    /**
+     * El CSV de «Exportar datos». Los rótulos dicen la unidad, porque en la
+     * planilla el número va crudo y sin formato.
+     */
+    export: {
+      /** "producto-CAB-6-305.csv". */
+      filename: (sku: string) => `producto-${sku}.csv`,
+      title: 'Ficha del producto',
+      fields: {
+        sku: 'SKU',
+        name: 'Nombre',
+        description: 'Descripción',
+        category: 'Categoría',
+        packaging: 'Empaque',
+        standard: 'Norma técnica',
+        weight: 'Peso unitario (kg)',
+        length: 'Largo (cm)',
+        width: 'Ancho (cm)',
+        height: 'Alto (cm)',
+        status: 'Estado',
+        onHand: 'En depósito (unidades)',
+        committed: 'Comprometido (unidades)',
+        inTransit: 'En tránsito (unidades)',
+        availableToPromise: 'Disponible para prometer (unidades)',
+        lowStockThreshold: 'Stock mínimo (unidades)',
+        updatedAt: 'Última actualización',
+      },
+      warehouses: {
+        title: 'Distribución por depósito',
+        header: ['Depósito', 'Dirección', 'En depósito', 'Comprometido', 'En tránsito', 'Estado'],
+      },
     },
     specs: {
       title: 'Especificaciones',
@@ -167,9 +195,9 @@ export const inventoryCopy = {
       overwrite: 'Guardar de todos modos',
       labels: {
         name: 'Nombre',
-        // La descripción no se edita en el modal, pero sí entra en la versión
-        // que compara el backend: si cambió, hay que poder nombrarla.
         description: 'Descripción',
+        packaging: 'Empaque',
+        technicalStandard: 'Norma técnica',
         weight: 'Peso',
         dimensions: 'Medidas',
         stockIn: (warehouse: string) => `Stock en ${warehouse}`,
@@ -190,6 +218,16 @@ export const inventoryCopy = {
       height: 'Alto (cm)',
       available: 'Disponible',
       lowStockThreshold: 'Stock mínimo',
+      // Los tres textos libres que el detalle ya mostraba: todos
+      // opcionales, y el rótulo lo dice como en las medidas del alta.
+      description: 'Descripción (opcional)',
+      packaging: 'Empaque (opcional)',
+      technicalStandard: 'Norma técnica (opcional)',
+    },
+    placeholders: {
+      description: 'Qué es, para qué se usa, qué incluye.',
+      packaging: 'ej. Caja de cartón x 10 u',
+      technicalStandard: 'ej. IRAM 2178',
     },
     /** TESIS-182: el umbral es de cada producto. */
     lowStockThresholdHelper: 'Con este total o menos, el producto figura con stock bajo.',
@@ -269,6 +307,9 @@ export const inventoryCopy = {
       warehouse: 'Depósito',
       quantity: 'Cantidad',
       lowStockThreshold: 'Stock mínimo',
+      description: 'Descripción (opcional)',
+      packaging: 'Empaque (opcional)',
+      technicalStandard: 'Norma técnica (opcional)',
     },
     /** TESIS-182: el umbral es de cada producto. */
     lowStockThresholdHelper: 'Con este total o menos, el producto figura con stock bajo.',
@@ -279,6 +320,9 @@ export const inventoryCopy = {
       length: 'Largo',
       width: 'Ancho',
       height: 'Alto',
+      description: 'Qué es, para qué se usa, qué incluye.',
+      packaging: 'ej. Caja de cartón x 10 u',
+      technicalStandard: 'ej. IRAM 2178',
     },
     categoryHelper: 'Se usa para agrupar y filtrar el catálogo.',
     noCategory: 'Sin categoría',

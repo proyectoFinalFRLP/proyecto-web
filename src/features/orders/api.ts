@@ -130,6 +130,13 @@ interface ApiShipment {
   external_reference?: string | null
   label_available?: boolean
   courier: ApiCourier | null
+  /**
+   * Lo que guarda el despacho: de qué depósito salió y para cuándo se le
+   * prometió al cliente. Opcionales: una API anterior no los manda.
+   */
+  origin_warehouse?: { id: number; name: string } | null
+  promised_delivery_on?: string | null
+  delayed?: boolean
   events: ApiShipmentEvent[]
 }
 
@@ -288,6 +295,10 @@ function toShipment(shipment: ApiShipment): Shipment {
     labelAvailable: shipment.label_available ?? false,
     externalReference: blankToNull(shipment.external_reference),
     courier: toCourier(shipment.courier),
+    originWarehouse: shipment.origin_warehouse ?? null,
+    promisedDeliveryOn: shipment.promised_delivery_on ?? null,
+    // `?? false`: sin el campo no hay con qué afirmar que se demoró.
+    delayed: shipment.delayed ?? false,
     // El backend ya los ordena por `occurred_at` (con desempate por id): no se
     // reordenan acá para no tener dos definiciones del mismo orden.
     events: shipment.events.map((event) => ({
