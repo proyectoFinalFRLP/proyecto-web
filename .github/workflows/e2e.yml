@@ -95,11 +95,10 @@ jobs:
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
-      # `--update-snapshots=missing`: las capturas de referencia del tema están
-      # versionadas para Windows (donde se generaron). En Linux, la primera
-      # corrida las genera y quedan en el artefacto para versionarlas.
+      # Las capturas de referencia del tema están versionadas para Linux y
+      # Windows. Las de Linux salen del artefacto de este mismo job.
       - name: Run Playwright
-        run: npm run test:e2e -- --update-snapshots=missing
+        run: npm run test:e2e
 
       - name: Upload report
         if: ${{ !cancelled() }}

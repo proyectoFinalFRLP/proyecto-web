@@ -206,8 +206,10 @@ Al fallar un test quedan la captura y la traza en `test-results/`; la traza se a
 - **El login frena después de 10 intentos fallidos en 3 minutos** (TESIS-82). La suite hace dos
   por corrida; correrla muchas veces seguidas puede dejar el login bloqueado unos minutos.
 - **Las capturas de referencia** del tema viven en `e2e/theme.spec.ts-snapshots/`, una por sistema
-  operativo (las fuentes se dibujan distinto en cada uno). Si un cambio de diseño las mueve a
-  propósito: `npm run test:e2e -- --update-snapshots` y se versionan las nuevas.
+  operativo (las fuentes se dibujan distinto en cada uno): `-win32` para Windows y `-linux` para el
+  CI. Si un cambio de diseño las mueve a propósito, `npm run test:e2e -- --update-snapshots`
+  regenera las del sistema propio. Las de Linux se bajan del artefacto `playwright-report` del
+  workflow `E2E` (allí quedan las capturas `-actual` del test que falló).
 
 ### Cómo se escribe uno
 
