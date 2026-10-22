@@ -1,0 +1,117 @@
+name: E2E
+
+# Tests de punta a punta con Playwright (TESIS-94) contra el stack real: la API
+# de Rails (proyecto-api, rama `master` o la que se elija) con los seeds de
+# desarrollo, y este front servido por Vite.
+#
+# Va en un workflow aparte del CI y no lo bloquea: depende de otro repositorio
+# (un cambio en los seeds de la API puede romperlo sin que este PR tenga la
+# culpa) y del entorno de QA de OCA para el test de courier, que se saltea solo
+# si OCA no responde.
+on:
+  pull_request:
+    branches:
+      - main
+      - master
+      - develop
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+    inputs:
+      api_ref:
+        description: Rama, tag o commit de proyecto-api contra el que correr
+        required: false
+        default: master
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    name: Playwright
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: --health-cmd="pg_isready" --health-interval=10s --health-timeout=5s --health-retries=5
+
+    env:
+      # La API en desarrollo, como la levanta cualquiera del equipo en local.
+      RAILS_ENV: development
+      PROYECTO_API_DATABASE_HOST: 127.0.0.1
+      PROYECTO_API_DATABASE_USER: postgres
+      PROYECTO_API_DATABASE_PASSWORD: postgres
+      E2E_API_URL: http://localhost:3000/api/v1
+      E2E_BASE_URL: http://localhost:5173
+
+    steps:
+      - name: Checkout web
+        uses: actions/checkout@v4
+
+      - name: Checkout API
+        uses: actions/checkout@v4
+        with:
+          repository: proyectoFinalFRLP/proyecto-api
+          ref: ${{ inputs.api_ref || 'master' }}
+          path: api
+
+      - name: Install PostgreSQL client libraries
+        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y libpq-dev
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          working-directory: api
+          bundler-cache: true
+
+      - name: Prepare the database with the seeds
+        working-directory: api
+        run: bin/rails db:prepare db:seed
+
+      - name: Start the API
+        working-directory: api
+        run: |
+          nohup bin/rails server -p 3000 > log/server.out 2>&1 &
+          timeout 90 bash -c 'until curl -sf http://localhost:3000/up; do sleep 1; done'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      # `--update-snapshots=missing`: las capturas de referencia del tema están
+      # versionadas para Windows (donde se generaron). En Linux, la primera
+      # corrida las genera y quedan en el artefacto para versionarlas.
+      - name: Run Playwright
+        run: npm run test:e2e -- --update-snapshots=missing
+
+      - name: Upload report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+            e2e/**/*-snapshots/
+          retention-days: 14
+
+      - name: API log
+        if: ${{ failure() }}
+        run: tail -n 50 api/log/server.out; tail -n 200 api/log/development.log
