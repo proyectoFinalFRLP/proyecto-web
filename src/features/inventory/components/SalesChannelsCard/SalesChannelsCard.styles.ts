@@ -25,6 +25,12 @@ export const MappingIdentity = styled(Box)({
   overflowWrap: 'anywhere',
 })
 
+export const MappingActions = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  flexShrink: 0,
+  gap: theme.spacing(1),
+}))
+
 // Canal + id + botón en una fila; en pantallas angostas se apilan.
 export const LinkForm = styled('form')(({ theme }) => ({
   display: 'grid',

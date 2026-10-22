@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { ApiRequestError } from 'shared/api'
 
-import { fetchProductMappings, linkProduct, unlinkProduct } from '../api'
+import { fetchProductMappings, linkProduct, resyncProductMapping, unlinkProduct } from '../api'
 import { inventoryKeys } from '../queryKeys'
 import type { LinkProductPayload, LinkProductResult, ProductMapping } from '../types'
 
@@ -26,6 +26,20 @@ export function useUnlinkProduct(productId: number) {
 
   return useMutation<void, ApiRequestError, number>({
     mutationFn: (mappingId) => unlinkProduct(productId, mappingId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: inventoryKeys.mappings(productId) }),
+  })
+}
+
+/**
+ * «Reintentar» de un canal (TESIS-177). El 202 sólo dice que se encoló: se
+ * vuelven a pedir los vínculos para que la fila muestre el intento nuevo en
+ * cuanto el job lo deje escrito.
+ */
+export function useResyncMapping(productId: number) {
+  const queryClient = useQueryClient()
+
+  return useMutation<ProductMapping, ApiRequestError, number>({
+    mutationFn: (mappingId) => resyncProductMapping(productId, mappingId),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: inventoryKeys.mappings(productId) }),
   })
 }

@@ -239,6 +239,13 @@ export interface ProductMapping {
   companyIntegrationId: number
   serviceName: string
   externalProductId: string
+  /**
+   * El último intento de publicar el stock en el canal (TESIS-177), haya salido
+   * bien o mal. `null` si todavía no se intentó.
+   */
+  lastSyncedAt: string | null
+  /** Por qué falló ese intento, tal como lo manda el back. `null` si salió bien. */
+  lastSyncError: string | null
 }
 
 /**

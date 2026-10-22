@@ -1,4 +1,4 @@
-import { Alert, Button, MenuItem, TextField, Typography } from '@mui/material'
+import { Alert, AlertTitle, Button, MenuItem, TextField, Typography } from '@mui/material'
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { ConfirmDialog, LabeledField, LoadingSpinner } from 'shared/components'
@@ -9,15 +9,24 @@ import { inventoryCopy } from '../../content'
 import {
   useLinkProduct,
   useProductMappings,
+  useResyncMapping,
   useUnlinkProduct,
 } from '../../hooks/useProductMappings'
 import type { ProductMapping } from '../../types'
-import { linkableChannels, linkErrorMessage } from '../../utils/channels'
+import {
+  canRetry,
+  linkableChannels,
+  linkErrorMessage,
+  mappingSyncStatus,
+  resyncErrorMessage,
+  stockSyncWarnings,
+} from '../../utils/channels'
 
 import {
   ChannelsCard,
   LinkAction,
   LinkForm,
+  MappingActions,
   MappingIdentity,
   MappingRow,
 } from './SalesChannelsCard.styles'
@@ -32,16 +41,25 @@ const { channels: copy } = inventoryCopy
  * A diferencia de las otras tarjetas del detalle, trae sus propios datos: los
  * vínculos tienen su endpoint y sus mutaciones, y así la página no carga con
  * ellos cuando la empresa no tiene la feature `integrations`.
+ *
+ * Desde TESIS-177 también dice si el stock llegó a cada canal: cuándo se
+ * publicó o por qué no, con «Reintentar». Arriba avisa de los canales que no
+ * pueden publicar (les falta configuración) o que tienen productos sin publicar:
+ * desde que se sacó la pantalla de Integraciones (TESIS-140), ésta es la única
+ * que muestra el estado de un canal.
  */
 export function SalesChannelsCard({ productId }: SalesChannelsCardProps) {
   const mappings = useProductMappings(productId)
   const integrations = useIntegrations()
   const link = useLinkProduct(productId)
   const unlink = useUnlinkProduct(productId)
+  const resync = useResyncMapping(productId)
 
   const [channelId, setChannelId] = useState<number | ''>('')
   const [externalId, setExternalId] = useState('')
   const [unlinking, setUnlinking] = useState<ProductMapping | null>(null)
+  // El rechazo del último «Reintentar», en la fila del canal que lo pidió.
+  const [retryError, setRetryError] = useState<{ mappingId: number; message: string } | null>(null)
 
   const channels = linkableChannels(integrations.data ?? [], mappings.data ?? [])
   const selected = channels.find((channel) => channel.integrationId === channelId)
@@ -77,7 +95,17 @@ export function SalesChannelsCard({ productId }: SalesChannelsCardProps) {
     })
   }
 
+  const retry = (mapping: ProductMapping) => {
+    setRetryError(null)
+    resync.mutate(mapping.id, {
+      onSuccess: () => notify(copy.retryQueued(mapping.serviceName), 'success'),
+      onError: (error) =>
+        setRetryError({ mappingId: mapping.id, message: resyncErrorMessage(error) }),
+    })
+  }
+
   const rows = mappings.data ?? []
+  const warnings = stockSyncWarnings(integrations.data ?? [])
 
   return (
     <ChannelsCard>
@@ -90,6 +118,15 @@ export function SalesChannelsCard({ productId }: SalesChannelsCardProps) {
         </Typography>
       </div>
 
+      {warnings.map((warning) => (
+        <Alert key={warning.integrationId} severity="warning">
+          <AlertTitle>{copy.stockSyncTitle(warning.name)}</AlertTitle>
+          {warning.messages.map((message) => (
+            <div key={message}>{message}</div>
+          ))}
+        </Alert>
+      ))}
+
       {mappings.isLoading ? <LoadingSpinner /> : null}
       {mappings.isError ? <Alert severity="error">{copy.error}</Alert> : null}
 
@@ -99,19 +136,55 @@ export function SalesChannelsCard({ productId }: SalesChannelsCardProps) {
         </Typography>
       ) : null}
 
-      {rows.map((mapping) => (
-        <MappingRow key={mapping.id}>
-          <MappingIdentity>
-            <Typography variant="bodyLg">{mapping.serviceName}</Typography>
-            <Typography variant="labelSm" color="text.secondary">
-              {copy.externalId(mapping.externalProductId)}
-            </Typography>
-          </MappingIdentity>
-          <Button color="error" variant="text" size="small" onClick={() => setUnlinking(mapping)}>
-            {copy.unlink}
-          </Button>
-        </MappingRow>
-      ))}
+      {rows.map((mapping) => {
+        const status = mappingSyncStatus(mapping)
+        const retrying = resync.isPending && resync.variables === mapping.id
+        const rejection = retryError?.mappingId === mapping.id ? retryError.message : null
+
+        return (
+          <MappingRow key={mapping.id}>
+            <MappingIdentity>
+              <Typography variant="bodyLg">{mapping.serviceName}</Typography>
+              <Typography variant="labelSm" color="text.secondary">
+                {copy.externalId(mapping.externalProductId)}
+              </Typography>
+              {status ? (
+                <Typography
+                  variant="labelSm"
+                  color={status.tone === 'error' ? 'error' : 'text.secondary'}
+                >
+                  {status.text}
+                </Typography>
+              ) : null}
+              {rejection ? (
+                <Typography variant="labelSm" color="error" role="alert">
+                  {rejection}
+                </Typography>
+              ) : null}
+            </MappingIdentity>
+            <MappingActions>
+              {canRetry(mapping) ? (
+                <Button
+                  variant="text"
+                  size="small"
+                  disabled={retrying}
+                  onClick={() => retry(mapping)}
+                >
+                  {retrying ? copy.retrying : copy.retry}
+                </Button>
+              ) : null}
+              <Button
+                color="error"
+                variant="text"
+                size="small"
+                onClick={() => setUnlinking(mapping)}
+              >
+                {copy.unlink}
+              </Button>
+            </MappingActions>
+          </MappingRow>
+        )
+      })}
 
       {channels.length > 0 ? (
         <LinkForm onSubmit={submitLink} noValidate>

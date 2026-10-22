@@ -226,6 +226,18 @@ export const inventoryCopy = {
     notFound: 'El canal no tiene una publicación con ese ID (o con el SKU del producto).',
     alreadyLinked: 'Esa publicación ya está vinculada a otro producto.',
     channelDown: 'El canal no respondió. Probá de nuevo en unos minutos.',
+    // Publicación del stock en cada canal (TESIS-177).
+    syncedAgo: (ago: string) => `Sincronizado ${ago}`,
+    syncFailed: (reason: string) => `No se pudo publicar el stock: ${reason}`,
+    retry: 'Reintentar',
+    retrying: 'Reintentando…',
+    retryQueued: (channel: string) => `Se está volviendo a publicar el stock en ${channel}.`,
+    retryTooSoon: 'Esperá un minuto antes de reintentar.',
+    retryGone: 'Ese vínculo ya no existe. Recargá la página.',
+    missingSettings: (labels: string[]) => `Falta configurar: ${labels.join(', ')}`,
+    failingProducts: (count: number) =>
+      count === 1 ? '1 producto sin publicar' : `${count} productos sin publicar`,
+    stockSyncTitle: (channel: string) => `${channel} no está publicando el stock`,
     unlinkDialog: {
       title: (channel: string) => `Desvincular de ${channel}`,
       description: 'OneStock deja de publicar el stock de este producto en ese canal.',

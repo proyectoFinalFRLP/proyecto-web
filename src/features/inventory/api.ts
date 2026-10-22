@@ -302,6 +302,9 @@ interface ApiProductMapping {
   company_integration_id: number
   service_name: string
   external_product_id: string
+  // Opcionales: un back anterior a TESIS-177 no los manda.
+  last_synced_at?: string | null
+  last_sync_error?: string | null
 }
 
 function toMapping(mapping: ApiProductMapping): ProductMapping {
@@ -310,6 +313,8 @@ function toMapping(mapping: ApiProductMapping): ProductMapping {
     companyIntegrationId: mapping.company_integration_id,
     serviceName: mapping.service_name,
     externalProductId: mapping.external_product_id,
+    lastSyncedAt: mapping.last_synced_at ?? null,
+    lastSyncError: mapping.last_sync_error ?? null,
   }
 }
 
@@ -343,4 +348,22 @@ export async function linkProduct(
 
 export async function unlinkProduct(productId: number, mappingId: number): Promise<void> {
   await client.delete(`/products/${productId}/mappings/${mappingId}`)
+}
+
+/**
+ * `POST /products/:id/mappings/:mapping_id/resync` (TESIS-177): vuelve a
+ * publicar el stock del producto en ese canal. Contesta **202** con el vínculo
+ * —la publicación corre en un job y su resultado llega después en
+ * `last_synced_at` / `last_sync_error`—, **422** con el motivo si el canal o el
+ * vínculo no pueden publicar, **404** si el vínculo ya no existe y **429** si se
+ * reintentó demasiadas veces en el último minuto.
+ */
+export async function resyncProductMapping(
+  productId: number,
+  mappingId: number,
+): Promise<ProductMapping> {
+  const { data } = await client.post<ApiProductMapping>(
+    `/products/${productId}/mappings/${mappingId}/resync`,
+  )
+  return toMapping(data)
 }
