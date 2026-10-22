@@ -16,13 +16,6 @@ export const Heading = styled(Box)(({ theme }) => ({
   gap: theme.spacing(0.5),
 }))
 
-export const TitleLine = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  flexWrap: 'wrap',
-  gap: theme.spacing(1.5),
-}))
-
 export const Actions = styled(Box)(({ theme }) => ({
   marginLeft: 'auto',
   display: 'flex',

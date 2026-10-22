@@ -222,6 +222,8 @@ export interface DispatchPayload {
     company_integration_id: number
     origin_warehouse_id: number
     shipping_cost: number
+    /** El plazo de la opción elegida: con él la API fija la entrega comprometida. */
+    estimated_days: number | null
   }
 }
 
@@ -230,6 +232,11 @@ export interface DispatchPayload {
  * (`dispatchIntegrationId`), no la que contestó la tarifa: son dos plantillas
  * del mismo courier, y el despacho rechaza la de cotización. El costo viaja
  * para que quede en el envío, que es de donde lo lee el detalle de la orden.
+ *
+ * El plazo también: la API suma `estimated_days` al día del despacho y guarda
+ * la fecha comprometida, que es contra la que se mide si el envío se demoró.
+ * Una opción sin plazo viaja con `null` —el contrato lo acepta— y el envío
+ * queda sin fecha comprometida, en vez de inventarle una.
  *
  * Recibe el id del depósito y no el origen del borrador: despachan tanto el
  * paso 3 como el detalle de una orden que ya existe, que no tiene borrador.
@@ -243,6 +250,7 @@ export function toDispatchPayload(
       company_integration_id: quote.dispatchIntegrationId,
       origin_warehouse_id: originWarehouseId,
       shipping_cost: quote.shippingCost,
+      estimated_days: quote.estimatedDays,
     },
   }
 }

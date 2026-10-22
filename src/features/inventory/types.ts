@@ -197,6 +197,9 @@ export interface CreateProductPayload {
     description: string | null
     /** `null` = sin categoría. El vocabulario es `GET /products/categories`. */
     category: string | null
+    /** Texto libre; `null` = sin cargar. */
+    packaging: string | null
+    technical_standard: string | null
     weight: number
     /** Centímetros, mayores a cero; `null` = sin cargar (TESIS-185). */
     length_cm: number | null
@@ -219,6 +222,8 @@ export interface UpdateProductPayload {
     name: string
     description: string | null
     category: string | null
+    packaging: string | null
+    technical_standard: string | null
     weight: number
     /** Centímetros, mayores a cero; `null` = sin cargar (TESIS-185). */
     length_cm: number | null

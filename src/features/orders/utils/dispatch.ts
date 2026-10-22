@@ -56,8 +56,9 @@ export function canOpenShipment(
 /**
  * Los depósitos desde los que puede salir el envío.
  *
- * El envío no guarda su origen, pero cada línea sabe de qué depósito se
- * descontó (TESIS-126), y el despacho tiene que salir de ahí. El alta manual
+ * El envío guarda su origen recién al despacharse —es justamente lo que se está
+ * eligiendo—, pero cada línea sabe de qué depósito se descontó (TESIS-126), y
+ * el despacho tiene que salir de ahí. El alta manual
  * usa uno solo, así que lo normal es un único candidato y la pantalla no
  * pregunta. Si las líneas salieron de más de uno —una modificación puede sumar
  * líneas de otro—, elige el operador.

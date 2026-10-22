@@ -5,9 +5,9 @@ export type {
   CarrierDeliveries,
   CurveMetric,
   CurvePoint,
-  RegionalAnomaly,
   ReportPeriod,
   ReportsKpis,
   ReportsOverview,
+  ShipmentAnomaly,
   TrendedValue,
 } from './types'

@@ -135,8 +135,8 @@ describe('DispatchShipmentDialog', () => {
   })
 
   // Criterio de la card: despacha con la integración que despacha, no con la
-  // que cotiza, con su costo y el depósito de origen.
-  it('dispatches the chosen option with the integration that dispatches, its cost and the origin', async () => {
+  // que cotiza, con su costo, su plazo y el depósito de origen.
+  it('dispatches the chosen option with the integration that dispatches, its cost, its days and the origin', async () => {
     const calls = stubApi()
     const { onDispatched } = renderDialog()
 
@@ -145,7 +145,12 @@ describe('DispatchShipmentDialog', () => {
 
     await waitFor(() => expect(onDispatched).toHaveBeenCalledWith('Andreani'))
     expect(calls.dispatch).toHaveBeenCalledWith(31, {
-      dispatch: { company_integration_id: 4, origin_warehouse_id: 1, shipping_cost: 58300 },
+      dispatch: {
+        company_integration_id: 4,
+        origin_warehouse_id: 1,
+        shipping_cost: 58300,
+        estimated_days: 2,
+      },
     })
   })
 

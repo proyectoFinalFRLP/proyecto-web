@@ -56,4 +56,9 @@ export const FieldValue = styled(Typography, {
   fontFamily: mono ? theme.typography.dataMono.fontFamily : undefined,
   color: unknown ? theme.vars.palette.text.disabled : theme.vars.palette.text.primary,
   overflowWrap: 'anywhere',
+  // El badge opcional va a la derecha del valor y baja si no entra.
+  display: 'flex',
+  flexWrap: 'wrap',
+  alignItems: 'center',
+  gap: theme.spacing(1),
 }))

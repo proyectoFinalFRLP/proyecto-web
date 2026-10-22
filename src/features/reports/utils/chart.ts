@@ -1,4 +1,4 @@
-// Geometría de la curva de despacho. Son funciones puras sobre números: el
+// Geometría de la curva de ventas. Son funciones puras sobre números: el
 // componente sólo las pinta. Así la escala del eje, la posición de cada punto y
 // el suavizado se prueban sin montar un SVG.
 

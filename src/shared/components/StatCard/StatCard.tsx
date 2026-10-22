@@ -32,8 +32,9 @@ const TREND_FORMAT = new Intl.NumberFormat('es-AR', {
   maximumFractionDigits: 1,
 })
 
-function formatTrend(value: number) {
-  return `${TREND_FORMAT.format(value)}%`
+function formatTrend({ value, unit = 'percent' }: StatTrend) {
+  const number = TREND_FORMAT.format(value)
+  return unit === 'points' ? `${number} pts` : `${number}%`
 }
 
 function trendArrow(value: number) {
@@ -63,7 +64,7 @@ export function StatCard({
       {/* En 0 no se dibuja flecha: apuntar hacia arriba sería inventar una
           tendencia que el dato no tiene. */}
       {trendArrow(trend.value)}
-      {formatTrend(trend.value)}
+      {formatTrend(trend)}
     </MetaChip>
   ) : null
 

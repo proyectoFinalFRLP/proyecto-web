@@ -8,10 +8,16 @@ export type StatTone = 'primary' | 'info' | 'success' | 'warning' | 'error' | 'n
 
 export interface StatTrend {
   /**
-   * Variación porcentual respecto del período anterior. El signo define la
-   * dirección de la flecha y, por defecto, el tono del chip.
+   * Variación respecto del período anterior. El signo define la dirección de
+   * la flecha y, por defecto, el tono del chip.
    */
   value: number
+  /**
+   * En qué viene `value`. `percent` (default) es un cambio relativo: «+12%».
+   * `points` es la diferencia entre dos porcentajes: de 50% a 75% son
+   * «+25 pts», y un «+50%» ahí se leería como otra cosa.
+   */
+  unit?: 'percent' | 'points'
   /**
    * Fuerza el tono del chip. Necesario cuando una baja es buena: que caiga la
    * tasa de mercadería dañada es una mejora, no un error.

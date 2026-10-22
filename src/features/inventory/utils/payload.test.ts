@@ -11,6 +11,9 @@ function createForm(overrides: Partial<CreateProductFormData> = {}): CreateProdu
     name: 'Cable UTP Cat6',
     sku: 'CAB-6-305',
     category: '',
+    description: '',
+    packaging: '',
+    technicalStandard: '',
     weight: 12.4,
     length: 45,
     width: 30,
@@ -25,6 +28,9 @@ function editForm(overrides: Partial<EditProductFormData> = {}): EditProductForm
   return {
     name: 'Cable UTP Cat6',
     category: 'Cabling',
+    description: 'Rollo de 305 metros',
+    packaging: '',
+    technicalStandard: '',
     weight: 12.4,
     length: 45,
     width: 30,
@@ -95,6 +101,8 @@ describe('buildCreatePayload', () => {
         name: 'Cable UTP Cat6',
         description: null,
         category: null,
+        packaging: null,
+        technical_standard: null,
         weight: 12.4,
         length_cm: 45,
         width_cm: 30,
@@ -123,8 +131,27 @@ describe('buildCreatePayload', () => {
     ).toBe(25)
   })
 
-  it('sends description as an explicit null, since the form has no such field', () => {
-    expect(buildCreatePayload(createForm()).product.description).toBeNull()
+  it('sends the description, packaging and technical standard the operator typed, trimmed', () => {
+    const payload = buildCreatePayload(
+      createForm({
+        description: '  Rollo de 305 metros ',
+        packaging: 'Caja x 1',
+        technicalStandard: 'IRAM 4200',
+      }),
+    )
+
+    expect(payload.product).toMatchObject({
+      description: 'Rollo de 305 metros',
+      packaging: 'Caja x 1',
+      technical_standard: 'IRAM 4200',
+    })
+  })
+
+  // Un espacio suelto no es un dato: el detalle muestra «—» para el `null`.
+  it('sends a blank text as null and not as an empty string', () => {
+    const payload = buildCreatePayload(createForm({ description: '   ', packaging: '' }))
+
+    expect(payload.product).toMatchObject({ description: null, packaging: null })
   })
 
   // TESIS-185: tres números en centímetros, no el texto libre `dimensions`.
@@ -149,6 +176,8 @@ describe('buildUpdatePayload', () => {
         name: 'Cable UTP Cat6',
         description: 'Rollo de 305 metros',
         category: 'Cabling',
+        packaging: null,
+        technical_standard: null,
         weight: 12.4,
         length_cm: 45,
         width_cm: 30,
@@ -181,12 +210,19 @@ describe('buildUpdatePayload', () => {
     ])
   })
 
-  it('resends the description untouched, since the modal does not edit it', () => {
-    const stored = product({ description: 'Texto que el modal no muestra' })
+  // Antes la descripción se reenviaba tal cual vino: el modal no la editaba.
+  it('sends the description the operator edited, not the stored one', () => {
+    const stored = product({ description: 'Rollo de 305 metros' })
+    const payload = buildUpdatePayload(stored, editForm({ description: 'Rollo de 100 metros' }))
 
-    expect(buildUpdatePayload(stored, editForm()).product.description).toBe(
-      'Texto que el modal no muestra',
-    )
+    expect(payload.product.description).toBe('Rollo de 100 metros')
+  })
+
+  it('clears a text the operator emptied', () => {
+    const stored = product({ packaging: 'Bobina' })
+    const payload = buildUpdatePayload(stored, editForm({ packaging: ' ', description: '' }))
+
+    expect(payload.product).toMatchObject({ packaging: null, description: null })
   })
 
   // Vaciar un eje es borrarlo: viaja en `null` y no se conserva el anterior.

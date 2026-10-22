@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import type { StatusVariant } from 'shared/components'
 
 export interface InfoField {
   id: string
@@ -8,6 +9,8 @@ export interface InfoField {
   mono?: boolean
   /** Atenúa el valor cuando es la marca de "sin dato" y no un dato. */
   unknown?: boolean
+  /** Un estado que acompaña al valor, como «Demorado» junto a la fecha comprometida. */
+  badge?: { status: StatusVariant; label: string }
 }
 
 export interface InfoPanelProps {

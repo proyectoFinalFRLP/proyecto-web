@@ -28,6 +28,7 @@ function defaultsFor(warehouse: Warehouse | undefined): WarehouseFormData {
     zipCode: warehouse?.zipCode ?? '',
     city: warehouse?.city ?? '',
     province: warehouse?.province ?? '',
+    capacity: warehouse?.capacity?.toString() ?? '',
   }
 }
 
@@ -159,6 +160,22 @@ export function WarehouseFormModal({
               />
             </LabeledField>
           </LocalityRow>
+
+          <LabeledField
+            label={copy.fields.capacity}
+            helperText={copy.capacityHelper}
+            error={errors.capacity?.message}
+            fullWidth
+          >
+            <TextField
+              {...register('capacity')}
+              placeholder={copy.placeholders.capacity}
+              // Texto y no número: ver `capacitySchema`.
+              inputProps={{ inputMode: 'numeric' }}
+              error={errors.capacity !== undefined}
+              fullWidth
+            />
+          </LabeledField>
         </ModalBody>
 
         <ModalFooter>

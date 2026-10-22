@@ -100,7 +100,8 @@ function buildColumns(onView: (order: OrderSummary) => void): DataTableColumn<Or
       sortKey: 'total',
       firstSortDirection: 'desc',
       align: 'right',
-      width: 140,
+      // Lo que pide «Total productos» en versalitas sin partirse.
+      width: 160,
       render: (order) => (
         <Typography
           variant="dataMono"
