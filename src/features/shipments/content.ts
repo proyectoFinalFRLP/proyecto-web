@@ -18,6 +18,8 @@ export const shipmentsCopy = {
     ready_to_ship: 'Listos para despachar',
     in_transit: 'En tránsito',
     delivered: 'Entregados',
+    returned: 'Devueltos',
+    cancelled: 'Cancelados',
   },
   columns: {
     id: 'Envío',
@@ -45,7 +47,12 @@ export const shipmentsCopy = {
     ready_to_ship: 'Listo para despachar',
     in_transit: 'En tránsito',
     delivered: 'Entregado',
+    /** Finales sin entrega (TESIS-188). */
+    returned: 'Devuelto',
+    cancelled: 'Cancelado',
   },
+  /** Un estado que la API manda y esta versión del front todavía no conoce. */
+  statusUnknown: 'Estado desconocido',
   table: {
     label: 'Envíos de la empresa',
     empty: 'No hay envíos para este filtro.',

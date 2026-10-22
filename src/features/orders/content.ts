@@ -46,7 +46,12 @@ export const ordersCopy = {
     ready_to_ship: 'Listo para despachar',
     in_transit: 'En tránsito',
     delivered: 'Entregado',
+    /** Finales sin entrega (TESIS-188): no son etapas del ciclo, lo cierran. */
+    returned: 'Devuelto',
+    cancelled: 'Cancelado',
   },
+  /** Un estado que la API manda y esta versión del front todavía no conoce. */
+  shipmentStatusUnknown: 'Estado desconocido',
   detail: {
     header: {
       title: (orderLabel: string) => `Orden ${orderLabel}`,

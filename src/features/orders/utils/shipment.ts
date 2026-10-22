@@ -1,4 +1,5 @@
 import type { StatusVariant } from 'shared/components'
+import { lookup } from 'shared/utils'
 
 import { ordersCopy } from '../content'
 import type { OrderShipment, OrderStatus, Shipment, ShipmentStatus } from '../types'
@@ -115,23 +116,40 @@ export const SHIPMENT_STAGES: readonly ShipmentStatus[] = [
   'delivered',
 ]
 
-// Mapas explícitos por el mismo motivo que en `status.ts`: si el backend suma
-// un estado, el compilador marca este archivo.
+/**
+ * Los finales sin entrega (TESIS-188): el envío termina ahí, desde cualquier
+ * etapa, y no sigue. No son etapas del ciclo: no hay un «después» de ellos.
+ */
+export const CLOSED_SHIPMENT_STATUSES: readonly ShipmentStatus[] = ['returned', 'cancelled']
+
+/** ¿El envío terminó sin entregarse? */
+export function closedWithoutDelivery(status: ShipmentStatus): boolean {
+  return CLOSED_SHIPMENT_STATUSES.includes(status)
+}
+
+// Mapas explícitos por el mismo motivo que en `status.ts`: si el tipo suma un
+// estado, el compilador marca este archivo. Si lo suma la API antes que el
+// tipo, `lookup` lo muestra como desconocido en vez de reventar.
+//
+// Devuelto va en neutro: el ciclo se cerró y no hay nada que hacer con él.
+// Cancelado va en error, como la orden cancelada: es lo que pide atención.
 const VARIANTS: Record<ShipmentStatus, StatusVariant> = {
   pending: 'neutral',
   ready_to_ship: 'info',
   in_transit: 'info',
   delivered: 'success',
+  returned: 'neutral',
+  cancelled: 'error',
 }
 
 const LABELS: Record<ShipmentStatus, string> = ordersCopy.shipmentStatus
 
 export function shipmentStatusLabel(status: ShipmentStatus): string {
-  return LABELS[status]
+  return lookup(LABELS, status, ordersCopy.shipmentStatusUnknown)
 }
 
 export function shipmentStatusVariant(status: ShipmentStatus): StatusVariant {
-  return VARIANTS[status]
+  return lookup(VARIANTS, status, 'neutral')
 }
 
 export interface HeaderStatus {
@@ -170,13 +188,49 @@ export function headerStatus(
   }
 }
 
-export type StageState = 'done' | 'current' | 'pending'
+/**
+ * `closed` es el final sin entrega (devuelto, cancelado): el envío está ahí y
+ * ahí se queda, así que no es `current` (no sigue) ni `done` (no se cumplió).
+ */
+export type StageState = 'done' | 'current' | 'pending' | 'closed'
 
 export interface LifecycleStage {
   status: ShipmentStatus
   state: StageState
   /** Cuándo el envío llegó a esta etapa, o null si todavía no llegó. */
   reachedAt: string | null
+}
+
+function firstReachedAt(shipment: Shipment, status: ShipmentStatus): string | null {
+  return shipment.events.find((event) => event.internalStatus === status)?.occurredAt ?? null
+}
+
+/**
+ * El ciclo de un envío que no está en ninguna etapa: terminó sin entregarse
+ * (TESIS-188) o la API mandó un estado que el front todavía no conoce.
+ *
+ * Se muestran las etapas que recorrió —hasta la más avanzada que reporta la
+ * bitácora; `pending` siempre, porque todo envío nace ahí— y después el estado
+ * en el que quedó. Las que nunca va a recorrer no se dibujan: un «Entregado
+ * · Pendiente» al lado de un «Devuelto» prometería un paso que no va a pasar.
+ */
+function closedLifecycle(shipment: Shipment): LifecycleStage[] {
+  const furthest = Math.max(
+    0,
+    ...shipment.events.map((event) => SHIPMENT_STAGES.indexOf(event.internalStatus)),
+  )
+  const travelled = SHIPMENT_STAGES.slice(0, furthest + 1).map((status) => ({
+    status,
+    state: 'done' as const,
+    reachedAt: firstReachedAt(shipment, status),
+  }))
+
+  // Uno desconocido no se afirma como final: se lo muestra como vigente.
+  const state: StageState = closedWithoutDelivery(shipment.status) ? 'closed' : 'current'
+  return [
+    ...travelled,
+    { status: shipment.status, state, reachedAt: firstReachedAt(shipment, shipment.status) },
+  ]
 }
 
 /**
@@ -189,29 +243,36 @@ export interface LifecycleStage {
  * repiten el estado y no la mueven.
  *
  * Una vez entregado no queda nada por hacer: la última etapa se marca como
- * completa y no como vigente.
+ * completa y no como vigente. Devuelto o cancelado, ver `closedLifecycle`.
  */
 export function buildLifecycle(shipment: Shipment): LifecycleStage[] {
   const currentIndex = SHIPMENT_STAGES.indexOf(shipment.status)
+  if (currentIndex === -1) return closedLifecycle(shipment)
+
   const finished = shipment.status === 'delivered'
 
   return SHIPMENT_STAGES.map((status, index) => {
-    const firstEvent = shipment.events.find((event) => event.internalStatus === status)
-
     let state: StageState = 'pending'
     if (index < currentIndex || (finished && index === currentIndex)) state = 'done'
     else if (index === currentIndex) state = 'current'
 
-    return { status, state, reachedAt: firstEvent?.occurredAt ?? null }
+    return { status, state, reachedAt: firstReachedAt(shipment, status) }
   })
 }
 
 /**
  * Avance del ciclo, 0-100: cuántas etapas quedaron atrás sobre las que hay que
  * recorrer. Recién creado es 0 y entregado es 100.
+ *
+ * Devuelto o cancelado también es 100: el ciclo terminó, aunque no en la
+ * entrega (la barra lo dice con el tono, ver `shipmentStatusVariant`). Un
+ * estado desconocido es 0: no hay con qué medir cuánto avanzó.
  */
 export function lifecycleProgress(status: ShipmentStatus): number {
+  if (closedWithoutDelivery(status)) return 100
+
   const index = SHIPMENT_STAGES.indexOf(status)
+  if (index === -1) return 0
 
   return Math.round((index / (SHIPMENT_STAGES.length - 1)) * 100)
 }

@@ -18,8 +18,17 @@ export interface WarehouseLoad {
   capacity: number | null
 }
 
-/** Los cuatro estados del envío (`Shipment::STATUSES`). */
-export type ShipmentStatus = 'pending' | 'ready_to_ship' | 'in_transit' | 'delivered'
+/**
+ * Los estados del envío (`Shipment::STATUSES`): los cuatro del ciclo y los dos
+ * finales sin entrega (TESIS-188).
+ */
+export type ShipmentStatus =
+  | 'pending'
+  | 'ready_to_ship'
+  | 'in_transit'
+  | 'delivered'
+  | 'returned'
+  | 'cancelled'
 
 /**
  * Una fila de la tarjeta «Últimos envíos» del panel (TESIS-163).

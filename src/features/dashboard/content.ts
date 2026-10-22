@@ -129,7 +129,11 @@ export const dashboardCopy = {
       ready_to_ship: 'Listo para despachar',
       in_transit: 'En tránsito',
       delivered: 'Entregado',
+      returned: 'Devuelto',
+      cancelled: 'Cancelado',
     },
+    /** Un estado que la API manda y esta versión del front todavía no conoce. */
+    statusUnknown: 'Estado desconocido',
   },
   error: {
     fallback: 'No se pudieron cargar algunas métricas del panel.',

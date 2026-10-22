@@ -58,6 +58,39 @@ describe('ShipmentLifecycleCard', () => {
     expect(stages[2]).toHaveAttribute('aria-current', 'step')
   })
 
+  // TESIS-188: el envío devuelto termina ahí; la entrega no queda «Pendiente».
+  it('ends a returned shipment where it stopped, without the delivery stage', () => {
+    const returned: Shipment = {
+      ...SHIPMENT,
+      status: 'returned',
+      events: [
+        ...SHIPMENT.events,
+        {
+          id: 4,
+          internalStatus: 'returned',
+          externalStatus: 'Devuelto al Remitente',
+          description: null,
+          occurredAt: '2026-08-20T10:00:00-03:00',
+        },
+      ],
+    }
+    renderWithTheme(<ShipmentLifecycleCard shipment={{ kind: 'single', shipment: returned }} />)
+
+    const stages = within(screen.getByRole('list', { name: 'Etapas del envío' })).getAllByRole(
+      'listitem',
+    )
+
+    expect(stages.map((stage) => stage.textContent)).toEqual([
+      expect.stringContaining('Pendiente'),
+      expect.stringContaining('Listo para despachar'),
+      expect.stringContaining('En tránsito'),
+      expect.stringContaining('Devuelto'),
+    ])
+    expect(stages[3]).toHaveAttribute('aria-current', 'step')
+    expect(stages[3]).toHaveTextContent(/20 ago\.? · 10:00/)
+    expect(screen.queryByText('Entregado')).not.toBeInTheDocument()
+  })
+
   it('dates each reached stage and leaves the next one pending', () => {
     renderWithTheme(<ShipmentLifecycleCard shipment={{ kind: 'single', shipment: SHIPMENT }} />)
 
