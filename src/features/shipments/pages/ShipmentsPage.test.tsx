@@ -26,6 +26,9 @@ const DISPATCHED: ShipmentSummary = {
   trackingNumber: 'AND-9920-X8829-Z',
   shippingCost: 58300,
   courier: { id: 4, serviceId: 7, name: 'Andreani' },
+  originWarehouse: { id: 1, name: 'Depósito Central' },
+  promisedDeliveryOn: '2026-08-27',
+  delayed: false,
   createdAt: '2026-08-24T12:14:00Z',
 }
 
@@ -38,6 +41,8 @@ const PENDING: ShipmentSummary = {
   trackingNumber: null,
   shippingCost: null,
   courier: null,
+  originWarehouse: null,
+  promisedDeliveryOn: null,
 }
 
 function mockPage(rows: ShipmentSummary[], overrides: Partial<ShipmentPage> = {}) {
@@ -64,9 +69,9 @@ function lastFilters() {
   return calls[calls.length - 1][0]
 }
 
-function renderPage() {
+function renderPage(path = '/shipments') {
   renderWithTheme(
-    <MemoryRouter initialEntries={['/shipments']}>
+    <MemoryRouter initialEntries={[path]}>
       <Routes>
         <Route path="/shipments" element={<ShipmentsPage />} />
         <Route path="/orders/:orderId" element={<p>Detalle de la orden</p>} />
@@ -234,7 +239,7 @@ describe('ShipmentsPage', () => {
       renderPage()
       await type('AND')
 
-      expect(vi.mocked(useShipmentCounts)).toHaveBeenLastCalledWith('AND')
+      expect(vi.mocked(useShipmentCounts)).toHaveBeenLastCalledWith('AND', false)
     })
 
     // Buscar y no encontrar no es lo mismo que una pestaña vacía.
@@ -252,6 +257,60 @@ describe('ShipmentsPage', () => {
 
       expect(screen.getByText('No hay envíos para este filtro.')).toBeInTheDocument()
     })
+  })
+
+  // `/shipments?delayed=true`: el enlace que traen otras pantallas, como «Ver
+  // bitácora» de Reportes.
+  describe('the delayed filter', () => {
+    it('lists everything when the URL does not ask for the delayed ones', () => {
+      renderPage()
+
+      expect(lastFilters().delayed).toBe(false)
+      expect(vi.mocked(useShipmentCounts)).toHaveBeenLastCalledWith('', false)
+      expect(screen.queryByText('Sólo demorados')).not.toBeInTheDocument()
+    })
+
+    it('asks the listing and the counts for the delayed ones only', () => {
+      renderPage('/shipments?delayed=true')
+
+      expect(lastFilters().delayed).toBe(true)
+      expect(vi.mocked(useShipmentCounts)).toHaveBeenLastCalledWith('', true)
+    })
+
+    // Sin el chip, el listado parecería tener menos envíos sin decir por qué.
+    it('shows the filter, and clears it from the chip', () => {
+      renderPage('/shipments?delayed=true')
+      expect(screen.getByText('Sólo demorados')).toBeInTheDocument()
+
+      fireEvent.click(screen.getByRole('button', { name: 'Quitar el filtro «Sólo demorados»' }))
+
+      expect(lastFilters().delayed).toBe(false)
+      expect(screen.queryByText('Sólo demorados')).not.toBeInTheDocument()
+    })
+
+    it('reads any other value as no filter, as the API does', () => {
+      renderPage('/shipments?delayed=yes')
+
+      expect(lastFilters().delayed).toBe(false)
+    })
+
+    // Con el filtro puesto, una tabla vacía es una buena noticia.
+    it('says there are no delayed shipments when the filter leaves nothing', () => {
+      mockPage([], { total: 0 })
+      renderPage('/shipments?delayed=true')
+
+      expect(screen.getByText('No hay envíos demorados para este filtro.')).toBeInTheDocument()
+    })
+  })
+
+  it('marks the rows whose shipment is late, under its status', () => {
+    mockPage([{ ...DISPATCHED, delayed: true }, PENDING])
+    renderPage()
+
+    const [, late, onTime] = screen.getAllByRole('row')
+    expect(within(late).getByText('Demorado')).toBeInTheDocument()
+    expect(within(late).getByText('En tránsito')).toBeInTheDocument()
+    expect(within(onTime).queryByText('Demorado')).not.toBeInTheDocument()
   })
 
   it('offers to retry when the listing fails', () => {

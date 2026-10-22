@@ -96,7 +96,9 @@ export const dashboardCopy = {
     columns: {
       id: 'ID de orden',
       destination: 'Destino',
-      total: 'Total',
+      // Sin el envío, igual que en el listado de órdenes: el detalle suma los
+      // dos, y «Total» a secas decía otro número que allá.
+      total: 'Total productos',
       status: 'Estado',
       date: 'Fecha',
     },

@@ -402,4 +402,33 @@ describe('EditProductModal', () => {
       expect(props.onSubmit).not.toHaveBeenCalled()
     })
   })
+
+  // El detalle mostraba la descripción, el empaque y la norma, pero no había
+  // dónde cargarlos.
+  describe('the free texts', () => {
+    const field = (name: string) => screen.getByRole('textbox', { name })
+
+    it('opens with the texts of the product, and empty the ones nobody loaded', () => {
+      renderModal(product({ packaging: 'Bobina' }))
+
+      expect(field('Descripción (opcional)')).toHaveValue('Rollo de 305 metros')
+      expect(field('Empaque (opcional)')).toHaveValue('Bobina')
+      expect(field('Norma técnica (opcional)')).toHaveValue('')
+    })
+
+    it('sends what the user typed, and an emptied text as null', async () => {
+      const { props } = renderModal(product())
+      fireEvent.change(field('Norma técnica (opcional)'), { target: { value: 'IRAM 4200' } })
+      fireEvent.change(field('Descripción (opcional)'), { target: { value: '' } })
+      fireEvent.click(screen.getByRole('button', { name: 'Guardar cambios' }))
+
+      await waitFor(() => expect(props.onSubmit).toHaveBeenCalled())
+      const body = props.onSubmit.mock.calls[0]?.[0] as { product: Record<string, unknown> }
+      expect(body.product).toMatchObject({
+        description: null,
+        packaging: null,
+        technical_standard: 'IRAM 4200',
+      })
+    })
+  })
 })

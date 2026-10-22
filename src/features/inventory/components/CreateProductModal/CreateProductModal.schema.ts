@@ -17,6 +17,12 @@ const measureSchema = z
   .positive(validation.measurePositive)
   .nullable()
 
+// Texto libre y opcional: la descripción, el empaque y la norma técnica
+// (`ProductsController::PRODUCT_FIELDS`). El modelo no los valida ni la columna
+// tiene largo máximo, así que acá tampoco: el vacío es «sin cargar» y viaja en
+// `null` (ver `utils/payload.ts`).
+const optionalTextSchema = z.string()
+
 // `warehouseId` arranca en 0 = "sin elegir". `positive()` es lo que convierte
 // una fila recién agregada en inválida hasta que el usuario elige el depósito.
 const stockRowSchema = z.object({
@@ -33,15 +39,17 @@ const stockRowSchema = z.object({
  * (`GET /products/categories`) y el select sólo ofrece esos valores. `''` es
  * «sin categoría», que es válido: la columna es opcional.
  *
- * `description` tampoco está: el frame del alta no tiene ese campo, así que no
- * hay nada que validar. Viaja igual en el payload, en `null` explícito y no por
- * omisión, para no depender de qué hace el backend con una clave ausente (ver
- * `utils/payload.ts`). Si el diseño la agrega, entra acá primero.
+ * La descripción, el empaque y la norma técnica son opcionales: `''` es «sin
+ * cargar». El detalle del producto ya los mostraba, pero no había dónde
+ * cargarlos y salían siempre en «—».
  */
 export const createProductSchema = z.object({
   name: z.string().trim().min(1, validation.nameRequired),
   sku: z.string().trim().min(1, validation.skuRequired),
   category: z.string(),
+  description: optionalTextSchema,
+  packaging: optionalTextSchema,
+  technicalStandard: optionalTextSchema,
   weight: nonNegativeNumber,
   length: measureSchema,
   width: measureSchema,

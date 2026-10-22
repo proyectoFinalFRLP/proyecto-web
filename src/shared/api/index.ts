@@ -9,4 +9,4 @@ export { fetchIntegrations, integrationKeys, toIntegrationService } from './inte
 export type { IntegrationService, ServiceType } from './integrations'
 export { fetchTenantConfig, isFeatureEnabled, tenantConfigSchema } from './tenant'
 export type { TenantBranding, TenantConfig, TenantFeature, TenantFeatureFlags } from './tenant'
-export type { ApiResponse, PaginatedResponse, ApiError, ApiRequestError } from './types'
+export type { ApiResponse, ApiError, ApiRequestError } from './types'

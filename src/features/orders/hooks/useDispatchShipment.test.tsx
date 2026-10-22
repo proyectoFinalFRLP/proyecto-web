@@ -13,7 +13,12 @@ import type { DispatchShipmentInput } from './useDispatchShipment'
 const INPUT: DispatchShipmentInput = {
   shipmentId: 31,
   payload: {
-    dispatch: { company_integration_id: 4, origin_warehouse_id: 1, shipping_cost: 58300 },
+    dispatch: {
+      company_integration_id: 4,
+      origin_warehouse_id: 1,
+      shipping_cost: 58300,
+      estimated_days: 2,
+    },
   },
 }
 

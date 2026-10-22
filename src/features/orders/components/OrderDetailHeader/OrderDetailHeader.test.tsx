@@ -6,7 +6,7 @@ import { renderWithTheme } from '../../../../test/renderWithTheme'
 
 import { OrderDetailHeader } from './OrderDetailHeader'
 
-function renderHeader(onModify = vi.fn()) {
+function renderHeader(onModify = vi.fn(), onPrint = vi.fn()) {
   renderWithTheme(
     <MemoryRouter>
       <OrderDetailHeader
@@ -15,6 +15,7 @@ function renderHeader(onModify = vi.fn()) {
         statusVariant="info"
         ordersPath="/orders"
         onModify={onModify}
+        onPrint={onPrint}
       />
     </MemoryRouter>,
   )
@@ -44,10 +45,13 @@ describe('OrderDetailHeader', () => {
     expect(onModify).toHaveBeenCalledTimes(1)
   })
 
-  // Sin endpoint de remito, un botón activo prometería algo que no pasa.
-  it('keeps the print action visible but disabled', () => {
-    renderHeader()
+  // El remito lo arma el navegador con los datos de la orden.
+  it('asks to print the delivery note', () => {
+    const onPrint = vi.fn()
+    renderHeader(vi.fn(), onPrint)
 
-    expect(screen.getByRole('button', { name: 'Imprimir remito' })).toBeDisabled()
+    fireEvent.click(screen.getByRole('button', { name: 'Imprimir remito' }))
+
+    expect(onPrint).toHaveBeenCalledTimes(1)
   })
 })

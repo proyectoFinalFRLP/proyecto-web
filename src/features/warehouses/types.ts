@@ -16,6 +16,11 @@ export interface Warehouse {
   province: string | null
   /** Unidades guardadas sumando todos los productos. Cero es un dato, nunca null. */
   storedUnits: number
+  /**
+   * Cuántas unidades entran (TESIS-162). `null` = nadie la declaró todavía, que
+   * no es cero: el panel no dibuja la barra de ocupación de ese depósito.
+   */
+  capacity: number | null
 }
 
 /** Lo que se edita de un depósito. */
@@ -27,6 +32,8 @@ export interface WarehouseInput {
   city: string
   /** `''` = sin provincia, como el «sin categoría» del producto. */
   province: string
+  /** En unidades. `''` = sin declarar; el schema ya garantizó que es un entero. */
+  capacity: string
 }
 
 /** Cuerpo de `POST`/`PUT /api/v1/warehouses`, en el snake_case que espera Rails. */
@@ -37,8 +44,9 @@ export interface WarehousePayload {
     zip_code: string
     city: string | null
     province: string | null
+    capacity: number | null
   }
 }
 
 /** Por qué la API se niega a borrar un depósito (409). */
-export type DeleteBlocker = 'stock' | 'orders' | 'transfers' | 'unknown'
+export type DeleteBlocker = 'stock' | 'orders' | 'transfers' | 'shipments' | 'unknown'
