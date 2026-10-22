@@ -24,7 +24,8 @@ describe('ReportMetrics', () => {
 
     expect(screen.getByText('+12,4%')).toBeInTheDocument()
     expect(screen.getByText('+8,1%')).toBeInTheDocument()
-    expect(screen.getByText('-0,4%')).toBeInTheDocument()
+    // El cumplimiento varía en puntos: es una resta de porcentajes.
+    expect(screen.getByText('-0,4 pts')).toBeInTheDocument()
   })
 
   it('flags the anomalies as critical when the period has one', () => {

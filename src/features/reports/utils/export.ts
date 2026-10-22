@@ -11,8 +11,8 @@ const { export: copy, period: periodCopy } = reportsCopy
 // Una fila en blanco entre bloques: en la planilla se leen como tablas separadas.
 const BLANK: CsvCell[] = []
 
-function kpiRow(label: string, kpi: TrendedValue): CsvCell[] {
-  return [label, kpi.value, kpi.trend]
+function kpiRow(label: string, kpi: TrendedValue, note?: string): CsvCell[] {
+  return note === undefined ? [label, kpi.value, kpi.trend] : [label, kpi.value, kpi.trend, note]
 }
 
 /**
@@ -39,7 +39,7 @@ export function buildReportCsv(overview: ReportsOverview, period: ReportPeriod):
     kpiRow(copy.kpis.dispatchedUnits, kpis.dispatchedUnits),
     onTime === null
       ? [copy.kpis.onTimeDelivery, null, null, copy.kpis.onTimeUnavailable]
-      : kpiRow(copy.kpis.onTimeDelivery, onTime),
+      : kpiRow(copy.kpis.onTimeDelivery, onTime, copy.kpis.onTimeTrendInPoints),
     [
       copy.kpis.activeAnomalies,
       kpis.activeAnomalies.count,

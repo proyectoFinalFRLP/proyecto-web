@@ -24,7 +24,7 @@
 /** Una celda: `null`/`undefined` es una celda vacía, no el texto «null». */
 export type CsvCell = string | number | null | undefined
 
-const BOM = '﻿'
+const BOM = '\uFEFF'
 const LINE_BREAK = '\r\n'
 const NEEDS_QUOTES = /[",\r\n]/
 const FORMULA_START = /^[=+\-@\t\r]/
@@ -43,8 +43,10 @@ export function toCsv(rows: CsvCell[][]): string {
 }
 
 /**
- * Descarga las filas como un `.csv`. El enlace se crea, se cliquea y se
- * descarta en el acto: no queda nada montado ni una URL de objeto viva.
+ * Descarga las filas como un `.csv`. El enlace se monta sólo para el click: un
+ * `<a>` fuera del DOM no descarga en algunos Firefox. La URL se revoca en el
+ * tick siguiente y no en el acto, porque Safari todavía la está leyendo cuando
+ * `click()` vuelve y revocarla ahí cancela la descarga.
  */
 export function downloadCsv(filename: string, rows: CsvCell[][]): void {
   const blob = new Blob([BOM, toCsv(rows), LINE_BREAK], { type: 'text/csv;charset=utf-8' })
@@ -52,6 +54,8 @@ export function downloadCsv(filename: string, rows: CsvCell[][]): void {
   const link = document.createElement('a')
   link.href = url
   link.download = filename
+  document.body.append(link)
   link.click()
-  URL.revokeObjectURL(url)
+  link.remove()
+  setTimeout(() => URL.revokeObjectURL(url), 0)
 }

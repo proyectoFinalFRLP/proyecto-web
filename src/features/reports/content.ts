@@ -39,6 +39,8 @@ export const reportsCopy = {
       onTimeDelivery: 'Cumplimiento de entregas (%)',
       /** Ninguna entrega del período tenía fecha comprometida. */
       onTimeUnavailable: 'Sin entregas con fecha comprometida',
+      /** La variación del cumplimiento es una resta de porcentajes. */
+      onTimeTrendInPoints: 'Variación en puntos, no en %',
       activeAnomalies: 'Anomalías activas (hoy)',
       critical: 'Hay al menos una crítica',
     },

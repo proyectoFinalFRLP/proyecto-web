@@ -35,6 +35,7 @@ describe('buildReportCsv', () => {
       'Cumplimiento de entregas (%)',
       98.2,
       -0.4,
+      'Variación en puntos, no en %',
     ])
     expect(rowOf(rows, 'Anomalías activas (hoy)')).toEqual([
       'Anomalías activas (hoy)',

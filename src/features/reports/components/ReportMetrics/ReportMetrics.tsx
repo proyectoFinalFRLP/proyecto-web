@@ -24,10 +24,10 @@ const { kpis: copy } = reportsCopy
  * error. Una caída del 0,4% en el cumplimiento merece atención, no alarma.
  * El 0 no lleva tono: la tarjeta lo deja neutro.
  */
-function trendOf({ trend }: TrendedValue): StatTrend | undefined {
+function trendOf({ trend }: TrendedValue, unit?: StatTrend['unit']): StatTrend | undefined {
   if (trend === null) return undefined
-  if (trend === 0) return { value: trend }
-  return { value: trend, tone: trend < 0 ? 'warning' : 'success' }
+  if (trend === 0) return { value: trend, unit }
+  return { value: trend, unit, tone: trend < 0 ? 'warning' : 'success' }
 }
 
 /**
@@ -65,7 +65,7 @@ export function ReportMetrics({ kpis }: ReportMetricsProps) {
         <StatCard
           label={copy.onTimeDelivery}
           value={formatPercent(onTimeDeliveryRate.value)}
-          trend={trendOf(onTimeDeliveryRate)}
+          trend={trendOf(onTimeDeliveryRate, 'points')}
           icon={<ScheduleOutlinedIcon />}
         />
       )}

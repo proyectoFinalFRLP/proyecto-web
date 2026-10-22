@@ -36,6 +36,7 @@ describe('toCsv', () => {
 describe('downloadCsv', () => {
   afterEach(() => {
     vi.restoreAllMocks()
+    vi.useRealTimers()
   })
 
   // Sin el BOM, Excel lee el archivo como Windows-1252 y «Depósito» sale roto.
@@ -51,11 +52,17 @@ describe('downloadCsv', () => {
     ) {
       expect(this.download).toBe('reporte.csv')
       expect(this.href).toBe('blob:csv')
+      expect(this.isConnected).toBe(true)
     })
+    vi.useFakeTimers()
 
     downloadCsv('reporte.csv', [['Depósito'], ['Central']])
 
     expect(click).toHaveBeenCalledTimes(1)
+    expect(document.querySelector('a[download]')).toBeNull()
+    // Safari cancela la descarga si la URL se revoca en el mismo tick.
+    expect(URL.revokeObjectURL).not.toHaveBeenCalled()
+    vi.runAllTimers()
     expect(blobs[0].type).toBe('text/csv;charset=utf-8')
     const bytes = new Uint8Array(await blobs[0].arrayBuffer())
     expect([...bytes.slice(0, 3)]).toEqual([0xef, 0xbb, 0xbf])

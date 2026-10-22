@@ -24,6 +24,7 @@ export interface ReportsKpis {
    * Porcentaje (0-100) de los envíos entregados en el período que llegaron
    * para su fecha comprometida. `null`: ninguna entrega del período tenía
    * fecha comprometida, así que no hay plazo contra el cual medir (no es un 0%).
+   * Su `trend` va en puntos y no es relativo: de 50% a 75% es `25`.
    */
   onTimeDeliveryRate: TrendedValue | null
   /**
