@@ -1,5 +1,6 @@
 import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import { useProvinces } from 'shared/hooks/useProvinces'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { renderWithTheme } from '../../../test/renderWithTheme'
@@ -7,7 +8,6 @@ import { useCatalogProducts } from '../hooks/useCatalogProducts'
 import { useOrder, useOrderShipment } from '../hooks/useOrderDetail'
 import { useOriginWarehouses } from '../hooks/useOriginWarehouses'
 import { useProductStocks } from '../hooks/useProductStocks'
-import { useProvinces } from '../hooks/useProvinces'
 import { useUpdateOrder } from '../hooks/useUpdateOrder'
 import type * as UpdateOrderModule from '../hooks/useUpdateOrder'
 import type { OrderDetail, OrderShipment, UpdateOrderPayload } from '../types'
@@ -17,7 +17,7 @@ import { OrderEditPage } from './OrderEditPage'
 vi.mock('../hooks/useOrderDetail', () => ({ useOrder: vi.fn(), useOrderShipment: vi.fn() }))
 vi.mock('../hooks/useOriginWarehouses', () => ({ useOriginWarehouses: vi.fn() }))
 vi.mock('../hooks/useCatalogProducts', () => ({ useCatalogProducts: vi.fn() }))
-vi.mock('../hooks/useProvinces', () => ({ useProvinces: vi.fn() }))
+vi.mock('shared/hooks/useProvinces', () => ({ useProvinces: vi.fn() }))
 vi.mock('../hooks/useProductStocks', () => ({ useProductStocks: vi.fn() }))
 vi.mock('../hooks/useUpdateOrder', async (importOriginal) => ({
   ...(await importOriginal<typeof UpdateOrderModule>()),

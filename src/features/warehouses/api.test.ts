@@ -2,7 +2,7 @@ import type { AxiosResponse } from 'axios'
 import { client } from 'shared/api/client'
 import { describe, expect, it, vi } from 'vitest'
 
-import { fetchProvinces, fetchWarehouses, toPayload } from './api'
+import { fetchWarehouses, toPayload } from './api'
 
 describe('toPayload', () => {
   it('sends the body Rails expects, trimmed and with the CPA in upper case', () => {
@@ -76,16 +76,5 @@ describe('fetchWarehouses', () => {
     } as AxiosResponse)
 
     expect((await fetchWarehouses())[0]).toMatchObject({ city: null, province: null })
-  })
-})
-
-describe('fetchProvinces', () => {
-  it('reads the same vocabulary the order destination uses', async () => {
-    const get = vi
-      .spyOn(client, 'get')
-      .mockResolvedValueOnce({ data: { data: ['Buenos Aires', 'Córdoba'] } } as AxiosResponse)
-
-    expect(await fetchProvinces()).toEqual(['Buenos Aires', 'Córdoba'])
-    expect(get).toHaveBeenCalledWith('/orders/provinces')
   })
 })

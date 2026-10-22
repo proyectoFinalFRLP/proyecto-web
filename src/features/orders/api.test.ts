@@ -12,7 +12,6 @@ import {
   fetchOrderPage,
   fetchOrderShipment,
   fetchProductStocks,
-  fetchProvinces,
   fetchShipmentLabel,
   fetchWarehouses,
   quoteDraft,
@@ -354,17 +353,6 @@ describe('fetchWarehouses', () => {
     expect(await fetchWarehouses()).toEqual([
       { id: 3, name: 'CD Ezeiza', address: 'Ruta 205 km 45', zipCode: '1804' },
     ])
-  })
-})
-
-describe('fetchProvinces', () => {
-  it('reads the vocabulary from the backend as it comes', async () => {
-    const get = vi
-      .spyOn(client, 'get')
-      .mockResolvedValueOnce(respond({ data: ['Buenos Aires', 'Córdoba'] }))
-
-    expect(await fetchProvinces()).toEqual(['Buenos Aires', 'Córdoba'])
-    expect(get).toHaveBeenCalledWith('/orders/provinces')
   })
 })
 

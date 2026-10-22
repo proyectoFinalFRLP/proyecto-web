@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import { useDebouncedValue } from 'shared/hooks/useDebouncedValue'
+import { useProvinces } from 'shared/hooks/useProvinces'
 import { notify } from 'shared/store'
 import type { OrderDraftItem } from 'shared/store'
 
@@ -12,7 +13,6 @@ import { ordersCopy } from '../../content'
 import { useCatalogProducts } from '../../hooks/useCatalogProducts'
 import { useOriginWarehouses } from '../../hooks/useOriginWarehouses'
 import { useProductStocks } from '../../hooks/useProductStocks'
-import { useProvinces } from '../../hooks/useProvinces'
 import {
   NOT_EDITABLE_STATUS,
   STALE_VERSION_STATUS,

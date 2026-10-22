@@ -1,6 +1,6 @@
 import { client } from 'shared/api/client'
 import { fetchCount } from 'shared/api/count'
-import { sortParams } from 'shared/utils'
+import { blankToNull, sortParams } from 'shared/utils'
 
 import type {
   CatalogProduct,
@@ -268,13 +268,6 @@ export async function updateOrder(
   return toOrderDetail(response.data, readVersion(response.headers.etag))
 }
 
-// Un texto en blanco no es un dato: la pantalla esconde la fila en vez de
-// mostrar un rótulo vacío.
-function blankToNull(value: string | null | undefined): string | null {
-  const trimmed = value?.trim() ?? ''
-  return trimmed === '' ? null : trimmed
-}
-
 function toShipment(shipment: ApiShipment): Shipment {
   return {
     id: shipment.id,
@@ -410,17 +403,6 @@ export async function fetchProductStocks(productId: number): Promise<ProductStoc
       data.stocks.map((stock) => [stock.warehouse_id, stock.quantity]),
     ),
   }
-}
-
-/**
- * Las provincias que acepta el alta (`Order::PROVINCES`, TESIS-128). Se leen del
- * backend y no se escriben acá porque tienen que coincidir carácter por
- * carácter, tildes incluidas: una provincia mal escrita es un 422 al confirmar.
- */
-export async function fetchProvinces(): Promise<string[]> {
-  const { data } = await client.get<{ data: string[] }>('/orders/provinces')
-
-  return data.data
 }
 
 /**
