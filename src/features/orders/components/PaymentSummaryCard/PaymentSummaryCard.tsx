@@ -1,5 +1,4 @@
-import DownloadOutlinedIcon from '@mui/icons-material/DownloadOutlined'
-import { Box, Button, Divider, Tooltip, Typography } from '@mui/material'
+import { Divider, Typography } from '@mui/material'
 import { useId } from 'react'
 
 import { ordersCopy } from '../../content'
@@ -18,6 +17,9 @@ const paymentCopy = ordersCopy.detail.payment
 /**
  * «Resumen de pago» de S08: productos, envío y total. Presentacional — los
  * montos llegan ya calculados (`paymentSummary`) y formateados.
+ *
+ * Sin «Descargar factura»: facturar de verdad (AFIP, comprobante fiscal) queda
+ * fuera del alcance del proyecto, y un botón apagado para siempre era ruido.
  */
 export function PaymentSummaryCard({
   subtotal,
@@ -59,16 +61,6 @@ export function PaymentSummaryCard({
         <TotalLabel>{paymentCopy.total}</TotalLabel>
         <TotalAmount>{total}</TotalAmount>
       </SummaryRow>
-
-      {/* Sin endpoint de facturación: la acción queda visible y apagada. El
-          envoltorio deja que el Tooltip reciba el hover del botón deshabilitado. */}
-      <Tooltip title={paymentCopy.invoicePending}>
-        <Box component="span">
-          <Button fullWidth variant="outlined" startIcon={<DownloadOutlinedIcon />} disabled>
-            {paymentCopy.invoice}
-          </Button>
-        </Box>
-      </Tooltip>
     </SummaryCard>
   )
 }

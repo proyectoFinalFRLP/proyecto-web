@@ -187,6 +187,22 @@ export interface Shipment {
    * OCA, la orden de retiro (TESIS-186). Null si el courier no lo devuelve.
    */
   externalReference: string | null
+  /**
+   * El depósito del que salió, que guarda el despacho. `null` en un envío sin
+   * despachar y en los despachados antes de que se guardara.
+   */
+  originWarehouse: { id: number; name: string } | null
+  /**
+   * La entrega comprometida (`2026-10-22`, día calendario en hora de
+   * Argentina): el día del despacho más el plazo de la opción elegida. `null`
+   * si la opción no informó plazo o el envío no se despachó.
+   */
+  promisedDeliveryOn: string | null
+  /**
+   * En curso y con la fecha comprometida vencida. Lo decide la API, para que el
+   * detalle, el listado de envíos y los reportes digan lo mismo.
+   */
+  delayed: boolean
   /** Ordenados por `occurredAt`, del más viejo al más nuevo. */
   events: ShipmentEvent[]
 }

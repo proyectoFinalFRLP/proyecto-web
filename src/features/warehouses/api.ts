@@ -20,6 +20,7 @@ interface ApiWarehouse {
   city?: string | null
   province?: string | null
   stored_units?: number
+  capacity?: number | null
 }
 
 interface ApiList<T> {
@@ -38,6 +39,7 @@ function toWarehouse(warehouse: ApiWarehouse): Warehouse {
     // El alta y la edición responden con el mismo serializer, pero un depósito
     // recién creado guarda cero unidades: el `?? 0` es para no depender de eso.
     storedUnits: warehouse.stored_units ?? 0,
+    capacity: warehouse.capacity ?? null,
   }
 }
 
@@ -50,6 +52,9 @@ export function toPayload(input: WarehouseInput): WarehousePayload {
       zip_code: input.zipCode.trim().toUpperCase(),
       city: blankToNull(input.city),
       province: blankToNull(input.province),
+      // Vaciar la capacidad es «dejar de declararla» y viaja en `null`, no en 0:
+      // la API rechaza el 0 (un depósito donde no entra nada no guarda nada).
+      capacity: input.capacity.trim() === '' ? null : Number(input.capacity),
     },
   }
 }
@@ -77,8 +82,8 @@ export async function updateWarehouse(id: number, input: WarehouseInput): Promis
 
 /**
  * Baja de un depósito. La API responde **409** si tiene stock, si salieron
- * ventas de él o si una transferencia lo tiene como origen o destino: son
- * registros que un DELETE no puede evaporar.
+ * ventas de él, si una transferencia lo tiene como origen o destino o si se
+ * despacharon envíos desde él: son registros que un DELETE no puede evaporar.
  */
 export async function deleteWarehouse(id: number): Promise<void> {
   await client.delete(`/warehouses/${id}`)

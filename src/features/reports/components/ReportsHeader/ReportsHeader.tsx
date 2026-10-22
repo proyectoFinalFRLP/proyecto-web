@@ -1,12 +1,10 @@
 import DownloadOutlinedIcon from '@mui/icons-material/DownloadOutlined'
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
-import { Box, Button, Tooltip, Typography } from '@mui/material'
-import { StatusBadge } from 'shared/components'
+import { Button, Typography } from '@mui/material'
 
 import { reportsCopy } from '../../content'
 
 import { PeriodSelect } from './PeriodSelect'
-import { Actions, HeaderRow, Heading, TitleLine } from './ReportsHeader.styles'
+import { Actions, HeaderRow, Heading } from './ReportsHeader.styles'
 import type { ReportsHeaderProps } from './ReportsHeader.types'
 
 const { page: pageCopy, actions: actionCopy } = reportsCopy
@@ -14,33 +12,18 @@ const { page: pageCopy, actions: actionCopy } = reportsCopy
 /**
  * Encabezado de S14: título, bajada y las dos acciones del período.
  *
- * La exportación queda visible y apagada, como el remito del detalle de orden:
- * no hay endpoint que la resuelva, y además la decisión del proyecto es dejar
- * la exportación para el final, cuando el modelo de datos esté completo.
+ * La exportación baja un CSV con lo que muestra la pantalla para el período
+ * elegido. No hay endpoint que la resuelva y no hace falta: la pantalla ya
+ * tiene todos los agregados, y armarlo de este lado garantiza que el archivo
+ * diga exactamente lo que se ve.
  */
-export function ReportsHeader({ period, onPeriodChange, sampleData = false }: ReportsHeaderProps) {
+export function ReportsHeader({ period, onPeriodChange, onExport }: ReportsHeaderProps) {
   return (
     <HeaderRow>
       <Heading>
-        <TitleLine>
-          <Typography variant="h1" component="h1">
-            {pageCopy.title}
-          </Typography>
-          {/* Mientras los agregados no salgan de la API, la pantalla lo dice:
-              un número inventado sin aviso se lee como un número real. */}
-          {sampleData ? (
-            <Tooltip title={pageCopy.sampleDataHint}>
-              <Box component="span">
-                <StatusBadge
-                  status="neutral"
-                  size="sm"
-                  icon={<InfoOutlinedIcon />}
-                  label={pageCopy.sampleData}
-                />
-              </Box>
-            </Tooltip>
-          ) : null}
-        </TitleLine>
+        <Typography variant="h1" component="h1">
+          {pageCopy.title}
+        </Typography>
         <Typography variant="bodyMd" color="text.secondary">
           {pageCopy.subtitle}
         </Typography>
@@ -48,15 +31,9 @@ export function ReportsHeader({ period, onPeriodChange, sampleData = false }: Re
 
       <Actions>
         <PeriodSelect value={period} onChange={onPeriodChange} />
-        {/* El botón deshabilitado no dispara eventos de puntero, así que el
-            Tooltip necesita un envoltorio propio para recibir el hover. */}
-        <Tooltip title={actionCopy.exportPending}>
-          <Box component="span">
-            <Button variant="contained" startIcon={<DownloadOutlinedIcon />} disabled>
-              {actionCopy.export}
-            </Button>
-          </Box>
-        </Tooltip>
+        <Button variant="contained" startIcon={<DownloadOutlinedIcon />} onClick={onExport}>
+          {actionCopy.export}
+        </Button>
       </Actions>
     </HeaderRow>
   )

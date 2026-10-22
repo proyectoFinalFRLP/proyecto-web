@@ -37,6 +37,9 @@ const SHIPMENT = {
   external_reference: '0012345678',
   label_available: true,
   courier: { id: 4, service_id: 7, name: 'Andreani' },
+  origin_warehouse: { id: 1, name: 'Depósito Central' },
+  promised_delivery_on: '2026-08-15',
+  delayed: true,
   events: [
     {
       id: 1,
@@ -133,6 +136,9 @@ describe('fetchOrderShipment', () => {
         labelAvailable: true,
         externalReference: '0012345678',
         courier: { id: 4, serviceId: 7, name: 'Andreani' },
+        originWarehouse: { id: 1, name: 'Depósito Central' },
+        promisedDeliveryOn: '2026-08-15',
+        delayed: true,
         events: [
           {
             id: 1,
@@ -160,6 +166,21 @@ describe('fetchOrderShipment', () => {
 
     expect(result).toMatchObject({
       shipment: { labelAvailable: false, externalReference: null },
+    })
+  })
+
+  // Una API anterior no los manda: sin la fecha no se afirma una demora.
+  it('reads a shipment without origin or promise as not delayed', async () => {
+    const older: Partial<typeof SHIPMENT> = { ...SHIPMENT }
+    delete older.origin_warehouse
+    delete older.promised_delivery_on
+    delete older.delayed
+    vi.spyOn(client, 'get')
+      .mockResolvedValueOnce(shipmentList([31]))
+      .mockResolvedValueOnce(respond(older))
+
+    expect(await fetchOrderShipment(8829)).toMatchObject({
+      shipment: { originWarehouse: null, promisedDeliveryOn: null, delayed: false },
     })
   })
 
@@ -494,7 +515,12 @@ describe('the confirmation of a manual order', () => {
   it('dispatches the shipment with the chosen option', async () => {
     const post = vi.spyOn(client, 'post').mockResolvedValueOnce(respond(SHIPMENT))
     const payload = {
-      dispatch: { company_integration_id: 4, origin_warehouse_id: 3, shipping_cost: 58300 },
+      dispatch: {
+        company_integration_id: 4,
+        origin_warehouse_id: 3,
+        shipping_cost: 58300,
+        estimated_days: 2,
+      },
     }
 
     const shipment = await dispatchShipment(31, payload)

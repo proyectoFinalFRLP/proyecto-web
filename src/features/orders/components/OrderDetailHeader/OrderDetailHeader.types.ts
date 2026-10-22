@@ -10,4 +10,6 @@ export interface OrderDetailHeaderProps {
   ordersPath: string
   /** «Modificar orden». */
   onModify: () => void
+  /** «Imprimir remito». */
+  onPrint: () => void
 }

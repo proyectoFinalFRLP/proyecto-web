@@ -8,6 +8,8 @@ import type { ConflictLabels } from './conflict'
 const LABELS: ConflictLabels = {
   name: 'Nombre',
   description: 'Descripción',
+  packaging: 'Empaque',
+  technicalStandard: 'Norma técnica',
   weight: 'Peso',
   dimensions: 'Medidas',
   stockIn: (warehouse) => `Stock en ${warehouse}`,
@@ -68,14 +70,21 @@ describe('describeConflict', () => {
     ])
   })
 
-  // El modal no edita `description`, pero el backend sí la digiere en el ETag
+  // El backend digiere la descripción en el ETag
   // (`Catalog::ProductVersion#edited_fields`). Sin este caso, un conflicto
   // causado sólo por ese campo se mostraba como "no pudimos determinar qué
   // cambió" y "Guardar de todos modos" lo pisaba en silencio.
-  it('reports a description change, even though the modal does not edit it', () => {
+  it('reports a description change', () => {
     expect(texts(product(), product({ description: 'Rollo de 100 metros' }))).toEqual([
       'Descripción: Rollo de 305 metros → Rollo de 100 metros',
     ])
+  })
+
+  // El empaque y la norma también entran en la versión, y ahora el modal los edita.
+  it('reports a packaging or technical standard change', () => {
+    expect(
+      texts(product(), product({ packaging: 'Bobina', technicalStandard: 'IRAM 4200' })),
+    ).toEqual(['Empaque: — → Bobina', 'Norma técnica: — → IRAM 4200'])
   })
 
   it('shows an em dash when a text field went from or to null', () => {

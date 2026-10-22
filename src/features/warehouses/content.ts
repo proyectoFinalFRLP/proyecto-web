@@ -34,6 +34,7 @@ export const warehousesCopy = {
       zipCode: 'Código postal',
       city: 'Localidad (opcional)',
       province: 'Provincia (opcional)',
+      capacity: 'Capacidad en unidades (opcional)',
     },
     placeholders: {
       name: 'Depósito Central',
@@ -41,7 +42,10 @@ export const warehousesCopy = {
       zipCode: '1900 o B1900ABC',
       city: 'La Plata',
       province: 'Elegí una provincia',
+      capacity: '5000',
     },
+    /** Lo que cambia si se carga: el panel mide la ocupación contra este número. */
+    capacityHelper: 'Con ella, el panel muestra qué tan lleno está el depósito.',
     noProvince: 'Sin provincia',
     provincesLoading: 'Cargando provincias…',
     provincesError: 'No pudimos cargar las provincias.',
@@ -55,6 +59,9 @@ export const warehousesCopy = {
       addressRequired: 'Ingresá la dirección.',
       zipCodeRequired: 'Ingresá el código postal.',
       zipCodeFormat: 'Usá 4 dígitos (1900) o el CPA completo (B1900ABC).',
+      capacityInteger: 'Ingresá una cantidad entera de unidades, sin puntos ni decimales.',
+      capacityPositive: 'Tiene que ser mayor a 0. Dejala vacía si no la sabés.',
+      capacityTooLarge: 'Es más de lo que se puede guardar. Revisá el número.',
     },
   },
   remove: {
@@ -71,6 +78,7 @@ export const warehousesCopy = {
         'No se puede eliminar: hay productos asignados a este depósito, aunque tengan cero unidades.',
       orders: 'No se puede eliminar: salieron ventas de este depósito y las órdenes lo recuerdan.',
       transfers: 'No se puede eliminar: tiene transferencias de stock que salen o llegan a él.',
+      shipments: 'No se puede eliminar: se despacharon envíos desde este depósito y lo recuerdan.',
       unknown: 'No se puede eliminar: el depósito tiene registros asociados.',
     },
     failed: 'No pudimos eliminar el depósito.',

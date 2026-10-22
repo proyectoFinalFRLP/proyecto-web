@@ -10,8 +10,10 @@ export const shipmentKeys = {
   lists: () => [...shipmentKeys.all, 'list'] as const,
   list: (filters: ShipmentFilters) => [...shipmentKeys.lists(), filters] as const,
   counts: () => [...shipmentKeys.all, 'count'] as const,
-  // Las cinco pestañas en una respuesta (TESIS-165). El término entra en la
-  // clave igual que en la del listado: si no, las pestañas seguirían contando
-  // la empresa entera mientras la tabla muestra lo buscado.
-  tabCounts: (search: string) => [...shipmentKeys.counts(), 'tabs', search] as const,
+  // Las cinco pestañas en una respuesta (TESIS-165). El término y el filtro de
+  // demorados entran en la clave igual que en la del listado: si no, las
+  // pestañas seguirían contando la empresa entera mientras la tabla muestra lo
+  // filtrado.
+  tabCounts: (search: string, delayed: boolean) =>
+    [...shipmentKeys.counts(), 'tabs', search, delayed] as const,
 }

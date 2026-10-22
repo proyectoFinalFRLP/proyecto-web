@@ -31,6 +31,9 @@ const DISPATCHED: Shipment = {
   labelUrl: null,
   labelAvailable: true,
   externalReference: '0012345678',
+  originWarehouse: null,
+  promisedDeliveryOn: null,
+  delayed: false,
   events: [],
 }
 

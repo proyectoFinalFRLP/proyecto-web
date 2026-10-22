@@ -23,6 +23,9 @@ export function isNonEmpty<T>(value: T | null | undefined): value is T {
 }
 
 export { blankToNull } from './blankToNull'
+export { formatCalendarDate } from './calendarDate'
+export { downloadCsv, toCsv } from './csv'
+export type { CsvCell } from './csv'
 export { lookup } from './lookup'
 export { formatOrderId } from './orderId'
 export { formatRelativeTime } from './relativeTime'

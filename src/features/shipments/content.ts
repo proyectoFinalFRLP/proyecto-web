@@ -41,6 +41,17 @@ export const shipmentsCopy = {
     shipment: (id: number) => `Envío #${id}`,
     /** "Orden #18948032757993": recibe la orden ya nombrada con `formatOrderId`. */
     order: (label: string) => `Orden ${label}`,
+    /** En curso y con la fecha comprometida vencida. */
+    delayed: 'Demorado',
+  },
+  /**
+   * El filtro de demorados (`/shipments?delayed=true`): lo traen los enlaces de
+   * otras pantallas, como «Ver bitácora» de Reportes, y tiene que verse y poder
+   * sacarse, o el listado parecería tener menos envíos sin decir por qué.
+   */
+  delayedFilter: {
+    label: 'Sólo demorados',
+    clear: 'Quitar el filtro «Sólo demorados»',
   },
   status: {
     pending: 'Pendiente',
@@ -58,6 +69,8 @@ export const shipmentsCopy = {
     empty: 'No hay envíos para este filtro.',
     /** Buscar y no encontrar no es lo mismo que una pestaña vacía. */
     emptySearch: 'Ningún envío coincide con la búsqueda.',
+    /** Con el filtro de demorados, una tabla vacía es una buena noticia. */
+    emptyDelayed: 'No hay envíos demorados para este filtro.',
     /** El detalle del envío vive en la orden: no hay pantalla propia. */
     view: 'Ver la orden',
     /** El ojito se repite en cada fila: el nombre accesible dice cuál es. */

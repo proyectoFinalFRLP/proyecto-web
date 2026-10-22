@@ -43,6 +43,9 @@ function shipment(status: ShipmentStatus, events: ShipmentEvent[] = []): Shipmen
     labelUrl: null,
     labelAvailable: false,
     externalReference: null,
+    originWarehouse: null,
+    promisedDeliveryOn: null,
+    delayed: false,
     events,
   }
 }

@@ -281,10 +281,10 @@ export function lifecycleProgress(status: ShipmentStatus): number {
  * La entrega, para la métrica del encabezado.
  *
  * La card la pide «extraída del último evento programado», pero la bitácora
- * sólo registra lo que ya pasó (`occurred_at`) y ningún endpoint expone una
- * fecha comprometida. Lo único cierto es la fecha de entrega de un envío que
- * ya llegó; antes de eso no hay estimación que mostrar, y se dice así en lugar
- * de inventar una.
+ * sólo registra lo que ya pasó (`occurred_at`). Lo único cierto es la fecha de
+ * entrega de un envío que ya llegó; antes de eso, la métrica muestra la fecha
+ * comprometida que guardó el despacho, si la hay (ver `deliveryMetric` en el
+ * detalle).
  */
 export function deliveredAt(shipment: Shipment): string | null {
   if (shipment.status !== 'delivered') return null

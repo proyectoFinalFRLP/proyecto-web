@@ -77,6 +77,15 @@ describe('StatCard', () => {
 
       expect(screen.getByText('+3,1%')).toBeInTheDocument()
     })
+
+    // Una resta de porcentajes no es un cambio relativo: de 50% a 75% son 25 puntos.
+    it('says points when the variation is between two percentages', () => {
+      renderWithTheme(
+        <StatCard label="Entregas" value="75%" trend={{ value: 25, unit: 'points' }} />,
+      )
+
+      expect(screen.getByText('+25 pts')).toBeInTheDocument()
+    })
   })
 
   it('shows the fixed tag with its icon when there is no trend', () => {

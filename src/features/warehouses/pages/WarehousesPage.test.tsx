@@ -43,6 +43,7 @@ const WAREHOUSES: Warehouse[] = [
     city: 'La Plata',
     province: 'Buenos Aires',
     storedUnits: 1230,
+    capacity: 5000,
   },
   {
     id: 2,
@@ -52,6 +53,7 @@ const WAREHOUSES: Warehouse[] = [
     city: null,
     province: null,
     storedUnits: 0,
+    capacity: null,
   },
 ]
 

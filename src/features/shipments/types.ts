@@ -23,6 +23,12 @@ export interface Courier {
   name: string
 }
 
+/** El depósito del que salió el envío: lo guarda el despacho. */
+export interface OriginWarehouse {
+  id: number
+  name: string
+}
+
 /**
  * Una fila del listado de envíos.
  *
@@ -44,6 +50,19 @@ export interface ShipmentSummary {
   trackingNumber: string | null
   shippingCost: number | null
   courier: Courier | null
+  /** `null` en los envíos sin despachar y en los anteriores a que se guardara. */
+  originWarehouse: OriginWarehouse | null
+  /**
+   * La fecha comprometida (`2026-10-22`, día calendario): el día del despacho
+   * más el plazo de la opción elegida. `null` si la opción no informó plazo.
+   */
+  promisedDeliveryOn: string | null
+  /**
+   * En curso (listo para despachar o en tránsito) con la fecha comprometida
+   * vencida. Lo decide la API, con el día de hoy en hora de Argentina: si lo
+   * calculara el navegador, el listado y los reportes podrían no coincidir.
+   */
+  delayed: boolean
   createdAt: string
 }
 
@@ -64,6 +83,8 @@ export interface ShipmentFilters {
   orderId?: number
   /** Número de seguimiento o id del canal. Vacío es «sin buscar». */
   search?: string
+  /** Sólo los demorados (`?delayed=true`). `false` o ausente es «todos». */
+  delayed?: boolean
   /** Orden por columna (TESIS-184). Sin orden, el de siempre: los más nuevos primero. */
   sort?: DataTableSort | null
 }

@@ -44,6 +44,9 @@ function buildDefaults(product: Product): EditProductFormData {
   return {
     name: product.name,
     category: product.category ?? '',
+    description: product.description ?? '',
+    packaging: product.packaging ?? '',
+    technicalStandard: product.technicalStandard ?? '',
     weight: product.weight,
     length: product.lengthCm,
     width: product.widthCm,
@@ -189,6 +192,16 @@ export function EditProductModal({
                     />
                   )}
                 />
+
+                <LabeledField label={modal.fields.description} fullWidth>
+                  <TextField
+                    {...register('description')}
+                    placeholder={modal.placeholders.description}
+                    multiline
+                    minRows={2}
+                    fullWidth
+                  />
+                </LabeledField>
               </BasicGrid>
             </SectionRoot>
           )}
@@ -235,6 +248,26 @@ export function EditProductModal({
                   />
                 </LabeledField>
               </SpecGrid>
+              {/* Dos textos libres, en su propia grilla de dos columnas: en la de
+                  cuatro de las medidas quedaban angostos para un «Caja de cartón
+                  corrugado» o un «IRAM 2178 / IEC 60502». */}
+              <BasicGrid>
+                <LabeledField label={modal.fields.packaging}>
+                  <TextField
+                    {...register('packaging')}
+                    placeholder={modal.placeholders.packaging}
+                    fullWidth
+                  />
+                </LabeledField>
+
+                <LabeledField label={modal.fields.technicalStandard}>
+                  <TextField
+                    {...register('technicalStandard')}
+                    placeholder={modal.placeholders.technicalStandard}
+                    fullWidth
+                  />
+                </LabeledField>
+              </BasicGrid>
             </SectionRoot>
           )}
 

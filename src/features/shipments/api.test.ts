@@ -50,6 +50,74 @@ describe('fetchShipmentPage', () => {
 
     expect(sent[0]).toMatchObject({ status: 'pending', search: 'AND' })
   })
+
+  it('asks for the delayed shipments only when the filter is on', async () => {
+    const sent = capture()
+    await fetchShipmentPage({ page: 1, perPage: 20, delayed: true })
+    await fetchShipmentPage({ page: 1, perPage: 20, delayed: false })
+
+    expect(sent[0]).toMatchObject({ delayed: true })
+    // No hay «sólo los que no se demoraron»: mandarlo sería afirmarlo.
+    expect(sent[1]).not.toHaveProperty('delayed')
+  })
+
+  it('reads the origin, the promised date and the delay of each shipment', async () => {
+    vi.spyOn(client, 'get').mockResolvedValue(
+      respond({
+        data: [
+          {
+            id: 31,
+            order_id: 8829,
+            status: 'in_transit',
+            tracking_number: 'AND-1',
+            shipping_cost: 4500,
+            courier: null,
+            origin_warehouse: { id: 1, name: 'Depósito Central' },
+            promised_delivery_on: '2026-10-15',
+            delayed: true,
+            created_at: '2026-10-12T12:00:00Z',
+          },
+        ],
+        meta: { page: 1, per_page: 20, total: 1 },
+      }),
+    )
+
+    const { shipments } = await fetchShipmentPage({ page: 1, perPage: 20 })
+
+    expect(shipments[0]).toMatchObject({
+      originWarehouse: { id: 1, name: 'Depósito Central' },
+      promisedDeliveryOn: '2026-10-15',
+      delayed: true,
+    })
+  })
+
+  // Una API anterior no manda los campos: sin ellos no se afirma una demora.
+  it('reads missing fields as no origin, no promise and not delayed', async () => {
+    vi.spyOn(client, 'get').mockResolvedValue(
+      respond({
+        data: [
+          {
+            id: 31,
+            order_id: 8829,
+            status: 'pending',
+            tracking_number: null,
+            shipping_cost: null,
+            courier: null,
+            created_at: '2026-10-12T12:00:00Z',
+          },
+        ],
+        meta: { page: 1, per_page: 20, total: 1 },
+      }),
+    )
+
+    const { shipments } = await fetchShipmentPage({ page: 1, perPage: 20 })
+
+    expect(shipments[0]).toMatchObject({
+      originWarehouse: null,
+      promisedDeliveryOn: null,
+      delayed: false,
+    })
+  })
 })
 
 // TESIS-165: eran cinco requests, uno por pestaña, cada uno pidiendo una fila
@@ -89,6 +157,16 @@ describe('fetchShipmentCounts', () => {
     await fetchShipmentCounts('AND-99')
 
     expect(sent[0]).toEqual({ search: 'AND-99' })
+  })
+
+  // Con el filtro puesto, cada pestaña cuenta sus demorados.
+  it('passes the delayed filter along, with or without a term', async () => {
+    const sent = respondCounts()
+    await fetchShipmentCounts('', true)
+    await fetchShipmentCounts('AND', true)
+
+    expect(sent[0]).toEqual({ delayed: true })
+    expect(sent[1]).toEqual({ search: 'AND', delayed: true })
   })
 
   // No pagina: mandarle una página sería decirle que cuente una porción.

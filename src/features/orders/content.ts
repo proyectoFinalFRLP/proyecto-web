@@ -32,7 +32,11 @@ export const ordersCopy = {
     destination: 'Destino',
     status: 'Estado',
     carrier: 'Operador logístico',
-    total: 'Total',
+    /**
+     * Lo que suman las líneas, sin el envío: el detalle muestra productos +
+     * envío = total, y un «Total» a secas acá decía otro número que allá.
+     */
+    total: 'Total productos',
     actions: 'Acciones',
   },
   status: {
@@ -61,9 +65,8 @@ export const ordersCopy = {
       },
       actions: {
         modify: 'Modificar orden',
+        /** Lo arma el navegador con los datos de la orden: ver `DeliveryNote`. */
         print: 'Imprimir remito',
-        /** No hay endpoint que genere el remito: la acción queda visible y apagada. */
-        printPending: 'El remito todavía no se puede generar desde el sistema.',
       },
       /** La orden todavía no tiene envío creado (TESIS-105). */
       noShipment: 'Sin envío',
@@ -135,6 +138,30 @@ export const ordersCopy = {
       /** "Envío despachado con Andreani." */
       dispatched: (carrier: string) => `Envío despachado con ${carrier}.`,
     },
+    /** El remito imprimible: qué se entrega y a quién, sin precios. */
+    deliveryNote: {
+      title: 'Remito',
+      order: 'Orden',
+      /** "Emitido el 19 oct 2026". */
+      issuedAt: (date: string) => `Emitido el ${date}`,
+      orderedAt: (date: string) => `Orden del ${date}`,
+      customer: 'Cliente',
+      document: (document: string) => `DNI / CUIT: ${document}`,
+      phone: (phone: string) => `Teléfono: ${phone}`,
+      deliverTo: 'Entregar en',
+      /** Un retiro no tiene domicilio: el cliente se lo lleva en mano. */
+      pickup: 'Retira en el local',
+      noAddress: 'La orden no registra domicilio de entrega.',
+      zipCode: (zipCode: string) => `CP ${zipCode}`,
+      columns: {
+        sku: 'SKU',
+        product: 'Producto',
+        quantity: 'Cantidad',
+      },
+      totalUnits: 'Total de unidades',
+      signature: 'Recibí conforme: firma',
+      clarification: 'Aclaración y DNI',
+    },
     notFound: 'No encontramos la orden que buscabas.',
     backToOrders: 'Volver a órdenes',
     error: 'No pudimos cargar la orden.',
@@ -155,11 +182,14 @@ export const ordersCopy = {
        */
       carrierNotApplicable: 'No aplica',
       carrierPickupNote: 'Retiro en el local',
-      serviceTypeUnknown: 'Tipo de servicio sin registrar',
       delivery: 'Entrega',
       delivered: 'Entregada',
-      /** Ningún endpoint expone una fecha comprometida de entrega. */
-      noEstimate: 'Sin fecha estimada',
+      /** El día del despacho más el plazo de la opción elegida. */
+      promised: 'Comprometida',
+      /** En curso y con la fecha comprometida vencida. */
+      delayed: 'Demorada',
+      /** Sin despachar, o despachado con una opción que no informó plazo. */
+      noEstimate: 'Sin fecha comprometida',
     },
     customer: {
       title: 'Datos del cliente',
@@ -214,10 +244,19 @@ export const ordersCopy = {
       fields: {
         /** El id del despacho en OCA (TESIS-186). */
         pickupOrder: 'Orden de retiro',
-        serviceType: 'Tipo de servicio',
         origin: 'Depósito de origen',
+        promised: 'Entrega comprometida',
       },
-      footnote: 'El envío no registra el tipo de servicio ni el depósito de origen.',
+      /** El depósito lo elige el despacho: antes no hay uno que mostrar. */
+      originPending: 'Se define al despachar',
+      /** En curso y con la fecha comprometida vencida. */
+      delayed: 'Demorado',
+      /**
+       * Despachado y sin depósito: se despachó antes de que el envío lo
+       * guardara. No es un dato que falte cargar, es uno que no se registró.
+       */
+      originMissingFootnote:
+        'Este envío se despachó antes de que el sistema guardara el depósito de origen.',
     },
     payment: {
       title: 'Resumen de pago',
@@ -228,8 +267,6 @@ export const ordersCopy = {
       /** Un retiro no se va a cotizar nunca: no lleva envío (TESIS-162). */
       shippingPickup: 'Retiro en el local',
       total: 'Total',
-      invoice: 'Descargar factura',
-      invoicePending: 'La factura todavía no se puede generar desde el sistema.',
     },
     items: {
       title: 'Líneas de la orden',

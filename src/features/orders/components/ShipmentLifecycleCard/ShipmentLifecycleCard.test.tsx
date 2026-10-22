@@ -16,6 +16,9 @@ const SHIPMENT: Shipment = {
   labelUrl: null,
   labelAvailable: false,
   externalReference: null,
+  originWarehouse: null,
+  promisedDeliveryOn: null,
+  delayed: false,
   events: [
     {
       id: 1,

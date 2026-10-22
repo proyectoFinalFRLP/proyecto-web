@@ -1,6 +1,6 @@
 import type { CurveGranularity, CurvePoint } from '../../types'
 
-export interface DispatchCurveCardProps {
+export interface SalesCurveCardProps {
   points: CurvePoint[]
   /** Si cada punto es un día o una semana: lo dice la descripción del gráfico. */
   granularity?: CurveGranularity

@@ -1,12 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useCallback } from 'react'
 
-import {
-  ACTIVE_SHIPMENT_STATUS,
-  fetchActiveShipmentCount,
-  fetchPendingOrderCount,
-  PENDING_ORDER_STATUS,
-} from '../api'
+import { fetchActiveShipmentCount, fetchPendingOrderCount, PENDING_ORDER_STATUS } from '../api'
 import { orderKeys, shipmentKeys } from '../queryKeys'
 
 export interface KpiState {
@@ -25,8 +20,8 @@ export interface LogisticsKpis {
 }
 
 /**
- * KPIs de flujo de órdenes y envíos (TESIS-53): órdenes pendientes y envíos en
- * tránsito.
+ * KPIs de flujo de órdenes y envíos (TESIS-53): órdenes pendientes y envíos
+ * activos (listos para despachar o en tránsito).
  *
  * Son dos consultas independientes y no una combinada a propósito: cada
  * tarjeta muestra su propio estado de carga, y que falle una no deja a la otra
@@ -41,7 +36,7 @@ export function useLogisticsKpis(): LogisticsKpis {
   })
 
   const activeShipments = useQuery<number>({
-    queryKey: shipmentKeys.kpi(ACTIVE_SHIPMENT_STATUS),
+    queryKey: shipmentKeys.kpi('active'),
     queryFn: fetchActiveShipmentCount,
   })
 

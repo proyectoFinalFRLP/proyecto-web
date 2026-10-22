@@ -1,7 +1,7 @@
 import SearchIcon from '@mui/icons-material/Search'
-import { Box, InputAdornment, Stack, TextField, Typography } from '@mui/material'
+import { Box, Chip, InputAdornment, Stack, TextField, Typography } from '@mui/material'
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { ErrorFallback, LoadingSpinner, PageWrapper } from 'shared/components'
 import type { DataTableTab } from 'shared/components'
 import { useDebouncedValue } from 'shared/hooks/useDebouncedValue'
@@ -16,9 +16,13 @@ import type { ShipmentTabId } from '../hooks/useShipments'
 import type { ShipmentCounts, ShipmentSummary } from '../types'
 import { SHIPMENT_SORT_KEYS } from '../utils/sort'
 
-const { page: pageCopy, tabs: tabCopy, table, pagination } = shipmentsCopy
+const { page: pageCopy, tabs: tabCopy, table, pagination, delayedFilter } = shipmentsCopy
 
 const PER_PAGE = 20
+
+// `?delayed=true`: el filtro vive en la URL para que otras pantallas puedan
+// enlazarlo («Ver bitácora» de Reportes) y para que sobreviva a recargar.
+const DELAYED_PARAM = 'delayed'
 
 // El destino se declara acá: las rutas viven en `app/router`, capa que una
 // feature no puede importar (architecture.md §3.2).
@@ -59,11 +63,16 @@ function tabCount(counts: ShipmentCounts | undefined, id: ShipmentTabId): string
  */
 export function ShipmentsPage() {
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [tabId, setTabId] = useState<ShipmentTabId>('all')
   const [search, setSearch] = useState('')
   const [sort, setSort] = useSortParam(SHIPMENT_SORT_KEYS)
-  // Otro orden vuelve a la página 1, venga del encabezado o de la URL.
-  const [page, setPage] = usePageNumber(sortResetKey(sort))
+  // Sólo `true` filtra: cualquier otro valor en la URL se lee como «todos», que
+  // es lo que la API haría con él.
+  const delayed = searchParams.get(DELAYED_PARAM) === 'true'
+  // Otro orden, o poner y sacar el filtro, vuelve a la página 1, venga del
+  // encabezado o de la URL.
+  const [page, setPage] = usePageNumber(`${sortResetKey(sort)}|${String(delayed)}`)
 
   // Lo que se tipea actualiza el campo en el acto; lo que viaja a la API espera
   // a que la persona deje de escribir.
@@ -75,11 +84,13 @@ export function ShipmentsPage() {
     perPage: PER_PAGE,
     status,
     search: debouncedSearch,
+    delayed,
     sort,
   })
-  // El término también va a los contadores: si no, las pestañas seguirían
-  // diciendo cuántos envíos tiene la empresa mientras la tabla muestra tres.
-  const counts = useShipmentCounts(debouncedSearch)
+  // El término y el filtro también van a los contadores: si no, las pestañas
+  // seguirían diciendo cuántos envíos tiene la empresa mientras la tabla
+  // muestra tres.
+  const counts = useShipmentCounts(debouncedSearch, delayed)
 
   // Cambiar de pestaña o de búsqueda vuelve a la primera página: quedarse en la
   // 7 de un filtro que ahora tiene 2 páginas deja la tabla vacía sin motivo
@@ -93,6 +104,22 @@ export function ShipmentsPage() {
     setSearch(value)
     setPage(1)
   }
+
+  // Se saca sólo ese parámetro: el orden, que también vive en la URL, queda.
+  function clearDelayed() {
+    setSearchParams(
+      (current) => {
+        const params = new URLSearchParams(current)
+        params.delete(DELAYED_PARAM)
+        return params
+      },
+      { replace: true },
+    )
+  }
+
+  let emptyMessage: string = table.empty
+  if (debouncedSearch) emptyMessage = table.emptySearch
+  else if (delayed) emptyMessage = table.emptyDelayed
 
   const tabs: DataTableTab[] = SHIPMENT_TABS.map(({ id }) => ({
     id,
@@ -159,6 +186,21 @@ export function ShipmentsPage() {
           />
         </Stack>
 
+        {/* El filtro se ve y se saca: llega por un enlace, y sin el chip el
+            listado parecería tener menos envíos sin decir por qué. */}
+        {delayed ? (
+          <Box>
+            <Chip
+              label={delayedFilter.label}
+              color="warning"
+              variant="outlined"
+              aria-label={delayedFilter.clear}
+              onClick={clearDelayed}
+              onDelete={clearDelayed}
+            />
+          </Box>
+        ) : null}
+
         <ShipmentsTable
           shipments={rows}
           tabs={tabs}
@@ -167,7 +209,7 @@ export function ShipmentsPage() {
           onView={openOrder}
           sort={sort}
           onSortChange={setSort}
-          emptyMessage={debouncedSearch ? table.emptySearch : table.empty}
+          emptyMessage={emptyMessage}
           pagination={{
             page,
             pageCount,
