@@ -1,9 +1,9 @@
 import { fireEvent, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
+import { useProvinces } from 'shared/hooks/useProvinces'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { renderWithTheme } from '../../../test/renderWithTheme'
-import { useProvinces } from '../hooks/useProvinces'
 import type * as warehouseHooks from '../hooks/useWarehouses'
 import {
   useCreateWarehouse,
@@ -15,7 +15,7 @@ import type { Warehouse } from '../types'
 
 import { WarehousesPage } from './WarehousesPage'
 
-vi.mock('../hooks/useProvinces', () => ({ useProvinces: vi.fn() }))
+vi.mock('shared/hooks/useProvinces', () => ({ useProvinces: vi.fn() }))
 
 // La página lee el orden de la URL (TESIS-184): necesita un router.
 function renderPage(url = '/') {

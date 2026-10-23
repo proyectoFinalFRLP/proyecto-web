@@ -4,13 +4,19 @@ import type { Shipment, ShipmentEvent, ShipmentStatus } from '../types'
 
 import {
   buildLifecycle,
+  closedWithoutDelivery,
   deliveredAt,
   eventsNewestFirst,
+  fileNameFromDisposition,
   headerStatus,
   labelErrorMessage,
+  labelFileName,
   lifecycleProgress,
   SHIPMENT_STAGES,
   printableLabel,
+  shipmentStatusLabel,
+  shipmentStatusVariant,
+  undeliveredReason,
 } from './shipment'
 
 let nextEventId = 1
@@ -116,11 +122,99 @@ describe('buildLifecycle', () => {
 
     expect(stages.find((stage) => stage.state === 'current')?.status).toBe('ready_to_ship')
   })
+
+  // TESIS-188: devuelto o cancelado cierra el ciclo donde estaba, y la entrega
+  // no se dibuja como un paso que todavía puede pasar.
+  describe('a shipment that ended without a delivery', () => {
+    it('shows the stages it went through and then where it ended', () => {
+      const stages = buildLifecycle(
+        shipment('returned', [
+          event('pending', '2026-08-12T12:42:00Z'),
+          event('in_transit', '2026-08-15T11:30:00Z'),
+          event('returned', '2026-08-20T10:00:00Z'),
+        ]),
+      )
+
+      expect(stages).toEqual([
+        { status: 'pending', state: 'done', reachedAt: '2026-08-12T12:42:00Z' },
+        { status: 'ready_to_ship', state: 'done', reachedAt: null },
+        { status: 'in_transit', state: 'done', reachedAt: '2026-08-15T11:30:00Z' },
+        { status: 'returned', state: 'closed', reachedAt: '2026-08-20T10:00:00Z' },
+      ])
+    })
+
+    // Cada envío nace pendiente: aunque la bitácora esté vacía, pasó por ahí.
+    it('starts from pending when it was cancelled before any event', () => {
+      expect(
+        buildLifecycle(shipment('cancelled')).map(({ status, state }) => [status, state]),
+      ).toEqual([
+        ['pending', 'done'],
+        ['cancelled', 'closed'],
+      ])
+    })
+
+    it('never offers the delivery as a stage still to come', () => {
+      const stages = buildLifecycle(
+        shipment('cancelled', [event('in_transit', '2026-08-15T11:30:00Z')]),
+      )
+
+      expect(stages.map((stage) => stage.status)).not.toContain('delivered')
+      expect(stages.some((stage) => stage.state === 'pending')).toBe(false)
+    })
+  })
+
+  // La API mandó un estado que el front todavía no conoce: se muestra donde
+  // quedó, sin afirmar que es un final.
+  it('shows an unknown status as the current one, after what it went through', () => {
+    const unknown = 'lost' as ShipmentStatus
+    const stages = buildLifecycle(shipment(unknown, [event('pending', '2026-08-12T12:42:00Z')]))
+
+    expect(stages.map(({ status, state }) => [status, state])).toEqual([
+      ['pending', 'done'],
+      ['lost', 'current'],
+    ])
+  })
 })
 
 describe('lifecycleProgress', () => {
   it('goes from 0 when just created to 100 when delivered', () => {
     expect(SHIPMENT_STAGES.map(lifecycleProgress)).toEqual([0, 33, 67, 100])
+  })
+
+  // El ciclo terminó, aunque no en la entrega: el tono de la barra lo dice.
+  it('is complete for a returned or cancelled shipment', () => {
+    expect(lifecycleProgress('returned')).toBe(100)
+    expect(lifecycleProgress('cancelled')).toBe(100)
+  })
+
+  it('does not go below zero for a status it does not know', () => {
+    expect(lifecycleProgress('lost' as ShipmentStatus)).toBe(0)
+  })
+})
+
+describe('the shipment status', () => {
+  it('names the statuses that end without a delivery', () => {
+    expect(shipmentStatusLabel('returned')).toBe('Devuelto')
+    expect(shipmentStatusLabel('cancelled')).toBe('Cancelado')
+  })
+
+  // Devuelto cierra sin nada que hacer; cancelado pide atención, como la orden.
+  it('paints a returned shipment neutral and a cancelled one as an error', () => {
+    expect(shipmentStatusVariant('returned')).toBe('neutral')
+    expect(shipmentStatusVariant('cancelled')).toBe('error')
+  })
+
+  it('names a status it does not know, in a neutral tone', () => {
+    const unknown = 'lost' as ShipmentStatus
+
+    expect(shipmentStatusLabel(unknown)).toBe('Estado desconocido')
+    expect(shipmentStatusVariant(unknown)).toBe('neutral')
+  })
+
+  it('tells which statuses end without a delivery', () => {
+    expect(closedWithoutDelivery('returned')).toBe(true)
+    expect(closedWithoutDelivery('cancelled')).toBe(true)
+    expect(closedWithoutDelivery('delivered')).toBe(false)
   })
 })
 
@@ -212,5 +306,79 @@ describe('labelErrorMessage', () => {
   it('says nothing about an expired session or a missing permission', () => {
     expect(labelErrorMessage(401)).toBeNull()
     expect(labelErrorMessage(403)).toBeNull()
+  })
+})
+
+describe('fileNameFromDisposition', () => {
+  it('reads a quoted file name', () => {
+    expect(fileNameFromDisposition('attachment; filename="etiqueta-OCA-1.pdf"')).toBe(
+      'etiqueta-OCA-1.pdf',
+    )
+  })
+
+  it('reads an unquoted one', () => {
+    expect(fileNameFromDisposition('inline; filename=etiqueta.pdf')).toBe('etiqueta.pdf')
+  })
+
+  // `filename*` es el que lleva tildes: gana sobre el común.
+  it('prefers the utf-8 name over the plain one', () => {
+    expect(
+      fileNameFromDisposition(
+        'attachment; filename="etiqueta.pdf"; filename*=UTF-8\'\'etiqueta-env%C3%ADo.pdf',
+      ),
+    ).toBe('etiqueta-envío.pdf')
+  })
+
+  it('falls back to the plain name when the utf-8 one is badly escaped', () => {
+    expect(
+      fileNameFromDisposition('attachment; filename="etiqueta.pdf"; filename*=UTF-8\'\'%E0%A4%A'),
+    ).toBe('etiqueta.pdf')
+  })
+
+  it('has no name when the header does not carry one', () => {
+    expect(fileNameFromDisposition('inline')).toBeNull()
+    expect(fileNameFromDisposition('attachment; filename=""')).toBeNull()
+  })
+
+  // Viene de la red: una carpeta en el nombre no llega al diálogo de guardado.
+  it('strips folder separators from the name', () => {
+    expect(fileNameFromDisposition('attachment; filename="../../etc/passwd"')).toBe(
+      '..-..-etc-passwd',
+    )
+  })
+})
+
+describe('labelFileName', () => {
+  it('keeps the name the api suggested', () => {
+    expect(labelFileName({ id: 31, trackingNumber: 'OCA-1' }, 'de-la-api.pdf')).toBe(
+      'de-la-api.pdf',
+    )
+  })
+
+  it('names the file after the tracking number otherwise', () => {
+    expect(labelFileName({ id: 31, trackingNumber: 'OCA-0012345678' }, null)).toBe(
+      'etiqueta-OCA-0012345678.pdf',
+    )
+  })
+
+  it('cleans a tracking number that could not be a file name', () => {
+    expect(labelFileName({ id: 31, trackingNumber: 'AND/99:20' }, null)).toBe(
+      'etiqueta-AND-99-20.pdf',
+    )
+  })
+
+  it('falls back to the shipment id without a tracking number', () => {
+    expect(labelFileName({ id: 31, trackingNumber: null }, null)).toBe('etiqueta-envio-31.pdf')
+  })
+})
+
+describe('undeliveredReason', () => {
+  it('says why a returned or cancelled shipment will not be delivered', () => {
+    expect(undeliveredReason('returned')).toBe('Devuelto al remitente')
+    expect(undeliveredReason('cancelled')).toBe('Envío cancelado')
+  })
+
+  it('has no reason for a shipment that can still arrive or already did', () => {
+    for (const status of SHIPMENT_STAGES) expect(undeliveredReason(status)).toBeNull()
   })
 })

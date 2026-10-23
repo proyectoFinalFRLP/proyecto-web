@@ -1,3 +1,4 @@
+import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined'
 import PrintOutlinedIcon from '@mui/icons-material/PrintOutlined'
 import { Box, Button, Typography } from '@mui/material'
 
@@ -23,10 +24,11 @@ interface ShippingLabelFieldProps {
  * Tres estados y ningún hueco: sin despachar dice que está pendiente, porque la
  * etiqueta la emite el courier; despachado sin etiqueta (`labelAvailable` en
  * false) lo dice también, en vez de ofrecer un botón que contesta 404; y con
- * etiqueta, el botón para imprimirla.
+ * etiqueta, el botón para imprimirla y, al lado, el de descargarla con un
+ * nombre legible (TESIS-188).
  */
 export function ShippingLabelField({ shipment }: ShippingLabelFieldProps) {
-  const { print, printing } = useShipmentLabel()
+  const { print, download, printing, downloading, busy } = useShipmentLabel()
   const dispatched = shipment !== null && shipment.trackingNumber !== null
 
   return (
@@ -36,16 +38,28 @@ export function ShippingLabelField({ shipment }: ShippingLabelFieldProps) {
       </Typography>
 
       {shipment?.labelAvailable ? (
-        <Button
-          size="small"
-          variant="outlined"
-          startIcon={<PrintOutlinedIcon />}
-          loading={printing}
-          onClick={() => print(shipment)}
-          sx={{ alignSelf: 'flex-start' }}
-        >
-          {labelCopy.action}
-        </Button>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+          <Button
+            size="small"
+            variant="outlined"
+            startIcon={<PrintOutlinedIcon />}
+            loading={printing}
+            disabled={busy}
+            onClick={() => print(shipment)}
+          >
+            {labelCopy.action}
+          </Button>
+          <Button
+            size="small"
+            variant="text"
+            startIcon={<FileDownloadOutlinedIcon />}
+            loading={downloading}
+            disabled={busy}
+            onClick={() => download(shipment)}
+          >
+            {labelCopy.download}
+          </Button>
+        </Box>
       ) : (
         <Typography variant="bodyMd" color="text.disabled">
           {dispatched ? labelCopy.missing : labelCopy.pending}

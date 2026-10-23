@@ -68,8 +68,3 @@ export const catalogKeys = {
     ['inventory', 'products', 'detail', productId, 'stocks'] as const,
   warehouses: () => ['inventory', 'warehouses', 'origin'] as const,
 }
-
-/** El vocabulario de provincias. No cambia durante la sesión. */
-export const provinceKeys = {
-  all: () => [...orderKeys.all, 'provinces'] as const,
-}

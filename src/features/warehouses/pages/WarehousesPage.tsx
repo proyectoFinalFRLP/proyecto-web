@@ -5,6 +5,7 @@ import { Box, Button, Stack, Typography } from '@mui/material'
 import { useState } from 'react'
 import { DataTable, ErrorFallback, LoadingSpinner, PageWrapper } from 'shared/components'
 import type { DataTableAction, DataTableColumn } from 'shared/components'
+import { useProvinces } from 'shared/hooks/useProvinces'
 import { useSortParam } from 'shared/hooks/useSortParam'
 import { notify } from 'shared/store'
 import { formatInteger } from 'shared/utils'
@@ -12,7 +13,6 @@ import { formatInteger } from 'shared/utils'
 import { DeleteWarehouseDialog } from '../components/DeleteWarehouseDialog'
 import { WarehouseFormModal } from '../components/WarehouseFormModal'
 import { warehousesCopy } from '../content'
-import { useProvinces } from '../hooks/useProvinces'
 import {
   RESTRICTED_STATUS,
   useCreateWarehouse,

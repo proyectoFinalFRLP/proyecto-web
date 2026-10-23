@@ -106,8 +106,21 @@ export interface OrderDetail {
   createdAt: string
 }
 
-/** Los cuatro estados del envío (`Shipment::STATUSES`), en el orden del ciclo. */
-export type ShipmentStatus = 'pending' | 'ready_to_ship' | 'in_transit' | 'delivered'
+/**
+ * Los estados del envío (`Shipment::STATUSES`): los cuatro del ciclo, en orden,
+ * y los dos finales en los que el envío termina sin entregarse (TESIS-188):
+ * `returned` (el courier lo devolvió al remitente) y `cancelled` (anulado).
+ *
+ * La API puede mandar uno que este tipo todavía no tiene: la pantalla lo
+ * muestra como «Estado desconocido» (ver `shipmentStatusLabel`), no revienta.
+ */
+export type ShipmentStatus =
+  | 'pending'
+  | 'ready_to_ship'
+  | 'in_transit'
+  | 'delivered'
+  | 'returned'
+  | 'cancelled'
 
 /** El operador logístico: la integración de la empresa con el courier. */
 export interface Courier {
