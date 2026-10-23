@@ -95,7 +95,10 @@ export function StatCard({
         </Typography>
         {/* El skeleton va adentro del Typography para heredar su tamaño de
             fuente: así mide exactamente la línea que después ocupa el valor. */}
-        <Typography variant="displaySm">
+        {/* `p` y no el `h2` que mapea `displaySm`: el número es el dato de la
+            tarjeta, no un título; como encabezado, la navegación por títulos
+            del lector de pantalla listaba «19», «22»… (TESIS-91). */}
+        <Typography variant="displaySm" component="p">
           {loading ? <Skeleton width={VALUE_SKELETON_WIDTH} /> : value}
         </Typography>
       </CardBody>

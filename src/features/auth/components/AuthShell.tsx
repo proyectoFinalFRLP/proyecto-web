@@ -35,7 +35,9 @@ export function AuthShell({ children }: { children: ReactNode }) {
       <BackgroundGlow placement="top" />
       <BackgroundGlow placement="bottom" />
 
-      <TopBar>
+      {/* `header`: el nombre de la empresa queda dentro de un landmark, como el
+          resto de la pantalla (TESIS-91). */}
+      <TopBar as="header">
         <Typography variant="labelMd" color="primary.main" sx={{ letterSpacing: '0.08em' }}>
           {tenantName ?? authContent.brand}
         </Typography>

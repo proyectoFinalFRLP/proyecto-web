@@ -94,7 +94,9 @@ export function RecentShipmentsCard({ shipments, loading = false }: RecentShipme
   return (
     <ListCard aria-busy={loading}>
       <HeaderRow>
-        <Typography variant="h3">{shipmentsCopy.title}</Typography>
+        <Typography variant="h3" component="h2">
+          {shipmentsCopy.title}
+        </Typography>
         <LocalShippingOutlinedIcon />
       </HeaderRow>
 
