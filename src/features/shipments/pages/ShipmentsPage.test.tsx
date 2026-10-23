@@ -179,6 +179,56 @@ describe('ShipmentsPage', () => {
     expect(tabs.getByRole('tab', { name: /Pendientes/ })).not.toHaveTextContent('0')
   })
 
+  // TESIS-188: los finales sin entrega tienen su pestaña, después del ciclo.
+  describe('the shipments that ended without a delivery', () => {
+    it('offers a tab for the returned ones and one for the cancelled ones', () => {
+      mockCounts({ all: 4, returned: 3, cancelled: 1 })
+      renderPage()
+
+      const tabs = within(screen.getByRole('tablist'))
+      expect(tabs.getByRole('tab', { name: /Devueltos/ })).toHaveTextContent('3')
+      expect(tabs.getByRole('tab', { name: /Cancelados/ })).toHaveTextContent('1')
+    })
+
+    it('filters the listing by the status of the tab', () => {
+      renderPage()
+
+      fireEvent.click(screen.getByRole('tab', { name: /Devueltos/ }))
+
+      expect(lastFilters().status).toBe('returned')
+    })
+
+    // Una API anterior no los cuenta: la pestaña queda sin número, no en cero.
+    it('leaves their tabs without a number when the api does not count them', () => {
+      renderPage()
+
+      const tabs = within(screen.getByRole('tablist'))
+      expect(tabs.getByRole('tab', { name: /Devueltos/ })).not.toHaveTextContent(/\d/)
+      expect(tabs.getByRole('tab', { name: /Cancelados/ })).not.toHaveTextContent(/\d/)
+    })
+
+    it('names their status in the row', () => {
+      mockPage([
+        { ...DISPATCHED, status: 'returned' },
+        { ...PENDING, status: 'cancelled' },
+      ])
+      renderPage()
+
+      const [, returned, cancelled] = screen.getAllByRole('row')
+      expect(within(returned).getByText('Devuelto')).toBeInTheDocument()
+      expect(within(cancelled).getByText('Cancelado')).toBeInTheDocument()
+    })
+  })
+
+  // El backend puede sumar un estado antes que el front: la fila se ve igual.
+  it('names a status it does not know instead of leaving the badge empty', () => {
+    mockPage([{ ...DISPATCHED, status: 'lost' as ShipmentSummary['status'] }])
+    renderPage()
+
+    const [, row] = screen.getAllByRole('row')
+    expect(within(row).getByText('Estado desconocido')).toBeInTheDocument()
+  })
+
   it('says the range it is showing', () => {
     renderPage()
 

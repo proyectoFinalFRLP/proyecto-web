@@ -15,6 +15,9 @@ export const SHIPMENT_TABS = [
   { id: 'ready_to_ship', status: 'ready_to_ship' },
   { id: 'in_transit', status: 'in_transit' },
   { id: 'delivered', status: 'delivered' },
+  // Los finales sin entrega (TESIS-188), después del ciclo.
+  { id: 'returned', status: 'returned' },
+  { id: 'cancelled', status: 'cancelled' },
 ] as const satisfies readonly { id: string; status: ShipmentStatus | undefined }[]
 
 export type ShipmentTabId = (typeof SHIPMENT_TABS)[number]['id']

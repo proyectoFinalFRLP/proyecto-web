@@ -1,5 +1,6 @@
 import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import { useProvinces } from 'shared/hooks/useProvinces'
 import { useOrderDraftStore } from 'shared/store'
 import type { OrderDraftItem } from 'shared/store'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -7,14 +8,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { renderWithTheme } from '../../../test/renderWithTheme'
 import { useOriginWarehouses } from '../hooks/useOriginWarehouses'
 import { useProductStocks } from '../hooks/useProductStocks'
-import { useProvinces } from '../hooks/useProvinces'
 import type { OriginWarehouse, ProductStockByWarehouse } from '../types'
 
 import { ShippingStepPage } from './ShippingStepPage'
 
 vi.mock('../hooks/useOriginWarehouses', () => ({ useOriginWarehouses: vi.fn() }))
 vi.mock('../hooks/useProductStocks', () => ({ useProductStocks: vi.fn() }))
-vi.mock('../hooks/useProvinces', () => ({ useProvinces: vi.fn() }))
+vi.mock('shared/hooks/useProvinces', () => ({ useProvinces: vi.fn() }))
 
 const WAREHOUSES: OriginWarehouse[] = [
   { id: 1, name: 'CD Ezeiza', address: 'Autopista Riccheri km 22,5', zipCode: '1804' },

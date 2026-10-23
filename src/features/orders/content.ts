@@ -50,7 +50,12 @@ export const ordersCopy = {
     ready_to_ship: 'Listo para despachar',
     in_transit: 'En tránsito',
     delivered: 'Entregado',
+    /** Finales sin entrega (TESIS-188): no son etapas del ciclo, lo cierran. */
+    returned: 'Devuelto',
+    cancelled: 'Cancelado',
   },
+  /** Un estado que la API manda y esta versión del front todavía no conoce. */
+  shipmentStatusUnknown: 'Estado desconocido',
   detail: {
     header: {
       title: (orderLabel: string) => `Orden ${orderLabel}`,
@@ -186,6 +191,19 @@ export const ordersCopy = {
       /** Sin despachar, o despachado con una opción que no informó plazo. */
       noEstimate: 'Sin fecha comprometida',
     },
+    /**
+     * Devuelto o cancelado (TESIS-188): el envío terminó sin entregarse, así que
+     * la fecha comprometida ya no promete nada y la demora no corre.
+     */
+    undelivered: {
+      value: 'No se entrega',
+      reasons: {
+        returned: 'Devuelto al remitente',
+        cancelled: 'Envío cancelado',
+      },
+      /** "No se entrega · Devuelto al remitente", para el panel del envío. */
+      summary: (reason: string) => `No se entrega · ${reason}`,
+    },
     customer: {
       title: 'Datos del cliente',
       fields: {
@@ -214,6 +232,15 @@ export const ordersCopy = {
       label: {
         title: 'Etiqueta de envío',
         action: 'Imprimir etiqueta',
+        /** Guarda el PDF con un nombre legible, en vez del UUID del `blob:` (TESIS-188). */
+        download: 'Descargar',
+        /** "etiqueta-OCA-0012345678.pdf": recibe el seguimiento ya limpio. */
+        fileName: (tracking: string) => `etiqueta-${tracking}.pdf`,
+        /** Lo que muestra la pestaña nueva mientras el courier arma el PDF. */
+        loading: 'Cargando etiqueta…',
+        /** El navegador no dejó abrir la pestaña: se guarda el PDF en su lugar. */
+        popupBlocked:
+          'El navegador bloqueó la pestaña de la etiqueta. La descargamos: la encontrás en tus descargas.',
         /** Sin despachar no hay etiqueta: la emite el courier (TESIS-47). */
         pending: 'Se emite al despachar.',
         /** Despachado y sin etiqueta: el courier no la devolvió. */

@@ -4,6 +4,7 @@ import type {
   OrderDraftItem,
   OrderDraftOrigin,
 } from 'shared/store'
+import { blankToNull } from 'shared/utils'
 
 import type { ProductStockByWarehouse, ShippingQuote } from '../types'
 
@@ -108,11 +109,6 @@ export interface CreateOrderPayload {
       unit_price: number
     }[]
   }
-}
-
-export function blankToNull(value: string): string | null {
-  const trimmed = value.trim()
-  return trimmed === '' ? null : trimmed
 }
 
 /**

@@ -13,7 +13,7 @@ import { ShipmentsTable } from '../components/ShipmentsTable'
 import { shipmentsCopy } from '../content'
 import { SHIPMENT_TABS, useShipmentCounts, useShipmentPage } from '../hooks/useShipments'
 import type { ShipmentTabId } from '../hooks/useShipments'
-import type { ShipmentSummary } from '../types'
+import type { ShipmentCounts, ShipmentSummary } from '../types'
 import { SHIPMENT_SORT_KEYS } from '../utils/sort'
 
 const { page: pageCopy, tabs: tabCopy, table, pagination, delayedFilter } = shipmentsCopy
@@ -35,6 +35,19 @@ const TAB_LABELS: Record<ShipmentTabId, string> = {
   ready_to_ship: tabCopy.ready_to_ship,
   in_transit: tabCopy.in_transit,
   delivered: tabCopy.delivered,
+  returned: tabCopy.returned,
+  cancelled: tabCopy.cancelled,
+}
+
+/**
+ * El número de una pestaña, o nada mientras no se sabe: un contador que todavía
+ * no resolvió no muestra cero (mostraría un número falso y saltaría al real), y
+ * tampoco uno que la API no mandó (una anterior a TESIS-188 no cuenta los
+ * devueltos ni los cancelados).
+ */
+function tabCount(counts: ShipmentCounts | undefined, id: ShipmentTabId): string | undefined {
+  const count = counts?.[id]
+  return count === undefined ? undefined : formatInteger(count)
 }
 
 /**
@@ -111,9 +124,7 @@ export function ShipmentsPage() {
   const tabs: DataTableTab[] = SHIPMENT_TABS.map(({ id }) => ({
     id,
     label: TAB_LABELS[id],
-    // Un contador que todavía no resolvió no muestra cero: mostraría un número
-    // falso durante el primer render y luego saltaría al real.
-    count: counts.data === undefined ? undefined : formatInteger(counts.data[id]),
+    count: tabCount(counts.data, id),
   }))
 
   if (shipments.isPending) return <LoadingSpinner fullScreen />

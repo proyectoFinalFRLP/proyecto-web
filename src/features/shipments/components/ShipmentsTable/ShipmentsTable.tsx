@@ -2,7 +2,7 @@ import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined'
 import { IconButton, Link, Stack, Tooltip, Typography } from '@mui/material'
 import { DataTable, StackedCell, StatusBadge } from 'shared/components'
 import type { DataTableColumn, StatusVariant } from 'shared/components'
-import { formatOrderId, formatRoundMoney } from 'shared/utils'
+import { formatOrderId, formatRoundMoney, lookup } from 'shared/utils'
 
 import { shipmentsCopy } from '../../content'
 import type { ShipmentStatus, ShipmentSummary } from '../../types'
@@ -16,11 +16,17 @@ const { columns: columnCopy, cells, status: statusCopy, table } = shipmentsCopy
 // El tono de cada estado. Mapa explícito y no un `switch` con default: si el
 // backend suma un estado, el compilador marca este archivo en vez de pintarlo
 // en gris sin avisar. Es el mismo vocabulario que usa el detalle de la orden.
+// Si la API manda un estado antes que el tipo lo tenga, `lookup` lo pinta
+// neutro y lo nombra como desconocido en vez de dejar el badge vacío.
 const TONES: Record<ShipmentStatus, StatusVariant> = {
   pending: 'neutral',
   ready_to_ship: 'info',
   in_transit: 'info',
   delivered: 'success',
+  // Finales sin entrega (TESIS-188): devuelto cierra el ciclo sin nada que
+  // hacer; cancelado pide atención, como la orden cancelada.
+  returned: 'neutral',
+  cancelled: 'error',
 }
 
 /** Lo que todavía no existe no se dibuja vacío: se dice por qué falta. */
@@ -124,7 +130,10 @@ function buildColumns(
       // sigue «En tránsito», sólo que pasó el día que se le prometió al cliente.
       render: (shipment) => (
         <Stack spacing={0.5} sx={{ alignItems: 'flex-start' }}>
-          <StatusBadge status={TONES[shipment.status]} label={statusCopy[shipment.status]} />
+          <StatusBadge
+            status={lookup(TONES, shipment.status, 'neutral')}
+            label={lookup<string>(statusCopy, shipment.status, shipmentsCopy.statusUnknown)}
+          />
           {shipment.delayed ? (
             <StatusBadge status="warning" size="sm" label={cells.delayed} />
           ) : null}

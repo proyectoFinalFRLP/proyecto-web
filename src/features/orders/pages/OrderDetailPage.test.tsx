@@ -440,6 +440,48 @@ describe('OrderDetailPage', () => {
       expect(screen.getByText('Demorada')).toBeInTheDocument()
     })
 
+    // Devuelto o cancelado no va a llegar: la fecha comprometida ya no promete
+    // nada y la demora dejó de correr (TESIS-188).
+    it.each([
+      ['returned', 'Devuelto al remitente'],
+      ['cancelled', 'Envío cancelado'],
+    ] as const)('says a %s shipment will not be delivered', (status, reason) => {
+      mockQueries(
+        { data: ORDER },
+        {
+          data: {
+            kind: 'single',
+            shipment: { ...SHIPMENT, status, promisedDeliveryOn: '2026-10-15', delayed: true },
+          },
+        },
+      )
+
+      renderAt('/orders/8829')
+
+      expect(within(panel()).getByText('Entrega comprometida')).toBeInTheDocument()
+      expect(within(panel()).getByText(`No se entrega · ${reason}`)).toBeInTheDocument()
+      expect(within(panel()).queryByText('15 oct')).not.toBeInTheDocument()
+      expect(within(panel()).queryByText('Demorado')).not.toBeInTheDocument()
+      // La métrica del encabezado tampoco la promete ni la marca demorada.
+      expect(screen.getByText('No se entrega')).toBeInTheDocument()
+      expect(screen.getByText(reason)).toBeInTheDocument()
+      expect(screen.queryByText('Comprometida')).not.toBeInTheDocument()
+      expect(screen.queryByText('Demorada')).not.toBeInTheDocument()
+    })
+
+    it('says a cancelled shipment will not be delivered even without a promised date', () => {
+      mockQueries(
+        { data: ORDER },
+        { data: { kind: 'single', shipment: { ...SHIPMENT, status: 'cancelled' } } },
+      )
+
+      renderAt('/orders/8829')
+
+      expect(screen.getByText('No se entrega')).toBeInTheDocument()
+      expect(screen.queryByText('Sin fecha comprometida')).not.toBeInTheDocument()
+      expect(screen.queryByText('Entrega comprometida')).not.toBeInTheDocument()
+    })
+
     // Sin plazo informado no hay fecha que mostrar: la fila no aparece.
     it('leaves out the promised date when the shipment has none', () => {
       mockQueries({ data: ORDER })

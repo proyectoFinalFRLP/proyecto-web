@@ -1,6 +1,6 @@
 import { client } from 'shared/api/client'
 import { fetchCount } from 'shared/api/count'
-import { sortParams } from 'shared/utils'
+import { blankToNull, sortParams } from 'shared/utils'
 
 import type {
   CatalogProduct,
@@ -19,7 +19,7 @@ import type {
   UpdateOrderPayload,
 } from './types'
 import type { OrderQuotePayload } from './utils/dispatch'
-import { printableLabel } from './utils/shipment'
+import { fileNameFromDisposition, printableLabel } from './utils/shipment'
 import type { CreateOrderPayload, DispatchPayload, DraftQuotePayload } from './utils/shipping'
 
 // Frontera con la API Rails. Lo que entra en snake_case se traduce acá y sale
@@ -275,13 +275,6 @@ export async function updateOrder(
   return toOrderDetail(response.data, readVersion(response.headers.etag))
 }
 
-// Un texto en blanco no es un dato: la pantalla esconde la fila en vez de
-// mostrar un rótulo vacío.
-function blankToNull(value: string | null | undefined): string | null {
-  const trimmed = value?.trim() ?? ''
-  return trimmed === '' ? null : trimmed
-}
-
 function toShipment(shipment: ApiShipment): Shipment {
   return {
     id: shipment.id,
@@ -424,17 +417,6 @@ export async function fetchProductStocks(productId: number): Promise<ProductStoc
 }
 
 /**
- * Las provincias que acepta el alta (`Order::PROVINCES`, TESIS-128). Se leen del
- * backend y no se escriben acá porque tienen que coincidir carácter por
- * carácter, tildes incluidas: una provincia mal escrita es un 422 al confirmar.
- */
-export async function fetchProvinces(): Promise<string[]> {
-  const { data } = await client.get<{ data: string[] }>('/orders/provinces')
-
-  return data.data
-}
-
-/**
  * El costo cotizado, redondeado a centavos como lo va a guardar el envío
  * (`decimal(10,2)`, que redondea la mitad hacia arriba). Un courier puede
  * contestar con más decimales, y el costo elegido viaja al despacho: sin esto
@@ -511,6 +493,13 @@ export async function dispatchShipment(
 
 const PDF_TYPE = 'application/pdf'
 
+/** El PDF de la etiqueta y el nombre con el que la API sugiere guardarlo. */
+export interface ShipmentLabel {
+  pdf: Blob
+  /** El de `Content-Disposition`, o null si no vino o no se pudo leer. */
+  fileName: string | null
+}
+
 /**
  * La etiqueta del envío para imprimir (`GET /shipments/:id/label`, TESIS-186).
  *
@@ -523,12 +512,20 @@ const PDF_TYPE = 'application/pdf'
  * Un 404 (sin etiqueta) o un 502 (el courier contestó otra cosa que un PDF)
  * llegan como el error del cliente, con su status.
  */
-export async function fetchShipmentLabel(shipmentId: number): Promise<Blob | null> {
+export async function fetchShipmentLabel(shipmentId: number): Promise<ShipmentLabel | null> {
   const response = await client.get<Blob>(`/shipments/${shipmentId}/label`, {
     responseType: 'blob',
   })
   const header: unknown = response.headers['content-type']
   const type = typeof header === 'string' ? header : response.data.type
+  if (!type.toLowerCase().startsWith(PDF_TYPE)) return null
 
-  return type.toLowerCase().startsWith(PDF_TYPE) ? response.data : null
+  // El nombre con el que la API sugiere guardarlo (TESIS-188). Desde otro
+  // origen el navegador sólo deja leer el header si la API lo expone en CORS
+  // (`expose`); si no llega, quien guarda el PDF arma uno con el seguimiento.
+  const disposition: unknown = response.headers['content-disposition']
+  return {
+    pdf: response.data,
+    fileName: typeof disposition === 'string' ? fileNameFromDisposition(disposition) : null,
+  }
 }

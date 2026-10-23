@@ -8,3 +8,9 @@ coverage
 *.log
 .husky
 docs
+
+# Salida de los tests de punta a punta y la sesión que guardan (TESIS-94)
+test-results
+playwright-report
+blob-report
+e2e/.auth

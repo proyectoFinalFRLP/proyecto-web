@@ -1,3 +1,5 @@
+import { blankToNull } from 'shared/utils'
+
 import type {
   EditableOrderStatus,
   OrderDetail,
@@ -6,7 +8,7 @@ import type {
 } from '../types'
 
 import { lineSubtotal } from './payment'
-import { blankToNull, toDestinationPayload } from './shipping'
+import { toDestinationPayload } from './shipping'
 
 // Las reglas de la modificación de una orden (S09), fuera de los componentes
 // para probarlas sin montar la pantalla.
