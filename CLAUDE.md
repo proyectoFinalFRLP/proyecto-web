@@ -216,5 +216,6 @@ Aparte, `.github/workflows/e2e.yml` corre los tests de Playwright contra la API 
 | [docs/guidelines/git-workflow.md](docs/guidelines/git-workflow.md)               | Ramas, commits, PRs, Husky, CI/CD                                                 |
 | [docs/guidelines/testing.md](docs/guidelines/testing.md)                         | Vitest y Testing Library: dónde vive un test, cómo se escribe, qué se prueba      |
 | [docs/guidelines/pr-guidelines.md](docs/guidelines/pr-guidelines.md)             | Cómo redactar PRs con ejemplos                                                    |
+| [docs/guidelines/accessibility.md](docs/guidelines/accessibility.md)             | Chequeo de accesibilidad con axe en claro y oscuro, hallazgos y exclusiones       |
 | [docs/adr/](docs/adr/)                                                           | 8 decisiones arquitectónicas (ADRs)                                               |
 | [docs/design/](docs/design/)                                                     | Fuentes del diseño: pantallas, componentes compartidos y vocabulario del producto |
