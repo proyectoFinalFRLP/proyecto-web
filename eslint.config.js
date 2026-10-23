@@ -12,7 +12,17 @@ export default defineConfig([
   // `.freebuff/` es el directorio interno de la app de escritorio (worktrees
   // propios, DB, etc.): no es código del repo y no pertenece a ningún proyecto
   // de TS, así que no se puede lintar (ESLint no respeta .gitignore).
-  globalIgnores(['dist', '.claude', '.freebuff', '**/*.md']),
+  // `test-results` y `playwright-report` son la salida de los tests de punta a
+  // punta (TESIS-94).
+  globalIgnores([
+    'dist',
+    '.claude',
+    '.freebuff',
+    '**/*.md',
+    'test-results',
+    'playwright-report',
+    'blob-report',
+  ]),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
@@ -30,7 +40,7 @@ export default defineConfig([
       ecmaVersion: 2020,
       globals: globals.browser,
       parserOptions: {
-        project: ['./tsconfig.app.json', './tsconfig.node.json'],
+        project: ['./tsconfig.app.json', './tsconfig.node.json', './tsconfig.e2e.json'],
         tsconfigRootDir: import.meta.dirname,
       },
     },
@@ -181,6 +191,18 @@ export default defineConfig([
           ],
         },
       ],
+    },
+  },
+
+  // Tests de punta a punta (TESIS-94): corren en Node con Playwright, no en el
+  // navegador de la app. No hay componentes que refrescar.
+  {
+    files: ['e2e/**/*.ts', 'playwright.config.ts'],
+    languageOptions: {
+      globals: globals.node,
+    },
+    rules: {
+      'react-refresh/only-export-components': 'off',
     },
   },
 

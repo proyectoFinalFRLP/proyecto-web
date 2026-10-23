@@ -45,6 +45,8 @@ npm run lint -- --fix # Auto-corregir problemas de ESLint
 npm run test          # Suite de tests unitarios (Vitest)
 
 npm run test:watch    # Tests en modo interactivo
+
+npm run test:e2e      # Tests de punta a punta (Playwright): requiere la API con los seeds en :3000
 ```
 
 ### Variable de entorno
@@ -198,6 +200,8 @@ Pipeline en `.github/workflows/ci.yml`:
 | `branch-name` | Valida nombre de rama (solo en PRs)      |
 | `test`        | `npm run test` (Vitest)                  |
 | `build`       | `npm run build` (tsc + vite)             |
+
+Aparte, `.github/workflows/e2e.yml` corre los tests de Playwright contra la API real (no bloquea el CI). Ver [`docs/guidelines/testing.md` §7](docs/guidelines/testing.md#7-tests-de-punta-a-punta-playwright).
 
 ---
 
