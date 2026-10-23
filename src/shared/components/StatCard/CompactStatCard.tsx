@@ -15,7 +15,10 @@ export function CompactStatCard({ label, value, icon, tone = 'neutral' }: Compac
         <Typography variant="labelSm" color="text.secondary" sx={{ textTransform: 'uppercase' }}>
           {label}
         </Typography>
-        <Typography variant="h2">{value}</Typography>
+        {/* El valor es un dato, no un título (mismo criterio que StatCard). */}
+        <Typography variant="h2" component="p">
+          {value}
+        </Typography>
       </CompactBody>
     </CompactRoot>
   )

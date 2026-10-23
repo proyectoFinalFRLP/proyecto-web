@@ -70,7 +70,7 @@ function buildColumns(onView: (order: OrderSummary) => void): DataTableColumn<Or
       truncate: true,
       render: (order) =>
         order.customerAddress === null ? (
-          <Typography variant="bodyMd" sx={{ color: 'text.disabled' }}>
+          <Typography variant="bodyMd" sx={{ color: 'text.secondary' }}>
             {cells.noDestination}
           </Typography>
         ) : (
@@ -107,7 +107,7 @@ function buildColumns(onView: (order: OrderSummary) => void): DataTableColumn<Or
           variant="dataMono"
           // Sin total la celda queda atenuada en vez de en blanco: un hueco
           // se lee como un error de carga y esto es un dato que no existe.
-          color={order.totalAmount === null ? 'text.disabled' : undefined}
+          color={order.totalAmount === null ? 'text.secondary' : undefined}
         >
           {order.totalAmount === null ? cells.noTotal : formatMoney(order.totalAmount)}
         </Typography>

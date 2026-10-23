@@ -48,6 +48,10 @@ test.describe('tenant isolation', () => {
 
   test('shows a Sur user only the Sur catalog', async ({ page }) => {
     await logIn(page, SUR_ADMIN, '/login?tenant=sur')
+    // Primero que haya entrado: el login también tiene un `banner` con el nombre
+    // de la empresa, y sin esto el assert del header pasaría antes de ingresar.
+    await expect(page).toHaveURL(/\/(\?tenant=sur)?$/)
+    await expect(page.getByRole('heading', { name: 'Panel de operación' })).toBeVisible()
     await expect(page.getByRole('banner')).toContainText('Comercial Sur')
 
     // Por el Sidebar y no con `goto`: el slug de `?tenant=` vale para la carga

@@ -42,7 +42,9 @@ export function WarehouseLoadCard({
   return (
     <LoadCard>
       <HeaderRow>
-        <Typography variant="h3">{copy.title}</Typography>
+        <Typography variant="h3" component="h2">
+          {copy.title}
+        </Typography>
         <WarehouseOutlinedIcon />
       </HeaderRow>
 

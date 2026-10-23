@@ -38,7 +38,7 @@ export function TrackingNumberField({ trackingNumber }: TrackingNumberFieldProps
         {trackingCopy.label}
       </Typography>
       {trackingNumber === null ? (
-        <Typography variant="bodyMd" color="text.disabled">
+        <Typography variant="bodyMd" color="text.secondary">
           {trackingCopy.pending}
         </Typography>
       ) : (

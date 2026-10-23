@@ -56,10 +56,7 @@ function buildColumns(
       header: copy.columns.warehouse,
       width: 150,
       render: (line) => (
-        <Typography
-          variant="bodyMd"
-          color={line.warehouseId === null ? 'text.disabled' : 'text.secondary'}
-        >
+        <Typography variant="bodyMd" color="text.secondary">
           {warehouseLabel(line, warehouseName)}
         </Typography>
       ),
@@ -130,7 +127,7 @@ function RemoveCell({
       <Tooltip title={copy.locked}>
         <LockOutlinedIcon
           fontSize="small"
-          sx={{ color: 'text.disabled' }}
+          sx={{ color: 'text.secondary' }}
           aria-label={copy.locked}
         />
       </Tooltip>

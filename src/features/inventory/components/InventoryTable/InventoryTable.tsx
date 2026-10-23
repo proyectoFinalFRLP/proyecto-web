@@ -68,7 +68,7 @@ function buildColumns(
       hideBelow: 'md',
       render: (product) =>
         product.category === null ? (
-          <Typography variant="bodyMd" sx={{ color: 'text.disabled' }}>
+          <Typography variant="bodyMd" sx={{ color: 'text.secondary' }}>
             {cells.noCategory}
           </Typography>
         ) : (
@@ -89,9 +89,15 @@ function buildColumns(
       // en ningún nodo. Sumarlas diría que hay mercadería que no está.
       render: (product) => (
         <Box sx={{ textAlign: 'right' }}>
-          <Typography variant="dataMono">{formatInteger(product.totalStock)}</Typography>
+          {/* `block`: las dos variantes son `span` y, en línea, se leían
+              pegadas («11+2 en tránsito») en vez de una debajo de la otra. */}
+          <Typography variant="dataMono" display="block">
+            {formatInteger(product.totalStock)}
+          </Typography>
           {product.inTransitQuantity > 0 ? (
-            <Typography variant="labelSm" sx={{ color: 'info.main' }}>
+            // `onContainer` y no `main`: el celeste de `info.main` sobre blanco
+            // queda en 2.8:1 y a 11px no se lee (axe, TESIS-91).
+            <Typography variant="labelSm" display="block" sx={{ color: 'info.onContainer' }}>
               {cells.inTransit(product.inTransitQuantity)}
             </Typography>
           ) : null}
@@ -116,7 +122,7 @@ function buildColumns(
       hideBelow: 'md',
       render: (product) =>
         product.primaryWarehouse === null ? (
-          <Typography variant="bodyMd" sx={{ color: 'text.disabled' }}>
+          <Typography variant="bodyMd" sx={{ color: 'text.secondary' }}>
             {cells.noWarehouse}
           </Typography>
         ) : (

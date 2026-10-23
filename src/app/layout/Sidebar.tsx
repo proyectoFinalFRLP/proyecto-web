@@ -1,4 +1,5 @@
 import {
+  Box,
   Divider,
   Drawer,
   List,
@@ -12,6 +13,9 @@ import { navRoutes } from 'app/router/routes'
 import { NavLink } from 'react-router-dom'
 
 import { SIDEBAR_WIDTH, useSidebar } from './useSidebar'
+
+/** Nombre del landmark de navegación: lo que anuncia el lector de pantalla. */
+const NAV_LABEL = 'Navegación principal'
 
 /**
  * Navegación lateral. En pantallas anchas es un drawer `persistent`: fijo al
@@ -44,30 +48,36 @@ export function Sidebar() {
     >
       <Toolbar />
       <Divider />
-      <List>
-        {navRoutes.map((route) => (
-          <ListItem key={route.path} disablePadding>
-            <ListItemButton
-              component={NavLink}
-              to={route.path}
-              end
-              // Flotando, la sidebar tapa la pantalla a la que se acaba de ir:
-              // elegir una sección es también terminar con el panel.
-              onClick={floating ? close : undefined}
-              sx={{
-                '&.active': {
-                  bgcolor: 'action.selected',
-                  '& .MuiListItemIcon-root': { color: 'primary.main' },
-                  '& .MuiListItemText-primary': { color: 'primary.main', fontWeight: 600 },
-                },
-              }}
-            >
-              <ListItemIcon>{route.nav.icon}</ListItemIcon>
-              <ListItemText primary={route.nav.label} />
-            </ListItemButton>
-          </ListItem>
-        ))}
-      </List>
+      {/* La lista va dentro de un `nav`: sin landmark, el lector de pantalla no
+          ofrece saltar a la navegación y axe marca los enlaces como contenido
+          fuera de toda región (TESIS-91). Envuelve a la lista en vez de
+          reemplazar su `ul`, que los `li` necesitan como padre. */}
+      <Box component="nav" aria-label={NAV_LABEL}>
+        <List>
+          {navRoutes.map((route) => (
+            <ListItem key={route.path} disablePadding>
+              <ListItemButton
+                component={NavLink}
+                to={route.path}
+                end
+                // Flotando, la sidebar tapa la pantalla a la que se acaba de ir:
+                // elegir una sección es también terminar con el panel.
+                onClick={floating ? close : undefined}
+                sx={{
+                  '&.active': {
+                    bgcolor: 'action.selected',
+                    '& .MuiListItemIcon-root': { color: 'primary.main' },
+                    '& .MuiListItemText-primary': { color: 'primary.main', fontWeight: 600 },
+                  },
+                }}
+              >
+                <ListItemIcon>{route.nav.icon}</ListItemIcon>
+                <ListItemText primary={route.nav.label} />
+              </ListItemButton>
+            </ListItem>
+          ))}
+        </List>
+      </Box>
     </Drawer>
   )
 }

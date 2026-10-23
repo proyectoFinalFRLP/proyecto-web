@@ -53,7 +53,7 @@ const COLUMNS: DataTableColumn<RecentOrder>[] = [
     header: copy.columns.destination,
     render: (order) =>
       order.customerAddress === null ? (
-        <Typography variant="bodyMd" sx={{ color: 'text.disabled' }}>
+        <Typography variant="bodyMd" sx={{ color: 'text.secondary' }}>
           {copy.noDestination}
         </Typography>
       ) : (
@@ -72,7 +72,7 @@ const COLUMNS: DataTableColumn<RecentOrder>[] = [
         // Sin total la celda queda atenuada en vez de en blanco: un hueco se lee
         // como un error de carga, y esto es un dato que no existe (las órdenes
         // anteriores a TESIS-114 no lo tienen).
-        color={order.totalAmount === null ? 'text.disabled' : undefined}
+        color={order.totalAmount === null ? 'text.secondary' : undefined}
         sx={NO_WRAP}
       >
         {order.totalAmount === null ? copy.noTotal : formatMoney(order.totalAmount)}

@@ -58,7 +58,8 @@ export function LoginPage() {
           {/* El portal es de la empresa: su nombre manda en la cabecera de la
               tarjeta y hereda el color primario del tenant. El fallback cubre
               el caso sin branding (el producto genérico). */}
-          <Typography variant="h2" color="primary.main">
+          {/* `h1`: es el único título de la pantalla (TESIS-91). */}
+          <Typography variant="h2" component="h1" color="primary.main">
             {tenantName ?? authContent.brand}
           </Typography>
           <Typography variant="bodyLg" color="text.secondary" align="center">

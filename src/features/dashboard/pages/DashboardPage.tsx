@@ -44,6 +44,9 @@ const CARD_LINK = {
   display: 'block',
   height: '100%',
   textDecoration: 'none',
+  // Sin esto el número de la tarjeta heredaba el azul (y el violeta de
+  // visitado) del enlace del navegador en vez del color de texto (TESIS-91).
+  color: 'inherit',
   borderRadius: 3,
   '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: 2 },
 }
@@ -117,7 +120,9 @@ export function DashboardPage() {
     <PageWrapper>
       <Stack spacing={3}>
         <Box>
-          <Typography variant="displaySm">{dashboardCopy.pageTitle}</Typography>
+          <Typography variant="displaySm" component="h1">
+            {dashboardCopy.pageTitle}
+          </Typography>
           <Typography variant="bodyLg" color="text.secondary">
             {dashboardCopy.pageSubtitle}
           </Typography>

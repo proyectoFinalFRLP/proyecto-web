@@ -50,12 +50,12 @@ export const InlineRoot = styled(Box)(({ theme }) => ({
   width: '100%',
 }))
 
-export const HeaderRow = styled(Box)({
+export const HeaderRow = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'flex-end',
   justifyContent: 'space-between',
-  gap: 12,
-})
+  gap: theme.spacing(1.5),
+}))
 
 export const Track = styled(Box, { shouldForwardProp: notForwarded })<{
   tone: ProgressTone

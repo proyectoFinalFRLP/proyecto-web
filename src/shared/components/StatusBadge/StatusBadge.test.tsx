@@ -68,23 +68,26 @@ describe('StatusBadge', () => {
     expect(screen.getByTestId('trailing')).toBeInTheDocument()
   })
 
-  // El texto del badge cambia de rol entre modos (en oscuro usa el tono `main`,
-  // en claro el `onContainer`). Si el tema dejara de resolver alguno, el
-  // componente se pintaría con el mismo color en los dos.
-  it('paints the label differently in each theme mode', () => {
-    const dark = renderWithTheme(<StatusBadge status="success" label="Entregado" />, {
-      mode: 'dark',
-    })
-    const darkColor = getComputedStyle(dark.getByText('Entregado')).color
-    dark.unmount()
+  // El texto del badge va en `onContainer` en los dos modos (TESIS-91): en
+  // oscuro iba en `main`, que sobre una fila crítica no llegaba al contraste AA.
+  // La variable es la misma; lo que cambia entre modos es su valor, y eso es lo
+  // que se verifica: el valor que resuelve el esquema activo en el propio badge
+  // (`textD` en oscuro, `textL` en claro).
+  it('paints the label with the on-container tone of each theme mode', () => {
+    const resolved: Record<string, string> = {}
 
-    const light = renderWithTheme(<StatusBadge status="success" label="Entregado" />, {
-      mode: 'light',
-    })
-    const lightColor = getComputedStyle(light.getByText('Entregado')).color
+    for (const mode of ['dark', 'light'] as const) {
+      const view = renderWithTheme(<StatusBadge status="error" label="Sin stock" />, { mode })
+      const style = getComputedStyle(view.getByText('Sin stock'))
 
-    // Cada modo lee su variable CSS: `main` en oscuro, `onContainer` en claro.
-    expect(darkColor).toBe('var(--mui-palette-success-main)')
-    expect(lightColor.toLowerCase()).toBe('var(--mui-palette-success-oncontainer)')
+      expect(style.color.toLowerCase()).toBe('var(--mui-palette-error-oncontainer)')
+      resolved[mode] = style
+        .getPropertyValue('--mui-palette-error-onContainer')
+        .trim()
+        .toLowerCase()
+      view.unmount()
+    }
+
+    expect(resolved).toEqual({ dark: '#fecdd3', light: '#9f1239' })
   })
 })

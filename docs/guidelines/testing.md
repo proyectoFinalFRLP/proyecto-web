@@ -150,14 +150,15 @@ contrato con la API, el ruteo, el estado entre pantallas—, no las reglas de ca
 
 ### Qué cubren
 
-| Archivo             | Flujos                                                                                                   |
-| ------------------- | -------------------------------------------------------------------------------------------------------- |
-| `auth.spec.ts`      | Redirección al login sin sesión, contraseña incorrecta, login y logout, aislamiento entre tenants        |
-| `inventory.spec.ts` | Búsqueda, filtro por estado de stock, paginación y alta de producto con stock inicial (hasta el detalle) |
-| `orders.spec.ts`    | Filtro y paginación del listado; alta manual en 3 pasos con retiro en el local y con courier (OCA)       |
-| `shipments.spec.ts` | Filtro por estado, paginación y búsqueda por número de orden hasta el detalle                            |
-| `theme.spec.ts`     | Cambio dark ↔ light que persiste al recargar, y comparación visual del login en los dos temas            |
-| `auth.setup.ts`     | Inicia sesión una vez y guarda la sesión que reusan los demás (no es un test de producto)                |
+| Archivo             | Flujos                                                                                                          |
+| ------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `auth.spec.ts`      | Redirección al login sin sesión, contraseña incorrecta, login y logout, aislamiento entre tenants               |
+| `inventory.spec.ts` | Búsqueda, filtro por estado de stock, paginación y alta de producto con stock inicial (hasta el detalle)        |
+| `orders.spec.ts`    | Filtro y paginación del listado; alta manual en 3 pasos con retiro en el local y con courier (OCA)              |
+| `shipments.spec.ts` | Filtro por estado, paginación y búsqueda por número de orden hasta el detalle                                   |
+| `theme.spec.ts`     | Cambio dark ↔ light que persiste al recargar, y comparación visual del login en los dos temas                   |
+| `a11y.spec.ts`      | axe (WCAG 2.1 A/AA) en las pantallas principales, en claro y oscuro: ver [accessibility.md](./accessibility.md) |
+| `auth.setup.ts`     | Inicia sesión una vez y guarda la sesión que reusan los demás (no es un test de producto)                       |
 
 ### Cómo correrlos en local
 

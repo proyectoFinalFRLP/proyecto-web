@@ -110,10 +110,32 @@ export const glow = {
   strong: '0 0 20px rgba(56, 189, 248, 0.4)',
 } as const
 
+// Brillo que recorre el Skeleton (animación `wave`): una franja apenas más
+// oscura en light y apenas más clara en dark que la silueta.
+export const skeletonShimmer = {
+  dark: 'rgba(255, 255, 255, 0.06)',
+  light: 'rgba(16, 24, 40, 0.06)',
+} as const
+
 // Relleno de los inputs — recesado respecto de la superficie (fill propio del DS).
+//
+// `placeholder` (TESIS-91): el de MUI es el color del texto al 42% (light) / 50%
+// (dark), que sobre el fill quedaba en 2.6:1 y 4.3:1, debajo del 4.5:1 de WCAG
+// AA. Estos llegan a 4.9:1 (light) y 5.4:1 (dark) sobre el fill y siguen
+// leyéndose más tenues que un valor cargado.
 export const inputColors = {
-  dark: { fill: '#0d1c2d', fillDisabled: '#0a1826', textDisabled: '#87929a' },
-  light: { fill: '#f4f5f6', fillDisabled: '#eceef0', textDisabled: '#9aa1a8' },
+  dark: {
+    fill: '#0d1c2d',
+    fillDisabled: '#0a1826',
+    textDisabled: '#87929a',
+    placeholder: '#87929a',
+  },
+  light: {
+    fill: '#f4f5f6',
+    fillDisabled: '#eceef0',
+    textDisabled: '#9aa1a8',
+    placeholder: '#646c75',
+  },
 } as const
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -237,10 +259,18 @@ export const semanticColors = {
     baseD: '#fbbf24',
     textD: '#fde68a',
   },
+  // En claro, `base` y `strong` bajan un escalón respecto del DS original
+  // (#f43f5e / #e11d48). `base` es el `error.main` del tema, y MUI y la app lo
+  // usan como color de TEXTO (helper text de los campos con error, avisos en
+  // línea, acciones destructivas): #f43f5e daba 3.7:1 sobre blanco y #e11d48,
+  // 4.46:1 sobre el fondo de página, los dos por debajo del 4.5:1 de AA
+  // (TESIS-91). #be123c da 6.3:1 sobre blanco, 6.0:1 sobre el fondo de página y
+  // 5.3:1 sobre su propio contenedor. `strong` sigue siendo más oscuro que
+  // `base` (botón sólido en claro, texto blanco a 8.0:1). Oscuro no cambia.
   error: {
     containerL: '#ffe4e6',
-    baseL: '#f43f5e',
-    strongL: '#e11d48',
+    baseL: '#be123c',
+    strongL: '#9f1239',
     textL: '#9f1239',
     baseD: '#fb7185',
     textD: '#fecdd3',
