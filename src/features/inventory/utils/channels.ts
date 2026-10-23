@@ -45,6 +45,17 @@ export function linkErrorMessage(error: ApiRequestError): string {
 }
 
 /**
+ * El motivo de un fallo de publicación, para mostrar. Los motivos de
+ * configuración que arma el back ya se explican solos («Shopify cannot publish
+ * stock: …»): se muestran tal cual, porque con el prefijo quedaba la misma
+ * frase dos veces. Los demás (un error del proveedor) llevan el prefijo para
+ * que se entienda qué falló.
+ */
+export function syncErrorText(reason: string): string {
+  return /cannot publish stock/i.test(reason) ? reason : copy.syncFailed(reason)
+}
+
+/**
  * Lo que dice la fila de un canal sobre la publicación del stock (TESIS-177):
  * el motivo si el último intento falló, cuándo salió bien si no, y nada si
  * todavía no se intentó.
@@ -53,7 +64,7 @@ export function mappingSyncStatus(
   mapping: ProductMapping,
   now: Date = new Date(),
 ): { tone: 'error' | 'ok'; text: string } | null {
-  if (mapping.lastSyncError) return { tone: 'error', text: copy.syncFailed(mapping.lastSyncError) }
+  if (mapping.lastSyncError) return { tone: 'error', text: syncErrorText(mapping.lastSyncError) }
   if (!mapping.lastSyncedAt) return null
 
   const ago = formatRelativeTime(mapping.lastSyncedAt, now)
@@ -75,7 +86,7 @@ export function canRetry(mapping: ProductMapping): boolean {
  * qué arreglar. El 429 es el límite por minuto del back.
  */
 export function resyncErrorMessage(error: ApiRequestError): string {
-  if (error.status === 422) return copy.syncFailed(error.message)
+  if (error.status === 422) return syncErrorText(error.message)
   if (error.status === 429) return copy.retryTooSoon
   if (error.status === 404) return copy.retryGone
   return error.message

@@ -10,6 +10,7 @@ import {
   mappingSyncStatus,
   resyncErrorMessage,
   stockSyncWarnings,
+  syncErrorText,
 } from './channels'
 
 function integration(overrides: Partial<IntegrationService>): IntegrationService {
@@ -129,6 +130,13 @@ describe('resyncErrorMessage', () => {
     )
   })
 
+  it('does not repeat the prefix when the API reason already explains itself', () => {
+    const reason =
+      'Shopify cannot publish stock: the integration has no Ubicación de stock (location_id) configured'
+
+    expect(resyncErrorMessage(Object.assign(new Error(reason), { status: 422 }))).toBe(reason)
+  })
+
   it('asks to wait when the retries hit the rate limit', () => {
     expect(resyncErrorMessage(error(429))).toBe('Esperá un minuto antes de reintentar.')
   })
@@ -138,6 +146,17 @@ describe('resyncErrorMessage', () => {
       'Ese vínculo ya no existe. Recargá la página.',
       'the integration has no location',
     ])
+  })
+})
+
+describe('syncErrorText', () => {
+  it('prefixes a provider error and leaves a self-explaining reason as is', () => {
+    expect(syncErrorText('Not Found (status 404)')).toBe(
+      'No se pudo publicar el stock: Not Found (status 404)',
+    )
+    expect(syncErrorText('Shopify cannot publish stock for this product: the link has no x')).toBe(
+      'Shopify cannot publish stock for this product: the link has no x',
+    )
   })
 })
 

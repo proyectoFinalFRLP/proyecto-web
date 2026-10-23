@@ -269,6 +269,8 @@ export const inventoryCopy = {
     syncFailed: (reason: string) => `No se pudo publicar el stock: ${reason}`,
     retry: 'Reintentar',
     retrying: 'Reintentando…',
+    publishing: 'Publicando…',
+    publishSlow: 'El canal todavía no confirmó la publicación. Mirá de nuevo en unos minutos.',
     retryQueued: (channel: string) => `Se está volviendo a publicar el stock en ${channel}.`,
     retryTooSoon: 'Esperá un minuto antes de reintentar.',
     retryGone: 'Ese vínculo ya no existe. Recargá la página.',

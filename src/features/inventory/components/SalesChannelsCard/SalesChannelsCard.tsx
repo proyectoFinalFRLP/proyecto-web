@@ -8,9 +8,9 @@ import { notify } from 'shared/store'
 import { inventoryCopy } from '../../content'
 import {
   useLinkProduct,
-  useProductMappings,
   useResyncMapping,
   useUnlinkProduct,
+  useWatchedProductMappings,
 } from '../../hooks/useProductMappings'
 import type { ProductMapping } from '../../types'
 import {
@@ -46,20 +46,37 @@ const { channels: copy } = inventoryCopy
  * publicó o por qué no, con «Reintentar». Arriba avisa de los canales que no
  * pueden publicar (les falta configuración) o que tienen productos sin publicar:
  * desde que se sacó la pantalla de Integraciones (TESIS-140), ésta es la única
- * que muestra el estado de un canal.
+ * que muestra el estado de un canal. Vincular y «Reintentar» sólo encolan la
+ * publicación: mientras el job no escribe el resultado la fila dice
+ * «Publicando…» (ver `useWatchedProductMappings`).
  */
 export function SalesChannelsCard({ productId }: SalesChannelsCardProps) {
-  const mappings = useProductMappings(productId)
+  const { mappings, watch, isPublishing, timedOut } = useWatchedProductMappings(productId)
   const integrations = useIntegrations()
   const link = useLinkProduct(productId)
   const unlink = useUnlinkProduct(productId)
-  const resync = useResyncMapping(productId)
 
   const [channelId, setChannelId] = useState<number | ''>('')
   const [externalId, setExternalId] = useState('')
   const [unlinking, setUnlinking] = useState<ProductMapping | null>(null)
-  // El rechazo del último «Reintentar», en la fila del canal que lo pidió.
-  const [retryError, setRetryError] = useState<{ mappingId: number; message: string } | null>(null)
+  // El rechazo del último «Reintentar» de cada canal, con el `lastSyncedAt` que
+  // tenía la fila: si un refetch trae un intento nuevo, el rechazo ya es viejo.
+  const [retryErrors, setRetryErrors] = useState<
+    Record<number, { message: string; baseline: string | null }>
+  >({})
+
+  const resync = useResyncMapping(productId, {
+    onMutate: (mapping) => setRetryErrors(({ [mapping.id]: _previous, ...rest }) => rest),
+    onSuccess: (mapping) => {
+      notify(copy.retryQueued(mapping.serviceName), 'success')
+      watch(mapping.id, mapping.lastSyncedAt)
+    },
+    onError: (error, mapping) =>
+      setRetryErrors((current) => ({
+        ...current,
+        [mapping.id]: { message: resyncErrorMessage(error), baseline: mapping.lastSyncedAt },
+      })),
+  })
 
   const channels = linkableChannels(integrations.data ?? [], mappings.data ?? [])
   const selected = channels.find((channel) => channel.integrationId === channelId)
@@ -71,8 +88,11 @@ export function SalesChannelsCard({ productId }: SalesChannelsCardProps) {
     link.mutate(
       { companyIntegrationId: selected.integrationId, externalProductId: externalId.trim() },
       {
-        onSuccess: ({ warnings }) => {
+        onSuccess: ({ mapping, warnings }) => {
           notify(copy.linked(selected.name), 'success')
+          // El vínculo nuevo también publica por job: hasta que llegue el
+          // resultado dice «Publicando…» y no ofrece «Reintentar».
+          watch(mapping.id, mapping.lastSyncedAt)
           if (warnings.length > 0) notify(copy.skuMismatch, 'warning')
           setChannelId('')
           setExternalId('')
@@ -95,15 +115,6 @@ export function SalesChannelsCard({ productId }: SalesChannelsCardProps) {
     })
   }
 
-  const retry = (mapping: ProductMapping) => {
-    setRetryError(null)
-    resync.mutate(mapping.id, {
-      onSuccess: () => notify(copy.retryQueued(mapping.serviceName), 'success'),
-      onError: (error) =>
-        setRetryError({ mappingId: mapping.id, message: resyncErrorMessage(error) }),
-    })
-  }
-
   const rows = mappings.data ?? []
   const warnings = stockSyncWarnings(integrations.data ?? [])
 
@@ -119,7 +130,9 @@ export function SalesChannelsCard({ productId }: SalesChannelsCardProps) {
       </div>
 
       {warnings.map((warning) => (
-        <Alert key={warning.integrationId} severity="warning">
+        // Es un estado que se queda, no un evento: `status` para que el lector
+        // de pantalla no lo anuncie cada vez que se abre el detalle.
+        <Alert key={warning.integrationId} severity="warning" role="status">
           <AlertTitle>{copy.stockSyncTitle(warning.name)}</AlertTitle>
           {warning.messages.map((message) => (
             <div key={message}>{message}</div>
@@ -137,9 +150,18 @@ export function SalesChannelsCard({ productId }: SalesChannelsCardProps) {
       ) : null}
 
       {rows.map((mapping) => {
-        const status = mappingSyncStatus(mapping)
-        const retrying = resync.isPending && resync.variables === mapping.id
-        const rejection = retryError?.mappingId === mapping.id ? retryError.message : null
+        const publishing = isPublishing(mapping)
+        const retrying = resync.pendingIds.includes(mapping.id)
+        const retryError = retryErrors[mapping.id]
+        const rejection = retryError?.baseline === mapping.lastSyncedAt ? retryError.message : null
+        const synced = mappingSyncStatus(mapping)
+        // Mientras publica, el resultado viejo ya no vale. Y si el rechazo dice
+        // lo mismo que la fila, se muestra una vez.
+        const status = publishing
+          ? { tone: 'ok' as const, text: copy.publishing }
+          : synced && synced.text !== rejection
+            ? synced
+            : null
 
         return (
           <MappingRow key={mapping.id}>
@@ -156,6 +178,11 @@ export function SalesChannelsCard({ productId }: SalesChannelsCardProps) {
                   {status.text}
                 </Typography>
               ) : null}
+              {timedOut(mapping) ? (
+                <Typography variant="labelSm" color="text.secondary">
+                  {copy.publishSlow}
+                </Typography>
+              ) : null}
               {rejection ? (
                 <Typography variant="labelSm" color="error" role="alert">
                   {rejection}
@@ -163,12 +190,12 @@ export function SalesChannelsCard({ productId }: SalesChannelsCardProps) {
               ) : null}
             </MappingIdentity>
             <MappingActions>
-              {canRetry(mapping) ? (
+              {canRetry(mapping) && !publishing ? (
                 <Button
                   variant="text"
                   size="small"
                   disabled={retrying}
-                  onClick={() => retry(mapping)}
+                  onClick={() => resync.retry(mapping)}
                 >
                   {retrying ? copy.retrying : copy.retry}
                 </Button>
