@@ -6,7 +6,8 @@ import type { StatusVariant } from '../StatusBadge'
 
 // Paper del menú — superficie del tema, borde `divider`, radio base, padding 6,
 // gap 2, sombra de nivel 2 (menús) y scroll interno (DS sección 12). La sombra
-// sale de la escala de elevación del tema y no de un valor suelto por modo.
+// sale de la escala de elevación del tema y no de un valor suelto por modo: en
+// oscuro, el nivel 2 suma el halo `glow.subtle`, como todo overlay del DS.
 export const menuPaperSx = (theme: Theme) => ({
   mt: 0.5,
   minWidth: 200,
@@ -21,19 +22,20 @@ export const menuPaperSx = (theme: Theme) => ({
     padding: theme.spacing(0.75),
     display: 'flex',
     flexDirection: 'column',
-    gap: theme.spacing(0.5),
+    gap: theme.spacing(0.25),
   },
 })
 
-// Ítem del menú — 8px 10px, radio 6, hover `containerHighest`,
-// seleccionado con tint acento 10% + color de texto primario.
+// Ítem del menú — padding 8 × 10, radio 6, texto 13, hover `containerHighest`,
+// seleccionado con tint acento 10% + color de texto primario. El radio es el
+// del Paper menos 2 (el ítem va anidado adentro) y el 13 no está en la escala
+// tipográfica del DS (12 / 14): se pasa a rem con el `pxToRem` del tema.
 export const StatusMenuItem = styled(MenuItem)(({ theme }) => ({
   gap: theme.spacing(1),
-  paddingInline: '10px',
-  paddingBlock: '8px',
+  padding: theme.spacing(1, 1.25),
   minHeight: 'auto',
-  borderRadius: '6px',
-  fontSize: 13,
+  borderRadius: `calc(${theme.shape.borderRadius}px - 2px)`,
+  fontSize: theme.typography.pxToRem(13),
   color: theme.vars.palette.text.secondary,
   '&:hover': { backgroundColor: theme.vars.palette.background.containerHighest },
   '&.Mui-selected': {
