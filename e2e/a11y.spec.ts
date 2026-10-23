@@ -5,14 +5,14 @@ import { fillCustomerAndProducts } from './support/orderWizard'
 import { bodyRows } from './support/tables'
 
 // Auditoría automática de accesibilidad (TESIS-91). Recorre las pantallas
-// principales en los dos temas y corre axe con las reglas de WCAG 2.1 A y AA.
-// Falla con cualquier hallazgo crítico o serio; los moderados y menores quedan
-// en el reporte adjunto a cada test. Qué se revisó, qué se corrigió y por qué
-// existe cada exclusión está en docs/guidelines/accessibility.md.
+// principales en los dos temas y corre axe con las reglas de WCAG 2.1 A y AA más
+// las `best-practice` (landmarks, un solo `h1`, orden de títulos). Falla con
+// cualquier hallazgo, de cualquier impacto: la primera pasada dejó todo en 0 y
+// así queda protegido. El detalle va en el reporte adjunto a cada test. Qué se
+// revisó, qué se corrigió y por qué existe cada exclusión está en
+// docs/guidelines/accessibility.md.
 
-const WCAG_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']
-
-const BLOCKING_IMPACTS = new Set(['critical', 'serious'])
+const AXE_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'best-practice']
 
 /**
  * Exclusiones justificadas: nodos que axe no puede evaluar bien. Cada una tiene
@@ -35,14 +35,21 @@ interface Screen {
 }
 
 /**
- * Espera a que la pantalla haya terminado de cargar: el título visible y sin
- * pedidos a la API en vuelo. No se espera a que no haya `progressbar`: varias
- * pantallas usan barras de progreso como dato (pasos del alta, nivel de servicio).
+ * Espera a que la pantalla muestre sus datos: sin skeletons ni spinners de carga
+ * y con las fuentes cargadas. No se espera a que no haya `progressbar`: varias
+ * pantallas usan barras de progreso como dato (pasos del alta, nivel de
+ * servicio). Cada pantalla suma además el contenido propio que tiene que ver.
  */
+async function loaded(page: Page) {
+  await expect(page.locator('.MuiSkeleton-root')).toHaveCount(0)
+  await expect(page.locator('.MuiCircularProgress-root')).toHaveCount(0)
+  await page.evaluate(() => document.fonts.ready)
+}
+
+/** El título de la pantalla visible y la carga terminada. */
 async function settle(page: Page, heading: string | RegExp) {
   await expect(page.getByRole('heading', { name: heading, level: 1 })).toBeVisible()
-  await page.waitForLoadState('networkidle')
-  await page.evaluate(() => document.fonts.ready)
+  await loaded(page)
 }
 
 const screens: Screen[] = [
@@ -86,7 +93,7 @@ const screens: Screen[] = [
       await fillCustomerAndProducts(page, { firstName: 'Axe', lastName: 'Auditoría' })
       await page.getByRole('radio', { name: /^Envío a domicilio/ }).check()
       await expect(page.getByRole('textbox', { name: 'Calle y número' })).toBeVisible()
-      await page.waitForLoadState('networkidle')
+      await loaded(page)
     },
   },
   {
@@ -98,7 +105,7 @@ const screens: Screen[] = [
       await page.getByRole('button', { name: 'Siguiente: confirmación' }).click()
       await expect(page.getByText('Paso 3 de 3')).toBeVisible()
       await expect(page.getByRole('region', { name: 'Resumen de la orden' })).toBeVisible()
-      await page.waitForLoadState('networkidle')
+      await loaded(page)
     },
   },
   {
@@ -158,13 +165,11 @@ test.describe('accessibility', () => {
       if (screen.anonymous) test.use({ storageState: { cookies: [], origins: [] } })
 
       for (const mode of ['light', 'dark'] as const) {
-        test(`has no critical or serious axe violations in ${mode} mode`, async ({
-          page,
-        }, testInfo) => {
+        test(`has no axe violations in ${mode} mode`, async ({ page }, testInfo) => {
           await useTheme(page, mode)
           await screen.open(page)
 
-          let builder = new AxeBuilder({ page }).withTags(WCAG_TAGS)
+          let builder = new AxeBuilder({ page }).withTags(AXE_TAGS)
           for (const selector of EXCLUDED_SELECTORS) builder = builder.exclude(selector)
           const results = await builder.analyze()
 
@@ -182,16 +187,14 @@ test.describe('accessibility', () => {
             })
           }
 
-          const blocking = results.violations
-            .filter((violation) => BLOCKING_IMPACTS.has(violation.impact ?? ''))
-            .map((violation) => ({
-              rule: violation.id,
-              impact: violation.impact,
-              help: violation.help,
-              nodes: violation.nodes.map((node) => node.target.join(' ')),
-            }))
+          const violations = results.violations.map((violation) => ({
+            rule: violation.id,
+            impact: violation.impact,
+            help: violation.help,
+            nodes: violation.nodes.map((node) => node.target.join(' ')),
+          }))
 
-          expect(blocking).toEqual([])
+          expect(violations).toEqual([])
         })
       }
     })

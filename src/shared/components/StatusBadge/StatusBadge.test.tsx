@@ -70,15 +70,24 @@ describe('StatusBadge', () => {
 
   // El texto del badge va en `onContainer` en los dos modos (TESIS-91): en
   // oscuro iba en `main`, que sobre una fila crítica no llegaba al contraste AA.
-  // La variable es la misma; lo que cambia entre modos es su valor (`textD` en
-  // oscuro, `textL` en claro), que resuelve el tema.
-  it('paints the label with the on-container tone in both theme modes', () => {
+  // La variable es la misma; lo que cambia entre modos es su valor, y eso es lo
+  // que se verifica: el valor que resuelve el esquema activo en el propio badge
+  // (`textD` en oscuro, `textL` en claro).
+  it('paints the label with the on-container tone of each theme mode', () => {
+    const resolved: Record<string, string> = {}
+
     for (const mode of ['dark', 'light'] as const) {
       const view = renderWithTheme(<StatusBadge status="error" label="Sin stock" />, { mode })
-      const color = getComputedStyle(view.getByText('Sin stock')).color
+      const style = getComputedStyle(view.getByText('Sin stock'))
 
-      expect(color.toLowerCase()).toBe('var(--mui-palette-error-oncontainer)')
+      expect(style.color.toLowerCase()).toBe('var(--mui-palette-error-oncontainer)')
+      resolved[mode] = style
+        .getPropertyValue('--mui-palette-error-onContainer')
+        .trim()
+        .toLowerCase()
       view.unmount()
     }
+
+    expect(resolved).toEqual({ dark: '#fecdd3', light: '#9f1239' })
   })
 })
