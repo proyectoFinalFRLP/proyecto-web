@@ -4,24 +4,24 @@ import type { Theme } from '@mui/material/styles'
 
 import type { StatusVariant } from '../StatusBadge'
 
-// Paper del menú — superficie del tema, borde `divider`, radio 8, padding 6,
-// gap 2, shadow y scroll interno (DS sección 12).
+// Paper del menú — superficie del tema, borde `divider`, radio base, padding 6,
+// gap 2, sombra de nivel 2 (menús) y scroll interno (DS sección 12). La sombra
+// sale de la escala de elevación del tema y no de un valor suelto por modo.
 export const menuPaperSx = (theme: Theme) => ({
   mt: 0.5,
   minWidth: 200,
   maxWidth: 260,
   maxHeight: 320,
-  borderRadius: '8px',
+  borderRadius: `${theme.shape.borderRadius}px`,
   border: `1px solid ${theme.vars.palette.divider}`,
   backgroundColor: theme.vars.palette.background.paper,
   backgroundImage: 'none',
-  boxShadow: '0 12px 32px rgba(16,24,40,0.12)',
-  ...theme.applyStyles('dark', { boxShadow: '0 12px 32px rgba(0,0,0,0.5)' }),
+  boxShadow: theme.vars.elevation[2].boxShadow,
   '& .MuiList-root': {
-    padding: '6px',
+    padding: theme.spacing(0.75),
     display: 'flex',
     flexDirection: 'column',
-    gap: '2px',
+    gap: theme.spacing(0.5),
   },
 })
 

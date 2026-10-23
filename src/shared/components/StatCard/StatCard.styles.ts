@@ -56,12 +56,12 @@ export const CardRoot = styled(Box, { shouldForwardProp: notForwarded })<{
 }))
 
 // Fila superior: ícono a la izquierda, chip a la derecha.
-export const CardHeader = styled(Box)({
+export const CardHeader = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'flex-start',
   justifyContent: 'space-between',
-  gap: 12,
-})
+  gap: theme.spacing(1.5),
+}))
 
 export const IconBox = styled(Box, { shouldForwardProp: notForwarded })<ToneProps>(
   ({ theme, tone }) => ({

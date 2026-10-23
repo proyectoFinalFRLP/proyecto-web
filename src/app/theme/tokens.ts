@@ -110,6 +110,13 @@ export const glow = {
   strong: '0 0 20px rgba(56, 189, 248, 0.4)',
 } as const
 
+// Brillo que recorre el Skeleton (animación `wave`): una franja apenas más
+// oscura en light y apenas más clara en dark que la silueta.
+export const skeletonShimmer = {
+  dark: 'rgba(255, 255, 255, 0.06)',
+  light: 'rgba(16, 24, 40, 0.06)',
+} as const
+
 // Relleno de los inputs — recesado respecto de la superficie (fill propio del DS).
 export const inputColors = {
   dark: { fill: '#0d1c2d', fillDisabled: '#0a1826', textDisabled: '#87929a' },
