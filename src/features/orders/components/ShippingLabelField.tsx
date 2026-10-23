@@ -61,7 +61,7 @@ export function ShippingLabelField({ shipment }: ShippingLabelFieldProps) {
           </Button>
         </Box>
       ) : (
-        <Typography variant="bodyMd" color="text.disabled">
+        <Typography variant="bodyMd" color="text.secondary">
           {dispatched ? labelCopy.missing : labelCopy.pending}
         </Typography>
       )}

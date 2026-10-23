@@ -49,10 +49,7 @@ function buildColumns(
       width: 130,
       hideBelow: 'md',
       render: (item) => (
-        <Typography
-          variant="bodyMd"
-          color={item.category === null ? 'text.disabled' : 'text.secondary'}
-        >
+        <Typography variant="bodyMd" color="text.secondary">
           {item.category ?? copy.noCategory}
         </Typography>
       ),

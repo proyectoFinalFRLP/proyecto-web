@@ -25,7 +25,7 @@ interface CarrierCellProps {
 export function CarrierCell({ carrier, pickup = false }: CarrierCellProps) {
   if (carrier === null) {
     return (
-      <Typography variant="bodyMd" sx={{ color: 'text.disabled' }}>
+      <Typography variant="bodyMd" sx={{ color: 'text.secondary' }}>
         {pickup ? ordersCopy.cells.pickup : ordersCopy.cells.noCarrier}
       </Typography>
     )

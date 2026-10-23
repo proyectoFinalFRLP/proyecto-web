@@ -32,7 +32,7 @@ const TONES: Record<ShipmentStatus, StatusVariant> = {
 /** Lo que todavía no existe no se dibuja vacío: se dice por qué falta. */
 function Missing({ children }: { children: string }) {
   return (
-    <Typography variant="bodyMd" sx={{ color: 'text.disabled' }}>
+    <Typography variant="bodyMd" sx={{ color: 'text.secondary' }}>
       {children}
     </Typography>
   )

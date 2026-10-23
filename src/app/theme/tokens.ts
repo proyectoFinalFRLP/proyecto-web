@@ -118,9 +118,24 @@ export const skeletonShimmer = {
 } as const
 
 // Relleno de los inputs — recesado respecto de la superficie (fill propio del DS).
+//
+// `placeholder` (TESIS-91): el de MUI es el color del texto al 42% (light) / 50%
+// (dark), que sobre el fill quedaba en 2.6:1 y 4.3:1, debajo del 4.5:1 de WCAG
+// AA. Estos llegan a 4.9:1 (light) y 5.4:1 (dark) sobre el fill y siguen
+// leyéndose más tenues que un valor cargado.
 export const inputColors = {
-  dark: { fill: '#0d1c2d', fillDisabled: '#0a1826', textDisabled: '#87929a' },
-  light: { fill: '#f4f5f6', fillDisabled: '#eceef0', textDisabled: '#9aa1a8' },
+  dark: {
+    fill: '#0d1c2d',
+    fillDisabled: '#0a1826',
+    textDisabled: '#87929a',
+    placeholder: '#87929a',
+  },
+  light: {
+    fill: '#f4f5f6',
+    fillDisabled: '#eceef0',
+    textDisabled: '#9aa1a8',
+    placeholder: '#646c75',
+  },
 } as const
 
 // ──────────────────────────────────────────────────────────────────────────────

@@ -31,7 +31,7 @@ const TRANSIENT_PROPS = new Set<string>(['pending'])
 export const Amount = styled(Typography, {
   shouldForwardProp: (prop) => !TRANSIENT_PROPS.has(prop as string),
 })<AmountProps>(({ theme, pending }) => ({
-  color: pending ? theme.vars.palette.text.disabled : theme.vars.palette.text.primary,
+  color: pending ? theme.vars.palette.text.secondary : theme.vars.palette.text.primary,
 }))
 
 // Rótulo del total: tamaño de `bodyLg` con el peso de `labelMd`, como en S08.

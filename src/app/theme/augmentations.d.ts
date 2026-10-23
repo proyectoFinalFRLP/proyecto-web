@@ -73,12 +73,12 @@ declare module '@mui/material/styles' {
   // rellenos de los campos, que cambian por esquema (ver `buildPalette`).
   interface Palette {
     neutral: PaletteColor
-    input: { fill: string; fillDisabled: string; textDisabled: string }
+    input: { fill: string; fillDisabled: string; textDisabled: string; placeholder: string }
   }
 
   interface PaletteOptions {
     neutral?: PaletteColorOptions
-    input?: { fill: string; fillDisabled: string; textDisabled: string }
+    input?: { fill: string; fillDisabled: string; textDisabled: string; placeholder: string }
   }
 }
 

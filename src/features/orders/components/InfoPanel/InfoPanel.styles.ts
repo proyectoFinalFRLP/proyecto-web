@@ -54,7 +54,7 @@ export const FieldValue = styled(Typography, {
 })<FieldValueProps>(({ theme, mono, unknown }) => ({
   ...theme.typography.bodyMd,
   fontFamily: mono ? theme.typography.dataMono.fontFamily : undefined,
-  color: unknown ? theme.vars.palette.text.disabled : theme.vars.palette.text.primary,
+  color: unknown ? theme.vars.palette.text.secondary : theme.vars.palette.text.primary,
   overflowWrap: 'anywhere',
   // El badge opcional va a la derecha del valor y baja si no entra.
   display: 'flex',

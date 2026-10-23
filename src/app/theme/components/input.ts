@@ -43,6 +43,9 @@ export function muiOutlinedInput(): Components<Theme>['MuiOutlinedInput'] {
       },
       input: ({ theme }) => ({
         padding: '10px 14px',
+        // Opacidad 1: el color del token ya es el tenue; MUI le suma su propia
+        // opacidad (0.42 / 0.5) y con eso el contraste no llegaba a AA.
+        '&::placeholder': { color: theme.vars.palette.input.placeholder, opacity: 1 },
         '&.Mui-disabled': {
           WebkitTextFillColor: theme.vars.palette.input.textDisabled,
           cursor: 'not-allowed',

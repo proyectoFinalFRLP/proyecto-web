@@ -22,7 +22,7 @@ const orderPath = (id: number) => `/orders/${id}`
 /** Lo que el envío no registra se dice con la marca de «sin dato», atenuada. */
 function OptionalText({ value }: { value: string | null }) {
   return (
-    <Typography variant="bodyMd" sx={{ color: value === null ? 'text.disabled' : undefined }}>
+    <Typography variant="bodyMd" sx={{ color: value === null ? 'text.secondary' : undefined }}>
       {value ?? copy.missing}
     </Typography>
   )
