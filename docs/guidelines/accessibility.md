@@ -9,11 +9,16 @@ temas, cómo se corre el chequeo y qué salió de la primera pasada (TESIS-91, o
 
 `e2e/a11y.spec.ts` recorre cada pantalla en **claro y oscuro** y corre
 [axe-core](https://github.com/dequelabs/axe-core) (`@axe-core/playwright`) con las reglas de WCAG
-2.0/2.1 nivel A y AA (`wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa`).
+2.0/2.1 nivel A y AA (`wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa`) y las `best-practice` de axe
+(landmarks, un solo `h1`, orden de títulos), que no son WCAG pero protegen los arreglos de §2.
 
-- **Falla** con cualquier hallazgo de impacto `critical` o `serious`.
-- Los `moderate` y `minor` no bloquean, pero quedan en el adjunto `axe-results` de cada test (el
-  reporte HTML de Playwright los muestra).
+- **Falla** con cualquier hallazgo, de cualquier impacto (`critical`, `serious`, `moderate` o
+  `minor`): la primera pasada dejó todo en 0 y la spec lo mantiene así.
+- El detalle de cada corrida queda en el adjunto `axe-results` del test (el reporte HTML de
+  Playwright lo muestra).
+- Antes de auditar, cada pantalla espera a su contenido visible (el título, las filas de la tabla,
+  el paso del alta) y a que no quede ningún skeleton ni spinner de carga. No se usa
+  `waitForLoadState('networkidle')`, que Playwright desaconseja.
 - Va con el resto de la suite de punta a punta: `npm run test:e2e` (ver
   [testing.md §7](./testing.md#7-tests-de-punta-a-punta-playwright)). Para correr sólo este:
 
@@ -70,21 +75,23 @@ bloquean) marcó que la navegación lateral y la barra del login estaban fuera d
 
 ### Qué se corrigió
 
-| Hallazgo                                                                                                                                              | Corrección                                                                                                                                                                                                                |
-| ----------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Los valores ausentes («Sin destino», «Sin categoría», «—»…) iban en `text.disabled`: 2.7:1 sobre blanco, 2.6:1 sobre la fila crítica                  | Pasan a `text.secondary` (9.3:1). `text.disabled` queda para controles deshabilitados, que WCAG exime. Se cambió en todas las celdas y campos que lo usaban como «dato que no existe», no sólo en las pantallas auditadas |
-| El texto del `StatusBadge` en oscuro iba en `main` (#fb7185): 4.4:1 sobre la fila crítica de `DataTable`                                              | Va en `onContainer` en los dos modos, que es lo que pinta `docs/design/StatusBadge.dc.html` (`--err-fg` = `textD`). 8.4:1 en el peor caso                                                                                 |
-| «+2 en tránsito» del inventario en `info.main`: 2.8:1 sobre blanco a 11px                                                                             | `info.onContainer`. Y en bloque: el número y la nota se leían pegados («11+2 en tránsito»)                                                                                                                                |
-| Placeholder de los inputs: el de MUI es el color del texto al 42% / 50%, 2.6:1 en claro y 4.3:1 en oscuro sobre el relleno del input (axe no lo mide) | Token `inputColors.*.placeholder` (4.9:1 / 5.4:1) aplicado en el tema (`MuiOutlinedInput`)                                                                                                                                |
-| El panel no tenía `h1`: su título era un `h2` (`displaySm`)                                                                                           | `component="h1"` con la misma variante visual. Los títulos de las tarjetas pasan a `h2`                                                                                                                                   |
-| El número de cada `StatCard` / `CompactStatCard` era un encabezado (`h2`): la navegación por títulos listaba «19», «22»…                              | `component="p"`                                                                                                                                                                                                           |
-| El login no tenía `h1`                                                                                                                                | El nombre de la empresa es el `h1`                                                                                                                                                                                        |
-| La navegación lateral no era un landmark                                                                                                              | `<nav aria-label="Navegación principal">` alrededor de la lista                                                                                                                                                           |
-| La barra superior del login quedaba fuera de todo landmark                                                                                            | `header`                                                                                                                                                                                                                  |
+| Hallazgo                                                                                                                                                                | Corrección                                                                                                                                                                                                                |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Los valores ausentes («Sin destino», «Sin categoría», «—»…) iban en `text.disabled`: 2.7:1 sobre blanco, 2.6:1 sobre la fila crítica                                    | Pasan a `text.secondary` (9.3:1). `text.disabled` queda para controles deshabilitados, que WCAG exime. Se cambió en todas las celdas y campos que lo usaban como «dato que no existe», no sólo en las pantallas auditadas |
+| El texto del `StatusBadge` en oscuro iba en `main` (#fb7185): 4.4:1 sobre la fila crítica de `DataTable`                                                                | Va en `onContainer` en los dos modos, que es lo que pinta `docs/design/StatusBadge.dc.html` (`--err-fg` = `textD`). 8.4:1 en el peor caso                                                                                 |
+| «+2 en tránsito» del inventario en `info.main`: 2.8:1 sobre blanco a 11px                                                                                               | `info.onContainer`. Y en bloque: el número y la nota se leían pegados («11+2 en tránsito»)                                                                                                                                |
+| Placeholder de los inputs: el de MUI es el color del texto al 42% / 50%, 2.6:1 en claro y 4.3:1 en oscuro sobre el relleno del input (axe no lo mide)                   | Token `inputColors.*.placeholder` (4.9:1 / 5.4:1) aplicado en el tema (`MuiOutlinedInput`)                                                                                                                                |
+| El panel no tenía `h1`: su título era un `h2` (`displaySm`)                                                                                                             | `component="h1"` con la misma variante visual. Los títulos de las tarjetas pasan a `h2`                                                                                                                                   |
+| El número de cada `StatCard` / `CompactStatCard` era un encabezado (`h2`): la navegación por títulos listaba «19», «22»…                                                | `component="p"`                                                                                                                                                                                                           |
+| El login no tenía `h1`                                                                                                                                                  | El nombre de la empresa es el `h1`                                                                                                                                                                                        |
+| La navegación lateral no era un landmark                                                                                                                                | `<nav aria-label="Navegación principal">` alrededor de la lista                                                                                                                                                           |
+| La barra superior del login quedaba fuera de todo landmark                                                                                                              | `header`                                                                                                                                                                                                                  |
+| El texto de error en claro iba en `error.main` (#f43f5e): 3.7:1 sobre blanco en el helper text de los campos con error, los avisos en línea y las acciones destructivas | `error.main` claro pasa a #be123c (6.3:1 sobre blanco, 6.0:1 sobre el fondo de página, 5.2:1 sobre su contenedor) y `error.strong` a #9f1239. Oscuro no cambia. Un test del tema (`theme.test.ts`) lo protege             |
 
 ### Después
 
-**0 hallazgos** de WCAG A/AA en las 22 corridas, de ningún impacto. Con `best-practice` también en 0.
+**0 hallazgos** de WCAG A/AA y `best-practice` en las 22 corridas, de ningún impacto. La spec falla
+si aparece cualquiera.
 
 ### Foco y teclado
 
@@ -117,11 +124,11 @@ Documentado, sin corregir en este PR:
   ancho, que es una decisión de diseño de cada listado.
 - **SKU largos en el inventario** (los `E2E-…` que crean los tests) se parten en el guion y la
   columna del nombre queda angosta. Con los SKU de los seeds (`NOR-005`) no pasa.
-- **Texto de error en `error.main` en claro** (#f43f5e, 3.7:1 sobre blanco): lo usan el texto de
-  ayuda de los campos con error y los avisos de error en línea. No aparece en los estados que recorre
-  la spec (sin errores de validación) y es el `main` del semántico que MUI usa en todos sus
-  componentes; subirlo a un tono AA es un cambio de paleta para decidir con el diseño
-  (`error.onContainer` o `error.strong` sobre blanco cumplen).
+- **Placeholder y texto deshabilitado comparten tono en oscuro** (`inputColors.dark.placeholder` y
+  `textDisabled`, los dos #87929a). Es una decisión de diseño: en oscuro ese gris es el más tenue que
+  todavía llega a AA sobre el relleno del input (5.4:1), y el campo deshabilitado se distingue por el
+  relleno más oscuro y el borde punteado, no por el color del texto. Si se separan, el placeholder no
+  puede bajar de ese contraste.
 
 ---
 
