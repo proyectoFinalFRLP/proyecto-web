@@ -7,7 +7,12 @@ export { fetchProvinces, provinceKeys } from './provinces'
 export { revokeSession } from './session'
 export { queryClient } from './queryClient'
 export { fetchIntegrations, integrationKeys, toIntegrationService } from './integrations'
-export type { IntegrationService, ServiceType } from './integrations'
+export type {
+  IntegrationService,
+  MissingSetting,
+  ServiceType,
+  StockSyncStatus,
+} from './integrations'
 export { fetchTenantConfig, isFeatureEnabled, tenantConfigSchema } from './tenant'
 export type { TenantBranding, TenantConfig, TenantFeature, TenantFeatureFlags } from './tenant'
 export type { ApiResponse, ApiError, ApiRequestError } from './types'

@@ -2,7 +2,7 @@ import type { AxiosResponse } from 'axios'
 import { client } from 'shared/api/client'
 import { describe, expect, it, vi } from 'vitest'
 
-import { fetchProduct } from './api'
+import { fetchProduct, fetchProductMappings, resyncProductMapping } from './api'
 
 function respond(data: unknown, headers: Record<string, string> = {}): AxiosResponse {
   return { data, headers } as AxiosResponse
@@ -60,5 +60,58 @@ describe('fetchProduct · the measurements', () => {
     vi.spyOn(client, 'get').mockResolvedValueOnce(respond({ ...PRODUCT, dimensions: '16x7x1' }))
 
     expect(await fetchProduct(5)).not.toHaveProperty('dimensions')
+  })
+})
+
+const MAPPING = {
+  id: 4,
+  product_id: 5,
+  company_integration_id: 10,
+  service_name: 'Shopify',
+  external_product_id: 'gid://shopify/ProductVariant/1',
+}
+
+// TESIS-177: el último intento de publicar el stock viaja con el vínculo.
+describe('fetchProductMappings · the stock sync', () => {
+  it('reads the last attempt and its failure reason', async () => {
+    vi.spyOn(client, 'get').mockResolvedValueOnce(
+      respond({
+        data: [
+          {
+            ...MAPPING,
+            last_synced_at: '2026-10-21T12:00:00Z',
+            last_sync_error: 'location missing',
+          },
+        ],
+      }),
+    )
+
+    const [mapping] = await fetchProductMappings(5)
+
+    expect(mapping).toMatchObject({
+      lastSyncedAt: '2026-10-21T12:00:00Z',
+      lastSyncError: 'location missing',
+    })
+  })
+
+  // Un back anterior a TESIS-177 no manda los campos: se leen como «nunca se
+  // intentó», no como `undefined`.
+  it('reads missing sync fields as never attempted', async () => {
+    vi.spyOn(client, 'get').mockResolvedValueOnce(respond({ data: [MAPPING] }))
+
+    const [mapping] = await fetchProductMappings(5)
+
+    expect(mapping).toMatchObject({ lastSyncedAt: null, lastSyncError: null })
+  })
+})
+
+describe('resyncProductMapping', () => {
+  it('posts to the resync member route without a body and returns the mapping', async () => {
+    const post = vi.spyOn(client, 'post').mockResolvedValueOnce(respond(MAPPING))
+
+    const mapping = await resyncProductMapping(5, 4)
+
+    expect(post).toHaveBeenCalledWith('/products/5/mappings/4/resync')
+    expect(mapping).toMatchObject({ id: 4, serviceName: 'Shopify' })
   })
 })

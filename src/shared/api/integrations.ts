@@ -15,6 +15,29 @@ import type { ApiResponse } from './types'
 /** Tipo de servicio externo (`services.type`, con check constraint en la DB). */
 export type ServiceType = 'ecommerce' | 'courier'
 
+/** Un setting que le falta a la integración, con el nombre con el que lo declara la plantilla. */
+export interface MissingSetting {
+  key: string
+  label: string
+}
+
+/**
+ * Cómo anda la publicación del stock en el canal (`stock_sync`, TESIS-177). Sin
+ * esto una integración sin ubicación de stock se veía conectada mientras cada
+ * publicación fallaba en un job que nadie miraba.
+ */
+export interface StockSyncStatus {
+  /** Puede publicar: no le falta configuración. */
+  ready: boolean
+  missingSettings: MissingSetting[]
+  /** Cuántos vínculos fallaron en su último intento de publicar. */
+  failingProducts: number
+  /** El motivo del fallo más reciente, tal como lo manda el back. */
+  lastSyncError: string | null
+  /** El último intento de publicar, haya salido bien o mal. */
+  lastSyncedAt: string | null
+}
+
 export interface IntegrationService {
   serviceId: number
   name: string
@@ -31,6 +54,19 @@ export interface IntegrationService {
    * widget de salud ya esté cableado y se encienda solo cuando exista.
    */
   lastSyncedAt: string | null
+  /**
+   * `null` si la empresa no la conectó o si la plantilla no publica stock (un
+   * courier, por ejemplo).
+   */
+  stockSync: StockSyncStatus | null
+}
+
+interface ApiStockSyncStatus {
+  ready: boolean
+  missing_settings: MissingSetting[]
+  failing_products: number
+  last_sync_error: string | null
+  last_synced_at: string | null
 }
 
 interface ApiIntegrationService {
@@ -42,6 +78,8 @@ interface ApiIntegrationService {
   integration_id: number | null
   account_name?: string | null
   last_synced_at?: string | null
+  // Opcional: un back anterior a TESIS-177 no lo manda.
+  stock_sync?: ApiStockSyncStatus | null
 }
 
 export const integrationKeys = {
@@ -59,6 +97,17 @@ export function toIntegrationService(row: ApiIntegrationService): IntegrationSer
     integrationId: row.integration_id,
     accountName: row.account_name ?? null,
     lastSyncedAt: row.last_synced_at ?? null,
+    stockSync: row.stock_sync ? toStockSyncStatus(row.stock_sync) : null,
+  }
+}
+
+function toStockSyncStatus(status: ApiStockSyncStatus): StockSyncStatus {
+  return {
+    ready: status.ready,
+    missingSettings: status.missing_settings,
+    failingProducts: status.failing_products,
+    lastSyncError: status.last_sync_error,
+    lastSyncedAt: status.last_synced_at,
   }
 }
 

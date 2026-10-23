@@ -48,6 +48,7 @@ describe('useIntegrations', () => {
           integrationId: 3,
           accountName: 'Tienda Norte',
           lastSyncedAt: null,
+          stockSync: null,
         },
       ]),
     )
@@ -62,6 +63,33 @@ describe('useIntegrations', () => {
     const { result } = renderHook(() => useIntegrations(), { wrapper })
 
     await waitFor(() => expect(result.current.data?.[0]?.accountName).toBeNull())
+  })
+
+  // TESIS-177: si el canal puede publicar el stock y cómo le fue, en camelCase.
+  it('translates the stock sync status of the channel', async () => {
+    const row = {
+      ...ROW,
+      stock_sync: {
+        ready: false,
+        missing_settings: [{ key: 'location_id', label: 'Ubicación de stock' }],
+        failing_products: 3,
+        last_sync_error: 'Shopify cannot publish stock',
+        last_synced_at: '2026-10-21T12:00:00Z',
+      },
+    }
+    vi.spyOn(client, 'get').mockResolvedValue({ data: { data: [row] } } as never)
+
+    const { result } = renderHook(() => useIntegrations(), { wrapper })
+
+    await waitFor(() =>
+      expect(result.current.data?.[0]?.stockSync).toEqual({
+        ready: false,
+        missingSettings: [{ key: 'location_id', label: 'Ubicación de stock' }],
+        failingProducts: 3,
+        lastSyncError: 'Shopify cannot publish stock',
+        lastSyncedAt: '2026-10-21T12:00:00Z',
+      }),
+    )
   })
 
   it('surfaces a failure instead of pretending there are no integrations', async () => {
