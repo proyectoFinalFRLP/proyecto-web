@@ -31,7 +31,7 @@ import type { OrderDetail, Shipment, ShipmentView } from '../types'
 import { canOpenShipment, dispatchableShipment } from '../utils/dispatch'
 import { formatShortDate } from '../utils/format'
 import { paymentSummary, totalUnits } from '../utils/payment'
-import { deliveredAt, headerStatus } from '../utils/shipment'
+import { deliveredAt, headerStatus, undeliveredReason } from '../utils/shipment'
 
 const { detail } = ordersCopy
 const { unknown } = detail
@@ -91,12 +91,20 @@ function buildMetrics(order: OrderDetail, shipment: Shipment | null, total: numb
  * La entrega: el día en que llegó, si ya llegó; si no, el que se le prometió al
  * cliente, con el chip de demora cuando ya pasó. Lo que decide la demora es la
  * API (`delayed`), no una cuenta con el reloj del navegador.
+ *
+ * Devuelto o cancelado no va a llegar: se dice eso y no la fecha, que ya no
+ * promete nada, ni la demora, que dejó de correr.
  */
 function deliveryMetric(shipment: Shipment | null): OrderMetric {
   const { metrics } = detail
   const base = { id: 'delivery', label: metrics.delivery, icon: <CalendarTodayOutlinedIcon /> }
   const delivered = shipment === null ? null : deliveredAt(shipment)
   const promised = shipment?.promisedDeliveryOn ?? null
+  const undelivered = shipment === null ? null : undeliveredReason(shipment.status)
+
+  if (undelivered !== null) {
+    return { ...base, value: detail.undelivered.value, note: undelivered }
+  }
 
   if (delivered !== null) {
     return { ...base, value: formatShortDate(delivered), note: metrics.delivered }
@@ -205,12 +213,13 @@ function originField(shipment: Shipment | null): InfoField {
  * cuando el courier la devolvió; si no, la fila no se muestra: no es un dato
  * que falte, es uno que ese courier no tiene. La entrega comprometida sigue el
  * mismo criterio: sin plazo informado no hay fila, y con la fecha vencida lleva
- * el badge de demora.
+ * el badge de demora. Devuelto o cancelado, la fila dice que no se entrega.
  */
 function shippingFields(shipment: Shipment | null): InfoField[] {
   const { fields } = detail.shipping
   const reference = shipment?.externalReference ?? null
   const promised = shipment?.promisedDeliveryOn ?? null
+  const undelivered = shipment === null ? null : undeliveredReason(shipment.status)
 
   return [
     ...(reference === null
@@ -220,14 +229,20 @@ function shippingFields(shipment: Shipment | null): InfoField[] {
     ...(promised === null
       ? []
       : [
-          {
-            id: 'promised',
-            label: fields.promised,
-            value: formatCalendarDate(promised),
-            badge: shipment?.delayed
-              ? { status: 'warning' as const, label: detail.shipping.delayed }
-              : undefined,
-          },
+          undelivered !== null
+            ? {
+                id: 'promised',
+                label: fields.promised,
+                value: detail.undelivered.summary(undelivered),
+              }
+            : {
+                id: 'promised',
+                label: fields.promised,
+                value: formatCalendarDate(promised),
+                badge: shipment?.delayed
+                  ? { status: 'warning' as const, label: detail.shipping.delayed }
+                  : undefined,
+              },
         ]),
   ]
 }

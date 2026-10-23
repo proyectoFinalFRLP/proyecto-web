@@ -1,5 +1,6 @@
 import { Box, Card, Typography } from '@mui/material'
 import { styled } from '@mui/material/styles'
+import type { StatusVariant } from 'shared/components'
 
 import type { StageState } from '../../utils/shipment'
 
@@ -47,14 +48,37 @@ interface StageStateProps {
   stageState: StageState
 }
 
-const TRANSIENT_PROPS = new Set<string>(['stageState'])
+interface StageDotProps extends StageStateProps {
+  /** El tono del final sin entrega (`closed`): el mismo del badge del estado. */
+  stageTone?: StatusVariant
+}
+
+const TRANSIENT_PROPS = new Set<string>(['stageState', 'stageTone'])
 
 // Las etapas alcanzadas llevan el tono de acción; las que faltan quedan
-// hundidas y atenuadas, como en el diseño.
+// hundidas y atenuadas, como en el diseño. El final sin entrega (TESIS-188)
+// lleva el tono de su estado: no es un paso cumplido del ciclo.
 export const StageDot = styled(Box, {
   shouldForwardProp: (prop) => !TRANSIENT_PROPS.has(prop as string),
-})<StageStateProps>(({ theme, stageState }) => {
+})<StageDotProps>(({ theme, stageState, stageTone = 'neutral' }) => {
   const reached = stageState !== 'pending'
+
+  if (stageState === 'closed') {
+    const tone = theme.vars.palette[stageTone]
+
+    return {
+      width: STAGE_DOT_SIZE,
+      height: STAGE_DOT_SIZE,
+      borderRadius: '50%',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: tone.container,
+      border: `1px solid ${tone.main}`,
+      color: tone.main,
+      '& > svg': { fontSize: theme.typography.h3.fontSize },
+    }
+  }
 
   return {
     width: STAGE_DOT_SIZE,

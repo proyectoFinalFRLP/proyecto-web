@@ -1,6 +1,6 @@
 import { client } from 'shared/api/client'
 import type { DataTableSort } from 'shared/components'
-import { sortParams } from 'shared/utils'
+import { blankToNull, sortParams } from 'shared/utils'
 
 import type { Warehouse, WarehouseInput, WarehousePayload } from './types'
 
@@ -43,14 +43,7 @@ function toWarehouse(warehouse: ApiWarehouse): Warehouse {
   }
 }
 
-// Un campo opcional en blanco viaja como `null` y no como `""`: la provincia se
-// valida contra una lista y el texto vacío no está en ella (el mismo 422 que
-// tuvo el retiro en el local con la provincia de la orden, TESIS-178).
-function blankToNull(value: string): string | null {
-  const trimmed = value.trim()
-  return trimmed === '' ? null : trimmed
-}
-
+// Un campo opcional en blanco viaja como `null` y no como `""`: ver `blankToNull`.
 export function toPayload(input: WarehouseInput): WarehousePayload {
   return {
     warehouse: {
@@ -85,18 +78,6 @@ export async function updateWarehouse(id: number, input: WarehouseInput): Promis
   const { data } = await client.put<ApiWarehouse>(`/warehouses/${id}`, toPayload(input))
 
   return toWarehouse(data)
-}
-
-/**
- * Las provincias que acepta un depósito: `Order::PROVINCES`, la misma lista que
- * el domicilio de una orden, y por eso se lee del mismo endpoint. Se pide acá y
- * no se importa de órdenes porque una feature no importa de otra
- * (architecture.md §3.2).
- */
-export async function fetchProvinces(): Promise<string[]> {
-  const { data } = await client.get<{ data: string[] }>('/orders/provinces')
-
-  return data.data
 }
 
 /**

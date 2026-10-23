@@ -1,8 +1,11 @@
 import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined'
 import { Skeleton, Typography } from '@mui/material'
 import { StatusBadge } from 'shared/components'
+import type { StatusVariant } from 'shared/components'
+import { lookup } from 'shared/utils'
 
 import { dashboardCopy } from '../../content'
+import type { ShipmentStatus } from '../../types'
 
 import {
   CourierName,
@@ -23,13 +26,17 @@ const shipmentsCopy = dashboardCopy.shipments
 
 // El tono del estado, con el mismo vocabulario que el resto del producto. Mapa
 // explícito y no un `switch` con default: si el backend suma un estado, el
-// compilador marca este archivo en vez de pintarlo en gris sin avisar.
-const TONES = {
+// compilador marca este archivo en vez de pintarlo en gris sin avisar. Si la
+// API lo suma antes que el tipo, `lookup` lo muestra neutro y como desconocido.
+const TONES: Record<ShipmentStatus, StatusVariant> = {
   pending: 'neutral',
   ready_to_ship: 'info',
   in_transit: 'info',
   delivered: 'success',
-} as const
+  // Finales sin entrega (TESIS-188), con el tono del resto del producto.
+  returned: 'neutral',
+  cancelled: 'error',
+}
 
 /**
  * «Últimos envíos» del panel (TESIS-163).
@@ -72,8 +79,12 @@ export function RecentShipmentsCard({ shipments, loading = false }: RecentShipme
               </TrackingLine>
             </ShipmentIdentity>
             <StatusBadge
-              status={TONES[shipment.status]}
-              label={shipmentsCopy.status[shipment.status]}
+              status={lookup(TONES, shipment.status, 'neutral')}
+              label={lookup<string>(
+                shipmentsCopy.status,
+                shipment.status,
+                shipmentsCopy.statusUnknown,
+              )}
               size="sm"
             />
           </ShipmentRow>

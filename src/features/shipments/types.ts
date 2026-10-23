@@ -3,8 +3,18 @@ import type { DataTableSort } from 'shared/components'
 // Tipos del dominio de envíos. Espejo de `GET /api/v1/shipments`, ya en
 // camelCase: ningún componente ve la forma cruda de Rails.
 
-/** Los cuatro estados del envío (`Shipment::STATUSES`), en el orden del ciclo. */
-export type ShipmentStatus = 'pending' | 'ready_to_ship' | 'in_transit' | 'delivered'
+/**
+ * Los estados del envío (`Shipment::STATUSES`): los cuatro del ciclo, en orden,
+ * y los dos finales sin entrega (TESIS-188), devuelto y cancelado. Uno que la
+ * API mande y este tipo no tenga se muestra como desconocido, no revienta.
+ */
+export type ShipmentStatus =
+  | 'pending'
+  | 'ready_to_ship'
+  | 'in_transit'
+  | 'delivered'
+  | 'returned'
+  | 'cancelled'
 
 /** El operador logístico: la integración de la empresa con el courier. */
 export interface Courier {
@@ -90,5 +100,8 @@ export interface ShipmentFilters {
  * al ciclo de vida lo pide acá solo, y la respuesta de la API lo trae porque el
  * backend arma las pestañas sobre `Shipment::STATUSES`. `all` es la pestaña sin
  * filtro, que no es un estado.
+ *
+ * Opcionales: una API anterior a los finales sin entrega (TESIS-188) no manda
+ * `returned` ni `cancelled`, y la pestaña queda sin número en vez de decir 0.
  */
-export type ShipmentCounts = Record<ShipmentStatus | 'all', number>
+export type ShipmentCounts = Partial<Record<ShipmentStatus | 'all', number>>
