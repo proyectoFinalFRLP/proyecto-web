@@ -12,7 +12,9 @@ const EVENT: FailedEvent = {
   attempts: 5,
   maxAttempts: 5,
   nextRetryAt: null,
-  lastError: 'timeout',
+  errorCode: 'INT-005',
+  errorMessage: 'El proveedor no está disponible',
+  lastError: 'Integrations::AdapterExecutionError: Andreani responded with HTTP 504',
   lastResponseStatus: 504,
   createdAt: '2026-10-01T10:00:00Z',
 }

@@ -67,7 +67,12 @@ export const failedEventsCopy = {
     attempts: (attempts: number, max: number) => `${attempts} / ${max}`,
     noRetry: '—',
     noError: 'Sin detalle',
+    /** Un error sin código: la API todavía no lo clasificó. */
+    unclassified: 'Error sin clasificar',
     httpStatus: (status: number) => `HTTP ${status}`,
+    /** Lo que el operador le dicta a soporte: con el id, soporte encuentra el detalle técnico. */
+    reference: (id: number) => `Ref. #${id}`,
+    technicalDetailFor: (id: number) => `Detalle técnico del evento ${id}`,
     /** Si el reintento ya venció, el barrido lo toma en el próximo minuto. */
     due: 'En la próxima vuelta',
   },

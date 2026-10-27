@@ -22,6 +22,14 @@ export interface FailedEvent {
   maxAttempts: number
   /** `null` cuando ya no se va a reintentar solo (resuelto, agotado, descartado). */
   nextRetryAt: string | null
+  /**
+   * Código de soporte estable de la causa (`INT-005`, `ORD-002`…), del catálogo
+   * de la API (`Webhooks::ErrorCatalog`). `null` cuando no hay error vigente.
+   */
+  errorCode: string | null
+  /** La causa en castellano para quien opera; viaja junto con `errorCode`. */
+  errorMessage: string | null
+  /** El texto técnico de la excepción: sólo como detalle para soporte, nunca a la vista. */
   lastError: string | null
   lastResponseStatus: number | null
   createdAt: string

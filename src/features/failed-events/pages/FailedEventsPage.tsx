@@ -15,6 +15,7 @@ import { useSortParam } from 'shared/hooks/useSortParam'
 import { notify } from 'shared/store'
 import { formatRelativeTime, formatInteger } from 'shared/utils'
 
+import { LastErrorCell } from '../components/LastErrorCell'
 import { DIRECTION_LABELS, STATUS_LABELS, STATUS_VARIANTS, failedEventsCopy } from '../content'
 import {
   NOT_REQUEUEABLE_STATUS,
@@ -44,13 +45,6 @@ function nextRetryCell(event: FailedEvent, now: Date): string {
   if (new Date(event.nextRetryAt).getTime() <= now.getTime()) return cells.due
 
   return formatRelativeTime(event.nextRetryAt, now) ?? cells.noRetry
-}
-
-function lastErrorCell(event: FailedEvent) {
-  const status =
-    event.lastResponseStatus === null ? undefined : cells.httpStatus(event.lastResponseStatus)
-
-  return <StackedCell primary={event.lastError ?? cells.noError} secondary={status} />
 }
 
 /**
@@ -103,8 +97,8 @@ export function FailedEventsPage() {
 
   // Debajo de `md` (el proyector de 800×600) quedan el evento, su estado y lo
   // que se puede hacer con él. Los intentos, el próximo reintento y la fecha
-  // son contexto; el último error es un texto libre en una sola línea que, sin
-  // espacio, se llevaba puesta la columna de acciones.
+  // son contexto; el último error, aun resumido a un código y una frase, sin
+  // espacio se llevaba puesta la columna de acciones.
   const tableColumns: DataTableColumn<FailedEvent>[] = [
     {
       id: 'event',
@@ -140,7 +134,12 @@ export function FailedEventsPage() {
       hideBelow: 'md',
       render: (event) => nextRetryCell(event, now),
     },
-    { id: 'lastError', header: columns.lastError, hideBelow: 'md', render: lastErrorCell },
+    {
+      id: 'lastError',
+      header: columns.lastError,
+      hideBelow: 'md',
+      render: (event) => <LastErrorCell event={event} />,
+    },
     {
       id: 'createdAt',
       header: columns.createdAt,

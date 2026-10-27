@@ -20,6 +20,8 @@ interface ApiFailedEvent {
   attempts: number
   max_attempts: number
   next_retry_at: string | null
+  error_code: string | null
+  error_message: string | null
   last_error: string | null
   last_response_status: number | null
   created_at: string
@@ -39,6 +41,8 @@ function toFailedEvent(event: ApiFailedEvent): FailedEvent {
     attempts: event.attempts,
     maxAttempts: event.max_attempts,
     nextRetryAt: event.next_retry_at,
+    errorCode: event.error_code,
+    errorMessage: event.error_message,
     lastError: event.last_error,
     lastResponseStatus: event.last_response_status,
     createdAt: event.created_at,
