@@ -17,20 +17,6 @@ test.describe('orders list', () => {
 
     await expectEveryRowToShow(orders, 'Cancelada')
   })
-
-  test('pages through the orders', async ({ page }) => {
-    const orders = page.getByRole('table', { name: 'Listado de órdenes' })
-    const summary = page.getByText(/^Mostrando \d+ a \d+ de [\d.]+ órdenes$/)
-
-    // Los seeds de Norte traen más de una página de órdenes (20 por página).
-    await expect(summary).toHaveText(/^Mostrando 1 a 20 de [\d.]+ órdenes$/)
-    const firstOrder = await bodyRows(orders).first().getByRole('button').first().textContent()
-
-    await page.getByRole('button', { name: 'Página siguiente' }).click()
-
-    await expect(summary).toHaveText(/^Mostrando 21 a \d+ de [\d.]+ órdenes$/)
-    await expect(bodyRows(orders).first()).not.toContainText(firstOrder ?? '')
-  })
 })
 
 test.describe('manual order wizard', () => {

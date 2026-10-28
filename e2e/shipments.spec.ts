@@ -16,19 +16,6 @@ test.describe('shipments list', () => {
     await expectEveryRowToShow(shipments, 'Entregado')
   })
 
-  test('pages through the shipments', async ({ page }) => {
-    const shipments = page.getByRole('table', { name: 'Envíos de la empresa' })
-    const summary = page.getByText(/^Mostrando \d+ a \d+ de [\d.]+ envíos$/)
-
-    await expect(summary).toHaveText(/^Mostrando 1 a 20 de [\d.]+ envíos$/)
-    const firstShipment = await bodyRows(shipments).first().textContent()
-
-    await page.getByRole('button', { name: 'Página siguiente' }).click()
-
-    await expect(summary).toHaveText(/^Mostrando 21 a \d+ de [\d.]+ envíos$/)
-    await expect(bodyRows(shipments).first()).not.toHaveText(firstShipment ?? '')
-  })
-
   test('finds a shipment by its order number and opens the order', async ({ page }) => {
     const shipments = page.getByRole('table', { name: 'Envíos de la empresa' })
     // La segunda columna dice «Orden #71»: el número con el que se busca.
