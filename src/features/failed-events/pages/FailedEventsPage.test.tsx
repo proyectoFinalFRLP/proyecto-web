@@ -39,7 +39,10 @@ const DEAD: FailedEvent = {
   attempts: 5,
   maxAttempts: 5,
   nextRetryAt: null,
-  lastError: 'product not found for external id 123',
+  errorCode: 'ORD-002',
+  errorMessage: 'La venta trae un producto sin vincular',
+  lastError:
+    "Orders::ProcessWebhookOrder::UnmappedProductError: external product '123' is not mapped to any internal product",
   lastResponseStatus: null,
   createdAt: '2026-10-02T10:00:00Z',
 }
@@ -52,11 +55,20 @@ const PENDING: FailedEvent = {
   status: 'pending',
   attempts: 2,
   nextRetryAt: '2026-10-02T12:04:00Z',
-  lastError: 'Service Unavailable',
+  errorCode: 'INT-005',
+  errorMessage: 'El proveedor no está disponible',
+  lastError: 'Integrations::AdapterExecutionError: Mercado Libre responded with HTTP 503',
   lastResponseStatus: 503,
 }
 
-const SUCCEEDED: FailedEvent = { ...DEAD, id: 13, status: 'succeeded', lastError: null }
+const SUCCEEDED: FailedEvent = {
+  ...DEAD,
+  id: 13,
+  status: 'succeeded',
+  errorCode: null,
+  errorMessage: null,
+  lastError: null,
+}
 
 const mutate = vi.fn()
 
@@ -93,16 +105,27 @@ describe('FailedEventsPage', () => {
     expect(pending.getByText('2 / 5')).toBeInTheDocument()
   })
 
-  it('shows the last error with the HTTP status of the answer', () => {
+  it('shows the support code and the cause in words, with the reference and HTTP status', () => {
     renderPage()
 
-    expect(row('Service Unavailable').getByText('HTTP 503')).toBeInTheDocument()
+    const pending = row('El proveedor no está disponible')
+    expect(pending.getByText('INT-005')).toBeInTheDocument()
+    expect(pending.getByText('Ref. #12 · HTTP 503')).toBeInTheDocument()
+  })
+
+  it('keeps the technical text of the error out of the table', () => {
+    renderPage()
+
+    expect(screen.queryByText(/AdapterExecutionError/)).toBeNull()
+    expect(screen.queryByText(/UnmappedProductError/)).toBeNull()
   })
 
   it('says when the next automatic retry is due', () => {
     renderPage()
 
-    expect(row('Service Unavailable').getByText('dentro de 4 minutos')).toBeInTheDocument()
+    expect(
+      row('El proveedor no está disponible').getByText('dentro de 4 minutos'),
+    ).toBeInTheDocument()
   })
 
   it('shows the count of each tab', () => {
