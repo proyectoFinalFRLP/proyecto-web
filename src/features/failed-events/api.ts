@@ -41,8 +41,10 @@ function toFailedEvent(event: ApiFailedEvent): FailedEvent {
     attempts: event.attempts,
     maxAttempts: event.max_attempts,
     nextRetryAt: event.next_retry_at,
-    errorCode: event.error_code,
-    errorMessage: event.error_message,
+    // `?? null`: una API anterior a los códigos de soporte no manda estos
+    // campos, y la celda distingue «sin código» comparando contra `null`.
+    errorCode: event.error_code ?? null,
+    errorMessage: event.error_message ?? null,
     lastError: event.last_error,
     lastResponseStatus: event.last_response_status,
     createdAt: event.created_at,
