@@ -14,15 +14,15 @@ describe('formatCompact', () => {
     expect(formatCompact(2500)).toBe('2,5k')
   })
 
-  it('abbreviates millions with MM, the way the operation talks about pesos', () => {
-    expect(formatCompact(4_200_000)).toBe('4,2 MM')
-    expect(formatCompact(1_000_000)).toBe('1 MM')
+  it('abbreviates millions with a single M, never with MM', () => {
+    expect(formatCompact(4_200_000)).toBe('4,2 M')
+    expect(formatCompact(1_000_000)).toBe('1 M')
   })
 
   // El eje y la tarjeta se leen de un vistazo: un segundo decimal es ruido.
   it('keeps one decimal at most', () => {
     expect(formatCompact(7_456)).toBe('7,5k')
-    expect(formatCompact(4_248_000)).toBe('4,2 MM')
+    expect(formatCompact(4_248_000)).toBe('4,2 M')
   })
 
   it('keeps the sign of a negative figure', () => {
@@ -32,7 +32,7 @@ describe('formatCompact', () => {
 
 describe('formatCompactMoney', () => {
   it('glues the peso sign to the abbreviated figure, as in the design', () => {
-    expect(formatCompactMoney(4_200_000)).toBe('$4,2 MM')
+    expect(formatCompactMoney(4_200_000)).toBe('$4,2 M')
   })
 })
 

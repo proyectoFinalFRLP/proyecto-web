@@ -75,7 +75,7 @@ describe('ReportsPage', () => {
     expect(screen.getByText('Volumen despachado')).toBeInTheDocument()
     // «Facturación» también es una opción del segmentado: la tarjeta se busca
     // por su valor.
-    expect(screen.getByText('$4,2 MM')).toBeInTheDocument()
+    expect(screen.getByText('$4,2 M')).toBeInTheDocument()
     expect(screen.getByText('Cumplimiento de entregas')).toBeInTheDocument()
     expect(screen.getByText('Anomalías activas')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Curva de ventas' })).toBeInTheDocument()
