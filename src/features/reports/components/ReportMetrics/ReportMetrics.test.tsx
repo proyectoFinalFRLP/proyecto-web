@@ -14,7 +14,7 @@ describe('ReportMetrics', () => {
     renderWithTheme(<ReportMetrics kpis={KPIS} />)
 
     expect(screen.getByText('124.592')).toBeInTheDocument()
-    expect(screen.getByText('$4,2 MM')).toBeInTheDocument()
+    expect(screen.getByText('$4,2 M')).toBeInTheDocument()
     expect(screen.getByText('98,2%')).toBeInTheDocument()
     expect(screen.getByText('142')).toBeInTheDocument()
   })
